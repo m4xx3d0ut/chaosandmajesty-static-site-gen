@@ -1,0 +1,11 @@
+body {
+  width: 35em;
+  margin: 0 auto;
+  font-family: Roboto;
+  background-color: black;
+}
+
+#tagline {
+  color: green;
+  opacity: 0;
+}
