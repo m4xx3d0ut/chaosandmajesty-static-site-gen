@@ -1,11 +1,24 @@
 body {
   width: 35em;
   margin: 0 auto;
-  font-family: Roboto;
+  font-family: 'Rubik Iso', cursive;
   background-color: black;
 }
 
 #tagline {
-  color: green;
+  color: #66ff00;
+  font-size: 2em;
   opacity: 0;
+}
+
+p.wopr {
+  color: #66ff00;
+}
+
+.center {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: auto;
+	opacity: 1;
 }
