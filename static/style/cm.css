@@ -11,6 +11,14 @@ body {
   opacity: 0;
 }
 
+#uIn {
+  background: black;
+  background-color: black;
+  color: #66ff00;
+  width: 100%;
+  font-family: 'Syne Mono', monospace;
+}
+
 p.wopr {
   color: #66ff00;
 }
