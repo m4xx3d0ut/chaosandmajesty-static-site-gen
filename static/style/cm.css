@@ -11,7 +11,7 @@ body {
   opacity: 0;
 }
 
-#uIn {
+.term {
   background: black;
   background-color: black;
   color: #66ff00;

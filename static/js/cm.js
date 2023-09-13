@@ -2,9 +2,9 @@ var opacity = 0;
 var intervalID = 0;
 var out = 0;
 var hello = [
-	['GREETINGS PROFESSOR FALKEN.', 'tOut0'],
-	['HOW ARE YOU FEELING TODAY?', 'tOut1'],
-	['SHALL WE PLAY A GAME?', 'tOut2']
+	'GREETINGS PROFESSOR FALKEN.',
+	'HOW ARE YOU FEELING TODAY?',
+	'SHALL WE PLAY A GAME?'
 ]
 var eol = 'sOut';
 var eolChar = '.';
@@ -12,7 +12,18 @@ var elementId = 0;
 var i = 0;
 var tSpeed = 100;
 
-window.onload = main;
+window.onload = (event) => {
+    main();
+	const termIn = document.getElementById("uIn");
+	termIn.addEventListener("keyup", function(e) {
+	    if (e.which === 13) {
+	    	var cli = e.target.value;
+        	terminal([cli]);
+        	console.log(e.target.value);
+        	e.target.value = "";
+    	}
+	});
+}
           
 function fadeBounce() {
   setInterval(show, 200);
@@ -43,21 +54,27 @@ function blink(element) {
 }
 
 function terminal(msgOut) {
-	var msg = msgOut[elementId][0];
-	var eId = msgOut[elementId][1];
+	console.log("terminal");
+	var msg = msgOut[elementId];
+	if (msg === undefined) {
+		return;
+	}
 	var msgLen = msg.length;
+	const term = document.getElementById("tOut");
 	if (i < msg.length) {
-		document.getElementById(eId).innerHTML += msg.charAt(i);
+		term.value += msg.charAt(i);
 		i++;
 	} else {
 		i = 0;
 		elementId++;
+		term.value += '\n'
 	}
-	if (elementId < hello.length) {
+	if (elementId < msgOut.length) {
 		setTimeout(terminal, tSpeed, msgOut, elementId);	
 	}
-	if (elementId === hello.length) {
-		blink(eol);
+	if (elementId === msgOut.length) {
+		//blink(eol);
+		elementId = 0;
 	}
 }
 
