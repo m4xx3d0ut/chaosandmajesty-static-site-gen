@@ -6,8 +6,7 @@ var hello = [
 	'HOW ARE YOU FEELING TODAY?',
 	'SHALL WE PLAY A GAME?'
 ]
-var eol = 'sOut';
-var eolChar = '.';
+var allowIn = true;
 var elementId = 0;
 var i = 0;
 var tSpeed = 100;
@@ -16,10 +15,9 @@ window.onload = (event) => {
     main();
 	const termIn = document.getElementById("uIn");
 	termIn.addEventListener("keyup", function(e) {
-	    if (e.which === 13) {
+	    if (e.which === 13 && allowIn) {
 	    	var cli = e.target.value;
         	terminal([cli]);
-        	console.log(e.target.value);
         	e.target.value = "";
     	}
 	});
@@ -54,11 +52,11 @@ function blink(element) {
 }
 
 function terminal(msgOut) {
-	console.log("terminal");
 	var msg = msgOut[elementId];
 	if (msg === undefined) {
 		return;
 	}
+	allowIn = false;
 	var msgLen = msg.length;
 	const term = document.getElementById("tOut");
 	if (i < msg.length) {
@@ -67,14 +65,14 @@ function terminal(msgOut) {
 	} else {
 		i = 0;
 		elementId++;
-		term.value += '\n'
+		term.value += '\n$ '
 	}
 	if (elementId < msgOut.length) {
 		setTimeout(terminal, tSpeed, msgOut, elementId);	
 	}
 	if (elementId === msgOut.length) {
-		//blink(eol);
 		elementId = 0;
+		allowIn = true;
 	}
 }
 

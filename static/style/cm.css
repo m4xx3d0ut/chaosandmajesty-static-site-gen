@@ -11,6 +11,19 @@ body {
   opacity: 0;
 }
 
+#console {
+  padding: 0.8rem;
+  outline: 0.2rem solid #66ff00;
+  border-radius: 8px;
+}
+
+#foot {
+  width: 30em;
+  color: #66ff00;
+  font-family: 'Syne Mono', monospace;
+  margin: auto;
+}
+
 .term {
   background: black;
   background-color: black;
@@ -24,9 +37,9 @@ p.wopr {
 }
 
 .center {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	width: auto;
-	opacity: 1;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: auto;
+  opacity: 1;
 }
