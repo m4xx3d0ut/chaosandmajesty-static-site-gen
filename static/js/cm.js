@@ -4,7 +4,13 @@ var out = 0;
 var hello = [
 	'GREETINGS PROFESSOR FALKEN.',
 	'HOW ARE YOU FEELING TODAY?',
-	'SHALL WE PLAY A GAME?'
+	'SHALL WE PLAY A GAME?',
+	'S2VybmVsIFBhbmljIQo=',
+	'.',
+	'..',
+	'...',
+	'All your internet are belong to us!',
+	'Who are you looking for?'
 ]
 var allowIn = true;
 var elementId = 0;
@@ -49,6 +55,10 @@ function blink(element) {
 	setInterval(function (eId) {
 		eId.style.visibility = (eId.style.visibility == 'hidden' ? '' : 'hidden');
 	}, speed, eId);
+}
+
+function termFunc(input) {
+    console.log(input);
 }
 
 function terminal(msgOut) {
