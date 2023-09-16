@@ -44,7 +44,7 @@ var prof = [
 var allowIn = true;
 var elementId = 0;
 var i = 0;
-var tSpeed = 25;
+var tSpeed = 75;
 String.prototype.trim = function() {
   return this.replace(/^\s+|\s+$/g, "");
 };
@@ -147,6 +147,10 @@ function terminal(msgOut) {
     if (elementId < msgOut.length) {
         setTimeout(terminal, tSpeed, msgOut, elementId);
     }
+    if (tSpeed > 25 && elementId >= 3) {
+        console.log('END TERM FUNC');
+        tSpeed = 25;
+    }
     if (elementId === msgOut.length) {
         elementId = 0;
         allowIn = true;
@@ -160,4 +164,5 @@ function scrollTerm(el) {
 function main() {
     fadeBounce();
     terminal(hello);
+    // tSpeed = 25;
 }
