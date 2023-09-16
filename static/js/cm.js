@@ -44,7 +44,7 @@ var prof = [
 var allowIn = true;
 var elementId = 0;
 var i = 0;
-var tSpeed = 100;
+var tSpeed = 25;
 String.prototype.trim = function() {
   return this.replace(/^\s+|\s+$/g, "");
 };
