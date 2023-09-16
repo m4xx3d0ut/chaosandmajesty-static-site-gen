@@ -6,13 +6,41 @@ var hello = [
     'HOW ARE YOU FEELING TODAY?',
     'SHALL WE PLAY A GAME?',
     'S2VybmVsIFBhbmljIQo=',
-    '.',
-    '..',
-    '...',
+    'Payload_Execute......',
+    'Reverse_Shell_Starting...',
     'ALL YOUR BASE ARE BELONG TO US!',
-    'Who are you looking for?'
+    'Awaiting command...'
 ]
 var opts = ['paul', 'm4xx3d0ut', 'renee', 'matica']
+var prof = [
+    [
+        'Seaching... Profile found!',
+        '---',
+        'Name: Paul Kolesa',
+        'Handle: m4xx3d0ut',
+        'Email: ',
+        'mailto:hakr@theinfinitereality.com',
+        'hakr@theinfinitereality.com',
+        'LinkedIn: ',
+        'https://www.linkedin.com/in/paul-k-a3a18196/',
+        'The Architect',
+        'About: Paul (m4xx3d0ut) is iR\'s Swiss Army Knife! Currently serving as Sr. Information Security Officer and InfoSec team lead, he is also the architect of the video infrastructure for their immersive experiences. A Pythonista at heart, he is capable of working across a number of languages and frameworks.',
+        '---',
+        'End of transmission...'
+    ],
+    [
+        'Seaching... Profile found!',
+        '---',
+        'Name: Renee Kresho-Kolesa',
+        'Handle: matica8',
+        'LinkedIn: ',
+        'https://www.linkedin.com/in/rene%C3%A9-k-025083bb/',
+        'Producer/Audio Engineer/ICC',
+        'About: Renee rules.',
+        '---',
+        'End of transmission...'
+    ]
+]
 var allowIn = true;
 var elementId = 0;
 var i = 0;
@@ -78,9 +106,9 @@ function termFunc(input) {
         if (term.includes(opt)) {
             valid = true;
             if (opt === opts[0] || opt === opts[1]) {
-                terminal(['m4xx3d0ut Profile']);
+                terminal(prof[0]);
             } else if (opt == opts[2] || opt == opts[3]) {
-                terminal(['matica8 Profile']);
+                terminal(prof[1]);
             }
         }
     });
@@ -96,14 +124,28 @@ function terminal(msgOut) {
     }
     allowIn = false;
     var msgLen = msg.length;
-    const term = document.getElementById("tOut");
+    var term = document.getElementById("tOut");
+    var follow = followTerm(term);
     if (i < msg.length) {
-        term.value += msg.charAt(i);
+        term.innerHTML += msg.charAt(i);
         i++;
     } else {
         i = 0;
+        if (msg === 'Email: ' || msg === 'LinkedIn: ') {
+            var a = document.createElement('a');
+            var link = document.createTextNode(msgOut[elementId+2])
+            a.appendChild(link);
+            a.title = msgOut[elementId+2];
+            a.href = msgOut[elementId+1];
+            a.target = '_blank';
+            term.append(a);
+            elementId += 2;
+        }
         elementId++;
-        term.value += '\n$ '
+        term.innerHTML += '<br>$ '
+    }
+    if (follow) {
+        scrollTerm(term);
     }
     if (elementId < msgOut.length) {
         setTimeout(terminal, tSpeed, msgOut, elementId);    
@@ -112,6 +154,17 @@ function terminal(msgOut) {
         elementId = 0;
         allowIn = true;
     }
+}
+
+function followTerm(el) {
+  if (el.scrollTop >= (el.scrollHeight - el.offsetHeight)) {
+      return true;
+  }
+  return false;
+}
+
+function scrollTerm(el) {
+  el.scrollTop = el.scrollHeight;
 }
 
 function main() {
