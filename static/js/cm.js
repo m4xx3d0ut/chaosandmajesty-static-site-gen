@@ -148,7 +148,6 @@ function terminal(msgOut) {
         setTimeout(terminal, tSpeed, msgOut, elementId);
     }
     if (tSpeed > 25 && elementId >= 3) {
-        console.log('END TERM FUNC');
         tSpeed = 25;
     }
     if (elementId === msgOut.length) {
