@@ -125,7 +125,6 @@ function terminal(msgOut) {
     allowIn = false;
     var msgLen = msg.length;
     var term = document.getElementById("tOut");
-    var follow = followTerm(term);
     if (i < msg.length) {
         term.innerHTML += msg.charAt(i);
         i++;
@@ -142,25 +141,16 @@ function terminal(msgOut) {
             elementId += 2;
         }
         elementId++;
-        term.innerHTML += '<br>$ '
+        term.innerHTML += '<br>$ ';
     }
-    if (follow) {
-        scrollTerm(term);
-    }
+    scrollTerm(term);
     if (elementId < msgOut.length) {
-        setTimeout(terminal, tSpeed, msgOut, elementId);    
+        setTimeout(terminal, tSpeed, msgOut, elementId);
     }
     if (elementId === msgOut.length) {
         elementId = 0;
         allowIn = true;
     }
-}
-
-function followTerm(el) {
-  if (el.scrollTop >= (el.scrollHeight - el.offsetHeight)) {
-      return true;
-  }
-  return false;
 }
 
 function scrollTerm(el) {
