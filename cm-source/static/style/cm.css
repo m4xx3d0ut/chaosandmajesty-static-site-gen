@@ -1,0 +1,499 @@
+body {
+  margin: 0;
+  font-family: 'Rubik Iso', cursive;
+  background-color: black;
+  color: #66ff00;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hscroll {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+#tagline {
+  color: #66ff00;
+  font-size: 2em;
+  opacity: 0;
+}
+
+#console {
+  padding: 0.8rem;
+  outline: 0.2rem solid #66ff00;
+  border-radius: 8px;
+  width: 540px;
+  min-width: 540px;
+  height: 406px;
+  min-height: 406px;
+  margin: 2em auto;
+}
+
+#foot {
+  color: #66ff00;
+  font-family: 'Syne Mono', monospace;
+  margin: auto;
+  text-align: center;
+}
+
+.screen {
+  outline: 0.1rem solid #66ff00;
+  border-radius: 8px;
+  width: 540px;
+  min-width: 540px;
+  height: 396px;
+  min-height: 396px;
+  margin-top: -5px;
+  color: #66ff00;
+  font-family: 'Syne Mono', monospace;
+  overflow-y: auto;
+}
+
+.term {
+  background: black;
+  background-color: black;
+  color: #66ff00;
+  width: 98.5%;
+  font-family: 'Syne Mono', monospace;
+}
+
+p.wopr {
+  color: #66ff00;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: auto;
+  opacity: 1;
+}
+
+/* Ensure all text elements use the green color */
+h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, pre, code {
+  color: #66ff00;
+}
+
+/* Override any content from the markdown rendering */
+.page-content {
+  color: #66ff00;
+}
+
+.page-content * {
+  color: #66ff00;
+}
+
+/* Ensure links maintain the green color */
+a, a:visited, a:hover, a:active {
+  color: #66ff00;
+  text-decoration: underline;
+}
+
+/* CM-specific overrides for the template */
+body.cm-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+body.cm-body .container,
+body.cm-body .header-container,
+body.cm-body .footer-container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+body.cm-body main {
+  flex: 1 0 auto;
+  padding: 2.5rem 0;
+}
+
+/* Full-width header and footer */
+body.cm-body header {
+  background-color: black;
+  width: 100%;
+  border-bottom: 1px solid #66ff00;
+  padding: 1rem 0;
+  box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+body.cm-body footer {
+  background-color: black;
+  width: 100%;
+  border-top: 1px solid #66ff00;
+  padding: 1.5rem 0 1rem 0;
+  text-align: center;
+  margin-top: auto;
+}
+
+/* Header container to control content width */
+body.cm-body .header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body.cm-body .logo-text {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #66ff00;
+  font-weight: 600;
+}
+
+/* Logo sizing from modern.css */
+body.cm-body .logo {
+  max-height: 40px;
+  width: auto;
+}
+
+/* Navigation styles for CM theme */
+body.cm-body .nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #66ff00;
+}
+
+/* Hamburger menu icon */
+body.cm-body .nav-toggle svg {
+  stroke: #66ff00;
+}
+
+/* Horizontal navigation for desktop */
+body.cm-body .main-nav .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+}
+
+body.cm-body .nav-links li {
+  margin: 0;
+}
+
+body.cm-body .nav-links li a {
+  color: #66ff00;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.cm-body .nav-links li a:hover,
+body.cm-body .nav-links li a:focus {
+  background-color: #003300;
+  color: #99ff66;
+}
+
+/* Banner image size from modern.css */
+body.cm-body .page-image {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+body.cm-body .page-image img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0, 255, 0, 0.3);
+  display: block;
+  margin: 0 auto;
+}
+
+/* Full-viewport-width main image when class applied */
+body.cm-body .page-image.full-viewport,
+body.cm-body .page-image.full-viewport img {
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  border-radius: 0;
+  box-shadow: 0 2px 16px rgba(0, 255, 0, 0.3);
+  display: block;
+  padding: 0 !important;
+}
+
+/* Font imports for terminal-like fonts */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+
+/* Content font class that can be set from YAML */
+body.cm-body .content-font-terminal {
+  font-family: 'VT323', 'Share Tech Mono', monospace;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+
+body.cm-body .content-font-modern-mono {
+  font-family: 'Fira Code', 'Space Mono', monospace;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+body.cm-body .content-font-system-mono {
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.5;
+}
+
+/* Apply content font to all content areas */
+body.cm-body .page-content {
+  color: #66ff00;
+}
+
+/* Ensure code blocks maintain monospace styling */
+body.cm-body pre,
+body.cm-body code {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  background-color: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+}
+
+body.cm-body pre {
+  padding: 1em;
+  overflow-x: auto;
+}
+
+body.cm-body pre code {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Terminal-specific styling for content */
+body.cm-body .terminal-style .page-content {
+  position: relative;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid #66ff00;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* Cursor effect for terminal style */
+body.cm-body .terminal-style .page-content::after {
+  content: "█";
+  position: relative;
+  display: inline-block;
+  color: #66ff00;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Scanline effect for terminal style */
+body.cm-body .terminal-style .page-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 255, 0, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 100% 3px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Mobile navigation styles */
+@media (max-width: 768px) {
+  /* Show hamburger on mobile and align to the right */
+  body.cm-body .nav-toggle {
+    display: block;
+    margin-left: auto; /* Push to the right */
+  }
+  
+  /* Adjust header container for mobile to ensure proper alignment */
+  body.cm-body .header-container {
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Hide nav links by default on mobile */
+  body.cm-body .main-nav .nav-links {
+    display: none;
+    flex-direction: column;
+    background-color: black;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+    z-index: 100;
+  }
+  
+  /* Show nav links when hamburger is clicked */
+  body.cm-body header.nav-open .nav-links {
+    display: flex;
+  }
+  
+  body.cm-body .main-nav .nav-links li {
+    margin: 0;
+    text-align: center;
+  }
+  
+  body.cm-body .main-nav .nav-links li a {
+    display: block;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* CTA Button Styling */
+.cta-wrapper {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 3rem; /* Add more space between CTA and footer */
+}
+
+.cta-btn {
+  display: inline-block;
+  padding: 0.85rem 2.2rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #1a1a1a; /* Dark gray background instead of blue */
+  border: 1px solid #333; /* Subtle border */
+  border-radius: 2em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cta-btn:hover,
+.cta-btn:focus {
+  background-color: #66ff00; /* Keep the green hover state */
+  color: #000;
+  border-color: #66ff00;
+  transform: translateY(-2px) scale(1.03);
+} transform: translateY(-2px) scale(1.03);
+
+/* Terminal navigation button */
+.cm-run-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #66ff00;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cm-run-button:hover {
+  background-color: #33cc00;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+}
+
+.cm-console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cm-console-header h3 {
+  margin: 0;
+  color: #66ff00;
+  font-family: 'VT323', 'Share Tech Mono', monospace;
+}
+
+/* Footer links in horizontal row */
+body.cm-body .footer-links {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+body.cm-body .footer-links li a {
+  color: #66ff00;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+body.cm-body .footer-links li a:hover,
+body.cm-body .footer-links li a:focus {
+  color: #99ff66;
+  text-decoration: underline;
+}
+
+/* Footer copyright text */
+body.cm-body .footer-copy {
+  font-size: 0.875rem;
+  margin: 0;
+  color: #66ff00;
+}
+
+/* CM-specific footer content */
+body.cm-body #foot {
+  margin-top: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  #console {
+    width: 90%;
+    min-width: auto;
+    max-width: 540px;
+  }
+  
+  .screen {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  body.cm-body .page-title {
+    font-size: 1.8rem;
+    margin: 0.75rem 0;
+  }
+}
+
+/* Tablet tweaks */
+@media (max-width: 1024px) {
+  body.cm-body .nav-links li a {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+  }
+}

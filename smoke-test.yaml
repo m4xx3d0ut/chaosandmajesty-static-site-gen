@@ -1,0 +1,287 @@
+title: Core
+
+description: All your base are belong to us.
+
+# CM-specific settings
+cmTitle: Core
+cmTagline: These are not the droids you are looking for...
+cmFooterText: Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+
+parallaxImage: assets/template/logo-sitegen-parallax.png
+parallaxPush: "10vh"
+
+assets: static-sitegen/assets
+templates: static-sitegen/templates
+
+pages:
+  # - title: About
+  #   slug: about
+  #   content: |
+  #     ## About SiteGen
+  #
+  #     **Welcome to SiteGen!**  
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus blandit, lorem non dictum dictum, arcu risus tincidunt justo, in euismod eros justo in metus. 
+  #
+  #     ### Meet the Team
+  #     
+  #     SiteGen was founded by Jane Doe and John Smith.
+  #
+  #     <div style="text-align: center;">
+  #       <img src="assets/template/stick-fig-template.jpg" alt="Team" style="width: 200px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);" />
+  #       <p style="font-size: 1.1em; color: var(--text-secondary); margin-top: 0.5em;">Our dedicated team at SiteGen</p>
+  #     </div>
+  #
+  #     ### Our Contributors
+  #
+  #     * Alice Example (Lead Developer)
+  #     * Bob Sample (UX Designer)
+  #     * Charlie Placeholder (Content Writer)
+  #
+  #     ---
+  #
+  #     ### Why Use SiteGen?
+  #
+  #     - **Easy configuration** via YAML  
+  #     - Supports *Markdown* and **HTML**  
+  #     - Modern responsive design  
+  #     - Built-in theming and parallax backgrounds  
+  #     - Simple asset management
+  #
+  #     > “SiteGen made building our static site a breeze!”  
+  #     > — *Jane Doe, Founder*
+  #
+  #     ### Example Markdown
+  #
+  #     Here’s an example code block:
+  #
+  #     ```yaml
+  #     theme:
+  #       mode: dark
+  #       primary_color: "#1e40af"
+  #       secondary_color: "#f59e42"
+  #     ```
+  #
+  #     Or inline code: ``sitegen ./your-config.yaml ./output_dir``
+  #
+  #     ### Parallax Background Demo
+  #
+  #     ![Sample Parallax](assets/template/logo-sitegen-parallax.png)
+  #
+  #     The background above uses our parallax feature—customizable via config!
+  #
+  #   image: assets/template/logo-template.png
+  #   fullWidthImage: false
+  #   hideTitle: false
+  #
+  - title: Blog
+    slug: blog
+    # Enable CM styling consistently with index
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    # Use the same template as index
+    template: "home.ejs"
+    # Match index page structure
+    hideTitle: true
+    parallaxImage: "assets/template/logo-sitegen-parallax.png"
+    parallaxPush: "10vh"
+    # Add these properties to match index styling
+    mainImage: "assets/static/img/bunny-punx.webp"
+    mainImageAlt: "Punks not dead"
+    tagline: "Latest thoughts and musings"
+    content: |
+      ## Blog
+
+      Welcome to the SiteGen blog.  
+      *Stay tuned for the latest news and updates!*
+
+      Lorem
+    # Add column layout configuration
+    columnLayout:
+      enabled: true
+      ratio: "50/50"  # or "15/85", "25/75", "75/25"
+      leftContent: |
+        ## Recent Posts
+        - [Chaos Theory](sections/chaos.html)
+        - [Majesty Updates](sections/majesty.html)
+      rightContent: |
+        ## Featured Content
+        Latest developments and insights.ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi.  
+  # - title: Features
+  #   slug: features
+  #   content: |
+  #     ## Site Features
+  #
+  #     - Easy to use and highly customizable
+  #     - Responsive design out of the box
+  #     - Markdown and HTML content support
+  #     - Powered by YAML configuration
+  #
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse gravida pretium magna, vel pretium massa feugiat id.
+  #   
+  # - title: Contact
+  #   slug: contact
+  #   hideTitle: false
+  #   content: |
+  #     ## Contact Us
+  #
+  #     Reach out to us via email!
+  #
+  #     For general inquiries: [info@example.com](mailto:info@example.com)
+  #
+  #     Or use our contact form (coming soon!).
+
+styles: ["assets/modern.css"]
+
+index: 
+  title: Home
+
+  # Use CM console on home page
+  useCmHead: true
+  useCmConsole: true
+  useCmFooter: true
+  # cmImage: "assets/static/img/bunny-punx.webp"
+  use3DLogo: true
+  hideTitle: true
+
+  # Content styling
+  contentFont: "modern-mono" # Options: terminal, modern-mono, system-mono
+  terminalStyle: true # Adds terminal-like styling with cursor and scanlines
+
+  tagline: "These are not the droids you are looking for..."
+  # mainImage: "assets/static/img/bunny-punx.webp"
+  # mainImageAlt: "Punks not dead"
+  footerText: "Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR."
+
+  content: |
+
+    <br>
+
+    ## Welcome to Chaos & Majesty!
+
+    <br>
+
+    Gather round, denizens of the internet, for we have something to share.
+
+    <br>
+    
+    A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
+    Fellow denizians, this is our place, welcome home.
+
+    <br>
+
+    \- ***m4xx3d0ut*** & ***ReneéRules***
+
+    <br>
+
+  cta:
+    label: Visit the Blog
+    href: "blog.html"
+
+  # image: assets/template/logo-template.png
+  # fullWidthImage: true
+
+sections:
+  - id: chaos
+    heading: Chaos Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    content: |
+      ## Chaos Blog
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.  
+      Pellentesque sed turpis id urna convallis maximus.  
+      Proin tincidunt, purus nec tincidunt cursus, urna mi vehicula urna, eget consequat sem augue vel ligula.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Majesty](majesty.html)
+      rightContent: |
+        ## Chaos Theory in Practice
+        Full blog post content here...
+
+  - id: majesty
+    heading: Majesty Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    content: |
+      ## Majesty Blog
+
+      Etiam scelerisque, lorem eget pulvinar dictum, nisi sem dictum dui, id mattis neque nulla at lectus.  
+      Suspendisse potenti. Curabitur ultricies nibh a ex pretium, non hendrerit urna dignissim.
+
+      ```html
+      <!-- HTML is supported inside markdown content! -->
+      <button>Click me</button>
+      ```
+
+      > You can mix markdown and HTML for advanced layouts.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Chaos](chaos.html)
+      rightContent: |
+        ## Behold the Majesty
+        Full blog post content here...
+
+sitemap:
+  useCmHead: true
+  useCmFooter: true
+  cmImage: "assets/static/img/bunny-punx.webp"
+  hideTitle: true
+
+header:
+  links:
+    - label: Home
+      href: "index.html"
+    # - label: About
+    #   href: "about.html"
+    # - label: Features
+    #   href: "features.html"
+    # - label: Contact
+    #   href: "contact.html"
+    - label: Blog
+      href: "blog.html"
+    - label: Sitemap
+      href: "sitemap.html"
+
+footer:
+  text: © 2025 Example Static Site. All rights reserved.
+  links:
+    - label: GitHub
+      href: "https://github.com/example"
+    - label: Privacy Policy
+      href: "privacy.html"
+    - label: Terms
+      href: "terms.html"
+    # - label: Sitemap
+    #   href: "sitemap.html"
+
+domain: chaosandmajesty.com
+page_title: Chaos & Majesty
+logo: assets/static/img/not-dead.webp
+
+theme:
+  mode: dark
+  primary_color: "#1e40af"
+  secondary_color: "#f59e42"
+
+analytics_id: UA-XXXXXXXX-X
+social_preview_image: assets/social-preview.jpg
+
+meta:
+  description: All your base are belong to us.  Welcome to the Chaos and Majesty home!
+  keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker
+

@@ -1,0 +1,34 @@
+<%- include('base.ejs', { 
+  site: site, 
+  page: page,
+  content: content,
+  isSection: isSection
+}) %>
+
+<% if (page.useCmConsole) { %>
+<script>
+  // Terminal-style console script
+  document.addEventListener('DOMContentLoaded', function() {
+    const content = document.querySelector('.page-content');
+    if (content && <%= !!page.terminalStyle %>) {
+      content.classList.add('terminal-style');
+      
+      // Add blinking cursor
+      const cursor = document.createElement('span');
+      cursor.className = 'terminal-cursor';
+      cursor.innerHTML = '█';
+      content.appendChild(cursor);
+      
+      // Add scanline effect
+      const scanline = document.createElement('div');
+      scanline.className = 'scanline';
+      content.appendChild(scanline);
+    }
+    
+    // Apply terminal font if specified
+    if ('<%= page.contentFont %>') {
+      content.classList.add('font-<%= page.contentFont %>');
+    }
+  });
+</script>
+<% } %>

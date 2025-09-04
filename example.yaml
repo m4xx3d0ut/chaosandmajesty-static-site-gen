@@ -1,0 +1,52 @@
+# example.yaml
+domain: "example.com"
+page_title: "Welcome to Example Landing"
+logo: "assets/logo.png"
+theme:
+  mode: "dark"
+  primary_color: "#1e40af"
+  secondary_color: "#f59e42"
+analytics_id: "UA-12345678-1"
+social_preview_image: "assets/social-preview.png"
+header:
+  links:
+    - label: "Home"
+      href: "#home"
+    - label: "About"
+      href: "#about"
+    - label: "Features"
+      href: "#features"
+    - label: "Contact"
+      href: "#contact"
+sections:
+  - id: "home"
+    heading: "Home"
+    content: "content/home.md"
+    image: "assets/banner.jpg"
+    cta:
+      label: "Get Started"
+      href: "#contact"
+  - id: "about"
+    heading: "About Us"
+    content: "content/about.md"
+  - id: "features"
+    heading: "Features"
+    content: |
+      - Fast and reliable
+      - Modern responsive design
+      - Easy customization
+  - id: "contact"
+    heading: "Contact Us"
+    content: "Reach out via email at [info@example.com](mailto:info@example.com) or fill the form below."
+footer:
+  text: "© 2025 Example Inc. All rights reserved."
+  links:
+    - label: "Privacy Policy"
+      href: "/privacy"
+    - label: "Terms of Service"
+      href: "/terms"
+    - label: "GitHub"
+      href: "https://github.com/example"
+meta:
+  description: "A modern, minimalist landing page template for your business or project."
+  keywords: "landing, template, modern, minimal, website"
