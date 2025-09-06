@@ -1,3 +1,12 @@
+name: Build & Push (dev / site-output)
+
+on:
+  push:
+    branches: [ dev ]
+    paths:
+      - 'site-output/**'
+  workflow_dispatch: {}
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
