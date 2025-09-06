@@ -1,0 +1,40 @@
+jobs:
+  build-and-push:
+    runs-on: docker
+    env:
+      REGISTRY: reg.microk8s.core.home.arpa:32000
+      IMAGE_NAME: cm
+      TAG_SHA: dev-${{ gitea.sha.substr(0,7) }}
+      TAG_MAJOR: latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Registry login (optional)
+        if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output image refs
+        run: |
+          echo "Pushed:"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}"
+

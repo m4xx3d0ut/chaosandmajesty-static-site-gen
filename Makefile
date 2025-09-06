@@ -1,9 +1,28 @@
-.PHONY: help build up down dev logs clean test rebuild health
+.PHONY: help build up down dev logs clean test rebuild health install build-local serve-local \
+        microk8s-build microk8s-push microk8s-deploy
 
-# Default target
+# MicroK8s registry configuration
+MICROK8S_REG   ?= reg.microk8s.core.home.arpa:32000
+MICROK8S_IMAGE ?= cm
+# Prefer MICROK8S_TAGS (space-separated); falls back to single MICROK8S_TAG
+MICROK8S_TAG   ?= latest
+MICROK8S_TAGS  ?=
+
+# Internal: resolve TAGS from TAGS or TAG
+TAGS := $(strip $(if $(MICROK8S_TAGS),$(MICROK8S_TAGS),$(MICROK8S_TAG)))
+# Buildx/platform support (optional). Leave empty or set like: linux/amd64,linux/arm64
+PLATFORMS ?=
+
+# Compose the -t args for docker build
+TAG_ARGS := $(foreach t,$(TAGS),-t $(MICROK8S_REG)/$(MICROK8S_IMAGE):$(t))
+
 help: ## Show this help message
 	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@awk 'BEGIN {FS=":.*##"} \
+	     /^[a-zA-Z0-9_.-]+:.*##/ { \
+	       gsub(/^[[:space:]]+|[[:space:]]+$$/,"",$$2); \
+	       printf "\033[36m%-20s\033[0m %s\n", $$1, $$2 \
+	     }' $(MAKEFILE_LIST) | sort
 
 build: ## Build the Docker image
 	docker build -t cm:latest .
@@ -13,12 +32,6 @@ up: ## Start the application in production mode
 
 down: ## Stop and remove containers
 	docker compose down
-
-# dev: ## Start in development mode with hot reload
-# 	docker compose --profile dev up -d cm-dev
-#
-# dev-logs: ## Follow development logs
-# 	docker compose logs -f cm-dev
 
 logs: ## Follow application logs
 	docker compose logs -f cm
@@ -46,9 +59,6 @@ health: ## Check application health
 shell: ## Get shell access to running container
 	docker compose exec cm sh
 
-# dev-shell: ## Get shell access to development container
-# 	docker compose exec cm-dev sh
-
 install: ## Install dependencies locally
 	npm install
 
@@ -57,4 +67,19 @@ build-local: ## Build site locally (without Docker)
 
 serve-local: ## Serve built site locally
 	cd site-output && python3 -m http.server 8080
+
+microk8s-build: ## Build image for MicroK8s registry (supports multiple tags)
+	@if [ -n "$(PLATFORMS)" ]; then \
+	  echo ">> Using buildx for platforms: $(PLATFORMS)"; \
+	  docker buildx build --platform $(PLATFORMS) $(TAG_ARGS) . --load; \
+	else \
+	  docker build $(TAG_ARGS) .; \
+	fi
+
+microk8s-push: microk8s-build ## Build once and push all tags to MicroK8s registry
+	@set -e; \
+	for t in $(TAGS); do \
+	  echo ">> Pushing $(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t"; \
+	  docker push "$(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t"; \
+	done
 
