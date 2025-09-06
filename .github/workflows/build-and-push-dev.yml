@@ -26,17 +26,19 @@ jobs:
           install -m 700 -d ~/.ssh
           printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
           chmod 600 ~/.ssh/id_ci
+          # Use the port your clients will hit. External example (32222):
           printf "%s\n" "${{ secrets.CI_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          printf "%s\n" "Host gitea.core.home.arpa
-            User git
-            IdentityFile ~/.ssh/id_ci
-            IdentitiesOnly yes
-            StrictHostKeyChecking yes" >> ~/.ssh/config
 
-      - name: Clone (SSH)
+      - name: Clone repo (SSH, explicit port)
         run: |
-          REPO_SSH="git@gitea.core.home.arpa:m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          # Choose ONE of the two, whichever is reachable from the runner:
+
+          # 1) External/LAN address via router/NAT (your helm shows SSH_PORT 32222):
+          REPO_SSH="ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+
+          # 2) In-cluster service (if you have a ClusterIP for gitea), avoids router/DNSMasq entirely:
+          # REPO_SSH="ssh://git@gitea.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
           git clone --depth 1 --branch dev "$REPO_SSH" .
 
       - name: Registry login (optional)
