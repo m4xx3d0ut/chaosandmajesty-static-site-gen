@@ -12,7 +12,7 @@ jobs:
     env:
       REGISTRY: reg.microk8s.core.home.arpa:32000
       IMAGE_NAME: cm
-      TAG_SHA: dev-${{ gitea.sha.substr(0,7) }}
+      TAG_SHA: dev-${{ github.sha }}
       TAG_MAJOR: latest
 
     steps:
