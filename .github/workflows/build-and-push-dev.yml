@@ -10,7 +10,8 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      REGISTRY: reg.microk8s.core.home.arpa:32000
+      # ⬅️ use the in-cluster registry service/port (HTTP)
+      REGISTRY: registry.container-registry.svc.cluster.local:5000
       IMAGE_NAME: cm
       TAG_SHA: dev-${{ github.sha }}
       TAG_MAJOR: latest
@@ -28,7 +29,7 @@ jobs:
         env:
           GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
           GITEA_SSH_PORT: "2222"
-          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
+          REGISTRY_HOSTPORT: registry.container-registry.svc.cluster.local:5000
         shell: bash
         run: |
           set -euo pipefail
@@ -54,10 +55,8 @@ jobs:
           install -m 700 -d ~/.ssh
           printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
           chmod 600 ~/.ssh/id_ci
-          # Host key directly from the in-cluster Service (stable + self-healing)
           ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          # Force our key + strict host checking
           {
             echo "Host gitea-ssh.git-local.svc.cluster.local"
             echo "  User git"
@@ -71,6 +70,7 @@ jobs:
           REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
           git clone --depth 1 --branch dev "$REPO_SSH" .
 
+      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.
       - name: Registry login (optional)
         if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
         uses: docker/login-action@v3
@@ -79,8 +79,18 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      # ⬅️ Teach BuildKit that the in-cluster registry is HTTP/insecure
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          config-inline: |
+            [registry."registry.container-registry.svc.cluster.local:5000"]
+              http = true
+              insecure = true
+            # Optional: keep NodePort fallback if you ever push via LAN
+            [registry."reg.microk8s.core.home.arpa:32000"]
+              http = true
+              insecure = true
 
       - name: Build & push image
         uses: docker/build-push-action@v6
@@ -98,4 +108,3 @@ jobs:
           echo "Pushed:"
           echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}"
           echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}"
-
