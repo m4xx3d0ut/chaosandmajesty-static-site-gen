@@ -1,6 +1,6 @@
 jobs:
   build-and-push:
-    runs-on: docker
+    runs-on: ubuntu-latest
     env:
       REGISTRY: reg.microk8s.core.home.arpa:32000
       IMAGE_NAME: cm
