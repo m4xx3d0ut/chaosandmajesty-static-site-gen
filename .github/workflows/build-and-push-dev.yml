@@ -16,29 +16,59 @@ jobs:
       TAG_MAJOR: latest
 
     steps:
-      - name: Debug secrets presence (no contents)
+      - name: Install SSH client (if missing)
         run: |
-          test -n "${{ secrets.CI_DEPLOY_KEY }}" && echo "CI_DEPLOY_KEY: present" || (echo "CI_DEPLOY_KEY: MISSING" && exit 1)
-          test -n "${{ secrets.CI_KNOWN_HOSTS }}" && echo "CI_KNOWN_HOSTS: present" || (echo "CI_KNOWN_HOSTS: MISSING" && exit 1)
+          set -e
+          if ! command -v ssh-keyscan >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
 
-      - name: Setup SSH for clone
+      - name: DNS & connectivity checks (in-cluster)
+        env:
+          GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
+          GITEA_SSH_PORT: "2222"
+          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
+        shell: bash
         run: |
+          set -euo pipefail
+          echo "=== resolv.conf ==="; cat /etc/resolv.conf || true; echo
+          echo "=== getent hosts (gitea ssh svc) ==="
+          getent hosts "$GITEA_SVC_HOST" || (echo "FATAL: cannot resolve $GITEA_SVC_HOST" && exit 1)
+          echo
+          echo "=== TCP check gitea ssh ==="
+          timeout 5 bash -c ">/dev/tcp/$GITEA_SVC_HOST/$GITEA_SSH_PORT" || (echo "FATAL: cannot reach $GITEA_SVC_HOST:$GITEA_SSH_PORT" && exit 1)
+          echo "OK"; echo
+          echo "=== getent hosts (registry) ==="
+          REGISTRY_HOST="${REGISTRY_HOSTPORT%%:*}"
+          getent hosts "$REGISTRY_HOST" || (echo "FATAL: cannot resolve $REGISTRY_HOST" && exit 1)
+          echo
+          echo "=== TCP check registry ==="
+          REGISTRY_PORT="${REGISTRY_HOSTPORT##*:}"
+          timeout 5 bash -c ">/dev/tcp/$REGISTRY_HOST/$REGISTRY_PORT" || (echo "FATAL: cannot reach $REGISTRY_HOSTPORT" && exit 1)
+          echo "OK"
+
+      - name: Setup SSH material
+        run: |
+          set -euo pipefail
           install -m 700 -d ~/.ssh
           printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
           chmod 600 ~/.ssh/id_ci
-          # Use the port your clients will hit. External example (32222):
-          printf "%s\n" "${{ secrets.CI_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          # Host key directly from the in-cluster Service (stable + self-healing)
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+          # Force our key + strict host checking
+          {
+            echo "Host gitea-ssh.git-local.svc.cluster.local"
+            echo "  User git"
+            echo "  IdentityFile ~/.ssh/id_ci"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } >> ~/.ssh/config
 
-      - name: Clone repo (SSH, explicit port)
+      - name: Clone repo (SSH via in-cluster service)
         run: |
-          # Choose ONE of the two, whichever is reachable from the runner:
-
-          # 1) External/LAN address via router/NAT (your helm shows SSH_PORT 32222):
-          REPO_SSH="ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
-
-          # 2) In-cluster service (if you have a ClusterIP for gitea), avoids router/DNSMasq entirely:
-          # REPO_SSH="ssh://git@gitea.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
           git clone --depth 1 --branch dev "$REPO_SSH" .
 
       - name: Registry login (optional)
