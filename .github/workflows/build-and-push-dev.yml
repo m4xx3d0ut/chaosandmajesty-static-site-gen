@@ -16,11 +16,17 @@ jobs:
       TAG_SHA: dev-${{ gitea.sha.substr(0,7) }}
       TAG_MAJOR: latest
     steps:
+      - name: Debug secrets presence (no contents)
+        run: |
+          test -n "${{ secrets.CI_DEPLOY_KEY }}" && echo "CI_DEPLOY_KEY: present" || (echo "CI_DEPLOY_KEY: MISSING" && exit 1)
+          test -n "${{ secrets.CI_KNOWN_HOSTS }}" && echo "CI_KNOWN_HOSTS: present" || (echo "CI_KNOWN_HOSTS: MISSING" && exit 1)
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
           ssh-known-hosts: ${{ secrets.CI_KNOWN_HOSTS }}
+          ssh-strict: true
           persist-credentials: false
 
       - name: Registry login (optional)
