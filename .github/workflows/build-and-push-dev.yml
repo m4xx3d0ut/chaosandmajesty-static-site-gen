@@ -3,8 +3,7 @@ name: Build & Push (dev / site-output)
 on:
   push:
     branches: [ dev ]
-    paths:
-      - 'site-output/**'
+    paths: [ 'site-output/**' ]
   workflow_dispatch: {}
 
 jobs:
@@ -15,19 +14,30 @@ jobs:
       IMAGE_NAME: cm
       TAG_SHA: dev-${{ gitea.sha.substr(0,7) }}
       TAG_MAJOR: latest
+
     steps:
       - name: Debug secrets presence (no contents)
         run: |
           test -n "${{ secrets.CI_DEPLOY_KEY }}" && echo "CI_DEPLOY_KEY: present" || (echo "CI_DEPLOY_KEY: MISSING" && exit 1)
           test -n "${{ secrets.CI_KNOWN_HOSTS }}" && echo "CI_KNOWN_HOSTS: present" || (echo "CI_KNOWN_HOSTS: MISSING" && exit 1)
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-          ssh-known-hosts: ${{ secrets.CI_KNOWN_HOSTS }}
-          ssh-strict: true
-          persist-credentials: false
+      - name: Setup SSH for clone
+        run: |
+          install -m 700 -d ~/.ssh
+          printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          printf "%s\n" "${{ secrets.CI_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          printf "%s\n" "Host gitea.core.home.arpa
+            User git
+            IdentityFile ~/.ssh/id_ci
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes" >> ~/.ssh/config
+
+      - name: Clone (SSH)
+        run: |
+          REPO_SSH="git@gitea.core.home.arpa:m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          git clone --depth 1 --branch dev "$REPO_SSH" .
 
       - name: Registry login (optional)
         if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
