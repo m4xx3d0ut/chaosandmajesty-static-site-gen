@@ -18,6 +18,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
+          ssh-known-hosts: ${{ secrets.CI_KNOWN_HOSTS }}
+          persist-credentials: false
 
       - name: Registry login (optional)
         if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
