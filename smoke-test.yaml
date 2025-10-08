@@ -73,41 +73,7 @@ pages:
   #   fullWidthImage: false
   #   hideTitle: false
   #
-  - title: Blog
-    slug: blog
-    # Enable CM styling consistently with index
-    useCmHead: true
-    useCmFooter: true
-    cmImage: "assets/static/img/bunny-punx.webp"
-    # Use the same template as index
-    template: "home.ejs"
-    # Match index page structure
-    hideTitle: true
-    parallaxImage: "assets/template/logo-sitegen-parallax.png"
-    parallaxPush: "10vh"
-    # Add these properties to match index styling
-    mainImage: "assets/static/img/bunny-punx.webp"
-    mainImageAlt: "Punks not dead"
-    tagline: "Latest thoughts and musings"
-    content: |
-      ## Blog
-
-      Welcome to the SiteGen blog.  
-      *Stay tuned for the latest news and updates!*
-
-      Lorem
-    # Add column layout configuration
-    columnLayout:
-      enabled: true
-      ratio: "50/50"  # or "15/85", "25/75", "75/25"
-      leftContent: |
-        ## Recent Posts
-        - [Chaos Theory](sections/chaos.html)
-        - [Majesty Updates](sections/majesty.html)
-      rightContent: |
-        ## Featured Content
-        Latest developments and insights.ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi.  
-  # - title: Features
+    # - title: Features
   #   slug: features
   #   content: |
   #     ## Site Features
@@ -132,6 +98,47 @@ pages:
   #     Or use our contact form (coming soon!).
 
 styles: ["assets/modern.css"]
+
+blog:
+  enabled: true
+  title: "Chaos & Majesty Journal"
+  description: "Dispatches from the underground console."
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    heroTitle: "Chaos & Majesty Journal"
+    heroTagline: "Dispatches from the underground console"
+    intro: |
+      Terminal-born perspectives on building the experience.
+      Read the latest dispatches from Chaos and Majesty without leaving the console.
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+
+  authors:
+    - id: m4xx3d0ut
+      name: "m4xx3d0ut"
+      title: "Chaos Wrangler"
+      avatar: "assets/static/img/bunny-punx.webp"
+      bio: "Builder of the neon terminal core and perennial tinkerer."
+      social:
+        - label: "@m4xx3d0ut"
+          href: "https://example.com/m4xx3d0ut"
+    - id: reneerules
+      name: "Reneé Rules"
+      title: "Majesty Maestro"
+      avatar: "assets/static/img/bunny-punx.svg"
+      bio: "Curates the Majesty narrative and keeps the interface lyrical."
+      social:
+        - label: "@ReneeRules"
+          href: "https://example.com/reneerules"
 
 index: 
   title: Home
@@ -284,4 +291,3 @@ social_preview_image: assets/social-preview.jpg
 meta:
   description: All your base are belong to us.  Welcome to the Chaos and Majesty home!
   keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker
-

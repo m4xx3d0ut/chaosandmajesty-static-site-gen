@@ -1,0 +1,52 @@
+<article class="blog-article-body" data-slug="<%= post.slug %>">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title"><%= post.title %></h1>
+    <p class="blog-article-meta">
+      <% if (post.displayPublishedAt) { %>
+        <span><%= post.displayPublishedAt %></span>
+      <% } %>
+      <% if (post.readingMinutes) { %>
+        <span aria-hidden="true">•</span>
+        <span><%= post.readingMinutes %> min read</span>
+      <% } %>
+      <% if (post.author) { %>
+        <span aria-hidden="true">•</span>
+        <span><%= post.author.name %></span>
+      <% } %>
+    </p>
+  </header>
+
+  <% if (post.heroImagePath) { %>
+    <figure class="blog-hero">
+      <img src="<%= post.heroImagePath %>" alt="<%= post.title %> hero image">
+    </figure>
+  <% } %>
+
+  <div class="blog-article-content">
+    <%- post.html %>
+  </div>
+
+  <% if (post.author) { %>
+    <footer class="blog-author-card">
+      <% if (post.author.avatarPath) { %>
+        <img class="blog-author-avatar" src="<%= post.author.avatarPath %>" alt="<%= post.author.name %> avatar">
+      <% } %>
+      <div class="blog-author-details">
+        <strong class="blog-author-name"><%= post.author.name %></strong>
+        <% if (post.author.title) { %>
+          <div class="blog-author-title"><%= post.author.title %></div>
+        <% } %>
+        <% if (post.author.bio) { %>
+          <p class="blog-author-bio"><%= post.author.bio %></p>
+        <% } %>
+        <% if (post.author.social && post.author.social.length) { %>
+          <ul class="blog-author-social">
+            <% post.author.social.forEach(function(link) { %>
+              <li><a href="<%= link.href %>" target="_blank" rel="noopener"><%= link.label %></a></li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    </footer>
+  <% } %>
+</article>

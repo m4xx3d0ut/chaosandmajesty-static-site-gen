@@ -3,57 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Core – Chaos &amp; Majesty Journal</title>
+  <title><%= site.title %> – <%= page.title %></title>
 
-  
+  <%- include('../partials/cm-head.ejs') %>
 
-
-
-
-<meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="/assets/static/style/cm.css">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
-<script type="text/javascript" src="/assets/static/js/cm.js"></script>
-<link rel="manifest" href="/site.webmanifest"/>
-<link rel="icon" type="image/x-icon" href="/assets/static/img/favicon.ico">
-<!-- Add terminal-style font imports -->
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
-
-<script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
-
-  
-  
-  
-  
-  
+  <% const rootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl.replace(/\/$/, '') : ''); %>
+  <% const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || ''); %>
+  <% const buildInternalHref = (href) => {
+       if (!href) return '#';
+       if (isExternal(href)) return href;
+       if (href.startsWith('#')) {
+         const target = href.slice(1);
+         return target ? `${rootBase}/sections/${target}.html` : `${rootBase}/`;
+       }
+       const cleaned = href.replace(/^\/+/, '');
+       return `${rootBase}/${cleaned}`;
+     }; %>
+  <% const buildAssetHref = (asset) => {
+       if (!asset) return '';
+       if (isExternal(asset)) return asset;
+       if (asset.startsWith('/')) {
+         return `${rootBase}${asset}`;
+       }
+       return `${rootBase}/${asset.replace(/^\/+/, '')}`;
+     }; %>
+  <% const highlightFirstPost = page.initialPost && !page.isDefaultInitialPost && !page.isHiddenInitialPost; %>
 
 </head>
 <body class="cm-body blog-page">
   <header>
     <div class="container header-container">
-      
-      
-      
-        <a href="/index.html" class="logo-link">
-          <img src="/assets/static/img/not-dead.webp" alt="Core Logo" class="logo">
+      <% const logoPath = site.logo || 'assets/static/img/not-dead.webp'; %>
+      <% const resolvedLogo = buildAssetHref(logoPath); %>
+      <% if (resolvedLogo) { %>
+        <a href="<%= buildInternalHref('index.html') %>" class="logo-link">
+          <img src="<%= resolvedLogo %>" alt="<%= site.title %> Logo" class="logo">
         </a>
-      
-      
-      
+      <% } else { %>
+        <h1 class="logo-text"><%= site.title %></h1>
+      <% } %>
+      <% var navLinks = (site.header && site.header.links) ? site.header.links : []; %>
+      <% if (navLinks.length > 0) { %>
         <button type="button" class="nav-toggle" aria-label="Toggle navigation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 7h18M3 12h18M3 17h18" />
@@ -61,45 +51,37 @@
         </button>
         <nav class="main-nav">
           <ul class="nav-links">
-            
-              <li><a href="/index.html">Home</a></li>
-            
-              <li><a href="/blog.html">Blog</a></li>
-            
-              <li><a href="/sitemap.html">Sitemap</a></li>
-            
+            <% navLinks.forEach(function(link) { %>
+              <li><a href="<%= buildInternalHref(link.href) %>"><%= link.label %></a></li>
+            <% }); %>
           </ul>
         </nav>
-      
+      <% } %>
     </div>
   </header>
 
   <main class="blog-container">
     <section class="blog-hero-slab">
-      <h2 class="blog-hero-title">Chaos &amp; Majesty Journal</h2>
-      
-        <p class="blog-hero-tagline">Dispatches from the underground console</p>
-      
-      
-        <p class="blog-hero-intro">Terminal-born perspectives on building the experience.
-Read the latest dispatches from Chaos and Majesty without leaving the console.
-</p>
-      
+      <h2 class="blog-hero-title"><%= page.hero?.title || page.title %></h2>
+      <% if (page.hero && page.hero.tagline) { %>
+        <p class="blog-hero-tagline"><%= page.hero.tagline %></p>
+      <% } %>
+      <% if (page.hero && page.hero.intro) { %>
+        <p class="blog-hero-intro"><%= page.hero.intro %></p>
+      <% } %>
     </section>
 
     <section class="blog-layout">
-      <aside class="blog-sidebar" aria-label="Blog post list" data-page-size="6">
+      <aside class="blog-sidebar" aria-label="Blog post list" data-page-size="<%= page.sidebarPageSize || 6 %>">
         <h3 class="blog-sidebar-title">Posts</h3>
-        
+        <% if (page.authorFilter && page.authors && page.authors.length > 0) { %>
           <div class="blog-author-filter" role="group" aria-label="Filter posts by author">
             <button type="button" class="author-filter-btn is-active" data-author-filter="all">All</button>
-            
-              <button type="button" class="author-filter-btn" data-author-filter="m4xx3d0ut">m4xx3d0ut</button>
-            
-              <button type="button" class="author-filter-btn" data-author-filter="reneerules">Reneé Rules</button>
-            
+            <% page.authors.forEach(function(author) { %>
+              <button type="button" class="author-filter-btn" data-author-filter="<%= author.id %>"><%= author.name %></button>
+            <% }); %>
           </div>
-        
+        <% } %>
         <div class="blog-sidebar-search">
           <label class="visually-hidden" for="blog-search-input">Search posts</label>
           <input
@@ -112,109 +94,80 @@ Read the latest dispatches from Chaos and Majesty without leaving the console.
           >
         </div>
         <ul class="blog-post-list">
-          
-            <li data-post-item data-author="reneerules" data-title="routing majesty signals" data-summary="a layered content strategy for dual personas and terminal ux.">
+          <% page.posts.forEach(function(post, index) { %>
+            <li data-post-item data-author="<%= post.author ? post.author.id : 'unknown' %>" data-title="<%= post.title.toLowerCase() %>" data-summary="<%= (post.summary || '').toLowerCase() %>">
               <a
-                class="blog-post-link"
-                href="/blog/routing-majesty-signals.html"
-                data-post-slug="routing-majesty-signals"
-                hx-get="/blog/fragments/routing-majesty-signals.html"
+                class="blog-post-link<%= highlightFirstPost && index === 0 ? ' is-active' : '' %>"
+                href="<%= post.publicHref || buildInternalHref(post.relativeHref) %>"
+                data-post-slug="<%= post.slug %>"
+                hx-get="<%= post.fragmentHref %>"
                 hx-trigger="click"
                 hx-target="#blog-article"
                 hx-swap="innerHTML"
                 hx-push-url="true"
                 hx-indicator="#blog-loading"
               >
-                <h3>Routing Majesty Signals</h3>
+                <h3><%= post.title %></h3>
                 <div class="blog-post-meta">
-                  
-                    <span>May 12, 2024</span>
-                  
-                  
+                  <% if (post.displayPublishedAt) { %>
+                    <span><%= post.displayPublishedAt %></span>
+                  <% } %>
+                  <% if (post.readingMinutes) { %>
                     <span aria-hidden="true">•</span>
-                    <span>7 min read</span>
-                  
-                  
+                    <span><%= post.readingMinutes %> min read</span>
+                  <% } %>
+                  <% if (post.author) { %>
                     <span aria-hidden="true">•</span>
-                    <span>Reneé Rules</span>
-                  
+                    <span><%= post.author.name %></span>
+                  <% } %>
                 </div>
-                
-                  <p>A layered content strategy for dual personas and terminal UX.</p>
-                
+                <% if (post.summary) { %>
+                  <p><%= post.summary %></p>
+                <% } %>
               </a>
             </li>
-          
-            <li data-post-item data-author="m4xx3d0ut" data-title="when the console glows" data-summary="shaping the neon terminal aesthetic that defines chaos &amp; majesty.">
-              <a
-                class="blog-post-link"
-                href="/blog/console-glow.html"
-                data-post-slug="console-glow"
-                hx-get="/blog/fragments/console-glow.html"
-                hx-trigger="click"
-                hx-target="#blog-article"
-                hx-swap="innerHTML"
-                hx-push-url="true"
-                hx-indicator="#blog-loading"
-              >
-                <h3>When the Console Glows</h3>
-                <div class="blog-post-meta">
-                  
-                    <span>May 5, 2024</span>
-                  
-                  
-                    <span aria-hidden="true">•</span>
-                    <span>6 min read</span>
-                  
-                  
-                    <span aria-hidden="true">•</span>
-                    <span>m4xx3d0ut</span>
-                  
-                </div>
-                
-                  <p>Shaping the neon terminal aesthetic that defines Chaos &amp; Majesty.</p>
-                
-              </a>
-            </li>
-          
-          
-            
+          <% }); %>
+          <% if (page.hiddenPosts && page.hiddenPosts.length > 0) { %>
+            <% page.hiddenPosts.forEach(function(post) { %>
               <li
                 data-post-item
                 data-hidden="true"
-                data-author="unknown"
-                data-title="the conscience of a hacker"
-                data-summary="excerpt from phrack volume one, issue 7."
+                data-author="<%= post.author ? post.author.id : 'unknown' %>"
+                data-title="<%= post.title ? post.title.toLowerCase() : '' %>"
+                data-summary="<%= (post.summary || '').toLowerCase() %>"
               >
                 <a
                   class="blog-post-link"
-                  href="/blog/phrack.html"
-                  data-post-slug="phrack"
-                  hx-get="/blog/fragments/phrack.html"
+                  href="<%= post.publicHref || buildInternalHref(post.relativeHref) %>"
+                  data-post-slug="<%= post.slug %>"
+                  hx-get="<%= post.fragmentHref %>"
                   hx-trigger="click"
                   hx-target="#blog-article"
                   hx-swap="innerHTML"
                   hx-push-url="true"
                   hx-indicator="#blog-loading"
                 >
-                  <h3>The Conscience of a Hacker</h3>
+                  <h3><%= post.title %></h3>
                   <div class="blog-post-meta">
-                    
-                      <span>Jan 8, 1986</span>
-                    
-                    
+                    <% if (post.displayPublishedAt) { %>
+                      <span><%= post.displayPublishedAt %></span>
+                    <% } %>
+                    <% if (post.readingMinutes) { %>
                       <span aria-hidden="true">•</span>
-                      <span>3 min read</span>
-                    
-                    
+                      <span><%= post.readingMinutes %> min read</span>
+                    <% } %>
+                    <% if (post.author) { %>
+                      <span aria-hidden="true">•</span>
+                      <span><%= post.author.name %></span>
+                    <% } %>
                   </div>
-                  
-                    <p>Excerpt from Phrack Volume One, Issue 7.</p>
-                  
+                  <% if (post.summary) { %>
+                    <p><%= post.summary %></p>
+                  <% } %>
                 </a>
               </li>
-            
-          
+            <% }); %>
+          <% } %>
         </ul>
         <div class="blog-sidebar-pagination is-hidden" aria-label="Post pagination controls">
           <button type="button" class="sidebar-nav-btn" data-sidebar-prev>Prev</button>
@@ -224,85 +177,13 @@ Read the latest dispatches from Chaos and Majesty without leaving the console.
 
       <div class="blog-article-shell">
         <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
-          
-            <article class="blog-article-body" data-slug="default-post">
-  <header class="blog-article-header">
-    <h1 class="blog-article-title">Signal Boot Sequence</h1>
-    <p class="blog-article-meta">
-      
-        <span>Apr 1, 2024</span>
-      
-      
-        <span aria-hidden="true">•</span>
-        <span>4 min read</span>
-      
-      
-        <span aria-hidden="true">•</span>
-        <span>m4xx3d0ut</span>
-      
-    </p>
-  </header>
-
-  
-    <figure class="blog-hero">
-      <img src="/assets/static/img/bunny-punx.webp" alt="Signal Boot Sequence hero image">
-    </figure>
-  
-
-  <div class="blog-article-content">
-    <p><strong>Select a post to read.</strong> Use the filters or search to dial into a signal. Everything that follows was built for people who feel most at home when the monitor glow is the only light in the room.</p>
-<br>
-
-<blockquote>
-<p><em><strong>&quot;I made a discovery today. I found a computer.&quot;</strong></em></p>
-</blockquote>
-<br>
-
-<blockquote>
-<p>The words are ripped from The Mentor&#39;s <strong>Conscience of a Hacker</strong> and blasted across this console
-because that manifesto still explains why Chaos &amp; Majesty exists.<br>We explore. We ask inconvenient questions. We refuse to apologize for curiosity.</p>
-</blockquote>
-<br>
-
-<h3>Why this console matters</h3>
-<ul>
-<li>It honors the tradition of breaking things just to understand them.  </li>
-<li>It keeps the art vocal, neon, unapologetic, and alive.  </li>
-<li>It invites collaborators to plug in and community to coalesce.</li>
-</ul>
-<p>The &quot;hacker ethos&quot; is alive in us. If you are reading this, it lives in you, too.</p>
-<br>
-
-<p>&mdash; The Chaos &amp; Majesty Collective</p>
-
-  </div>
-
-  
-    <footer class="blog-author-card">
-      
-        <img class="blog-author-avatar" src="/assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
-      
-      <div class="blog-author-details">
-        <strong class="blog-author-name">m4xx3d0ut</strong>
-        
-          <div class="blog-author-title">Chaos Wrangler</div>
-        
-        
-          <p class="blog-author-bio">Builder of the neon terminal core and perennial tinkerer.</p>
-        
-        
-          <ul class="blog-author-social">
-            
-              <li><a href="https://example.com/m4xx3d0ut" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
-            
-          </ul>
-        
-      </div>
-    </footer>
-  
-</article>
-
-          
+          <% if (page.initialPost) { %>
+            <%- include('partials/article.ejs', { post: page.initialPost }) %>
+          <% } else if (page.emptyStateHtml) { %>
+            <div class="blog-empty-state"><%- page.emptyStateHtml %></div>
+          <% } else { %>
+            <p>Select a post to read.</p>
+          <% } %>
         </div>
         <div id="blog-loading" class="htmx-indicator" role="status" aria-live="assertive">Loading…</div>
       </div>
@@ -313,15 +194,11 @@ because that manifesto still explains why Chaos &amp; Majesty exists.<br>We expl
   </main>
 
   <footer>
-    
-      <div id="foot">
-  <p>
-    Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
-  </p>
-</div>
-    
+    <% if (page.useCmFooter || site.useCmFooter) { %>
+      <%- include('../partials/cm-footer.ejs') %>
+    <% } %>
     <div class="container footer-container">
-      <p class="footer-copy">&copy; 2025 Core</p>
+      <p class="footer-copy">&copy; <%= new Date().getFullYear() %> <%= site.title %></p>
     </div>
   </footer>
 

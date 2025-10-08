@@ -1,8 +1,13 @@
+<% const baseUrlRaw = site && site.baseUrl ? site.baseUrl : '/'; %>
+<% const baseUrlNormalized = baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : baseUrlRaw; %>
+<% const baseUrlTrimmed = baseUrlNormalized === '/' ? '' : baseUrlNormalized; %>
+<% const assetPath = function(p) { return (baseUrlTrimmed ? baseUrlTrimmed : '') + '/' + p.replace(/^\/+/, ''); }; %>
+<% const manifestPath = (baseUrlTrimmed ? baseUrlTrimmed : '') + '/site.webmanifest'; %>
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="<%= isSection ? '../assets/static/style/cm.css' : 'assets/static/style/cm.css' %>">
+<link rel="stylesheet" type="text/css" href="<%= assetPath('assets/static/style/cm.css') %>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,12 +16,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
-<script type="text/javascript" src="<%= isSection ? '../assets/static/js/cm.js' : 'assets/static/js/cm.js' %>"></script>
-<link rel="manifest" href="<%= isSection ? '../site.webmanifest' : 'site.webmanifest' %>"/>
-<link rel="icon" type="image/x-icon" href="<%= isSection ? '../assets/static/img/favicon.ico' : 'assets/static/img/favicon.ico' %>">
+<script type="text/javascript" src="<%= assetPath('assets/static/js/cm.js') %>"></script>
+<link rel="manifest" href="<%= manifestPath %>"/>
+<link rel="icon" type="image/x-icon" href="<%= assetPath('assets/static/img/favicon.ico') %>">
 <!-- Add terminal-style font imports -->
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
 
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>

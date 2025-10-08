@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { marked } from 'marked';
 import * as ejs from 'ejs';
+import yaml from 'js-yaml';
 
 // Default template for when no template is found
 const DEFAULT_TEMPLATE = `
@@ -156,6 +157,334 @@ async function copyStaticFiles(outputDir, verbose = false) {
   }
 }
 
+async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) {
+  const postsDir = path.resolve(process.cwd(), blogConfig.postsDir || 'content/blog');
+  const blogOutputRel = (blogConfig.outputDir || 'blog').replace(/^(\.\/)+/, '').replace(/\\/g, '/');
+  const fragmentRelDir = (blogConfig.fragmentDir || `${blogOutputRel}/fragments`).replace(/^(\.\/)+/, '').replace(/\\/g, '/');
+  const baseUrl = siteConfig.baseUrl || '/';
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const publicBase = normalizedBaseUrl === '/' ? '' : normalizedBaseUrl;
+  const toPublicPath = (p) => {
+    if (!p) return publicBase || '/';
+    return `${publicBase}${p.startsWith('/') ? p : '/' + p}`;
+  };
+  let files;
+
+  try {
+    files = await fs.readdir(postsDir);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      console.warn(`Blog posts directory not found at ${postsDir}, skipping blog generation.`);
+      return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+    }
+    throw error;
+  }
+
+  const isExternalUrl = (value) => typeof value === 'string' && /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value);
+
+  const authors = Array.isArray(blogConfig.authors)
+    ? blogConfig.authors.map(author => {
+        const normalizedAvatar = normalizeAssetPath(author.avatar);
+        const avatarHref = normalizedAvatar && !isExternalUrl(normalizedAvatar)
+          ? toPublicPath(normalizedAvatar)
+          : normalizedAvatar;
+        return {
+          ...author,
+          avatarPath: avatarHref
+        };
+      })
+    : [];
+
+  const authorsById = new Map(authors.map(author => [author.id, author]));
+
+  const posts = [];
+
+  const defaultPostPathConfig = blogConfig.index?.defaultPostPath || blogConfig.defaultPostPath;
+  const defaultPostAbs = defaultPostPathConfig
+    ? path.resolve(process.cwd(), defaultPostPathConfig)
+    : null;
+
+  function createPostObject(fileName, attributes, body, { includeOutputPaths = true, markHidden = false } = {}) {
+    const slug = attributes.slug || slugFromFilename(fileName);
+    const title = attributes.title || slug.replace(/-/g, ' ');
+
+    const authorId = attributes.author;
+    const author = authorId ? authorsById.get(authorId) : null;
+
+    if (!author && authorId && verbose) {
+      console.warn(`No author configured for id "${authorId}" while processing ${fileName}`);
+    }
+
+    const publishedAtIso = attributes.publishedAt || attributes.date;
+    const publishedAt = publishedAtIso ? new Date(publishedAtIso) : new Date();
+    const updatedAtIso = attributes.updatedAt;
+    const updatedAt = updatedAtIso ? new Date(updatedAtIso) : null;
+
+    const html = marked.parse(body || '');
+    const summary = attributes.summary || truncateSummary(body || '');
+    const readingMinutes = attributes.readingMinutes || estimateReadingMinutes(body);
+    const heroImageNormalized = normalizeAssetPath(attributes.heroImage);
+    const heroImagePath = heroImageNormalized && !isExternalUrl(heroImageNormalized)
+      ? toPublicPath(heroImageNormalized)
+      : heroImageNormalized;
+
+    let postRelPath = null;
+    let fragmentRelPath = null;
+    let canonicalHref = null;
+    let publicHref = null;
+    let fragmentHref = null;
+
+    if (includeOutputPaths) {
+      postRelPath = path.posix.join(blogOutputRel, `${slug}.html`);
+      fragmentRelPath = path.posix.join(fragmentRelDir, `${slug}.html`);
+      canonicalHref = toPublicPath(`/${postRelPath}`);
+      publicHref = canonicalHref;
+      fragmentHref = toPublicPath(`/${fragmentRelPath}`);
+    }
+
+    return {
+      slug,
+      title,
+      author,
+      summary,
+      html,
+      rawBody: body,
+      tags: attributes.tags || [],
+      publishedAt,
+      publishedAtIso: publishedAtIso || publishedAt.toISOString(),
+      updatedAt,
+      updatedAtIso: updatedAtIso || (updatedAt ? updatedAt.toISOString() : null),
+      displayPublishedAt: formatDisplayDate(publishedAtIso || publishedAt),
+      displayUpdatedAt: formatDisplayDate(updatedAtIso),
+      readingMinutes,
+      heroImagePath,
+      canonicalPath: postRelPath,
+      canonicalHref,
+      relativeHref: postRelPath,
+      publicHref,
+      fragmentPath: fragmentRelPath,
+      fragmentHref,
+      seoDescription: attributes.seoDescription || summary,
+      isHidden: markHidden
+    };
+  }
+
+  for (const file of files) {
+    if (!file.endsWith('.md')) {
+      continue;
+    }
+
+    const fullPath = path.join(postsDir, file);
+    if (defaultPostAbs && path.resolve(fullPath) === defaultPostAbs) {
+      continue;
+    }
+    const raw = await fs.readFile(fullPath, 'utf8');
+    const { attributes, body } = parseFrontMatter(raw, file);
+    if (attributes.hidden) {
+      posts.push(createPostObject(file, attributes, body, { includeOutputPaths: true, markHidden: true }));
+      continue;
+    }
+
+    posts.push(createPostObject(file, attributes, body, { includeOutputPaths: true }));
+  }
+
+  if (posts.length === 0 && !defaultPostAbs) {
+    console.warn('No blog posts found, skipping blog generation.');
+    return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+  }
+
+  if (posts.length > 1) {
+    posts.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
+  }
+
+  const hiddenPosts = posts.filter(post => post.isHidden);
+  const displayPosts = posts.filter(post => !post.isHidden);
+
+  if (displayPosts.length === 0 && !defaultPostAbs) {
+    console.warn('No visible blog posts found, skipping blog generation.');
+    return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+  }
+
+  let defaultInitialPost = null;
+  if (defaultPostAbs) {
+    try {
+      const raw = await fs.readFile(defaultPostAbs, 'utf8');
+      const { attributes, body } = parseFrontMatter(raw, path.basename(defaultPostAbs));
+      defaultInitialPost = createPostObject(path.basename(defaultPostAbs), attributes, body, {
+        includeOutputPaths: false
+      });
+    } catch (error) {
+      console.warn(`Failed to load default blog post at ${defaultPostAbs}: ${error.message}`);
+    }
+  }
+
+  const blogOutputDir = path.join(outputDir, blogOutputRel);
+  const fragmentOutputDir = path.join(outputDir, fragmentRelDir);
+  await fs.mkdir(blogOutputDir, { recursive: true });
+  await fs.mkdir(fragmentOutputDir, { recursive: true });
+
+  const indexTemplate = blogConfig.indexTemplate || 'blog/index.ejs';
+  const postTemplate = blogConfig.postTemplate || 'blog/post.ejs';
+  const fragmentTemplate = blogConfig.fragmentTemplate || 'blog/fragment.ejs';
+
+  const shouldRenderInitial = blogConfig.index?.renderInitialPost !== false;
+  let initialPost = null;
+  let isDefaultInitialPost = false;
+  let isHiddenInitialPost = false;
+
+  if (shouldRenderInitial) {
+    if (defaultInitialPost) {
+      initialPost = defaultInitialPost;
+      isDefaultInitialPost = true;
+    } else {
+      initialPost = displayPosts[0] || hiddenPosts[0] || null;
+      if (initialPost && initialPost.isHidden) {
+        isHiddenInitialPost = true;
+      }
+    }
+  }
+
+  const indexPageConfig = {
+    title: blogConfig.title || 'Blog',
+    template: indexTemplate,
+    hideTitle: true,
+    useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
+    useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
+    cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
+    baseDepth: 0,
+    hero: {
+      title: blogConfig.index?.heroTitle || blogConfig.title || 'Blog',
+      tagline: blogConfig.index?.heroTagline || blogConfig.description,
+      intro: blogConfig.index?.intro || blogConfig.description
+    },
+    blogDescription: blogConfig.description,
+    posts: displayPosts,
+    hiddenPosts,
+    authors,
+    initialPost,
+    isDefaultInitialPost,
+    isHiddenInitialPost,
+    sidebarPageSize: blogConfig.index?.sidebarPageSize || blogConfig.sidebarPageSize || 6,
+    emptyStateText: blogConfig.index?.emptyStateText || blogConfig.emptyStateText || null,
+    emptyStateHtml: blogConfig.index?.emptyStateText || blogConfig.emptyStateText
+      ? marked.parse(blogConfig.index?.emptyStateText || blogConfig.emptyStateText)
+      : null,
+    fragmentDir: fragmentRelDir,
+    outputDir: blogOutputRel,
+    fragmentTemplate,
+    postTemplate,
+    rootBase: publicBase,
+    authorFilter: blogConfig.enableAuthorFilter !== false
+  };
+
+  await generatePage(indexPageConfig, siteConfig, outputDir, verbose, 'blog.html');
+
+  // Also emit a directory index for /blog/ routing convenience
+  const directoryIndexConfig = { ...indexPageConfig, baseDepth: 1 };
+  await generatePage(directoryIndexConfig, siteConfig, blogOutputDir, verbose, 'index.html');
+
+  for (const post of posts) {
+    const postPageConfig = {
+      title: post.title,
+      template: postTemplate,
+      hideTitle: true,
+      useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
+      useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
+      cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
+      baseDepth: 1,
+      post,
+      blog: {
+        title: blogConfig.title || 'Blog',
+        description: blogConfig.description,
+        indexHref: toPublicPath('/blog.html'),
+        rootBase: publicBase
+      },
+      rootBase: publicBase
+    };
+
+    await generatePage(postPageConfig, siteConfig, blogOutputDir, verbose, `${post.slug}.html`);
+
+    const fragmentPageConfig = {
+      title: post.title,
+      template: fragmentTemplate,
+      hideTitle: true,
+      useCmHead: false,
+      useCmFooter: false,
+      baseDepth: 0,
+      post,
+      rootBase: publicBase
+    };
+
+    await generatePage(fragmentPageConfig, siteConfig, fragmentOutputDir, verbose, `${post.slug}.html`);
+  }
+
+  return {
+    indexPath: 'blog.html',
+    postPaths: posts.map(post => post.canonicalPath),
+    fragmentPaths: posts.map(post => post.fragmentPath),
+    posts
+  };
+}
+
+const FRONT_MATTER_REGEX = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)/;
+
+function parseFrontMatter(rawContent, fileName) {
+  const match = rawContent.match(FRONT_MATTER_REGEX);
+  if (!match) {
+    return { attributes: {}, body: rawContent };
+  }
+
+  let attributes = {};
+  try {
+    attributes = yaml.load(match[1]) || {};
+  } catch (error) {
+    throw new Error(`Failed to parse front matter in ${fileName}: ${error.message}`);
+  }
+
+  const body = match[2] || '';
+  return { attributes, body };
+}
+
+function normalizeAssetPath(value) {
+  if (!value) return value;
+  if (typeof value !== 'string') return value;
+  if (/^(?:https?:)?\/\//.test(value) || value.startsWith('data:') || value.startsWith('/')) {
+    return value;
+  }
+  return '/' + value.replace(/^\/+/, '');
+}
+
+function formatDisplayDate(value) {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+function estimateReadingMinutes(content, fallback = 5) {
+  if (!content) return fallback;
+  const words = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+function truncateSummary(text, maxLength = 160) {
+  if (!text) return '';
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+  return normalized.slice(0, maxLength).trimEnd() + '…';
+}
+
+function slugFromFilename(filename) {
+  const base = path.parse(filename).name;
+  return base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 /**
  * Generate a static site based on the provided configuration
  * @param {Object} config - Site configuration
@@ -216,8 +545,20 @@ export async function generateSite(config, outputDir, verbose = false) {
       }, updatedConfig, outputDir, verbose, 'index.html');
     }
     
+    // Generate blog content if enabled
+    let blogArtifacts = { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+    if (updatedConfig.blog && updatedConfig.blog.enabled) {
+      blogArtifacts = await generateBlog(updatedConfig.blog, updatedConfig, outputDir, verbose);
+    }
+
     // Create a sitemap.html file with links to all pages
     const pages = ['index.html'];
+    if (blogArtifacts.indexPath) {
+      pages.push(blogArtifacts.indexPath);
+    }
+    if (blogArtifacts.postPaths && blogArtifacts.postPaths.length > 0) {
+      pages.push(...blogArtifacts.postPaths);
+    }
     
     // Add regular pages to sitemap
     if (updatedConfig.pages) {
@@ -244,6 +585,11 @@ export async function generateSite(config, outputDir, verbose = false) {
         ${updatedConfig.pages ? updatedConfig.pages.map(p => 
           `<li><a href="${p.slug || p.title.toLowerCase().replace(/\s+/g, '-')}.html">${p.title}</a></li>`
         ).join('\n') : ''}
+        ${blogArtifacts.indexPath ? `<li><a href="${blogArtifacts.indexPath}">${updatedConfig.blog?.title || 'Blog'}</a></li>` : ''}
+        ${blogArtifacts.posts && blogArtifacts.posts.length > 0 ? `
+          <li><strong>Blog Posts:</strong></li>
+          ${blogArtifacts.posts.map(post => `<li><a href="${post.relativeHref}">${post.title}</a></li>`).join('\n')}
+        ` : ''}
         <li><strong>Sections:</strong></li>
         ${updatedConfig.sections ? updatedConfig.sections.map(s => 
           `<li><a href="sections/${s.id}.html">${s.heading || s.id}</a></li>`
@@ -446,6 +792,9 @@ async function generatePage(pageConfig, siteConfig, outputDir, verbose, filename
         isSection: isSection
       });
     } catch (error) {
+      if (verbose) {
+        console.warn(`Error rendering template ${templateName}: ${error.message}`);
+      }
       try {
         // Try fallback template before using default
         const fallbackPath = path.join(
@@ -490,4 +839,3 @@ async function generatePage(pageConfig, siteConfig, outputDir, verbose, filename
     throw new Error(`Failed to generate page ${filename}: ${error.message}`);
   }
 }
-

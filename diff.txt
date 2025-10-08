@@ -1,0 +1,2251 @@
+diff --git a/site-output/assets/static/style/cm.css b/site-output/assets/static/style/cm.css
+index affa9f8..143b6c5 100644
+--- a/site-output/assets/static/style/cm.css
++++ b/site-output/assets/static/style/cm.css
+@@ -82,28 +82,6 @@ p.wopr {
+   opacity: 1;
+ }
+ 
+-/* Orbitron for main site typography */
+-body,
+-h1, h2, h3, h4, h5, h6,
+-p {
+-  font-family: 'Orbitron', sans-serif !important;
+-}
+-
+-/* All text: classic green */
+-h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, pre, code {
+-  color: #66ff00;
+-}
+-
+-.page-content, .page-content * {
+-  color: #66ff00;
+-}
+-
+-/* Links */
+-a, a:visited, a:hover, a:active {
+-  color: #66ff00;
+-  text-decoration: underline;
+-}
+-
+ /* Hide scrollbar for Chrome, Safari and Opera */
+ .hscroll::-webkit-scrollbar {
+   display: none;
+@@ -114,13 +92,7 @@ a, a:visited, a:hover, a:active {
+   scrollbar-width: none;
+ }
+ 
+-/* --- Main Container --- */
+-.container {
+-  width: 45em;
+-  margin: 0 auto;
+-  max-width: 1100px;
+-  padding: 0 1rem;
+-}
++/* Preserve CM typography and neon palette globally */
+ /* .container { */
+ /*   width: 100%; */
+ /*   max-width: 1100px;    /* desktop max width */ */
+@@ -128,6 +100,13 @@ a, a:visited, a:hover, a:active {
+ /*   padding: 0 2rem;     /* padding for desktop spacing */ */
+ /*   box-sizing: border-box; */
+ /* } */
++.container {
++  width: 45em;
++  margin: 0 auto;
++  max-width: 1100px;
++  padding: 0 1rem;
++}
++
+ 
+ /* --- HEADER & NAVIGATION --- */
+ header {
+@@ -256,7 +235,7 @@ header {
+ }
+ 
+ /* --- MAIN CONTENT --- */
+-main {
++main.container {
+   flex: 1 0 auto;
+   padding: 2.5rem 0;
+ }
+@@ -466,3 +445,377 @@ footer {
+     gap: 1rem;
+   }
+ }
++
++/* === Blog layout (experimental palette) === */
++.blog-page {
++  --blog-max-width: 1240px;
++  --blog-sidebar-width: 320px;
++  --blog-chrome-color: #66ff00;
++  --blog-muted: rgba(153, 255, 204, 0.75);
++}
++
++.blog-container {
++  width: min(var(--blog-max-width), calc(100% - 3rem));
++  margin: 0 auto;
++  padding: 0 1.5rem 4rem;
++  box-sizing: border-box;
++}
++
++.blog-hero-slab {
++  margin: 0 auto 2.5rem;
++  padding: 2.75rem clamp(1.5rem, 2vw, 3rem);
++  background: rgba(0, 0, 0, 0.55);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 14px;
++  text-align: center;
++  backdrop-filter: blur(6px);
++}
++
++.blog-hero-title {
++  font-family: 'Orbitron', sans-serif;
++  font-size: clamp(2.25rem, 4vw, 3.25rem);
++  letter-spacing: 0.08em;
++  margin-bottom: 0.5rem;
++  text-transform: uppercase;
++}
++
++.blog-hero-tagline {
++  font-size: clamp(1.05rem, 1.3vw, 1.3rem);
++  color: var(--blog-muted);
++  margin-bottom: 1rem;
++}
++
++.blog-hero-intro {
++  font-family: 'Space Mono', monospace;
++  font-size: 1rem;
++  line-height: 1.7;
++  color: rgba(191, 255, 191, 0.85);
++  max-width: 720px;
++  margin: 0 auto;
++}
++
++.blog-sidebar-toggle {
++  display: none;
++  margin: 0 auto 1rem;
++  background: #021b02;
++  color: var(--blog-chrome-color);
++  border: 1px solid rgba(102, 255, 0, 0.6);
++  border-radius: 999px;
++  padding: 0.65rem 1.75rem;
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.04em;
++  cursor: pointer;
++  transition: background 0.25s ease, box-shadow 0.25s ease;
++}
++
++.blog-sidebar-toggle:hover,
++.blog-sidebar-toggle:focus {
++  background: rgba(102, 255, 0, 0.12);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.35);
++}
++
++.blog-layout {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, var(--blog-sidebar-width));
++  align-items: start;
++  gap: clamp(1.5rem, 5vw, 3.5rem);
++}
++
++.blog-article-shell {
++  position: relative;
++  background: rgba(0, 0, 0, 0.45);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 16px;
++  padding: clamp(1.75rem, 2.5vw, 3rem);
++  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.45);
++}
++
++.blog-article-body {
++  display: grid;
++  gap: 2rem;
++}
++
++.blog-article-title {
++  font-family: 'Orbitron', sans-serif;
++  font-size: clamp(2rem, 3vw, 2.6rem);
++  margin-bottom: 0.5rem;
++}
++
++.blog-article-meta {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.5rem;
++  font-family: 'Syne Mono', monospace;
++  font-size: 0.95rem;
++  color: var(--blog-muted);
++  letter-spacing: 0.04em;
++}
++
++.blog-article-content {
++  font-family: 'Space Mono', monospace;
++  font-size: clamp(1rem, 1vw + 0.8rem, 1.1rem);
++  line-height: 1.7;
++  color: rgba(191, 255, 191, 0.92);
++}
++
++.blog-article-content h2,
++.blog-article-content h3,
++.blog-article-content h4 {
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.05em;
++  margin-top: 2.5rem;
++  margin-bottom: 1rem;
++}
++
++.blog-article-content p,
++.blog-article-content li {
++  color: rgba(191, 255, 191, 0.92);
++}
++
++.blog-article-content a {
++  color: #66ff00;
++  text-decoration: underline;
++}
++
++.blog-hero img,
++.blog-article-content img {
++  max-width: 100%;
++  border-radius: 10px;
++  border: 1px solid rgba(102, 255, 0, 0.2);
++}
++
++.blog-author-card {
++  display: grid;
++  grid-template-columns: auto 1fr;
++  gap: 1rem;
++  align-items: center;
++  padding: 1.5rem;
++  background: rgba(6, 28, 6, 0.75);
++  border-radius: 12px;
++  border: 1px solid rgba(102, 255, 0, 0.2);
++}
++
++.blog-author-avatar {
++  width: 72px;
++  height: 72px;
++  border-radius: 50%;
++  border: 2px solid rgba(102, 255, 0, 0.45);
++  object-fit: cover;
++}
++
++.blog-author-name {
++  font-family: 'Orbitron', sans-serif;
++  font-size: 1.1rem;
++}
++
++.blog-author-title,
++.blog-author-bio,
++.blog-author-social a {
++  font-family: 'Space Mono', monospace;
++  color: var(--blog-muted);
++}
++
++.blog-author-social {
++  padding: 0;
++  margin: 0.75rem 0 0;
++  list-style: none;
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.75rem;
++}
++
++.blog-sidebar {
++  position: sticky;
++  top: clamp(5rem, 8vh, 6.5rem);
++  max-height: calc(100vh - clamp(5rem, 8vh, 6.5rem) - 1.5rem);
++  overflow-y: auto;
++  padding-right: 0.5rem;
++  display: grid;
++  gap: 1.5rem;
++  background: none;
++  scrollbar-width: thin;
++}
++
++.blog-sidebar::-webkit-scrollbar {
++  width: 6px;
++}
++
++.blog-sidebar::-webkit-scrollbar-thumb {
++  background: rgba(102, 255, 0, 0.35);
++  border-radius: 999px;
++}
++
++.blog-sidebar-close {
++  display: none;
++  justify-self: end;
++  background: none;
++  border: none;
++  color: var(--blog-chrome-color);
++  font-size: 1.75rem;
++  line-height: 1;
++  cursor: pointer;
++}
++
++.blog-sidebar-header {
++  display: grid;
++  gap: 1rem;
++}
++
++.blog-sidebar-title {
++  margin: 0;
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.08em;
++}
++
++.blog-filter {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.5rem;
++}
++
++.blog-filter-btn {
++  background: rgba(0, 0, 0, 0.6);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 999px;
++  padding: 0.4rem 0.95rem;
++  font-family: 'Orbitron', sans-serif;
++  font-size: 0.85rem;
++  letter-spacing: 0.04em;
++  color: var(--blog-muted);
++  cursor: pointer;
++  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
++}
++
++.blog-filter-btn.is-active {
++  background: rgba(102, 255, 0, 0.18);
++  color: var(--blog-chrome-color);
++  border-color: rgba(102, 255, 0, 0.6);
++}
++
++.blog-post-list {
++  list-style: none;
++  padding: 0;
++  margin: 0;
++  display: flex;
++  flex-direction: column;
++  gap: 0.9rem;
++}
++
++.blog-post-link {
++  display: block;
++  padding: 1rem 1.1rem;
++  border-radius: 12px;
++  border: 1px solid rgba(102, 255, 0, 0.15);
++  background: rgba(0, 0, 0, 0.45);
++  text-decoration: none;
++  color: rgba(191, 255, 191, 0.88);
++  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
++}
++
++.blog-post-link:hover,
++.blog-post-link:focus {
++  transform: translateX(6px);
++  border-color: rgba(102, 255, 0, 0.4);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.25);
++}
++
++.blog-post-link.is-active {
++  border-color: rgba(102, 255, 0, 0.7);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.35);
++}
++
++.blog-post-link h3 {
++  margin: 0 0 0.4rem;
++  font-family: 'Orbitron', sans-serif;
++  font-size: 1.05rem;
++}
++
++.blog-post-meta {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.35rem;
++  font-family: 'Syne Mono', monospace;
++  font-size: 0.85rem;
++  color: rgba(153, 255, 204, 0.78);
++  margin-bottom: 0.55rem;
++}
++
++.blog-post-link p {
++  margin: 0;
++  font-size: 0.9rem;
++  color: rgba(191, 255, 191, 0.72);
++}
++
++[data-post-item].is-hidden {
++  display: none;
++}
++
++.blog-sidebar-backdrop {
++  display: none;
++}
++
++@media (max-width: 960px) {
++  .blog-container {
++    width: calc(100% - 2rem);
++    padding: 0 1rem 3rem;
++  }
++
++  .blog-layout {
++    grid-template-columns: 1fr;
++  }
++
++  .blog-sidebar-toggle {
++    display: inline-flex;
++  }
++
++  .blog-sidebar {
++    position: fixed;
++    top: clamp(4.5rem, 8vh, 6rem);
++    left: 0;
++    right: 0;
++    bottom: 0;
++    max-height: none;
++    padding: 1.75rem 1.5rem 2rem;
++    background: rgba(0, 0, 0, 0.95);
++    border-top: 1px solid rgba(102, 255, 0, 0.35);
++    transform: translateY(-110%);
++    transition: transform 0.35s ease;
++    z-index: 160;
++    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
++  }
++
++  .blog-sidebar-close {
++    display: inline-flex;
++  }
++
++  body.blog-sidebar-open .blog-sidebar {
++    transform: translateY(0);
++  }
++
++  body.blog-sidebar-open .blog-sidebar-backdrop {
++    display: block;
++    position: fixed;
++    inset: 0;
++    background: rgba(0, 0, 0, 0.65);
++    z-index: 150;
++  }
++}
++
++@media (max-width: 600px) {
++  .blog-hero-slab {
++    padding: 2.25rem 1.25rem;
++  }
++
++  .blog-article-shell {
++    padding: 1.5rem;
++  }
++
++  .blog-author-card {
++    grid-template-columns: 1fr;
++    text-align: center;
++  }
++
++  .blog-author-avatar {
++    margin: 0 auto;
++  }
++}
+diff --git a/site-output/blog.html b/site-output/blog.html
+index 1407839..646ba2a 100644
+--- a/site-output/blog.html
++++ b/site-output/blog.html
+@@ -3,88 +3,145 @@
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>Core – Chaos &amp; Majesty Journal</title>
+ 
+-  <title>Core – Blog</title>
+-
+-  
+-    <meta name="description" content="All your base are belong to us.  Welcome to the Chaos and Majesty home!">
+-  
+-  
+-    <meta name="keywords" content="development, programming, python, react, typescript, node, javascript, maker, white hat, hacker">
+   
+-
+-  <!-- Include CM head content if specified -->
+-  
+-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+-<link rel="preconnect" href="https://fonts.googleapis.com">
+-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
+-
+-<link rel="preconnect" href="https://fonts.googleapis.com">
+-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+-<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-
+-<link rel="preconnect" href="https://fonts.googleapis.com">
+-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+-<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="assets/static/js/cm.js"></script>
+-<link rel="manifest" href="site.webmanifest"/>
+-<link rel="icon" type="image/x-icon" href="assets/static/img/favicon.ico">
+-<!-- Add terminal-style font imports -->
+-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+-<link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+-<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+-
+-
++    
++      <link rel="stylesheet" href="assets/modern.css">
++    
+   
+ 
+-  <!-- Stylesheets: use CM styles if CM is enabled, otherwise use provided styles -->
+   
+-    <!-- CM styles are already included in cm-head.ejs -->
+   
+-</head>
+-
+-<body
+-  class="
+-    dark-mode
+-     with-parallax
+-    cm-body
+-  "
+-  data-theme="dark"
+   
+-    style="--parallax-push:10vh;"
+   
+->
+ 
+-  <!-- Optional Parallax Background DIV -->
+-  
+-    <div
+-      class="parallax-bg"
+-      style="background-image: url(
+-        'assets/template/logo-sitegen-parallax.png'
+-      );"
+-    ></div>
+-  
++  <style>
++    .blog-hero-slab {
++      margin: 2rem auto 3rem;
++      max-width: 960px;
++      background: rgba(0, 0, 0, 0.4);
++      border: 1px solid rgba(255, 255, 255, 0.1);
++      border-radius: 12px;
++      padding: 2.5rem;
++      text-align: center;
++    }
++    .blog-hero-title {
++      font-family: 'Orbitron', 'Syne Mono', monospace;
++      font-size: clamp(2.25rem, 5vw, 3rem);
++      margin-bottom: 0.5rem;
++      letter-spacing: 0.08em;
++      text-transform: uppercase;
++    }
++    .blog-hero-tagline {
++      font-size: 1.15rem;
++      color: rgba(255, 255, 255, 0.7);
++      margin-bottom: 1rem;
++    }
++    .blog-hero-intro {
++      max-width: 720px;
++      margin: 0 auto;
++      color: rgba(255, 255, 255, 0.8);
++      line-height: 1.7;
++    }
++    .blog-layout {
++      display: grid;
++      grid-template-columns: minmax(240px, 320px) 1fr;
++      gap: 2.5rem;
++      align-items: start;
++    }
++    .blog-sidebar {
++      border-right: 1px solid rgba(255, 255, 255, 0.08);
++      padding-right: 1rem;
++    }
++    .blog-post-list {
++      list-style: none;
++      margin: 0;
++      padding: 0;
++      display: flex;
++      flex-direction: column;
++      gap: 1.25rem;
++    }
++    .blog-post-link {
++      display: block;
++      padding: 1rem 1.1rem;
++      border-radius: 10px;
++      border: 1px solid transparent;
++      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
++      text-decoration: none;
++      color: inherit;
++      background: rgba(0, 0, 0, 0.35);
++    }
++    .blog-post-link:hover,
++    .blog-post-link:focus {
++      border-color: rgba(100, 255, 218, 0.6);
++      transform: translateY(-2px);
++      outline: none;
++    }
++    .blog-post-link.is-active {
++      border-color: rgba(100, 255, 218, 0.9);
++      box-shadow: 0 0 12px rgba(100, 255, 218, 0.35);
++    }
++    .blog-post-link h3 {
++      margin: 0 0 0.35rem;
++      font-size: 1.1rem;
++    }
++    .blog-post-link .blog-post-meta {
++      font-size: 0.85rem;
++      color: rgba(255, 255, 255, 0.6);
++      margin-bottom: 0.5rem;
++      display: flex;
++      gap: 0.35rem;
++      flex-wrap: wrap;
++    }
++    .blog-post-link p {
++      margin: 0;
++      font-size: 0.95rem;
++      color: rgba(255, 255, 255, 0.8);
++      line-height: 1.5;
++    }
++    .blog-article-shell {
++      position: relative;
++      min-height: 400px;
++      background: rgba(0, 0, 0, 0.3);
++      border-radius: 12px;
++      border: 1px solid rgba(255, 255, 255, 0.08);
++      padding: 2.5rem;
++    }
++    .htmx-indicator {
++      display: none;
++    }
++    .htmx-request ~ .htmx-indicator,
++    .htmx-request.htmx-indicator {
++      display: inline-flex;
++    }
++    @media (max-width: 900px) {
++      .blog-layout {
++        grid-template-columns: 1fr;
++      }
++      .blog-sidebar {
++        border-right: none;
++        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
++        padding-right: 0;
++        padding-bottom: 1.5rem;
++        margin-bottom: 1.5rem;
++      }
++    }
++  </style>
+ 
+-  <!-- HEADER -->
++</head>
++<body class="cm-body blog-page">
+   <header>
+     <div class="container header-container">
+       
+-        <a href="index.html" class="logo-link">
+-          <img
+-            src="assets/static/img/not-dead.webp"
+-            alt="Core Logo"
+-            class="logo"
+-          >
++      
++      
++        <a href="/index.html" class="logo-link">
++          <img src="/assets/static/img/not-dead.webp" alt="Core Logo" class="logo">
+         </a>
+       
+-
+       
+-
+       
+-        <!-- Hamburger toggle (only visible on ≤768px) -->
+         <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <path d="M3 7h18M3 12h18M3 17h18" />
+@@ -93,11 +150,11 @@
+         <nav class="main-nav">
+           <ul class="nav-links">
+             
+-              <li><a href="index.html">Home</a></li>
++              <li><a href="/index.html">Home</a></li>
+             
+-              <li><a href="blog.html">Blog</a></li>
++              <li><a href="/blog.html">Blog</a></li>
+             
+-              <li><a href="sitemap.html">Sitemap</a></li>
++              <li><a href="/sitemap.html">Sitemap</a></li>
+             
+           </ul>
+         </nav>
+@@ -105,59 +162,204 @@
+     </div>
+   </header>
+ 
+-  <!-- MAIN CONTENT -->
+-  <main class="container">
+-    
++  <main class="blog-container">
++    <section class="blog-hero-slab">
++      <h2 class="blog-hero-title">Chaos &amp; Majesty Journal</h2>
++      
++        <p class="blog-hero-tagline">Dispatches from the underground console</p>
++      
++      
++        <p class="blog-hero-intro">Terminal-born perspectives on building the experience.
++Read the latest dispatches from Chaos and Majesty without leaving the console.
++</p>
++      
++    </section>
+ 
+-    
++    <button
++      class="blog-sidebar-toggle"
++      type="button"
++      data-sidebar-toggle
++      aria-expanded="false"
++      aria-controls="blog-sidebar">
++      Browse Posts
++    </button>
+ 
+-    <!-- Include 3D Logo if specified -->
+-    
++    <section class="blog-layout">
++      <div class="blog-article-shell">
++        <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
++          
++            <article class="blog-article-body" data-slug="routing-majesty-signals">
++  <header class="blog-article-header">
++    <h1 class="blog-article-title">Routing Majesty Signals</h1>
++    <p class="blog-article-meta">
+       
+-<div>
+-  <img src="assets/static/img/bunny-punx.webp" alt="Main image" class="center">
+-</div>
++        <span>May 12, 2024</span>
++      
++      
++        <span aria-hidden="true">•</span>
++        <span>7 min read</span>
++      
++      
++        <span aria-hidden="true">•</span>
++        <span>Reneé Rules</span>
++      
++    </p>
++  </header>
+ 
++  
++    <figure class="blog-hero">
++      <img src="/assets/static/img/bunny-punx.svg" alt="Routing Majesty Signals hero image">
++    </figure>
++  
+ 
+-    
++  <div class="blog-article-content">
++    <h2>Personas in Stereo</h2>
++<p>Chaos and Majesty are two sides of the same console. We keep that duality alive by splitting content streams: Chaos pushes rapid-fire updates and experimental scripts, while Majesty carries the polished releases.</p>
++<h3>Content Types</h3>
++<ol>
++<li><strong>Dispatches</strong> – quick snippets, almost changelog style.</li>
++<li><strong>Features</strong> – long-form walkthroughs (like this one) that double as documentation.</li>
++<li><strong>Signals</strong> – short call-outs we embed directly into sections via YAML.</li>
++</ol>
++<h3>YAML All the Way Down</h3>
++<p>The generator reads a single configuration file, so keeping personas straight means tracking them in metadata. Every post lives in <code>content/blog/</code> with front matter for author, tags, and publish dates. That powers listings, fragments, and future filters.</p>
++<h3>What HTMX Unlocks</h3>
++<p>HTMX lets us keep the static output lean while still swapping between posts instantly. Each link fetches a fragment (<code>blog/fragments/&lt;slug&gt;.html</code>) and rewrites the article pane without losing keyboard focus or breaking the back button.</p>
++<p>Stay tuned—next up is piping tag filters through <code>hx-vals</code> so you can jump between Chaos and Majesty with zero page reloads.</p>
+ 
+-    <!-- Include CM console if specified -->
+-    
++  </div>
+ 
+-    <div class="page-content
++  
++    <footer class="blog-author-card">
+       
+-      ">
+-      <h2 id="blog">Blog</h2>
+-<p>Welcome to the SiteGen blog.<br><em>Stay tuned for the latest news and updates!</em></p>
+-<p>Lorem</p>
+-
+-    </div>
+-
+-    <!-- Column Layout Support -->
+-    
+-      <div class="two-column-layout 50-50">
+-        <div class="left-column">
+-          <h2 id="recent-posts">Recent Posts</h2>
+-<ul>
+-<li><a href="sections/chaos.html">Chaos Theory</a></li>
+-<li><a href="sections/majesty.html">Majesty Updates</a></li>
+-</ul>
+-
+-        </div>
+-        <div class="right-column">
+-          <h2 id="featured-content">Featured Content</h2>
+-<p>Latest developments and insights.ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi.  </p>
++        <img class="blog-author-avatar" src="/assets/static/img/bunny-punx.svg" alt="Reneé Rules avatar">
++      
++      <div class="blog-author-details">
++        <strong class="blog-author-name">Reneé Rules</strong>
++        
++          <div class="blog-author-title">Majesty Maestro</div>
++        
++        
++          <p class="blog-author-bio">Curates the Majesty narrative and keeps the interface lyrical.</p>
++        
++        
++          <ul class="blog-author-social">
++            
++              <li><a href="https://example.com/reneerules" target="_blank" rel="noopener">@ReneeRules</a></li>
++            
++          </ul>
++        
++      </div>
++    </footer>
++  
++</article>
+ 
++          
+         </div>
++        <div id="blog-loading" class="htmx-indicator" role="status" aria-live="assertive">Loading…</div>
+       </div>
+-    
+ 
+-    
++      <aside class="blog-sidebar" id="blog-sidebar" aria-label="Blog post list" tabindex="-1">
++        <button class="blog-sidebar-close" type="button" data-sidebar-close aria-label="Close post list">×</button>
++        <div class="blog-sidebar-header">
++          <h3 class="blog-sidebar-title">Posts</h3>
++          
++            <div class="blog-filter" role="radiogroup" aria-label="Filter by author">
++              <button type="button" class="blog-filter-btn is-active" data-author-filter="all">All</button>
++              
++                <button
++                  type="button"
++                  class="blog-filter-btn"
++                  data-author-filter="m4xx3d0ut">
++                  m4xx3d0ut
++                </button>
++              
++                <button
++                  type="button"
++                  class="blog-filter-btn"
++                  data-author-filter="reneerules">
++                  Reneé Rules
++                </button>
++              
++            </div>
++          
++        </div>
++        <ul class="blog-post-list">
++          
++            <li data-post-item data-author="reneerules">
++              <a
++                class="blog-post-link is-active"
++                href="/blog/routing-majesty-signals.html"
++                data-post-slug="routing-majesty-signals"
++                hx-get="/blog/fragments/routing-majesty-signals.html"
++                hx-trigger="click"
++                hx-target="#blog-article"
++                hx-swap="innerHTML"
++                hx-push-url="true"
++                hx-indicator="#blog-loading"
++              >
++                <h3>Routing Majesty Signals</h3>
++                <div class="blog-post-meta">
++                  
++                    <span>May 12, 2024</span>
++                  
++                  
++                    <span aria-hidden="true">•</span>
++                    <span>7 min read</span>
++                  
++                  
++                    <span aria-hidden="true">•</span>
++                    <span>Reneé Rules</span>
++                  
++                </div>
++                
++                  <p>A layered content strategy for dual personas and terminal UX.</p>
++                
++              </a>
++            </li>
++          
++            <li data-post-item data-author="m4xx3d0ut">
++              <a
++                class="blog-post-link"
++                href="/blog/console-glow.html"
++                data-post-slug="console-glow"
++                hx-get="/blog/fragments/console-glow.html"
++                hx-trigger="click"
++                hx-target="#blog-article"
++                hx-swap="innerHTML"
++                hx-push-url="true"
++                hx-indicator="#blog-loading"
++              >
++                <h3>When the Console Glows</h3>
++                <div class="blog-post-meta">
++                  
++                    <span>May 5, 2024</span>
++                  
++                  
++                    <span aria-hidden="true">•</span>
++                    <span>6 min read</span>
++                  
++                  
++                    <span aria-hidden="true">•</span>
++                    <span>m4xx3d0ut</span>
++                  
++                </div>
++                
++                  <p>Shaping the neon terminal aesthetic that defines Chaos &amp; Majesty.</p>
++                
++              </a>
++            </li>
++          
++        </ul>
++      </aside>
++    </section>
++    <div class="blog-sidebar-backdrop" data-sidebar-backdrop></div>
++    <noscript>
++      <p>HTMX powers instant loading here. With JavaScript disabled you can still read via the direct links above.</p>
++    </noscript>
+   </main>
+ 
+-  <!-- FOOTER -->
+   <footer>
+-    <!-- Include CM footer if specified -->
+     
+       <div id="foot">
+   <p>
+@@ -165,40 +367,11 @@
+   </p>
+ </div>
+     
+-    
+     <div class="container footer-container">
+-      
+-        <nav>
+-          <ul class="footer-links">
+-            
+-              <li>
+-                <a href="https://github.com/example" target="_blank" rel="noopener">
+-                  GitHub
+-                </a>
+-              </li>
+-            
+-              <li>
+-                <a href="privacy.html" target="_blank" rel="noopener">
+-                  Privacy Policy
+-                </a>
+-              </li>
+-            
+-              <li>
+-                <a href="terms.html" target="_blank" rel="noopener">
+-                  Terms
+-                </a>
+-              </li>
+-            
+-          </ul>
+-        </nav>
+-      
+-      <p class="footer-copy">
+-        &copy; 2025 Core
+-      </p>
++      <p class="footer-copy">&copy; 2025 Core</p>
+     </div>
+   </footer>
+ 
+-  <!-- NAV TOGGLE SCRIPT -->
+   <script>
+     document.addEventListener('DOMContentLoaded', function() {
+       var toggleBtn = document.querySelector('.nav-toggle');
+@@ -209,8 +382,139 @@
+         });
+       }
+     });
++
++    var sidebarToggle = document.querySelector('[data-sidebar-toggle]');
++    var sidebarClose = document.querySelector('[data-sidebar-close]');
++    var sidebarBackdrop = document.querySelector('[data-sidebar-backdrop]');
++    var sidebar = document.querySelector('#blog-sidebar');
++
++    function openSidebar() {
++      if (!sidebar) return;
++      document.body.classList.add('blog-sidebar-open');
++      if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
++      if (typeof sidebar.focus === 'function') {
++        try {
++          sidebar.focus({ preventScroll: true });
++        } catch (_) {
++          sidebar.focus();
++        }
++      }
++    }
++
++    function closeSidebar(force) {
++      if (!sidebar) return;
++      document.body.classList.remove('blog-sidebar-open');
++      if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
++      if (!force && sidebarToggle && typeof sidebarToggle.focus === 'function') {
++        try {
++          sidebarToggle.focus({ preventScroll: true });
++        } catch (_) {
++          sidebarToggle.focus();
++        }
++      }
++    }
++
++    if (sidebarToggle) {
++      sidebarToggle.addEventListener('click', function() {
++        if (document.body.classList.contains('blog-sidebar-open')) {
++          closeSidebar();
++        } else {
++          openSidebar();
++        }
++      });
++    }
++
++    if (sidebarClose) {
++      sidebarClose.addEventListener('click', function() {
++        closeSidebar();
++      });
++    }
++
++    if (sidebarBackdrop) {
++      sidebarBackdrop.addEventListener('click', function() {
++        closeSidebar();
++      });
++    }
++
++    document.addEventListener('keydown', function(event) {
++      if (event.key === 'Escape' && document.body.classList.contains('blog-sidebar-open')) {
++        closeSidebar();
++      }
++    });
++
++    window.addEventListener('resize', function() {
++      if (window.innerWidth > 960 && document.body.classList.contains('blog-sidebar-open')) {
++        closeSidebar(true);
++      }
++    });
++
++    function syncActiveLink(slug) {
++      document.querySelectorAll('.blog-post-link').forEach(function(link) {
++        if (slug && link.dataset.postSlug === slug) {
++          link.classList.add('is-active');
++        } else {
++          link.classList.remove('is-active');
++        }
++      });
++    }
++
++    var filterButtons = Array.from(document.querySelectorAll('[data-author-filter]'));
++    var postItems = Array.from(document.querySelectorAll('[data-post-item]'));
++
++    function applyAuthorFilter(authorId) {
++      postItems.forEach(function(item) {
++        var match = authorId === 'all' || item.dataset.author === authorId;
++        item.classList.toggle('is-hidden', !match);
++      });
++    }
++
++    filterButtons.forEach(function(btn) {
++      btn.addEventListener('click', function() {
++        var authorId = btn.dataset.authorFilter;
++        filterButtons.forEach(function(b) { b.classList.toggle('is-active', b === btn); });
++        applyAuthorFilter(authorId);
++      });
++    });
++
++    if (filterButtons.length) {
++      applyAuthorFilter('all');
++    }
++
++    document.addEventListener('htmx:beforeRequest', function(event) {
++      var trigger = event.detail && event.detail.elt;
++      if (!trigger || !trigger.matches || !trigger.matches('.blog-post-link')) {
++        return;
++      }
++      syncActiveLink(trigger.dataset.postSlug);
++      closeSidebar(true);
++      var article = document.getElementById('blog-article');
++      if (article) {
++        article.setAttribute('aria-busy', 'true');
++      }
++    });
++
++    document.addEventListener('htmx:afterSwap', function(event) {
++      if (event.target && event.target.id === 'blog-article') {
++        var articleNode = event.target.querySelector('[data-slug]');
++        if (articleNode) {
++          syncActiveLink(articleNode.getAttribute('data-slug'));
++        }
++        event.target.setAttribute('aria-busy', 'false');
++      }
++    });
++
++    document.addEventListener('htmx:historyRestore', function() {
++      var articleNode = document.querySelector('#blog-article [data-slug]');
++      if (articleNode) {
++        syncActiveLink(articleNode.getAttribute('data-slug'));
++      } else {
++        syncActiveLink(null);
++      }
++      var article = document.getElementById('blog-article');
++      if (article) {
++        article.setAttribute('aria-busy', 'false');
++      }
++    });
+   </script>
+ </body>
+ </html>
+-
+-
+diff --git a/site-output/index.html b/site-output/index.html
+index e31fbf3..147cac8 100644
+--- a/site-output/index.html
++++ b/site-output/index.html
+@@ -15,11 +15,16 @@
+ 
+   <!-- Include CM head content if specified -->
+   
+-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
++    
++
++
++
++
++<meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
++<link rel="stylesheet" type="text/css" href="/assets/static/style/cm.css">
+ 
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -28,15 +33,16 @@
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="assets/static/js/cm.js"></script>
+-<link rel="manifest" href="site.webmanifest"/>
+-<link rel="icon" type="image/x-icon" href="assets/static/img/favicon.ico">
++<script type="text/javascript" src="/assets/static/js/cm.js"></script>
++<link rel="manifest" href="/site.webmanifest"/>
++<link rel="icon" type="image/x-icon" href="/assets/static/img/favicon.ico">
+ <!-- Add terminal-style font imports -->
+ <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+ 
++<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+ 
+   
+ 
+@@ -147,7 +153,7 @@
+       terminal-style">
+       <br>
+ 
+-<h2 id="welcome-to-chaos--majesty">Welcome to Chaos &amp; Majesty!</h2>
++<h2>Welcome to Chaos &amp; Majesty!</h2>
+ <br>
+ 
+ <p>Gather round, denizens of the internet, for we have something to share.</p>
+diff --git a/site-output/sections/chaos.html b/site-output/sections/chaos.html
+index 86274f0..fbaff30 100644
+--- a/site-output/sections/chaos.html
++++ b/site-output/sections/chaos.html
+@@ -15,11 +15,16 @@
+ 
+   <!-- Include CM head content if specified -->
+   
+-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
++    
++
++
++
++
++<meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="../assets/static/style/cm.css">
++<link rel="stylesheet" type="text/css" href="/assets/static/style/cm.css">
+ 
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -28,15 +33,16 @@
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="../assets/static/js/cm.js"></script>
+-<link rel="manifest" href="../site.webmanifest"/>
+-<link rel="icon" type="image/x-icon" href="../assets/static/img/favicon.ico">
++<script type="text/javascript" src="/assets/static/js/cm.js"></script>
++<link rel="manifest" href="/site.webmanifest"/>
++<link rel="icon" type="image/x-icon" href="/assets/static/img/favicon.ico">
+ <!-- Add terminal-style font imports -->
+ <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+ 
++<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+ 
+   
+ 
+@@ -129,7 +135,7 @@
+     <div class="page-content
+       
+       ">
+-      <h2 id="chaos-blog">Chaos Blog</h2>
++      <h2>Chaos Blog</h2>
+ <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Pellentesque sed turpis id urna convallis maximus.<br>Proin tincidunt, purus nec tincidunt cursus, urna mi vehicula urna, eget consequat sem augue vel ligula.</p>
+ 
+     </div>
+@@ -138,7 +144,7 @@
+     
+       <div class="two-column-layout 15-85">
+         <div class="left-column">
+-          <h3 id="navigation">Navigation</h3>
++          <h3>Navigation</h3>
+ <ul>
+ <li><a href="../blog.html">All Posts</a></li>
+ <li><a href="majesty.html">Majesty</a></li>
+@@ -146,7 +152,7 @@
+ 
+         </div>
+         <div class="right-column">
+-          <h2 id="chaos-theory-in-practice">Chaos Theory in Practice</h2>
++          <h2>Chaos Theory in Practice</h2>
+ <p>Full blog post content here...</p>
+ 
+         </div>
+diff --git a/site-output/sections/majesty.html b/site-output/sections/majesty.html
+index 7ca466d..9dcf865 100644
+--- a/site-output/sections/majesty.html
++++ b/site-output/sections/majesty.html
+@@ -15,11 +15,16 @@
+ 
+   <!-- Include CM head content if specified -->
+   
+-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
++    
++
++
++
++
++<meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="../assets/static/style/cm.css">
++<link rel="stylesheet" type="text/css" href="/assets/static/style/cm.css">
+ 
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -28,15 +33,16 @@
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="../assets/static/js/cm.js"></script>
+-<link rel="manifest" href="../site.webmanifest"/>
+-<link rel="icon" type="image/x-icon" href="../assets/static/img/favicon.ico">
++<script type="text/javascript" src="/assets/static/js/cm.js"></script>
++<link rel="manifest" href="/site.webmanifest"/>
++<link rel="icon" type="image/x-icon" href="/assets/static/img/favicon.ico">
+ <!-- Add terminal-style font imports -->
+ <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+ 
++<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+ 
+   
+ 
+@@ -129,7 +135,7 @@
+     <div class="page-content
+       
+       ">
+-      <h2 id="majesty-blog">Majesty Blog</h2>
++      <h2>Majesty Blog</h2>
+ <p>Etiam scelerisque, lorem eget pulvinar dictum, nisi sem dictum dui, id mattis neque nulla at lectus.<br>Suspendisse potenti. Curabitur ultricies nibh a ex pretium, non hendrerit urna dignissim.</p>
+ <pre><code class="language-html">&lt;!-- HTML is supported inside markdown content! --&gt;
+ &lt;button&gt;Click me&lt;/button&gt;
+@@ -144,7 +150,7 @@
+     
+       <div class="two-column-layout 15-85">
+         <div class="left-column">
+-          <h3 id="navigation">Navigation</h3>
++          <h3>Navigation</h3>
+ <ul>
+ <li><a href="../blog.html">All Posts</a></li>
+ <li><a href="chaos.html">Chaos</a></li>
+@@ -152,7 +158,7 @@
+ 
+         </div>
+         <div class="right-column">
+-          <h2 id="behold-the-majesty">Behold the Majesty</h2>
++          <h2>Behold the Majesty</h2>
+ <p>Full blog post content here...</p>
+ 
+         </div>
+diff --git a/site-output/sitemap.html b/site-output/sitemap.html
+index c4254fb..706aaa6 100644
+--- a/site-output/sitemap.html
++++ b/site-output/sitemap.html
+@@ -15,11 +15,16 @@
+ 
+   <!-- Include CM head content if specified -->
+   
+-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
++    
++
++
++
++
++<meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
++<link rel="stylesheet" type="text/css" href="/assets/static/style/cm.css">
+ 
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -28,15 +33,16 @@
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="assets/static/js/cm.js"></script>
+-<link rel="manifest" href="site.webmanifest"/>
+-<link rel="icon" type="image/x-icon" href="assets/static/img/favicon.ico">
++<script type="text/javascript" src="/assets/static/js/cm.js"></script>
++<link rel="manifest" href="/site.webmanifest"/>
++<link rel="icon" type="image/x-icon" href="/assets/static/img/favicon.ico">
+ <!-- Add terminal-style font imports -->
+ <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+ 
++<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+ 
+   
+ 
+@@ -131,7 +137,13 @@
+       <h1>Sitemap</h1>
+       <ul class="sitemap-list">
+         <li><a href="index.html">Home</a></li>
+-        <li><a href="blog.html">Blog</a></li>
++        
++        <li><a href="blog.html">Chaos & Majesty Journal</a></li>
++        
++          <li><strong>Blog Posts:</strong></li>
++          <li><a href="blog/routing-majesty-signals.html">Routing Majesty Signals</a></li>
++<li><a href="blog/console-glow.html">When the Console Glows</a></li>
++        
+         <li><strong>Sections:</strong></li>
+         <li><a href="sections/chaos.html">Chaos Blog</a></li>
+ <li><a href="sections/majesty.html">Majesty Blog</a></li>
+diff --git a/smoke-test.yaml b/smoke-test.yaml
+index 237b55f..073fd8a 100644
+--- a/smoke-test.yaml
++++ b/smoke-test.yaml
+@@ -73,41 +73,7 @@ pages:
+   #   fullWidthImage: false
+   #   hideTitle: false
+   #
+-  - title: Blog
+-    slug: blog
+-    # Enable CM styling consistently with index
+-    useCmHead: true
+-    useCmFooter: true
+-    cmImage: "assets/static/img/bunny-punx.webp"
+-    # Use the same template as index
+-    template: "home.ejs"
+-    # Match index page structure
+-    hideTitle: true
+-    parallaxImage: "assets/template/logo-sitegen-parallax.png"
+-    parallaxPush: "10vh"
+-    # Add these properties to match index styling
+-    mainImage: "assets/static/img/bunny-punx.webp"
+-    mainImageAlt: "Punks not dead"
+-    tagline: "Latest thoughts and musings"
+-    content: |
+-      ## Blog
+-
+-      Welcome to the SiteGen blog.  
+-      *Stay tuned for the latest news and updates!*
+-
+-      Lorem
+-    # Add column layout configuration
+-    columnLayout:
+-      enabled: true
+-      ratio: "50/50"  # or "15/85", "25/75", "75/25"
+-      leftContent: |
+-        ## Recent Posts
+-        - [Chaos Theory](sections/chaos.html)
+-        - [Majesty Updates](sections/majesty.html)
+-      rightContent: |
+-        ## Featured Content
+-        Latest developments and insights.ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi.  
+-  # - title: Features
++    # - title: Features
+   #   slug: features
+   #   content: |
+   #     ## Site Features
+@@ -133,6 +99,43 @@ pages:
+ 
+ styles: ["assets/modern.css"]
+ 
++blog:
++  enabled: true
++  title: "Chaos & Majesty Journal"
++  description: "Dispatches from the underground console."
++  postsDir: content/blog
++  outputDir: blog
++  fragmentDir: blog/fragments
++  indexTemplate: blog/index.ejs
++  postTemplate: blog/post.ejs
++  fragmentTemplate: blog/fragment.ejs
++  index:
++    heroTitle: "Chaos & Majesty Journal"
++    heroTagline: "Dispatches from the underground console"
++    intro: |
++      Terminal-born perspectives on building the experience.
++      Read the latest dispatches from Chaos and Majesty without leaving the console.
++    useCmHead: false
++    useCmFooter: true
++    cmImage: "assets/static/img/bunny-punx.webp"
++  authors:
++    - id: m4xx3d0ut
++      name: "m4xx3d0ut"
++      title: "Chaos Wrangler"
++      avatar: "assets/static/img/bunny-punx.webp"
++      bio: "Builder of the neon terminal core and perennial tinkerer."
++      social:
++        - label: "@m4xx3d0ut"
++          href: "https://example.com/m4xx3d0ut"
++    - id: reneerules
++      name: "Reneé Rules"
++      title: "Majesty Maestro"
++      avatar: "assets/static/img/bunny-punx.svg"
++      bio: "Curates the Majesty narrative and keeps the interface lyrical."
++      social:
++        - label: "@ReneeRules"
++          href: "https://example.com/reneerules"
++
+ index: 
+   title: Home
+ 
+diff --git a/static-sitegen/assets/static/style/cm.css b/static-sitegen/assets/static/style/cm.css
+index affa9f8..143b6c5 100644
+--- a/static-sitegen/assets/static/style/cm.css
++++ b/static-sitegen/assets/static/style/cm.css
+@@ -82,28 +82,6 @@ p.wopr {
+   opacity: 1;
+ }
+ 
+-/* Orbitron for main site typography */
+-body,
+-h1, h2, h3, h4, h5, h6,
+-p {
+-  font-family: 'Orbitron', sans-serif !important;
+-}
+-
+-/* All text: classic green */
+-h1, h2, h3, h4, h5, h6, p, span, div, a, li, ul, ol, pre, code {
+-  color: #66ff00;
+-}
+-
+-.page-content, .page-content * {
+-  color: #66ff00;
+-}
+-
+-/* Links */
+-a, a:visited, a:hover, a:active {
+-  color: #66ff00;
+-  text-decoration: underline;
+-}
+-
+ /* Hide scrollbar for Chrome, Safari and Opera */
+ .hscroll::-webkit-scrollbar {
+   display: none;
+@@ -114,13 +92,7 @@ a, a:visited, a:hover, a:active {
+   scrollbar-width: none;
+ }
+ 
+-/* --- Main Container --- */
+-.container {
+-  width: 45em;
+-  margin: 0 auto;
+-  max-width: 1100px;
+-  padding: 0 1rem;
+-}
++/* Preserve CM typography and neon palette globally */
+ /* .container { */
+ /*   width: 100%; */
+ /*   max-width: 1100px;    /* desktop max width */ */
+@@ -128,6 +100,13 @@ a, a:visited, a:hover, a:active {
+ /*   padding: 0 2rem;     /* padding for desktop spacing */ */
+ /*   box-sizing: border-box; */
+ /* } */
++.container {
++  width: 45em;
++  margin: 0 auto;
++  max-width: 1100px;
++  padding: 0 1rem;
++}
++
+ 
+ /* --- HEADER & NAVIGATION --- */
+ header {
+@@ -256,7 +235,7 @@ header {
+ }
+ 
+ /* --- MAIN CONTENT --- */
+-main {
++main.container {
+   flex: 1 0 auto;
+   padding: 2.5rem 0;
+ }
+@@ -466,3 +445,377 @@ footer {
+     gap: 1rem;
+   }
+ }
++
++/* === Blog layout (experimental palette) === */
++.blog-page {
++  --blog-max-width: 1240px;
++  --blog-sidebar-width: 320px;
++  --blog-chrome-color: #66ff00;
++  --blog-muted: rgba(153, 255, 204, 0.75);
++}
++
++.blog-container {
++  width: min(var(--blog-max-width), calc(100% - 3rem));
++  margin: 0 auto;
++  padding: 0 1.5rem 4rem;
++  box-sizing: border-box;
++}
++
++.blog-hero-slab {
++  margin: 0 auto 2.5rem;
++  padding: 2.75rem clamp(1.5rem, 2vw, 3rem);
++  background: rgba(0, 0, 0, 0.55);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 14px;
++  text-align: center;
++  backdrop-filter: blur(6px);
++}
++
++.blog-hero-title {
++  font-family: 'Orbitron', sans-serif;
++  font-size: clamp(2.25rem, 4vw, 3.25rem);
++  letter-spacing: 0.08em;
++  margin-bottom: 0.5rem;
++  text-transform: uppercase;
++}
++
++.blog-hero-tagline {
++  font-size: clamp(1.05rem, 1.3vw, 1.3rem);
++  color: var(--blog-muted);
++  margin-bottom: 1rem;
++}
++
++.blog-hero-intro {
++  font-family: 'Space Mono', monospace;
++  font-size: 1rem;
++  line-height: 1.7;
++  color: rgba(191, 255, 191, 0.85);
++  max-width: 720px;
++  margin: 0 auto;
++}
++
++.blog-sidebar-toggle {
++  display: none;
++  margin: 0 auto 1rem;
++  background: #021b02;
++  color: var(--blog-chrome-color);
++  border: 1px solid rgba(102, 255, 0, 0.6);
++  border-radius: 999px;
++  padding: 0.65rem 1.75rem;
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.04em;
++  cursor: pointer;
++  transition: background 0.25s ease, box-shadow 0.25s ease;
++}
++
++.blog-sidebar-toggle:hover,
++.blog-sidebar-toggle:focus {
++  background: rgba(102, 255, 0, 0.12);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.35);
++}
++
++.blog-layout {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, var(--blog-sidebar-width));
++  align-items: start;
++  gap: clamp(1.5rem, 5vw, 3.5rem);
++}
++
++.blog-article-shell {
++  position: relative;
++  background: rgba(0, 0, 0, 0.45);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 16px;
++  padding: clamp(1.75rem, 2.5vw, 3rem);
++  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.45);
++}
++
++.blog-article-body {
++  display: grid;
++  gap: 2rem;
++}
++
++.blog-article-title {
++  font-family: 'Orbitron', sans-serif;
++  font-size: clamp(2rem, 3vw, 2.6rem);
++  margin-bottom: 0.5rem;
++}
++
++.blog-article-meta {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.5rem;
++  font-family: 'Syne Mono', monospace;
++  font-size: 0.95rem;
++  color: var(--blog-muted);
++  letter-spacing: 0.04em;
++}
++
++.blog-article-content {
++  font-family: 'Space Mono', monospace;
++  font-size: clamp(1rem, 1vw + 0.8rem, 1.1rem);
++  line-height: 1.7;
++  color: rgba(191, 255, 191, 0.92);
++}
++
++.blog-article-content h2,
++.blog-article-content h3,
++.blog-article-content h4 {
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.05em;
++  margin-top: 2.5rem;
++  margin-bottom: 1rem;
++}
++
++.blog-article-content p,
++.blog-article-content li {
++  color: rgba(191, 255, 191, 0.92);
++}
++
++.blog-article-content a {
++  color: #66ff00;
++  text-decoration: underline;
++}
++
++.blog-hero img,
++.blog-article-content img {
++  max-width: 100%;
++  border-radius: 10px;
++  border: 1px solid rgba(102, 255, 0, 0.2);
++}
++
++.blog-author-card {
++  display: grid;
++  grid-template-columns: auto 1fr;
++  gap: 1rem;
++  align-items: center;
++  padding: 1.5rem;
++  background: rgba(6, 28, 6, 0.75);
++  border-radius: 12px;
++  border: 1px solid rgba(102, 255, 0, 0.2);
++}
++
++.blog-author-avatar {
++  width: 72px;
++  height: 72px;
++  border-radius: 50%;
++  border: 2px solid rgba(102, 255, 0, 0.45);
++  object-fit: cover;
++}
++
++.blog-author-name {
++  font-family: 'Orbitron', sans-serif;
++  font-size: 1.1rem;
++}
++
++.blog-author-title,
++.blog-author-bio,
++.blog-author-social a {
++  font-family: 'Space Mono', monospace;
++  color: var(--blog-muted);
++}
++
++.blog-author-social {
++  padding: 0;
++  margin: 0.75rem 0 0;
++  list-style: none;
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.75rem;
++}
++
++.blog-sidebar {
++  position: sticky;
++  top: clamp(5rem, 8vh, 6.5rem);
++  max-height: calc(100vh - clamp(5rem, 8vh, 6.5rem) - 1.5rem);
++  overflow-y: auto;
++  padding-right: 0.5rem;
++  display: grid;
++  gap: 1.5rem;
++  background: none;
++  scrollbar-width: thin;
++}
++
++.blog-sidebar::-webkit-scrollbar {
++  width: 6px;
++}
++
++.blog-sidebar::-webkit-scrollbar-thumb {
++  background: rgba(102, 255, 0, 0.35);
++  border-radius: 999px;
++}
++
++.blog-sidebar-close {
++  display: none;
++  justify-self: end;
++  background: none;
++  border: none;
++  color: var(--blog-chrome-color);
++  font-size: 1.75rem;
++  line-height: 1;
++  cursor: pointer;
++}
++
++.blog-sidebar-header {
++  display: grid;
++  gap: 1rem;
++}
++
++.blog-sidebar-title {
++  margin: 0;
++  font-family: 'Orbitron', sans-serif;
++  letter-spacing: 0.08em;
++}
++
++.blog-filter {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.5rem;
++}
++
++.blog-filter-btn {
++  background: rgba(0, 0, 0, 0.6);
++  border: 1px solid rgba(102, 255, 0, 0.35);
++  border-radius: 999px;
++  padding: 0.4rem 0.95rem;
++  font-family: 'Orbitron', sans-serif;
++  font-size: 0.85rem;
++  letter-spacing: 0.04em;
++  color: var(--blog-muted);
++  cursor: pointer;
++  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
++}
++
++.blog-filter-btn.is-active {
++  background: rgba(102, 255, 0, 0.18);
++  color: var(--blog-chrome-color);
++  border-color: rgba(102, 255, 0, 0.6);
++}
++
++.blog-post-list {
++  list-style: none;
++  padding: 0;
++  margin: 0;
++  display: flex;
++  flex-direction: column;
++  gap: 0.9rem;
++}
++
++.blog-post-link {
++  display: block;
++  padding: 1rem 1.1rem;
++  border-radius: 12px;
++  border: 1px solid rgba(102, 255, 0, 0.15);
++  background: rgba(0, 0, 0, 0.45);
++  text-decoration: none;
++  color: rgba(191, 255, 191, 0.88);
++  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
++}
++
++.blog-post-link:hover,
++.blog-post-link:focus {
++  transform: translateX(6px);
++  border-color: rgba(102, 255, 0, 0.4);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.25);
++}
++
++.blog-post-link.is-active {
++  border-color: rgba(102, 255, 0, 0.7);
++  box-shadow: 0 0 12px rgba(102, 255, 0, 0.35);
++}
++
++.blog-post-link h3 {
++  margin: 0 0 0.4rem;
++  font-family: 'Orbitron', sans-serif;
++  font-size: 1.05rem;
++}
++
++.blog-post-meta {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 0.35rem;
++  font-family: 'Syne Mono', monospace;
++  font-size: 0.85rem;
++  color: rgba(153, 255, 204, 0.78);
++  margin-bottom: 0.55rem;
++}
++
++.blog-post-link p {
++  margin: 0;
++  font-size: 0.9rem;
++  color: rgba(191, 255, 191, 0.72);
++}
++
++[data-post-item].is-hidden {
++  display: none;
++}
++
++.blog-sidebar-backdrop {
++  display: none;
++}
++
++@media (max-width: 960px) {
++  .blog-container {
++    width: calc(100% - 2rem);
++    padding: 0 1rem 3rem;
++  }
++
++  .blog-layout {
++    grid-template-columns: 1fr;
++  }
++
++  .blog-sidebar-toggle {
++    display: inline-flex;
++  }
++
++  .blog-sidebar {
++    position: fixed;
++    top: clamp(4.5rem, 8vh, 6rem);
++    left: 0;
++    right: 0;
++    bottom: 0;
++    max-height: none;
++    padding: 1.75rem 1.5rem 2rem;
++    background: rgba(0, 0, 0, 0.95);
++    border-top: 1px solid rgba(102, 255, 0, 0.35);
++    transform: translateY(-110%);
++    transition: transform 0.35s ease;
++    z-index: 160;
++    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
++  }
++
++  .blog-sidebar-close {
++    display: inline-flex;
++  }
++
++  body.blog-sidebar-open .blog-sidebar {
++    transform: translateY(0);
++  }
++
++  body.blog-sidebar-open .blog-sidebar-backdrop {
++    display: block;
++    position: fixed;
++    inset: 0;
++    background: rgba(0, 0, 0, 0.65);
++    z-index: 150;
++  }
++}
++
++@media (max-width: 600px) {
++  .blog-hero-slab {
++    padding: 2.25rem 1.25rem;
++  }
++
++  .blog-article-shell {
++    padding: 1.5rem;
++  }
++
++  .blog-author-card {
++    grid-template-columns: 1fr;
++    text-align: center;
++  }
++
++  .blog-author-avatar {
++    margin: 0 auto;
++  }
++}
+diff --git a/static-sitegen/lib/generateSite.js b/static-sitegen/lib/generateSite.js
+index 5930501..cec5e5b 100644
+--- a/static-sitegen/lib/generateSite.js
++++ b/static-sitegen/lib/generateSite.js
+@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
+ import path from 'path';
+ import { marked } from 'marked';
+ import * as ejs from 'ejs';
++import yaml from 'js-yaml';
+ 
+ // Default template for when no template is found
+ const DEFAULT_TEMPLATE = `
+@@ -156,6 +157,258 @@ async function copyStaticFiles(outputDir, verbose = false) {
+   }
+ }
+ 
++async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) {
++  const postsDir = path.resolve(process.cwd(), blogConfig.postsDir || 'content/blog');
++  const blogOutputRel = (blogConfig.outputDir || 'blog').replace(/^(\.\/)+/, '').replace(/\\/g, '/');
++  const fragmentRelDir = (blogConfig.fragmentDir || `${blogOutputRel}/fragments`).replace(/^(\.\/)+/, '').replace(/\\/g, '/');
++  const baseUrl = siteConfig.baseUrl || '/';
++  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
++  const publicBase = normalizedBaseUrl === '/' ? '' : normalizedBaseUrl;
++  const toPublicPath = (p) => {
++    if (!p) return publicBase || '/';
++    return `${publicBase}${p.startsWith('/') ? p : '/' + p}`;
++  };
++  let files;
++
++  try {
++    files = await fs.readdir(postsDir);
++  } catch (error) {
++    if (error.code === 'ENOENT') {
++      console.warn(`Blog posts directory not found at ${postsDir}, skipping blog generation.`);
++      return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
++    }
++    throw error;
++  }
++
++  const isExternalUrl = (value) => typeof value === 'string' && /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value);
++
++  const authors = Array.isArray(blogConfig.authors)
++    ? blogConfig.authors.map(author => {
++        const normalizedAvatar = normalizeAssetPath(author.avatar);
++        const avatarHref = normalizedAvatar && !isExternalUrl(normalizedAvatar)
++          ? toPublicPath(normalizedAvatar)
++          : normalizedAvatar;
++        return {
++          ...author,
++          avatarPath: avatarHref
++        };
++      })
++    : [];
++
++  const authorsById = new Map(authors.map(author => [author.id, author]));
++
++  const posts = [];
++
++  for (const file of files) {
++    if (!file.endsWith('.md')) {
++      continue;
++    }
++
++    const fullPath = path.join(postsDir, file);
++    const raw = await fs.readFile(fullPath, 'utf8');
++    const { attributes, body } = parseFrontMatter(raw, file);
++
++    const slug = attributes.slug || slugFromFilename(file);
++    const title = attributes.title || slug.replace(/-/g, ' ');
++
++    const authorId = attributes.author;
++    const author = authorId ? authorsById.get(authorId) : null;
++
++    if (!author && authorId && verbose) {
++      console.warn(`No author configured for id "${authorId}" while processing ${file}`);
++    }
++
++    const publishedAtIso = attributes.publishedAt || attributes.date;
++    const publishedAt = publishedAtIso ? new Date(publishedAtIso) : new Date();
++    const updatedAtIso = attributes.updatedAt;
++    const updatedAt = updatedAtIso ? new Date(updatedAtIso) : null;
++
++    const html = marked.parse(body || '');
++    const summary = attributes.summary || truncateSummary(body || '');
++    const readingMinutes = attributes.readingMinutes || estimateReadingMinutes(body);
++    const heroImageNormalized = normalizeAssetPath(attributes.heroImage);
++    const heroImagePath = heroImageNormalized && !isExternalUrl(heroImageNormalized)
++      ? toPublicPath(heroImageNormalized)
++      : heroImageNormalized;
++
++    const postRelPath = path.posix.join(blogOutputRel, `${slug}.html`);
++    const fragmentRelPath = path.posix.join(fragmentRelDir, `${slug}.html`);
++
++    posts.push({
++      slug,
++      title,
++      author,
++      summary,
++      html,
++      rawBody: body,
++      tags: attributes.tags || [],
++      publishedAt,
++      publishedAtIso: publishedAtIso || publishedAt.toISOString(),
++      updatedAt,
++      updatedAtIso: updatedAtIso || (updatedAt ? updatedAt.toISOString() : null),
++      displayPublishedAt: formatDisplayDate(publishedAt),
++      displayUpdatedAt: formatDisplayDate(updatedAtIso),
++      readingMinutes,
++      heroImagePath,
++      canonicalPath: postRelPath,
++      canonicalHref: toPublicPath(`/${postRelPath}`),
++      relativeHref: postRelPath,
++      publicHref: toPublicPath(`/${postRelPath}`),
++      fragmentPath: fragmentRelPath,
++      fragmentHref: toPublicPath(`/${fragmentRelPath}`),
++      seoDescription: attributes.seoDescription || summary
++    });
++  }
++
++  if (posts.length === 0) {
++    console.warn('No blog posts found, skipping blog generation.');
++    return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
++  }
++
++  posts.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
++
++  const blogOutputDir = path.join(outputDir, blogOutputRel);
++  const fragmentOutputDir = path.join(outputDir, fragmentRelDir);
++  await fs.mkdir(blogOutputDir, { recursive: true });
++  await fs.mkdir(fragmentOutputDir, { recursive: true });
++
++  const indexTemplate = blogConfig.indexTemplate || 'blog/index.ejs';
++  const postTemplate = blogConfig.postTemplate || 'blog/post.ejs';
++  const fragmentTemplate = blogConfig.fragmentTemplate || 'blog/fragment.ejs';
++
++  const indexPageConfig = {
++    title: blogConfig.title || 'Blog',
++    template: indexTemplate,
++    hideTitle: true,
++    useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
++    useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
++    cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
++    baseDepth: 0,
++    hero: {
++      title: blogConfig.index?.heroTitle || blogConfig.title || 'Blog',
++      tagline: blogConfig.index?.heroTagline || blogConfig.description,
++      intro: blogConfig.index?.intro || blogConfig.description
++    },
++    blogDescription: blogConfig.description,
++    posts,
++    authors,
++    initialPost: posts[0],
++    fragmentDir: fragmentRelDir,
++    outputDir: blogOutputRel,
++    fragmentTemplate,
++    postTemplate,
++    rootBase: publicBase,
++    authorFilter: blogConfig.enableAuthorFilter !== false
++  };
++
++  await generatePage(indexPageConfig, siteConfig, outputDir, verbose, 'blog.html');
++
++  // Also emit a directory index for /blog/ routing convenience
++  const directoryIndexConfig = { ...indexPageConfig, baseDepth: 1 };
++  await generatePage(directoryIndexConfig, siteConfig, blogOutputDir, verbose, 'index.html');
++
++  for (const post of posts) {
++    const postPageConfig = {
++      title: post.title,
++      template: postTemplate,
++      hideTitle: true,
++      useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
++      useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
++      cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
++      baseDepth: 1,
++      post,
++      blog: {
++        title: blogConfig.title || 'Blog',
++        description: blogConfig.description,
++        indexHref: toPublicPath('/blog.html'),
++        rootBase: publicBase
++      },
++      rootBase: publicBase
++    };
++
++    await generatePage(postPageConfig, siteConfig, blogOutputDir, verbose, `${post.slug}.html`);
++
++    const fragmentPageConfig = {
++      title: post.title,
++      template: fragmentTemplate,
++      hideTitle: true,
++      useCmHead: false,
++      useCmFooter: false,
++      baseDepth: 0,
++      post,
++      rootBase: publicBase
++    };
++
++    await generatePage(fragmentPageConfig, siteConfig, fragmentOutputDir, verbose, `${post.slug}.html`);
++  }
++
++  return {
++    indexPath: 'blog.html',
++    postPaths: posts.map(post => post.canonicalPath),
++    fragmentPaths: posts.map(post => post.fragmentPath),
++    posts
++  };
++}
++
++const FRONT_MATTER_REGEX = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)/;
++
++function parseFrontMatter(rawContent, fileName) {
++  const match = rawContent.match(FRONT_MATTER_REGEX);
++  if (!match) {
++    return { attributes: {}, body: rawContent };
++  }
++
++  let attributes = {};
++  try {
++    attributes = yaml.load(match[1]) || {};
++  } catch (error) {
++    throw new Error(`Failed to parse front matter in ${fileName}: ${error.message}`);
++  }
++
++  const body = match[2] || '';
++  return { attributes, body };
++}
++
++function normalizeAssetPath(value) {
++  if (!value) return value;
++  if (typeof value !== 'string') return value;
++  if (/^(?:https?:)?\/\//.test(value) || value.startsWith('data:') || value.startsWith('/')) {
++    return value;
++  }
++  return '/' + value.replace(/^\/+/, '');
++}
++
++function formatDisplayDate(value) {
++  if (!value) return '';
++  const date = value instanceof Date ? value : new Date(value);
++  if (Number.isNaN(date.getTime())) {
++    return '';
++  }
++  return date.toLocaleDateString('en-US', {
++    year: 'numeric',
++    month: 'short',
++    day: 'numeric'
++  });
++}
++
++function estimateReadingMinutes(content, fallback = 5) {
++  if (!content) return fallback;
++  const words = content.trim().split(/\s+/).length;
++  return Math.max(1, Math.round(words / 200));
++}
++
++function truncateSummary(text, maxLength = 160) {
++  if (!text) return '';
++  const normalized = text.replace(/\s+/g, ' ').trim();
++  if (normalized.length <= maxLength) return normalized;
++  return normalized.slice(0, maxLength).trimEnd() + '…';
++}
++
++function slugFromFilename(filename) {
++  const base = path.parse(filename).name;
++  return base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
++}
++
+ /**
+  * Generate a static site based on the provided configuration
+  * @param {Object} config - Site configuration
+@@ -216,8 +469,20 @@ export async function generateSite(config, outputDir, verbose = false) {
+       }, updatedConfig, outputDir, verbose, 'index.html');
+     }
+     
++    // Generate blog content if enabled
++    let blogArtifacts = { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
++    if (updatedConfig.blog && updatedConfig.blog.enabled) {
++      blogArtifacts = await generateBlog(updatedConfig.blog, updatedConfig, outputDir, verbose);
++    }
++
+     // Create a sitemap.html file with links to all pages
+     const pages = ['index.html'];
++    if (blogArtifacts.indexPath) {
++      pages.push(blogArtifacts.indexPath);
++    }
++    if (blogArtifacts.postPaths && blogArtifacts.postPaths.length > 0) {
++      pages.push(...blogArtifacts.postPaths);
++    }
+     
+     // Add regular pages to sitemap
+     if (updatedConfig.pages) {
+@@ -244,6 +509,11 @@ export async function generateSite(config, outputDir, verbose = false) {
+         ${updatedConfig.pages ? updatedConfig.pages.map(p => 
+           `<li><a href="${p.slug || p.title.toLowerCase().replace(/\s+/g, '-')}.html">${p.title}</a></li>`
+         ).join('\n') : ''}
++        ${blogArtifacts.indexPath ? `<li><a href="${blogArtifacts.indexPath}">${updatedConfig.blog?.title || 'Blog'}</a></li>` : ''}
++        ${blogArtifacts.posts && blogArtifacts.posts.length > 0 ? `
++          <li><strong>Blog Posts:</strong></li>
++          ${blogArtifacts.posts.map(post => `<li><a href="${post.relativeHref}">${post.title}</a></li>`).join('\n')}
++        ` : ''}
+         <li><strong>Sections:</strong></li>
+         ${updatedConfig.sections ? updatedConfig.sections.map(s => 
+           `<li><a href="sections/${s.id}.html">${s.heading || s.id}</a></li>`
+@@ -446,6 +716,9 @@ async function generatePage(pageConfig, siteConfig, outputDir, verbose, filename
+         isSection: isSection
+       });
+     } catch (error) {
++      if (verbose) {
++        console.warn(`Error rendering template ${templateName}: ${error.message}`);
++      }
+       try {
+         // Try fallback template before using default
+         const fallbackPath = path.join(
+@@ -490,4 +763,3 @@ async function generatePage(pageConfig, siteConfig, outputDir, verbose, filename
+     throw new Error(`Failed to generate page ${filename}: ${error.message}`);
+   }
+ }
+-
+diff --git a/static-sitegen/templates/partials/cm-head.ejs b/static-sitegen/templates/partials/cm-head.ejs
+index d8571b4..d8400e2 100644
+--- a/static-sitegen/templates/partials/cm-head.ejs
++++ b/static-sitegen/templates/partials/cm-head.ejs
+@@ -1,8 +1,13 @@
++<% const baseUrlRaw = site && site.baseUrl ? site.baseUrl : '/'; %>
++<% const baseUrlNormalized = baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : baseUrlRaw; %>
++<% const baseUrlTrimmed = baseUrlNormalized === '/' ? '' : baseUrlNormalized; %>
++<% const assetPath = function(p) { return (baseUrlTrimmed ? baseUrlTrimmed : '') + '/' + p.replace(/^\/+/, ''); }; %>
++<% const manifestPath = (baseUrlTrimmed ? baseUrlTrimmed : '') + '/site.webmanifest'; %>
+ <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, user-scalable=no, user-scalable=0"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+-<link rel="stylesheet" type="text/css" href="<%= isSection ? '../assets/static/style/cm.css' : 'assets/static/style/cm.css' %>">
++<link rel="stylesheet" type="text/css" href="<%= assetPath('assets/static/style/cm.css') %>">
+ 
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+@@ -11,12 +16,13 @@
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+-<script type="text/javascript" src="<%= isSection ? '../assets/static/js/cm.js' : 'assets/static/js/cm.js' %>"></script>
+-<link rel="manifest" href="<%= isSection ? '../site.webmanifest' : 'site.webmanifest' %>"/>
+-<link rel="icon" type="image/x-icon" href="<%= isSection ? '../assets/static/img/favicon.ico' : 'assets/static/img/favicon.ico' %>">
++<script type="text/javascript" src="<%= assetPath('assets/static/js/cm.js') %>"></script>
++<link rel="manifest" href="<%= manifestPath %>"/>
++<link rel="icon" type="image/x-icon" href="<%= assetPath('assets/static/img/favicon.ico') %>">
+ <!-- Add terminal-style font imports -->
+ <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+ 
++<script src="https://unpkg.com/htmx.org@1.9.12"></script>

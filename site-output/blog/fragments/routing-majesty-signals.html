@@ -1,0 +1,66 @@
+<article class="blog-article-body" data-slug="routing-majesty-signals">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Routing Majesty Signals</h1>
+    <p class="blog-article-meta">
+      
+        <span>May 12, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>7 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>Reneé Rules</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="/assets/static/img/bunny-punx.webp" alt="Routing Majesty Signals hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <h2>Personas in Stereo</h2>
+<p>Chaos and Majesty are two sides of the same console. We keep that duality alive by splitting content streams: Chaos pushes rapid-fire updates and experimental scripts, while Majesty carries the polished releases.</p>
+<h3>Content Types</h3>
+<ol>
+<li><strong>Dispatches</strong> – quick snippets, almost changelog style.</li>
+<li><strong>Features</strong> – long-form walkthroughs (like this one) that double as documentation.</li>
+<li><strong>Signals</strong> – short call-outs we embed directly into sections via YAML.</li>
+</ol>
+<h3>YAML All the Way Down</h3>
+<p>The generator reads a single configuration file, so keeping personas straight means tracking them in metadata. Every post lives in <code>content/blog/</code> with front matter for author, tags, and publish dates. That powers listings, fragments, and future filters.</p>
+<h3>What HTMX Unlocks</h3>
+<p>HTMX lets us keep the static output lean while still swapping between posts instantly. Each link fetches a fragment (<code>blog/fragments/&lt;slug&gt;.html</code>) and rewrites the article pane without losing keyboard focus or breaking the back button.</p>
+<p>Stay tuned—next up is piping tag filters through <code>hx-vals</code> so you can jump between Chaos and Majesty with zero page reloads.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="/assets/static/img/bunny-punx.svg" alt="Reneé Rules avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">Reneé Rules</strong>
+        
+          <div class="blog-author-title">Majesty Maestro</div>
+        
+        
+          <p class="blog-author-bio">Curates the Majesty narrative and keeps the interface lyrical.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/reneerules" target="_blank" rel="noopener">@ReneeRules</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+</article>
+
