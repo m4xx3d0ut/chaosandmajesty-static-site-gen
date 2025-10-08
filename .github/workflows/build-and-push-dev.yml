@@ -96,8 +96,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Output image refs
         run: |
