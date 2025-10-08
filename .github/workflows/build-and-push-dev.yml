@@ -10,8 +10,8 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      # ⬅️ use the in-cluster registry service/port (HTTP)
-      REGISTRY: registry.container-registry.svc.cluster.local:5000
+      # ⬅️ push through the host-exposed NodePort so DinD can reach it
+      REGISTRY: reg.microk8s.core.home.arpa:32000
       IMAGE_NAME: cm
       TAG_SHA: dev-${{ github.sha }}
       TAG_MAJOR: latest
@@ -29,7 +29,7 @@ jobs:
         env:
           GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
           GITEA_SSH_PORT: "2222"
-          REGISTRY_HOSTPORT: registry.container-registry.svc.cluster.local:5000
+          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
         shell: bash
         run: |
           set -euo pipefail
@@ -79,15 +79,11 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      # ⬅️ Teach BuildKit that the in-cluster registry is HTTP/insecure
+      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
         with:
           config-inline: |
-            [registry."registry.container-registry.svc.cluster.local:5000"]
-              http = true
-              insecure = true
-            # Optional: keep NodePort fallback if you ever push via LAN
             [registry."reg.microk8s.core.home.arpa:32000"]
               http = true
               insecure = true
