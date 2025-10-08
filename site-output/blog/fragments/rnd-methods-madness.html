@@ -1,0 +1,110 @@
+<article class="blog-article-body" data-slug="rnd-methods-madness">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Methods, Madness, and Shipping AI Prototypes</h1>
+    <p class="blog-article-meta">
+      
+        <span>Feb 12, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>5 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="/assets/static/img/blog/rnd-methods-madness/freedom-glider-trash-panda.png" alt="Methods, Madness, and Shipping AI Prototypes hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <h1>Methods, Madness, and Shipping AI Prototypes</h1>
+<p>Research and development sounds romantic until you are three espressos deep and the GPU fans are still screaming. What keeps the wheels on is a repeatable loop, so this post breaks down the core rituals the Infinite Reality R&amp;D team uses to move from napkin sketch to production-hardened AI services. Think of it as a field guide for anyone standing up a skunkworks lab inside an enterprise.</p>
+<h2>The R&amp;D Loop We Actually Follow</h2>
+<ol>
+<li><strong>Research the broad landscape.</strong> Start with high-level surveys, whitepapers, and community repos to map the space. Capture citations and link every experiment to a capability gap we care about.</li>
+<li><strong>Drill into the internals.</strong> Re-implement reference code, annotate protocols, and document failure cases. The goal is to move from &quot;I can run the demo&quot; to &quot;I can explain the call stack&quot;.</li>
+<li><strong>Prototype deliberately.</strong> Build proof-of-concept (PoC) exercises for narrow use cases, then graduate them into prototypes that resemble production topology—observability, authentication, and guardrails included.</li>
+<li><strong>Productize the survivors.</strong> Promote the healthiest prototypes into MVP tracks with security reviews, docs, and hand-off plans.</li>
+</ol>
+<p>This loop is intentionally cyclic; a PoC often sends us back to research when the docs gloss over what really happens on the wire. That iteration is where the interesting insights live.</p>
+<h2>Tooling the Lab</h2>
+<p>We keep the lab lightweight but reproducible:</p>
+<ul>
+<li><strong>Access.</strong> Everything rides over a hardened VPN with ephemeral <code>screen</code> sessions so we can disconnect without killing long jobs.</li>
+<li><strong>Baseline VM.</strong> Kali is our daily driver; keep <code>updatedb</code> fresh so <code>locate</code> stays quick when hunting binaries or artifacts.</li>
+<li><strong>Credential hygiene.</strong> Course images ship with default creds—change them or at least vault them. <code>kali / D34dB33fiR</code> never belongs in production.</li>
+<li><strong>Network awareness.</strong> The PWK labs use predictable addressing. Capture your <code>/32</code> allocation the moment you connect and pin it next to the target ranges so you can track pivot paths.</li>
+</ul>
+<pre><code>ssh -o &quot;UserKnownHostsFile=/dev/null&quot; -o &quot;StrictHostKeyChecking=no&quot; learner@192.168.50.52
+sudo openvpn universal.ovpn
+</code></pre>
+<h2>Hardware, or Why VRAM Still Matters</h2>
+<p>Large language models are spoiled children: they consume every byte of VRAM and still ask for more. Our reference rig is a virtualized GRID RTX6000 slice with 24GB VRAM and direct NVMe access. That buys us enough headroom to fine-tune 13B parameter models while running inference for internal users.</p>
+<pre><code>+---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.1     |
+|-----------------------------------------+----------------------+----------------------|
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  GRID RTX6000-24Q               On  | 00000000:00:06.0 Off |                  N/A |
+| N/A   N/A    P8              N/A /  N/A |  21742MiB / 24576MiB |      0%      Default |
++-----------------------------------------+----------------------+----------------------+
+</code></pre>
+<p>When we do need dedicated hardware, we lean on Terraform modules that stand up GPU nodes with hardened OS baselines, cgroup isolation, and metrics shipping to Grafana the moment the box boots.</p>
+<h2>A Slack Bot, a CLI, and a Shared Brain</h2>
+<p>Standing up the first inference endpoint was anticlimactic: a FastAPI app hosting a CodeLLaMa checkpoint behind a <code>/v1/ask</code> route. The fun came after.</p>
+<ul>
+<li><strong>Observability.</strong> Health checks and latency counters live beside the inference code so we can spot token backlog before users feel it.</li>
+<li><strong>CLI tooling.</strong> We wrapped the API in a CLI called <code>nokir</code> that injects metadata for every request. Timestamping prompts helped us correlate user feedback with GPU telemetry.</li>
+<li><strong>Chat ops.</strong> Slack integration forced us to treat multi-tenant context seriously. We landed on short-lived conversation state keyed by channel and user to avoid prompt bleed while keeping the transcripts auditable.</li>
+</ul>
+<pre><code>$ nokir &quot;Hi, what&#39;s your name?&quot;
+[*] Username: m4xx3d0ut
+[*] Timestamp: 1707776465.6883237
+[+] Nok-iR_8110: Hello! My name is Nok-iR_8110, and I am the friendly AI overlord of Infinite Reality.
+</code></pre>
+<p><img src="assets/rnd-methods-madness/freedom-glider-trash-panda.png" alt="Trash panda vs glider"></p>
+<h2>Guardrails That Survived Production Review</h2>
+<ul>
+<li><strong>Memory limits by design.</strong> Slack history feels convenient until a 13B model hallucinates company secrets. We rotate context windows aggressively and persist only the citations we need for debugging.</li>
+<li><strong>Prompt filtering at the edge.</strong> Every inbound request funnels through a FastAPI dependency that strips credentials, rotates API keys, and annotates the original payload for incident response.</li>
+<li><strong>Docs-first hand off.</strong> Before a prototype graduates, we ship diagrams, CLI usage, and runbooks into the same repo as the Helm charts. Future us deserves that kindness.</li>
+</ul>
+<h2>Where We Go Next</h2>
+<p>We are iterating on retrieval-augmented generation (RAG) agents that sit on top of our knowledge base, combining open-source embeddings with regulatory guardrails. We are also pressure-testing the human-in-the-loop workflows so the SOC can plug the tooling into existing ticket queues.</p>
+<p>If you want to run with us: start by cloning the research repo, tag your experiments, and write down what broke. AI systems are brittle until they are not—the difference is usually the rigor you bring to the boring parts of R&amp;D.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="/assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Wrangler</div>
+        
+        
+          <p class="blog-author-bio">Builder of the neon terminal core and perennial tinkerer.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/m4xx3d0ut" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+</article>
+

@@ -216,7 +216,10 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     }
 
     const publishedAtIso = attributes.publishedAt || attributes.date;
-    const publishedAt = publishedAtIso ? new Date(publishedAtIso) : new Date();
+    const publishedAtRaw = publishedAtIso ? new Date(publishedAtIso) : null;
+    const publishedAtValid = publishedAtRaw && !Number.isNaN(publishedAtRaw.getTime())
+      ? publishedAtRaw
+      : null;
     const updatedAtIso = attributes.updatedAt;
     const updatedAt = updatedAtIso ? new Date(updatedAtIso) : null;
 
@@ -250,11 +253,11 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       html,
       rawBody: body,
       tags: attributes.tags || [],
-      publishedAt,
-      publishedAtIso: publishedAtIso || publishedAt.toISOString(),
+      publishedAt: publishedAtValid,
+      publishedAtIso: publishedAtValid ? (publishedAtIso || publishedAtValid.toISOString()) : null,
       updatedAt,
       updatedAtIso: updatedAtIso || (updatedAt ? updatedAt.toISOString() : null),
-      displayPublishedAt: formatDisplayDate(publishedAtIso || publishedAt),
+      displayPublishedAt: formatDisplayDate(publishedAtIso || publishedAtValid),
       displayUpdatedAt: formatDisplayDate(updatedAtIso),
       readingMinutes,
       heroImagePath,
