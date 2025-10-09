@@ -2,35 +2,45 @@
   const CONTRAST_KEY = 'cm-contrast-mode';
   const CONTRAST_CLASS = 'contrast-mode';
 
-  function applyContrastPreference(pref) {
+  function updateToggleState(toggle, isSoft) {
+    if (!toggle) return;
+    toggle.textContent = '1337';
+    toggle.title = '1337 Mode';
+    toggle.setAttribute('aria-label', 'Toggle 1337 Mode');
+    toggle.setAttribute('aria-pressed', isSoft ? 'false' : 'true');
+    toggle.classList.toggle('is-1337', !isSoft);
+  }
+
+  function applyContrastPreference(pref, toggle) {
     const body = document.body;
     if (!body) return;
-    if (pref === 'soft') {
+    const isSoft = pref !== 'neon';
+
+    if (isSoft) {
       body.classList.add(CONTRAST_CLASS);
       body.setAttribute('data-contrast', 'soft');
     } else {
       body.classList.remove(CONTRAST_CLASS);
       body.removeAttribute('data-contrast');
     }
+
+    updateToggleState(toggle, isSoft);
   }
 
   function initThemeToggle() {
-    const stored = window.localStorage.getItem(CONTRAST_KEY) || 'neon';
-    applyContrastPreference(stored);
-
     const toggle = document.querySelector('.theme-toggle');
+    const stored = window.localStorage.getItem(CONTRAST_KEY) || 'soft';
+
+    applyContrastPreference(stored, toggle);
+
     if (!toggle) return;
 
     toggle.addEventListener('click', function() {
       const body = document.body;
       if (!body) return;
-      const isSoft = body.classList.toggle(CONTRAST_CLASS);
-      if (isSoft) {
-        body.setAttribute('data-contrast', 'soft');
-      } else {
-        body.removeAttribute('data-contrast');
-      }
-      window.localStorage.setItem(CONTRAST_KEY, isSoft ? 'soft' : 'neon');
+      const next = body.classList.contains(CONTRAST_CLASS) ? 'neon' : 'soft';
+      applyContrastPreference(next, toggle);
+      window.localStorage.setItem(CONTRAST_KEY, next);
     });
   }
 
