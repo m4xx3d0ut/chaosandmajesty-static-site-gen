@@ -28,41 +28,50 @@
 <h2>Working Notes... In Graphic Detail...</h2>
 <h3>STDOUT Redirection</h3>
 <p>Write STDOUT to console and file:</p>
-<pre><code class="language-bash">command | tee command.log
+<pre><code>bash
+command | tee command.log
 </code></pre>
 <h3>JSON Helpers</h3>
 <p>Pretty-print JSON:</p>
-<pre><code class="language-bash">jq . sample.json &gt; pretty.json
+<pre><code>bash
+jq . sample.json &gt; pretty.json
 </code></pre>
 <p>Minify JSON:</p>
-<pre><code class="language-bash">jq -c &lt; pretty.json
+<pre><code>bash
+jq -c &lt; pretty.json
 </code></pre>
 <h3>JSON Diffing</h3>
 <p>Diff an application bundle after pretty-printing:</p>
-<pre><code class="language-bash">cat min/skybox-default-streams.json.live.min | jq . &gt; test.json
+<pre><code>bash
+cat min/skybox-default-streams.json.live.min | jq . &gt; test.json
 
 diff -y -d test.json pp-skybox-default-streams.json
 </code></pre>
 <h3><code>grep</code> Patterns and Wildcards</h3>
 <p>Match <code>OS{...}</code> blocks with basic regex:</p>
-<pre><code class="language-bash">grep &#39;OS\{.*\}&#39; your_file.txt
+<pre><code>bash
+grep &#39;OS\{.*\}&#39; your_file.txt
 </code></pre>
 <p>Switch to extended regex if you want the shorthand without escaping braces:</p>
-<pre><code class="language-bash">grep -E &#39;OS{.*}&#39; your_file.txt
+<pre><code>bash
+grep -E &#39;OS{.*}&#39; your_file.txt
 </code></pre>
 <h3>Path and Loop Utilities</h3>
 <p>Grab the last path element with parameter expansion:</p>
-<pre><code class="language-bash">path=&quot;/path/to/your/directory/file.txt&quot;
+<pre><code>bash
+path=&quot;/path/to/your/directory/file.txt&quot;
 last_element=&quot;${path##*/}&quot;
 echo &quot;Last element: $last_element&quot;
 </code></pre>
 <p>Iterate through files in the current directory:</p>
-<pre><code class="language-bash">for file in &quot;$(pwd)&quot;/*; do
+<pre><code>bash
+for file in &quot;$(pwd)&quot;/*; do
   [ -f &quot;$file&quot; ] &amp;&amp; echo &quot;Processing file: $file&quot;
 done
 </code></pre>
 <p>Template script to walk a directory:</p>
-<pre><code class="language-bash">#!/bin/bash
+<pre><code>bash
+#!/bin/bash
 
 # Directory to iterate
 directory=&quot;/path/to/your/directory&quot;
@@ -76,7 +85,8 @@ done
 </code></pre>
 <h3>Recursive Find &amp; Replace</h3>
 <p>Search recursively, emit matching filenames, and replace text in place:</p>
-<pre><code class="language-bash">grep -rli &#39;old-word&#39; . | xargs -I@ sed -i &#39;s/old-word/new-word/g&#39; @
+<pre><code>bash
+grep -rli &#39;old-word&#39; . | xargs -I@ sed -i &#39;s/old-word/new-word/g&#39; @
 </code></pre>
 <p><code>grep</code> flags:</p>
 <ul>
