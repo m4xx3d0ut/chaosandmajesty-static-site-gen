@@ -180,6 +180,17 @@
         <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
           <% if (page.initialPost) { %>
             <%- include('partials/article.ejs', { post: page.initialPost }) %>
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                var articleNode = document.querySelector('#blog-article [data-slug]');
+                if (articleNode && articleNode.getAttribute('data-slug')) {
+                  var activeLink = document.querySelector('[data-post-slug="' + articleNode.getAttribute('data-slug') + '"]');
+                  if (activeLink) {
+                    activeLink.classList.add('is-active');
+                  }
+                }
+              });
+            </script>
           <% } else if (page.emptyStateHtml) { %>
             <div class="blog-empty-state"><%- page.emptyStateHtml %></div>
           <% } else { %>

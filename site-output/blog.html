@@ -1426,6 +1426,17 @@ because that manifesto still explains why Chaos &amp; Majesty exists.<br>We expl
   
 </article>
 
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                var articleNode = document.querySelector('#blog-article [data-slug]');
+                if (articleNode && articleNode.getAttribute('data-slug')) {
+                  var activeLink = document.querySelector('[data-post-slug="' + articleNode.getAttribute('data-slug') + '"]');
+                  if (activeLink) {
+                    activeLink.classList.add('is-active');
+                  }
+                }
+              });
+            </script>
           
         </div>
         <div id="blog-loading" class="htmx-indicator" role="status" aria-live="assertive">Loading…</div>
