@@ -223,56 +223,57 @@ Nmap done: 1 IP address (1 host up) scanned in 31.38 seconds
 <p>This is not surprising given the hostname, MAILSRV1.</p>
 <p><em>In a real-world penetration test, the hostnames may not always be as descriptive as they are in this Module.</em></p>
 <p>We may not be familiar with hMailServer, so we can research it.  It&#39;s web page states it&#39;s a free open source email server for MS Windows.</p>
-<p>We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.
-<img src="../_resources/99684678161d6071a40af92148e6bb39.png" alt="99684678161d6071a40af92148e6bb39.png"></p>
+<p>We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.</p>
+<!-- ![99684678161d6071a40af92148e6bb39.png](../_resources/99684678161d6071a40af92148e6bb39.png) -->
+
 <p><em>Even if we had found a vulnerability with a matching exploit providing the code execution, we should not skip the remaining enumeration steps. While we may get access to the target system, we could potentially miss out on vital data or information for other services and systems.</em></p>
 <p>Next we enum the IIS web server, start by browsing to the page.
 <img src="../_resources/4316651448cd222db1ee56d6a44fcad9.png" alt="4316651448cd222db1ee56d6a44fcad9.png"></p>
 <ul>
 <li>We find only the default IIS welcome page.</li>
 </ul>
-<h1>Let&#39;s use <code>gobuster</code> to try to enum directories and files.  Enter <code>dir</code> to use the directory enumeratino mode, <code>-u</code> for URL, <code>-w</code> for wordlist, and <code>-x</code> for the files types we want to identify.  In this case, we will look for <code>txt,pdf,config</code> to identify any documents or config files.  Use <code>-o</code> to create an output file.
-```bash
-┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ gobuster dir -u <a href="http://192.168.218.242">http://192.168.218.242</a> -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config</h1>
-<h1>Gobuster v3.6
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:                     <a href="http://192.168.218.242">http://192.168.218.242</a>
+<p>Let&#39;s use <code>gobuster</code> to try to enum directories and files.  Enter <code>dir</code> to use the directory enumeration mode, <code>-u</code> for URL, <code>-w</code> for wordlist, and <code>-x</code> for the files types we want to identify.  In this case, we will look for <code>txt,pdf,config</code> to identify any documents or config files.  Use <code>-o</code> to create an output file.</p>
+<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ gobuster dir -u http://192.168.218.242 -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.218.242
 [+] Method:                  GET
 [+] Threads:                 10
 [+] Wordlist:                /usr/share/wordlists/dirb/common.txt
 [+] Negative Status codes:   404
 [+] User Agent:              gobuster/3.6
 [+] Extensions:              pdf,config,txt
-[+] Timeout:                 10s</h1>
-<h1>Starting gobuster in directory enumeration mode</h1>
-<h1>Progress: 18456 / 18460 (99.98%)</h1>
-<h1>Finished</h1>
-<pre><code>- Gobuster did not turn up anything notable.
- - *Not every enumeration technique needs to provide actionable results. In the initial information gathering phase, it is important to perform a variety of enumeration methods to get a complete picture of a system.*.
-
-To summarize our enumeration of MAILSRV1:
-- Port scan with Namp.
- - IIS web server.
- - HMailServer.
- - Windows OS.
-- Further web server enumeration did not turn up anything notable.
-
-If we identify valid credentials and targets later in the test we may be able to utilize the mail server, perhaps for phishing.
-
-The cyclical nature of the pentest is important for us to grasp, we must be in the mindset of continuously reevaluating and using new info to follow previously inapproachable attack vectors.
-
-
-
-##### WEBSRV1
-
-Now we wil enumerate the second machine in the client topology, WEBSRV1, which we can assume is a web server.
-
-*In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it&#39;s vital to perform the scans in a structured way to not mix up results or miss findings.*
-
-Start with an Namp scan.
-```bash
-┌──(operator㉿labhost)-[~/OffSec/beyond]
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+Progress: 18456 / 18460 (99.98%)
+===============================================================
+Finished
+===============================================================
+</code></pre>
+<ul>
+<li>Gobuster did not turn up anything notable.</li>
+<li><em>Not every enumeration technique needs to provide actionable results. In the initial information gathering phase, it is important to perform a variety of enumeration methods to get a complete picture of a system.</em>.</li>
+</ul>
+<p>To summarize our enumeration of MAILSRV1:</p>
+<ul>
+<li>Port scan with Namp.</li>
+<li>IIS web server.</li>
+<li>HMailServer.</li>
+<li>Windows OS.</li>
+<li>Further web server enumeration did not turn up anything notable.</li>
+</ul>
+<p>If we identify valid credentials and targets later in the test we may be able to utilize the mail server, perhaps for phishing.</p>
+<p>The cyclical nature of the pentest is important for us to grasp, we must be in the mindset of continuously reevaluating and using new info to follow previously inapproachable attack vectors.</p>
+<h5>WEBSRV1</h5>
+<p>Now we wil enumerate the second machine in the client topology, WEBSRV1, which we can assume is a web server.</p>
+<p><em>In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it&#39;s vital to perform the scans in a structured way to not mix up results or miss findings.</em></p>
+<p>Start with an Namp scan.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN websrv1/nmap 192.168.218.244
 [sudo] password for operator:
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-12-28 22:26 PST

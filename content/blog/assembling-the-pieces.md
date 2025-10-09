@@ -144,38 +144,38 @@ This is not surprising given the hostname, MAILSRV1.
 We may not be familiar with hMailServer, so we can research it.  It's web page states it's a free open source email server for MS Windows.
 
 We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.
-![99684678161d6071a40af92148e6bb39.png](../_resources/99684678161d6071a40af92148e6bb39.png)
+<!-- ![99684678161d6071a40af92148e6bb39.png](../_resources/99684678161d6071a40af92148e6bb39.png) -->
 
 *Even if we had found a vulnerability with a matching exploit providing the code execution, we should not skip the remaining enumeration steps. While we may get access to the target system, we could potentially miss out on vital data or information for other services and systems.*
+
 
 Next we enum the IIS web server, start by browsing to the page.
 ![4316651448cd222db1ee56d6a44fcad9.png](../_resources/4316651448cd222db1ee56d6a44fcad9.png)
 - We find only the default IIS welcome page.
 
-Let's use `gobuster` to try to enum directories and files.  Enter `dir` to use the directory enumeratino mode, `-u` for URL, `-w` for wordlist, and `-x` for the files types we want to identify.  In this case, we will look for `txt,pdf,config` to identify any documents or config files.  Use `-o` to create an output file.
-```bash
-┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ gobuster dir -u http://192.168.218.242 -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
-===============================================================
-Gobuster v3.6
-by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
-===============================================================
-[+] Url:                     http://192.168.218.242
-[+] Method:                  GET
-[+] Threads:                 10
-[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
-[+] Negative Status codes:   404
-[+] User Agent:              gobuster/3.6
-[+] Extensions:              pdf,config,txt
-[+] Timeout:                 10s
-===============================================================
-Starting gobuster in directory enumeration mode
-===============================================================
-Progress: 18456 / 18460 (99.98%)
-===============================================================
-Finished
-===============================================================
-```
+Let's use `gobuster` to try to enum directories and files.  Enter `dir` to use the directory enumeration mode, `-u` for URL, `-w` for wordlist, and `-x` for the files types we want to identify.  In this case, we will look for `txt,pdf,config` to identify any documents or config files.  Use `-o` to create an output file.
+
+    ┌──(operator㉿labhost)-[~/OffSec/beyond]
+    └─$ gobuster dir -u http://192.168.218.242 -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
+    ===============================================================
+    Gobuster v3.6
+    by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+    ===============================================================
+    [+] Url:                     http://192.168.218.242
+    [+] Method:                  GET
+    [+] Threads:                 10
+    [+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+    [+] Negative Status codes:   404
+    [+] User Agent:              gobuster/3.6
+    [+] Extensions:              pdf,config,txt
+    [+] Timeout:                 10s
+    ===============================================================
+    Starting gobuster in directory enumeration mode
+    ===============================================================
+    Progress: 18456 / 18460 (99.98%)
+    ===============================================================
+    Finished
+    ===============================================================
 - Gobuster did not turn up anything notable.
  - *Not every enumeration technique needs to provide actionable results. In the initial information gathering phase, it is important to perform a variety of enumeration methods to get a complete picture of a system.*.
 
@@ -189,8 +189,6 @@ To summarize our enumeration of MAILSRV1:
 If we identify valid credentials and targets later in the test we may be able to utilize the mail server, perhaps for phishing.
 
 The cyclical nature of the pentest is important for us to grasp, we must be in the mindset of continuously reevaluating and using new info to follow previously inapproachable attack vectors.
-
-
 
 ##### WEBSRV1
 
