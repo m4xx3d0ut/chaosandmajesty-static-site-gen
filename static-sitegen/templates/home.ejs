@@ -32,3 +32,9 @@
   });
 </script>
 <% } %>
+
+<% if (page.latestPostsByAuthor) { %>
+<script>
+  window.cmLatestArticles = <%- JSON.stringify(page.latestPostsByAuthor) %>;
+</script>
+<% } %>

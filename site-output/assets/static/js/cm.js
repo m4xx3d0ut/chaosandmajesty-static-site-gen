@@ -1,4 +1,32 @@
 (function() {
+  const CONTRAST_KEY = 'cm-contrast-mode';
+  const CONTRAST_CLASS = 'contrast-mode';
+
+  function applyContrastPreference(pref) {
+    const body = document.body;
+    if (!body) return;
+    if (pref === 'soft') {
+      body.classList.add(CONTRAST_CLASS);
+    } else {
+      body.classList.remove(CONTRAST_CLASS);
+    }
+  }
+
+  function initThemeToggle() {
+    const stored = window.localStorage.getItem(CONTRAST_KEY) || 'neon';
+    applyContrastPreference(stored);
+
+    const toggle = document.querySelector('.theme-toggle');
+    if (!toggle) return;
+
+    toggle.addEventListener('click', function() {
+      const body = document.body;
+      if (!body) return;
+      const isSoft = body.classList.toggle(CONTRAST_CLASS);
+      window.localStorage.setItem(CONTRAST_KEY, isSoft ? 'soft' : 'neon');
+    });
+  }
+
   var opacity = 0;
   var intervalID = null;
   var out = 0;
@@ -13,6 +41,7 @@
       'Awaiting command...'
   ];
   var opts = ['paul', 'm4xx3d0ut', 'renee', 'matica'];
+  var latestArticles = window.cmLatestArticles || {};
   var prof = [
       [
           'Seaching... Profile found!',
@@ -98,8 +127,59 @@
       }, speed, eId);
   }
 
+  function resolveLatest(alias) {
+      if (!alias) return null;
+      var key = alias.toLowerCase();
+      for (var id in latestArticles) {
+          if (!Object.prototype.hasOwnProperty.call(latestArticles, id)) continue;
+          var entry = latestArticles[id];
+          if (!entry) continue;
+          if (entry.id && entry.id.toLowerCase() === key) return entry;
+          if (entry.aliases && entry.aliases.indexOf(key) !== -1) return entry;
+          if (entry.name && entry.name.toLowerCase() === key) return entry;
+      }
+      return null;
+  }
+
+  function latestLines(entry) {
+      var lines = [
+          'Searching neon feeds... match found!',
+          '---',
+          'Author: ' + (entry.name || entry.id),
+          'Title: ' + entry.title
+      ];
+      if (entry.summary) {
+          lines.push('Summary: ' + entry.summary);
+      }
+      if (entry.url) {
+          lines.push('Read: ');
+          lines.push(entry.url);
+          lines.push(entry.url);
+      }
+      lines.push('---');
+      lines.push('End of transmission...');
+      return lines;
+  }
+
   function termFunc(input) {
       var term = input.toLowerCase();
+      var trimmed = term.trim();
+
+      if (trimmed.startsWith('latest')) {
+          var parts = trimmed.split(/\s+/);
+          if (parts.length < 2) {
+              terminal(['Usage: latest <author>']);
+              return;
+          }
+          var alias = parts[1];
+          var entry = resolveLatest(alias);
+          if (entry) {
+              terminal(latestLines(entry));
+          } else {
+              terminal(['No recent dispatch found for "' + alias + '".']);
+          }
+          return;
+      }
       var valid = false;
       opts.forEach((opt) => {
           if (term.includes(opt)) {
@@ -130,7 +210,7 @@
           i++;
       } else {
           i = 0;
-          if (msg === 'Email: ' || msg === 'LinkedIn: ') {
+          if (msg === 'Email: ' || msg === 'LinkedIn: ' || msg === 'Read: ') {
               var a = document.createElement('a');
               var link = document.createTextNode(msgOut[elementId+2])
               a.appendChild(link);
@@ -169,7 +249,14 @@
 
   // Only run everything after DOM is loaded!
   window.addEventListener('DOMContentLoaded', function() {
-      if (!document.getElementById("tOut") || !document.getElementById("tagline")) return;
+      initThemeToggle();
+
+      var termOut = document.getElementById("tOut");
+      var tagline = document.getElementById("tagline");
+      if (!termOut || !tagline) {
+          return;
+      }
+
       window.scrollTo(0, 0);
       main();
       const termIn = document.getElementById("uIn");
@@ -193,4 +280,3 @@
       }
   });
 })();
-

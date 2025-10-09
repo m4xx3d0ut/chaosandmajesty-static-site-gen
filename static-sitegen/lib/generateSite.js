@@ -425,7 +425,8 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     indexPath: 'blog.html',
     postPaths: posts.map(post => post.canonicalPath),
     fragmentPaths: posts.map(post => post.fragmentPath),
-    posts
+    posts,
+    hiddenPosts
   };
 }
 
@@ -535,17 +536,16 @@ export async function generateSite(config, outputDir, verbose = false) {
       });
     }
     
-    // Generate index page if specified
+    let indexPageConfigData;
     if (updatedConfig.index) {
-      await generatePage({...updatedConfig.index, isIndex: true, sectionMap}, updatedConfig, outputDir, verbose, 'index.html');
+      indexPageConfigData = { ...updatedConfig.index, isIndex: true, sectionMap };
     } else {
-      // Create a default index page
-      await generatePage({
+      indexPageConfigData = {
         title: updatedConfig.title,
         content: updatedConfig.description || `Welcome to ${updatedConfig.title}`,
         isIndex: true,
         sectionMap
-      }, updatedConfig, outputDir, verbose, 'index.html');
+      };
     }
     
     // Generate blog content if enabled
@@ -553,6 +553,38 @@ export async function generateSite(config, outputDir, verbose = false) {
     if (updatedConfig.blog && updatedConfig.blog.enabled) {
       blogArtifacts = await generateBlog(updatedConfig.blog, updatedConfig, outputDir, verbose);
     }
+
+    if (blogArtifacts.posts && blogArtifacts.posts.length > 0) {
+      const latestPostsByAuthor = {};
+      for (const post of blogArtifacts.posts) {
+        if (!post || !post.author || !post.author.id) {
+          continue;
+        }
+        if (post.isHidden) {
+          continue;
+        }
+        const authorId = post.author.id.toLowerCase();
+        if (latestPostsByAuthor[authorId]) {
+          continue;
+        }
+        const aliases = new Set();
+        aliases.add(authorId);
+        if (post.author.name) {
+          aliases.add(post.author.name.toLowerCase());
+        }
+        latestPostsByAuthor[authorId] = {
+          id: post.author.id,
+          name: post.author.name || post.author.id,
+          title: post.title,
+          summary: post.summary || '',
+          url: post.publicHref || post.canonicalHref,
+          aliases: Array.from(aliases).filter(Boolean)
+        };
+      }
+      indexPageConfigData.latestPostsByAuthor = latestPostsByAuthor;
+    }
+
+    await generatePage(indexPageConfigData, updatedConfig, outputDir, verbose, 'index.html');
 
     // Create a sitemap.html file with links to all pages
     const pages = ['index.html'];
