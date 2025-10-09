@@ -4,15 +4,14 @@ slug: lv-vg-management
 author: m4xx3d0ut
 summary: Playbook for reclaiming disks, adding them to Ubuntu LVM volume groups, and
   stretching the root filesystem safely.
-publishedAt: '2024-10-20'
-updatedAt: '2024-10-20'
-readingMinutes: 4
 tags:
 - m4xx3d
 - linux
 - lvm
 - storage
 - devops
+publishedAt: 2024-10-20
+updatedAt: 2024-10-20
 ---
 ## TLDR;
 

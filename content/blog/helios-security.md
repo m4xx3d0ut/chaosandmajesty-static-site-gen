@@ -4,15 +4,14 @@ slug: helios-security
 author: m4xx3d0ut
 summary: "Hardening checklist for the Helios hosts\u2014unattended upgrades, SSH lockdowns,\
   \ UFW + Fail2ban, psad, and Tripwire tuning."
-publishedAt: '2023-05-28'
-updatedAt: '2023-08-27'
-readingMinutes: 9
 tags:
 - m4xx3d
 - security
 - hardening
 - linux
 - devops
+publishedAt: 2023-05-28
+updatedAt: 2023-08-27
 ---
 ## TLDR;
 
@@ -266,7 +265,7 @@ $ sudo systemctl status psadwatchd.service
 
 ##### Reload and Check
 For the changes to take effect reload UFW,  PSAD, update PSAD signatures, and send HUP to PIDs.
-```
+```bash
 sudo ufw reload
 
 sudo psad -R
@@ -370,6 +369,6 @@ $ tripwire --check --interactive --visual micro
 
 ##### Mosh
 
-```
+```bash
 sudo ufw allow 60000:61000/udp
 ```

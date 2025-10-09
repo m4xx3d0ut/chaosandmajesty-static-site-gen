@@ -3,15 +3,14 @@ title: PXE Boot Server Notes
 slug: pxe-server
 author: m4xx3d0ut
 summary: Handy links and paths for standing up iVentoy as a lightweight PXE appliance.
-publishedAt: '2024-01-15'
-updatedAt: '2024-01-15'
-readingMinutes: 1
 tags:
 - m4xx3d
 - networking
 - pxe
 - deployment
 - infrastructure
+publishedAt: 2024-01-15
+updatedAt: 2024-01-15
 ---
 # PXE Boot Server
 

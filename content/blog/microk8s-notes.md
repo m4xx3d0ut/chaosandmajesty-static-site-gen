@@ -4,15 +4,14 @@ slug: microk8s-notes
 author: m4xx3d0ut
 summary: End-to-end checklist for building charts, pushing images, exposing services,
   and managing the built-in registry on MicroK8s.
-publishedAt: '2025-01-28'
-updatedAt: '2025-02-02'
-readingMinutes: 14
 tags:
 - m4xx3d
 - kubernetes
 - microk8s
 - devops
 - registry
+publishedAt: 2025-01-28
+updatedAt: 2025-02-02
 ---
 ## TLDR;
 

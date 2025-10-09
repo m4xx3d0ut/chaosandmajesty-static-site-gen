@@ -4,15 +4,14 @@ slug: lua-scripting
 author: m4xx3d0ut
 summary: "A beginner-friendly tour of Lua\u2019s toolchain, syntax, and extensibility\
   \ for automation, games, and embedded runtimes."
-publishedAt: '2024-12-19'
-updatedAt: '2025-01-16'
-readingMinutes: 4
 tags:
 - m4xx3d
 - lua
 - programming
 - scripting
 - automation
+publishedAt: 2024-12-19
+updatedAt: 2025-01-16
 ---
 ## TLDR;
 

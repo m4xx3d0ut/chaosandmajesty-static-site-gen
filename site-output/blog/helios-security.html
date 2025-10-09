@@ -321,7 +321,7 @@ $ sudo systemctl status psadwatchd.service
 </code></pre>
 <h5>Reload and Check</h5>
 <p>For the changes to take effect reload UFW,  PSAD, update PSAD signatures, and send HUP to PIDs.</p>
-<pre><code>sudo ufw reload
+<pre><code class="language-bash">sudo ufw reload
 
 sudo psad -R
 sudo psad --sig-update
@@ -398,7 +398,7 @@ $ tripwire --init
 <pre><code>$ tripwire --check --interactive --visual micro
 </code></pre>
 <h5>Mosh</h5>
-<pre><code>sudo ufw allow 60000:61000/udp
+<pre><code class="language-bash">sudo ufw allow 60000:61000/udp
 </code></pre>
 
   </div>

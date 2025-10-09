@@ -129,7 +129,7 @@
 <li><strong>Credential hygiene.</strong> Course images ship with default creds—change them or at least vault them. <code>kali / D34dB33fiR</code> never belongs in production.</li>
 <li><strong>Network awareness.</strong> The PWK labs use predictable addressing. Capture your <code>/32</code> allocation the moment you connect and pin it next to the target ranges so you can track pivot paths.</li>
 </ul>
-<pre><code>ssh -o &quot;UserKnownHostsFile=/dev/null&quot; -o &quot;StrictHostKeyChecking=no&quot; learner@192.168.50.52
+<pre><code class="language-bash">ssh -o &quot;UserKnownHostsFile=/dev/null&quot; -o &quot;StrictHostKeyChecking=no&quot; learner@192.168.50.52
 sudo openvpn universal.ovpn
 </code></pre>
 <h2>Hardware, or Why VRAM Still Matters</h2>

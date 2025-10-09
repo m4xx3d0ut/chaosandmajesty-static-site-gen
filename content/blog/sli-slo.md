@@ -1,0 +1,121 @@
+---
+title: Measuring Reliability With SLIs And SLOs
+slug: sli-slo
+author: m4xx3d0ut
+summary: Quick primer on defining SLIs/SLOs, translating 9x availability to downtime,
+  and picking error budgets that align with user journeys.
+tags:
+- m4xx3d
+- sre
+- reliability
+- observability
+- operations
+publishedAt: 2025-02-06
+updatedAt: 2025-02-06
+readingMinutes: 10
+---
+## TLDR;
+
+- Ground every subsystem in a user journey: document the indicator, objective, and slack, then capture it once via the shared Google Form for review.
+- Translate "number of nines" into budget minutes so product, ops, and finance can see the burn rate; 99.95% still allows ~20 minutes of downtime every 28 days.
+- Use a clean SLI equation—good events divided by valid events—to feed alerting, dashboards, and retros; filter noisy inputs before they eat the error budget.
+
+## Working Notes... In Graphic Detail...
+
+### Kickoff Checklist
+
+- Read the [Confluence companion](https://tsu.atlassian.net/wiki/x/EYBvgQ) for terminology alignment and examples.
+- Submit each user journey through the [SLI & SLO intake form](https://docs.google.com/forms/d/e/1FAIpQLSd5XLgX8arCupOynlrdGOQpfuZO8VJZ4z9Q27rKOa28EjpGpw/viewform?usp=sf_link).
+- Track responses in the shared analytics view or pull the linked Google Sheet when you need raw numbers for planning.
+
+### Why SLIs And SLOs Matter
+
+SLIs, SLOs, and SLAs close the loop between engineering work and business outcomes.
+Without them you cannot reason about availability, customer promises, or whether new
+features are hurting your reliability posture.
+
+- Define reliability via the specific experience the user cares about (often availability).
+- Measure success and failure rates so the SLI reflects reality.
+- Pick the lowest acceptable objective (SLO) to balance cost and delivery pace.
+- Keep SLAs looser than SLOs so you have wiggle room before contractual penalties.
+
+### Outage Math Cheatsheet
+
+| Reliability Level | Per Year | Per Quarter | Per 28 Days |
+| ----------------- | -------- | ----------- | ----------- |
+| 90% | 36d 12h | 9d | 2d 19h 12m |
+| 95% | 18d 6h | 4d 12h | 1d 9h 36m |
+| 99% | 3d 15h 36m | 21h 36m | 6h 43m 12s |
+| 99.5% | 1d 19h 48m | 10h 48m | 3h 21m 36s |
+| 99.9% | 8h 45m 36s | 2h 9m 36s | 40m 19s |
+| 99.95% | 4h 22m 48s | 1h 4m 48s | 20m 10s |
+| 99.99% | 52m 33.6s | 12m 57.6s | 4m 1.9s |
+| 99.999% | 5m 15.4s | 1m 17.8s | 24.2s |
+
+At 99.95% reliability you can spend just 20 minutes per 28 days at 100% outage, or
+burn the same budget across partial degradations:
+
+| Error Rate | Budget Burn in 28 days |
+| ---------- | ---------------------- |
+| 100% | 20m 10s |
+| 10% | 3h 21m 36s |
+| 1% | 1d 9h 36m |
+| 0.1% | 14d |
+
+### The Core Equation
+
+`SLI = (good events / valid events) * 100%`
+
+1. SLIs live between 0% and 100%, matching percent-reliability SLOs and error budgets.
+2. Consistent inputs (good events, valid events, threshold) allow shared alerting and reporting tooling.
+3. Filter bogus traffic out of the denominator or explicitly mark good events in the numerator so noisy clients do not drain error budgets.
+
+### SLI Categories
+
+- Request / Response
+  - Availability
+  - Latency
+  - Quality
+- Data Processing
+  - Freshness
+  - Coverage
+  - Correctness
+  - Throughput
+- Storage
+  - Throughput
+  - Latency
+
+### Availability SLIs
+
+Focus on the proportion of valid requests served successfully.
+
+- What requests qualify as valid for the journey?
+- What constitutes a successful response (status code, payload, side effects)?
+
+### Latency SLIs
+
+Measure the percentage of valid requests that complete under a threshold.
+
+- Define the timer start/stop points (client, LB, app) so dashboards agree.
+- Pick latency buckets that reflect user expectations (p95 vs p99).
+
+### Quality SLIs
+
+Quality tracks correctness of results rather than uptime.
+
+- Identify the signal for correctness (checksum, validation pass, downstream acknowledgement).
+- Cap the sample window so slow drift does not silently violate the budget.
+
+### Error Budget Execution
+
+- Express the remaining budget as downtime minutes or request counts so stakeholders see trade-offs.
+- Pair product launches with a budget burn plan; freeze risky deploys if the budget drops below 50%.
+- Rotate reviews through the owning squads so SLIs stay current with architecture changes.
+
+---
+
+Reference materials:
+
+- [Confluence primer](https://tsu.atlassian.net/wiki/x/EYBvgQ)
+- [Submission form](https://docs.google.com/forms/d/e/1FAIpQLSd5XLgX8arCupOynlrdGOQpfuZO8VJZ4z9Q27rKOa28EjpGpw/viewform?usp=sf_link)
+- [Response analytics](https://docs.google.com/forms/d/1XM7jL2Sp9G2TIOJqLa-GL7MQQLIWujYO9w61BmpGDYk/viewanalytics)

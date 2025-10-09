@@ -165,14 +165,14 @@
 <h3>PWK</h3>
 <h4>Course Info</h4>
 <p>Recommended SSH flags</p>
-<pre><code>ssh -o &quot;UserKnownHostsFile=/dev/null&quot; -o &quot;StrictHostKeyChecking=no&quot; learner@192.168.50.52
+<pre><code class="language-bash">ssh -o &quot;UserKnownHostsFile=/dev/null&quot; -o &quot;StrictHostKeyChecking=no&quot; learner@192.168.50.52
 </code></pre>
 <p>The UserKnownHostsFile=/dev/null and StrictHostKeyChecking=no options have been added to prevent the known-hosts file on our local Kali machine from being corrupted.</p>
 <h5>Kali VM</h5>
 <p>kali
 <code>D34dB33fiR</code></p>
 <p>CLI Search</p>
-<pre><code>sudo updatedb
+<pre><code class="language-bash">sudo updatedb
 locate foo
 </code></pre>
 <h5>OffSec VPN</h5>
@@ -477,7 +477,7 @@ We will explore all of these more, but for now, let&#39;s review them quickly:</
 </ul>
 <h6>The Demonstration Method</h6>
 <p>Before showing the code block, we would first lay out our plan and detail any new or interesting commands we&#39;re planning on running. Here we might discuss that we&#39;ll use ls *.txt to list any .txt files in the directory. Next, we will run our renaming command, mv oldfilename.txt newfilename.txt. Finally, we&#39;ll use ls *.txt to check if our command worked.</p>
-<pre><code>kali@kali:~$ ls *.txt
+<pre><code class="language-bash">kali@kali:~$ ls *.txt
 oldfilename.txt
 
 kali@kali:~$ mv oldfilename.txt newfilename.txt
@@ -516,7 +516,7 @@ ls -l newfilename.txt
 ls -l find_employee_names.py
 </code></pre>
 <p>Let&#39;s change the executable permission for this file and give ourselves permission to execute the file (put another way, to run it as a program). We can use chmod +x to add the executable permission to our script file. Let&#39;s do so and try running the script again.</p>
-<pre><code>kali@kali:~$ chmod +x find_employee_names.py
+<pre><code class="language-bash">kali@kali:~$ chmod +x find_employee_names.py
 
 kali@kali:~$ ls -l find_employee_names.py
 -rwxr-xr-x 1 kali kali 206 Jun  7 12:31 find_employee_names.py
@@ -534,26 +534,26 @@ E. Turner
 D. Hill
 </code></pre>
 <p>Let&#39;s now change it back so that we no longer have permission to execute the file. To add the permission, we used chmod +x, so this time, we will use chmod -x.</p>
-<pre><code>kali@kali:~$ chmod -x find_employee_names.py
+<pre><code class="language-bash">kali@kali:~$ chmod -x find_employee_names.py
 
 kali@kali:~$ ./find_employee_names.py
 zsh: permission denied: ./find_employee_names.py
 </code></pre>
 <h6>Going Deeper: Encountering a Strange Problem</h6>
 <p>Now, let&#39;s ask ourselves an interesting question: since chmod is the tool that allows us to set permissions, what would we do if we did not have permission to execute it?</p>
-<pre><code>kali@kali:~$ ./find_employee_names.py
+<pre><code class="language-bash">kali@kali:~$ ./find_employee_names.py
 zsh: permission denied: ./find_employee_names.py
 
 kali@kali:~$ chmod +x find_employee_names.py
 zsh: permission denied: chmod
 </code></pre>
 <p>We could try running chmod on the chmod file, but we will run into the same problem. Let&#39;s run it on /usr/bin/chmod, since this is the specific location of the file.</p>
-<pre><code>kali@kali:~$ chmod +x /usr/bin/chmod
+<pre><code class="language-bash">kali@kali:~$ chmod +x /usr/bin/chmod
 zsh: permission denied: chmod
 </code></pre>
 <h6>One Potential Solution</h6>
 <p>We&#39;ll start by making a copy of a file that we know has the permission set we need. Since we checked the ls command earlier, let&#39;s copy that file into a new file named <code>chmodfix</code>.</p>
-<pre><code>kali@kali:~$ cp /usr/bin/ls chmodfix
+<pre><code class="language-bash">kali@kali:~$ cp /usr/bin/ls chmodfix
 
 kali@kali:~$ ls -l chmodfix
 -rwxr-xr-x 1 kali kali 147176 Jun  8 08:16 chmodfix
@@ -561,7 +561,7 @@ kali@kali:~$ ls -l chmodfix
 <p>Since the only thing that seems to be &quot;broken&quot; with our chmod file is the permissions (as far as we know, the contents of the file itself are fine), let&#39;s try to copy only the contents of the file and not the permissions. In other words, we only need the contents of the file - not the entire thing.</p>
 <p>Since we know that cp will copy the entire file, we can&#39;t use that approach. The cat command1 is often used to show the contents of a file, so we will use that. Instead of just sending the contents of the file to display in the terminal window, we can use the &quot;&gt;&quot; character to send them into our chmodfix file.</p>
 <p>First, we&#39;ll run ls -l so that we can easily confirm whether or not the file contents change.</p>
-<pre><code>kali@kali:~$ ls -l chmodfix
+<pre><code class="language-bash">kali@kali:~$ ls -l chmodfix
 -rwxr-xr-x 1 kali kali 147176 Jun  8 08:20 chmodfix
 
 kali@kali:~$ cat /usr/bin/chmod &gt; chmodfix
@@ -571,11 +571,11 @@ kali@kali:~$ ls -l chmodfix
 </code></pre>
 <p>We previously examined the -rwxr-xr-x portion of the output. We&#39;ll also notice a number, &quot;147176&quot; in the case of the first command, in the output. This number indicates the size of the file. After we run the cat command, we&#39;ll observe that the file name and the permissions are still the same as before, but the file size is now &quot;64448&quot;. This output indicates that the contents of the file have changed, but the permissions remained intact.</p>
 <p>Let&#39;s go one step further and restore our system so that we don&#39;t run into this problem again. Let&#39;s try and run the chmodfix command on the original chmod file to fix things.</p>
-<pre><code>kali@kali:~$ ./chmodfix +x /usr/bin/chmod
+<pre><code class="language-bash">kali@kali:~$ ./chmodfix +x /usr/bin/chmod
 ./chmodfix: changing permissions of &#39;/usr/bin/chmod&#39;: Operation not permitted
 </code></pre>
 <p>Let&#39;s try running the command again, but this time as a Super User. To do this, we&#39;ll use the sudo command,2 followed by our original command. The system will prompt us for our password.</p>
-<pre><code>kali@kali:~$ sudo ./chmodfix +x /usr/bin/chmod
+<pre><code class="language-bash">kali@kali:~$ sudo ./chmodfix +x /usr/bin/chmod
 [sudo] password for kali: 
 </code></pre>
 <p>Finding unique ways to gain permissions unintended by a particular system is at the core of cyber security. This quick example offers a solid start.</p>

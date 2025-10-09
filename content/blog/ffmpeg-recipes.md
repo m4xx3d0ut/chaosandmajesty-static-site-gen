@@ -4,15 +4,14 @@ slug: ffmpeg-recipes
 author: m4xx3d0ut
 summary: Handy FFmpeg CLI snippets for clipping, transcoding, looping stills, generating
   test patterns, and burning in timecode.
-publishedAt: '2023-10-20'
-updatedAt: '2025-02-02'
-readingMinutes: 3
 tags:
 - m4xx3d
 - ffmpeg
 - video
 - media
 - automation
+publishedAt: 2023-10-20
+updatedAt: 2025-02-02
 ---
 ## TLDR;
 

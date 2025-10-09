@@ -4,15 +4,14 @@ slug: shell-tricks
 author: m4xx3d0ut
 summary: Quick-use bash patterns for redirection, JSON handling, recursive search/replace,
   and filesystem loops.
-publishedAt: '2023-07-21'
-updatedAt: '2023-12-04'
-readingMinutes: 2
 tags:
 - m4xx3d
 - shell
 - bash
 - automation
 - productivity
+publishedAt: 2023-07-21
+updatedAt: 2023-12-04
 ---
 ## TLDR;
 

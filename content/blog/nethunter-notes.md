@@ -4,15 +4,14 @@ slug: nethunter-notes
 author: m4xx3d0ut
 summary: Bind-mount tricks, boot scripts, and database integration tips for running
   Kali NetHunter on the Shield Tablet K1.
-publishedAt: '2023-12-22'
-updatedAt: '2023-12-24'
-readingMinutes: 2
 tags:
 - m4xx3d
 - kali
 - mobile
 - android
 - penetration-testing
+publishedAt: 2023-12-22
+updatedAt: 2023-12-24
 ---
 ## TLDR;
 

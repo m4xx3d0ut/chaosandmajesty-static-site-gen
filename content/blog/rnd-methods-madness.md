@@ -32,7 +32,7 @@ We keep the lab lightweight but reproducible:
 - **Credential hygiene.** Course images ship with default creds—change them or at least vault them. `kali / D34dB33fiR` never belongs in production.
 - **Network awareness.** The PWK labs use predictable addressing. Capture your `/32` allocation the moment you connect and pin it next to the target ranges so you can track pivot paths.
 
-```
+```bash
 ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" learner@192.168.50.52
 sudo openvpn universal.ovpn
 ```

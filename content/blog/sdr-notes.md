@@ -4,15 +4,14 @@ slug: sdr-notes
 author: m4xx3d0ut
 summary: Quick references for passive radar builds, RTL-SDR hardware, and broadcast
   frequency tables.
-publishedAt: '2023-06-05'
-updatedAt: '2023-06-05'
-readingMinutes: 1
 tags:
 - m4xx3d
 - sdr
 - radio
 - hardware
 - research
+publishedAt: 2023-06-05
+updatedAt: 2023-06-05
 ---
 # Software Defined Radio References
 

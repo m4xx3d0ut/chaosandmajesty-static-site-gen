@@ -61,7 +61,7 @@ Master these foundations now and the technical chapters feel less chaoticâ€”youâ
 
 Recommended SSH flags
 
-```
+```bash
 ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" learner@192.168.50.52
 ```
 
@@ -74,7 +74,7 @@ kali
 
 CLI Search
 
-```
+```bash
 sudo updatedb
 locate foo
 ```
@@ -529,7 +529,7 @@ Learners in a remote, asynchronous learning environment should be aware of two t
 
 Before showing the code block, we would first lay out our plan and detail any new or interesting commands we're planning on running. Here we might discuss that we'll use ls *.txt to list any .txt files in the directory. Next, we will run our renaming command, mv oldfilename.txt newfilename.txt. Finally, we'll use ls *.txt to check if our command worked.
 
-```
+```bash
 kali@kali:~$ ls *.txt
 oldfilename.txt
 
@@ -583,7 +583,7 @@ ls -l find_employee_names.py
 
 Let's change the executable permission for this file and give ourselves permission to execute the file (put another way, to run it as a program). We can use chmod +x to add the executable permission to our script file. Let's do so and try running the script again.
 
-```
+```bash
 kali@kali:~$ chmod +x find_employee_names.py
 
 kali@kali:~$ ls -l find_employee_names.py
@@ -604,7 +604,7 @@ D. Hill
 
 Let's now change it back so that we no longer have permission to execute the file. To add the permission, we used chmod +x, so this time, we will use chmod -x.
 
-```
+```bash
 kali@kali:~$ chmod -x find_employee_names.py
 
 kali@kali:~$ ./find_employee_names.py
@@ -615,7 +615,7 @@ zsh: permission denied: ./find_employee_names.py
 
 Now, let's ask ourselves an interesting question: since chmod is the tool that allows us to set permissions, what would we do if we did not have permission to execute it?
 
-```
+```bash
 kali@kali:~$ ./find_employee_names.py
 zsh: permission denied: ./find_employee_names.py
 
@@ -625,7 +625,7 @@ zsh: permission denied: chmod
 
 We could try running chmod on the chmod file, but we will run into the same problem. Let's run it on /usr/bin/chmod, since this is the specific location of the file.
 
-```
+```bash
 kali@kali:~$ chmod +x /usr/bin/chmod
 zsh: permission denied: chmod
 ```
@@ -634,7 +634,7 @@ zsh: permission denied: chmod
 
 We'll start by making a copy of a file that we know has the permission set we need. Since we checked the ls command earlier, let's copy that file into a new file named `chmodfix`.
 
-```
+```bash
 kali@kali:~$ cp /usr/bin/ls chmodfix
 
 kali@kali:~$ ls -l chmodfix
@@ -647,7 +647,7 @@ Since we know that cp will copy the entire file, we can't use that approach. The
 
 First, we'll run ls -l so that we can easily confirm whether or not the file contents change.
 
-```
+```bash
 kali@kali:~$ ls -l chmodfix
 -rwxr-xr-x 1 kali kali 147176 Jun  8 08:20 chmodfix
 
@@ -661,14 +661,14 @@ We previously examined the -rwxr-xr-x portion of the output. We'll also notice a
 
 Let's go one step further and restore our system so that we don't run into this problem again. Let's try and run the chmodfix command on the original chmod file to fix things.
 
-```
+```bash
 kali@kali:~$ ./chmodfix +x /usr/bin/chmod
 ./chmodfix: changing permissions of '/usr/bin/chmod': Operation not permitted
 ```
 
 Let's try running the command again, but this time as a Super User. To do this, we'll use the sudo command,2 followed by our original command. The system will prompt us for our password.
 
-```
+```bash
 kali@kali:~$ sudo ./chmodfix +x /usr/bin/chmod
 [sudo] password for kali: 
 ```

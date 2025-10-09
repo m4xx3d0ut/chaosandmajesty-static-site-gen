@@ -4,15 +4,14 @@ slug: microk8s-helm-deploy
 author: m4xx3d0ut
 summary: Step-by-step workflow for packaging a Helm chart, wiring MetalLB and ingress,
   and exposing the service on MicroK8s.
-publishedAt: '2025-01-31'
-updatedAt: '2025-01-31'
-readingMinutes: 6
 tags:
 - m4xx3d
 - kubernetes
 - microk8s
 - helm
 - devops
+publishedAt: 2025-01-31
+updatedAt: 2025-01-31
 ---
 ## TLDR;
 

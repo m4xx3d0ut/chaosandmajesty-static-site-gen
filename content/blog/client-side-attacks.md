@@ -122,7 +122,7 @@ Client-side operations reward preparation. Blend into genuine workflows, keep pa
 
 **Example:**
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ exiftool -a -u brochure.pdf 
 ExifTool Version Number         : 12.65
@@ -186,7 +186,7 @@ OS{f678c053253b0510a2c0b218bf47709c}
 
 Start VM #2 and use gobuster to bruteforce the contents of the web server. Specify "pdf" as the filetype and find a document other than old.pdf and brochure.pdf. After you identify the file, download it and extract the flag in the metadata.
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ exiftool -a -u info.pdf             
 ExifTool Version Number         : 12.65
@@ -512,7 +512,7 @@ First stage;
     - It also appears as a normal directory in explorer, giving the appearance of a local file.
 - Setup our WebDAV share.
 
-```
+```bash
 kali@kali:~$ pip3 install wsgidav           
 Defaulting to user installation because normal site-packages is not writeable
 Collecting wsgidav
@@ -533,7 +533,7 @@ Successfully installed json5-0.9.6 wsgidav-4.0.1
     - Disable auth `--auth anonymous`
     - Set WebDAV root `-r /home/kali/webdav`
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/win-library-files]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
 Running without configuration file.
@@ -706,7 +706,7 @@ know!
 - In this case we will use WebDAV to simulate the delivery method in our lab.
 - Use `smbclient` with the `-c` param to specify `'put config.Library-ms'`
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/webdav]
 └─$ ls
 automatic_configuration.lnk  config.Library-ms
@@ -721,7 +721,7 @@ A simulated user executes the file and we get a shell!
 
 Follow the steps in this section to get code execution on the HR137 (VM Group 1 - VM #2) system by using library and shortcut files. Be aware that after every execution of a .lnk file from the WebDAV share, the library file from the SMB share will be removed. You can find the flag on the desktop of the hsmith user. You can use VM #1 of VM Group 1 to build the library file and shortcut.
 
-```
+```powershell
 PS C:\Users\hsmith\Desktop> cat flag.txt
 cat flag.txt
 OS{e136120db43d939e68a8715d8c682b13}
@@ -735,7 +735,7 @@ true
 
 Capstone Exercise: Enumerate the ADMIN (VM Group 2 - VM #4) machine and find a way to leverage Windows library and shortcut files to get code execution. Obtain a reverse shell and find the flag on the desktop for the Administrator user. You can use VM #3 of VM Group 2 to prepare your attack.
 
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/win-library-files]
 └─$ nmap --script-help "*" | less
 
@@ -842,7 +842,7 @@ Finished
 		- `test@supermagicorg.com`
  - All accounts of IT staff created and usable.
 		- CHECK THE METADATA!!!
-```
+```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ exiftool -a -u info.pdf 
 ExifTool Version Number         : 12.65
