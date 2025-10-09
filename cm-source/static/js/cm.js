@@ -36,7 +36,7 @@ var prof = [
         'LinkedIn: ',
         'https://www.linkedin.com/in/rene%C3%A9-k-025083bb/',
         'Producer/Audio Engineer/ICC',
-        'About: Renee rules.',
+        'About: ReneeRules.',
         '---',
         'End of transmission...'
     ]

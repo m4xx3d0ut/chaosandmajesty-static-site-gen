@@ -33,7 +33,7 @@ blog:
       avatar: "assets/static/img/authors/m4xx3d0ut.png"
       bio: "...
     - id: reneerules
-      name: "Reneé Rules"
+      name: "ReneéRules"
       title: "Majesty Maestro"
       avatar: "assets/static/img/authors/renee-rules.png"
       bio: "...
