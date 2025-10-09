@@ -78,13 +78,17 @@ body.contrast-mode .blog-post-meta,
 body.contrast-mode .blog-post-link p,
 body.contrast-mode .blog-hero-tagline,
 body.contrast-mode .blog-hero-intro,
-body.contrast-mode .blog-article-title,
 body.contrast-mode .blog-article-meta,
 body.contrast-mode .blog-article-content,
 body.contrast-mode .blog-author-card,
 body.contrast-mode .blog-author-bio,
 body.contrast-mode .blog-author-social a {
-  color: #e5f0ff;
+  color: #cdd9f7;
+}
+
+body.contrast-mode .blog-hero-title,
+body.contrast-mode .blog-article-title {
+  color: #dfe7ff;
 }
 
 body.contrast-mode .blog-post-link {
@@ -939,13 +943,22 @@ footer {
 }
 
 .blog-article-content {
-  font-family: var(--font-body);
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: clamp(1rem, 1vw + 0.85rem, 1.15rem);
   line-height: 1.8;
   color: rgba(190, 255, 190, 0.92);
   max-width: 62ch;
   word-break: normal;
   overflow-wrap: anywhere;
+}
+
+.blog-page .blog-article-content,
+.blog-page .blog-article-content :where(p, li, span, em, strong, blockquote, a, table, td, th) {
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+.blog-page .blog-article-content :where(code, pre, kbd, samp) {
+  font-family: 'Syne Mono', monospace !important;
 }
 
 .blog-article-content h2,
@@ -1091,8 +1104,9 @@ footer {
   }
 
   .header-container {
-    width: calc(100% - 2rem);
+    width: 100%;
     padding: 0 1rem;
+    box-sizing: border-box;
   }
 
   .blog-article-shell {
@@ -1127,10 +1141,18 @@ footer {
     font-size: 1.05rem;
     line-height: 1.7;
     padding: 0 0.5rem;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .blog-article-content > * {
     word-break: break-word;
+  }
+
+  .blog-article-content p,
+  .blog-article-content li {
+    font-size: 1.02rem;
+    line-height: 1.6;
   }
 
   .blog-article-content h2,
@@ -1142,6 +1164,33 @@ footer {
   .blog-article-content pre {
     margin-left: 0;
     margin-right: 0;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .blog-article-content pre code {
+    white-space: inherit;
+    word-break: break-word;
+  }
+
+  .blog-article-content code {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+
+  .blog-article-content table {
+    font-size: 0.92rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .blog-article-content table th,
+  .blog-article-content table td {
+    min-width: 0;
+    padding: 0.55rem 0.5rem;
+    word-break: break-word;
   }
 
   .blog-author-card {
