@@ -34,6 +34,27 @@
     });
   }
 
+  function initBackToTop() {
+    const btn = document.querySelector('.blog-back-to-top');
+    if (!btn) return;
+
+    const toggleVisibility = () => {
+      const scrolled = window.pageYOffset || document.documentElement.scrollTop || 0;
+      if (scrolled > 400) {
+        btn.classList.add('is-visible');
+      } else {
+        btn.classList.remove('is-visible');
+      }
+    };
+
+    btn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    toggleVisibility();
+  }
+
   var opacity = 0;
   var intervalID = null;
   var out = 0;
@@ -257,6 +278,7 @@
   // Only run everything after DOM is loaded!
   window.addEventListener('DOMContentLoaded', function() {
       initThemeToggle();
+      initBackToTop();
 
       var termOut = document.getElementById("tOut");
       var tagline = document.getElementById("tagline");
