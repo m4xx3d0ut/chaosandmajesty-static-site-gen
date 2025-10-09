@@ -142,6 +142,10 @@ body.contrast-mode .blog-author-card {
   min-height: 406px;
 }
 
+body.contrast-mode #console {
+  outline-color: #e5f0ff;
+}
+
 #foot {
   width: 30em;
   color: #66ff00;
@@ -162,11 +166,22 @@ body.contrast-mode .blog-author-card {
   overflow-y: auto;
 }
 
+body.contrast-mode .screen {
+  outline-color: #e5f0ff;
+  color: #e5f0ff;
+}
+
 .term {
   background: black;
   color: #66ff00;
   width: 98.5%;
   font-family: 'Syne Mono', monospace;
+}
+
+body.contrast-mode .term {
+  color: #e5f0ff;
+  background: #0a1018;
+  outline-color: #e5f0ff;
 }
 
 p.wopr {

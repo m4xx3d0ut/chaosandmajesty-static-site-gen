@@ -7,8 +7,10 @@
     if (!body) return;
     if (pref === 'soft') {
       body.classList.add(CONTRAST_CLASS);
+      body.setAttribute('data-contrast', 'soft');
     } else {
       body.classList.remove(CONTRAST_CLASS);
+      body.removeAttribute('data-contrast');
     }
   }
 
@@ -23,6 +25,11 @@
       const body = document.body;
       if (!body) return;
       const isSoft = body.classList.toggle(CONTRAST_CLASS);
+      if (isSoft) {
+        body.setAttribute('data-contrast', 'soft');
+      } else {
+        body.removeAttribute('data-contrast');
+      }
       window.localStorage.setItem(CONTRAST_KEY, isSoft ? 'soft' : 'neon');
     });
   }
@@ -263,10 +270,11 @@
       if (termIn) {
           termIn.addEventListener("keyup", function(e) {
               if (e.which === 13 && allowIn) {
-                  var cli = e.target.value;
-                  terminal([cli]);
-                  checkIn(cli);
-                  e.target.value = "";
+          var cli = e.target.value;
+          terminal([cli]);
+          checkIn(cli);
+          e.target.value = "";
+          applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'neon');
               }
           });
       }
