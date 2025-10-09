@@ -105,7 +105,7 @@
                 hx-trigger="click"
                 hx-target="#blog-article"
                 hx-swap="innerHTML"
-                hx-push-url="true"
+                hx-push-url="?post=<%= post.slug %>"
                 hx-indicator="#blog-loading"
               >
                 <h3><%= post.title %></h3>
@@ -145,7 +145,7 @@
                   hx-trigger="click"
                   hx-target="#blog-article"
                   hx-swap="innerHTML"
-                  hx-push-url="true"
+                  hx-push-url="?post=<%= post.slug %>"
                   hx-indicator="#blog-loading"
                 >
                   <h3><%= post.title %></h3>
@@ -352,6 +352,27 @@
     }
 
     applyFilters();
+
+    var params = new URLSearchParams(window.location.search || '');
+    var initialSlug = params.get('post');
+    var articleEl = document.getElementById('blog-article');
+
+    if (initialSlug && window.htmx && articleEl) {
+      var initialLink = document.querySelector('[data-post-slug="' + initialSlug + '"]');
+      if (initialLink && initialLink.getAttribute('hx-get')) {
+        syncActiveLink(initialSlug);
+        htmx.ajax('GET', initialLink.getAttribute('hx-get'), {
+          target: '#blog-article',
+          swap: 'innerHTML',
+          history: false
+        });
+      }
+    } else {
+      var initialArticle = articleEl && articleEl.querySelector('[data-slug]');
+      if (initialArticle) {
+        syncActiveLink(initialArticle.getAttribute('data-slug'));
+      }
+    }
 
     document.addEventListener('htmx:beforeRequest', function(event) {
       var trigger = event.detail && event.detail.elt;

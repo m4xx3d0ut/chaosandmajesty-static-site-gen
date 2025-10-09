@@ -340,7 +340,7 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       initialPost = defaultInitialPost;
       isDefaultInitialPost = true;
     } else {
-      initialPost = displayPosts[0] || hiddenPosts[0] || null;
+      initialPost = hiddenPosts[0] || displayPosts[0] || null;
       if (initialPost && initialPost.isHidden) {
         isHiddenInitialPost = true;
       }
