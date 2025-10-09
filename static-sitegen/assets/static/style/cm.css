@@ -585,6 +585,7 @@ footer {
     height: auto;           /* Grows as needed for children */
     min-height: unset;
     max-height: unset;
+    font-size: clamp(1.05rem, 1.5vw + 1rem, 1.3rem);
   }
   .screen {
     width: 100%;
