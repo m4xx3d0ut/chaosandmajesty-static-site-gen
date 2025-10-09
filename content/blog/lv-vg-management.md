@@ -28,7 +28,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    First, list the available disks and logical volumes to identify the correct device for the SSD:
 
-   ```bash
+   ```
+bash
    lsblk
    ```
 
@@ -38,7 +39,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    Since you want to extend `ubuntu--vg-ubuntu--lv`, check your LVM setup:
 
-   ```bash
+   ```
+bash
    sudo vgdisplay
    sudo lvdisplay
    ```
@@ -49,7 +51,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    If the SSD is unpartitioned, create a partition using `fdisk` or `parted`. Here's an example using `fdisk`:
 
-   ```bash
+   ```
+bash
    sudo fdisk /dev/sdX  # Replace X with the correct letter for your SSD
    ```
 
@@ -62,7 +65,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    If the SSD is now partitioned, you'll need to turn it into an LVM physical volume:
 
-   ```bash
+   ```
+bash
    sudo pvcreate /dev/sdX1  # Replace sdX1 with the partition path of the SSD
    ```
 
@@ -70,7 +74,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    Add the new physical volume to the existing volume group:
 
-   ```bash
+   ```
+bash
    sudo vgextend ubuntu-vg /dev/sdX1  # Replace ubuntu-vg and sdX1 with your VG and partition
    ```
 
@@ -78,7 +83,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    Now extend the logical volume to use the space from the SSD:
 
-   ```bash
+   ```
+bash
    sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
    ```
 
@@ -86,7 +92,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    After extending the logical volume, resize the filesystem to occupy the new space:
 
-   ```bash
+   ```
+bash
    sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
    ```
 
@@ -94,7 +101,8 @@ To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-
 
    Finally, check that the logical volume has been extended:
 
-   ```bash
+   ```
+bash
    df -h
    ```
 
@@ -106,35 +114,40 @@ To delete an old Cinder volume from the disk on an Ubuntu server, you can follow
 
 1. **Identify the Cinder Volume:**
 
-   ```bash
+   ```
+bash
    lsblk
    sudo pvdisplay
    ```
 
 2. **Stop OpenStack Cinder (if running):**
 
-   ```bash
+   ```
+bash
    sudo systemctl stop cinder-volume
    sudo systemctl stop cinder-api
    ```
 
 3. **Delete the Cinder Volume from OpenStack (if applicable):**
 
-   ```bash
+   ```
+bash
    openstack volume list
    openstack volume delete <volume-id>
    ```
 
 4. **Wipe the Partition Table:**
 
-   ```bash
+   ```
+bash
    sudo wipefs -a /dev/sdX
    sudo dd if=/dev/zero of=/dev/sdX bs=512 count=1
    ```
 
 5. **Remove LVM (if applicable):**
 
-   ```bash
+   ```
+bash
    sudo lvchange -an /dev/<vg-name>/<lv-name>
    sudo lvremove /dev/<vg-name>/<lv-name>
    sudo pvremove /dev/sdX
@@ -142,7 +155,8 @@ To delete an old Cinder volume from the disk on an Ubuntu server, you can follow
 
 6. **Partition and Format the Disk:**
 
-   ```bash
+   ```
+bash
    sudo mkfs.ext4 /dev/sdX1
    ```
 
@@ -154,25 +168,29 @@ Now that the drive has been cleared, add it to the existing volume group (`ubunt
 
 1. **Create a Physical Volume (PV):**
 
-   ```bash
+   ```
+bash
    sudo pvcreate /dev/sdX
    ```
 
 2. **Extend the Volume Group (VG):**
 
-   ```bash
+   ```
+bash
    sudo vgextend ubuntu-vg /dev/sdX
    ```
 
 3. **Check the Volume Group:**
 
-   ```bash
+   ```
+bash
    sudo vgdisplay
    ```
 
 4. **Extend the Logical Volume (LV):**
 
-   ```bash
+   ```
+bash
    sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
    # or
    sudo lvextend -L +50G /dev/ubuntu-vg/ubuntu-lv
@@ -180,13 +198,15 @@ Now that the drive has been cleared, add it to the existing volume group (`ubunt
 
 5. **Resize the Filesystem:**
 
-   ```bash
+   ```
+bash
    sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
    ```
 
 6. **Verify the Changes:**
 
-   ```bash
+   ```
+bash
    df -h
    ```
 

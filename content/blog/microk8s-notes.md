@@ -27,7 +27,8 @@ tags:
 #### **1. Prepare the Helm Chart**
 
 1. **Create a Helm Chart:**
-   ```bash
+   ```
+bash
    helm create youtube-integ-chart
    cd youtube-integ-chart
    ```
@@ -46,7 +47,8 @@ tags:
 
 3. **Customize `values.yaml`:**
    Open `values.yaml` and define your Docker image and service details:
-   ```yaml
+   ```
+yaml
    image:
      repository: your-dockerhub-username/youtube-integ
      tag: latest
@@ -62,7 +64,8 @@ tags:
 
 4. **Edit `templates/deployment.yaml`:**
    Configure the deployment to run your API container:
-   ```yaml
+   ```
+yaml
    apiVersion: apps/v1
    kind: Deployment
    metadata:
@@ -86,7 +89,8 @@ tags:
 
 5. **Edit `templates/service.yaml`:**
    Expose the service on port 8000:
-   ```yaml
+   ```
+yaml
    apiVersion: v1
    kind: Service
    metadata:
@@ -103,7 +107,8 @@ tags:
 
 6. **Optional: Add an Ingress (for domain-based access):**
    If you want to use an ingress, create `templates/ingress.yaml`:
-   ```yaml
+   ```
+yaml
    apiVersion: networking.k8s.io/v1
    kind: Ingress
    metadata:
@@ -125,7 +130,8 @@ tags:
    ```
 
    Then enable MicroK8s ingress:
-   ```bash
+   ```
+bash
    microk8s enable ingress
    ```
 
@@ -133,12 +139,14 @@ tags:
 
 #### **2. Build and Push the Docker Image**
 1. Build the Docker image for your API:
-   ```bash
+   ```
+bash
    docker build -t your-dockerhub-username/youtube-integ ./microservices/youtube_integ
    ```
 
 2. Push the image to Docker Hub:
-   ```bash
+   ```
+bash
    docker push your-dockerhub-username/youtube-integ
    ```
 
@@ -147,19 +155,22 @@ tags:
 #### **3. Deploy the Helm Chart**
 
 1. Package and deploy your chart:
-   ```bash
+   ```
+bash
    helm install youtube-integ ./youtube-integ-chart
    ```
 
 2. Verify the deployment:
-   ```bash
+   ```
+bash
    microk8s kubectl get pods
    microk8s kubectl get services
    ```
 
 3. Access the service:
    - If using a NodePort service, access it at `http://<Node-IP>:30000`. Get the Node IP:
-     ```bash
+     ```
+bash
      microk8s kubectl get nodes -o wide
      ```
    - If using an Ingress, add `youtube-integ.local` to your `/etc/hosts` file and access it at `http://youtube-integ.local`.
@@ -169,7 +180,8 @@ tags:
 #### **4. Test Your API**
 
 Test the API externally to confirm it's working:
-```bash
+```
+bash
 curl http://<Node-IP>:30000/your-api-endpoint
 ```
 
@@ -195,7 +207,8 @@ By default, `helm create` generates a structure where most of the values are alr
 In the `templates/*.yaml` files, replace hardcoded values with placeholders that reference `values.yaml`. For example:
 
 ##### **Before: Hardcoded Values**
-```yaml
+```
+yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -210,7 +223,8 @@ spec:
 ```
 
 ##### **After: Use Values from `values.yaml`**
-```yaml
+```
+yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -225,7 +239,8 @@ spec:
 ```
 
 And in `values.yaml`:
-```yaml
+```
+yaml
 app:
   name: my-app
 
@@ -247,7 +262,8 @@ service:
 
 3. **Use Default Fallbacks (Optional):**
    If a value is optional, you can provide a default using the `default` function:
-   ```yaml
+   ```
+yaml
    type: {{ .Values.service.type | default "ClusterIP" }}
    ```
 
@@ -259,12 +275,14 @@ service:
 #### **Deploying with Custom Values**
 Users can override values at deployment time using either:
 1. A custom `values.yaml`:
-   ```bash
+   ```
+bash
    helm install my-app ./my-chart -f custom-values.yaml
    ```
 
 2. Inline `--set` flags:
-   ```bash
+   ```
+bash
    helm install my-app ./my-chart --set service.type=LoadBalancer
    ```
 
@@ -292,26 +310,30 @@ To push your Docker image to a **local repository** instead of Docker Hub, you c
 MicroK8s comes with an optional built-in container registry that you can enable:
 
 1. **Enable the Registry:**
-   ```bash
+   ```
+bash
    microk8s enable registry
    ```
    - This sets up a local Docker registry at `localhost:32000` (default port).
 
 2. **Tag Your Docker Image:**
    Tag your Docker image to point to the MicroK8s registry:
-   ```bash
+   ```
+bash
    docker tag your-dockerhub-username/youtube-integ localhost:32000/youtube-integ
    ```
 
 3. **Push the Image to the Registry:**
    Push the image to the local registry:
-   ```bash
+   ```
+bash
    docker push localhost:32000/youtube-integ
    ```
 
 4. **Use the Image in Kubernetes:**
    In your Helm chart's `values.yaml`, update the image repository to:
-   ```yaml
+   ```
+yaml
    image:
      repository: localhost:32000/youtube-integ
      tag: latest
@@ -327,20 +349,23 @@ If you want a standalone registry (not tied to MicroK8s), follow these steps:
 
 1. **Run a Local Docker Registry:**
    Launch a local registry container:
-   ```bash
+   ```
+bash
    docker run -d -p 5000:5000 --name local-registry registry:2
    ```
    This runs a private registry accessible at `localhost:5000`.
 
 2. **Tag Your Docker Image:**
    Tag your image to point to the local registry:
-   ```bash
+   ```
+bash
    docker tag your-dockerhub-username/youtube-integ localhost:5000/youtube-integ
    ```
 
 3. **Push the Image to the Registry:**
    Push the image to the local registry:
-   ```bash
+   ```
+bash
    docker push localhost:5000/youtube-integ
    ```
 
@@ -348,19 +373,22 @@ If you want a standalone registry (not tied to MicroK8s), follow these steps:
    If MicroK8s runs in a VM (e.g., Multipass), you need to expose the registry to MicroK8s:
 
    - Edit Docker's daemon configuration (on the machine running MicroK8s):
-     ```json
+     ```
+json
      {
        "insecure-registries": ["localhost:5000"]
      }
      ```
    - Restart the Docker daemon:
-     ```bash
+     ```
+bash
      sudo systemctl restart docker
      ```
 
 5. **Update Your Helm Chart:**
    Update the `values.yaml` file to point to your local registry:
-   ```yaml
+   ```
+yaml
    image:
      repository: localhost:5000/youtube-integ
      tag: latest
@@ -376,17 +404,20 @@ If you want a standalone registry (not tied to MicroK8s), follow these steps:
 If you’re using **Kind** (Kubernetes-in-Docker), load the Docker image directly into the cluster:
 
 1. Build the image:
-   ```bash
+   ```
+bash
    docker build -t youtube-integ ./microservices/youtube_integ
    ```
 
 2. Load the image into the cluster:
-   ```bash
+   ```
+bash
    microk8s ctr image import youtube-integ.tar
    ```
 
 3. Deploy the Helm chart, referencing the local image:
-   ```yaml
+   ```
+yaml
    image:
      repository: youtube-integ
      tag: latest
@@ -404,7 +435,8 @@ To make the registry accessible on all network interfaces (i.e., binding to `0.0
 
    The registry is managed as a Kubernetes service named `registry`. You can edit this service to change its configuration:
 
-   ```bash
+   ```
+bash
    microk8s kubectl edit service registry -n container-registry
    ```
 
@@ -414,7 +446,8 @@ To make the registry accessible on all network interfaces (i.e., binding to `0.0
 
    Before:
 
-   ```yaml
+   ```
+yaml
    spec:
      type: NodePort
      ports:
@@ -427,7 +460,8 @@ To make the registry accessible on all network interfaces (i.e., binding to `0.0
 
    After:
 
-   ```yaml
+   ```
+yaml
    spec:
      type: LoadBalancer
      ports:
@@ -443,7 +477,8 @@ To make the registry accessible on all network interfaces (i.e., binding to `0.0
 
    After modifying the service, check its status to find the external IP address assigned:
 
-   ```bash
+   ```
+bash
    microk8s kubectl get service registry -n container-registry
    ```
 
@@ -453,7 +488,8 @@ To make the registry accessible on all network interfaces (i.e., binding to `0.0
 
    Once the external IP is available, you can push images to the registry using this IP address:
 
-   ```bash
+   ```
+bash
    docker tag your-image <external-ip>:32000/your-image
    docker push <external-ip>:32000/your-image
    ```
@@ -476,7 +512,8 @@ By following these steps, you can configure the MicroK8s built-in registry to be
    - If your cluster is not on a cloud provider, you need to install and configure MetalLB to assign an external IP to the `LoadBalancer` service.
 
    **Enable MetalLB in MicroK8s:**
-   ```bash
+   ```
+bash
    microk8s enable metallb
    ```
 
@@ -485,7 +522,8 @@ By following these steps, you can configure the MicroK8s built-in registry to be
 
    **Check MetalLB Is Working:**
    After enabling MetalLB, check if the registry service has an external IP assigned:
-   ```bash
+   ```
+bash
    microk8s kubectl get service registry -n container-registry
    ```
 
@@ -493,24 +531,28 @@ By following these steps, you can configure the MicroK8s built-in registry to be
    Ensure that port `32000` is open on your node(s) for both incoming and outgoing traffic.
 
    - On Linux, you can open the port with:
-     ```bash
+     ```
+bash
      sudo ufw allow 32000
      ```
 
    - Confirm the port is open:
-     ```bash
+     ```
+bash
      sudo ufw status
      ```
 
 ##### **3. Verify Service Configuration**
    Reapply the updated service configuration to ensure all changes take effect:
-   ```bash
+   ```
+bash
    microk8s kubectl apply -f <your-service-config.yaml>
    ```
 
 ##### **4. Check Logs and Events**
    Inspect the logs and events for any issues related to the service:
-   ```bash
+   ```
+bash
    microk8s kubectl describe service registry -n container-registry
    ```
 
@@ -526,7 +568,8 @@ After enabling MetalLB and ensuring your firewall is configured, the `status.loa
 To tag your Docker image for use with your local MicroK8s registry, you need to include the registry address (which defaults to `localhost:32000`) in the image name. Here's how you should modify your `docker build` command:
 
 #### **Build and Tag the Image**
-```bash
+```
+bash
 docker build -t localhost:32000/youtube_integ:latest -f ./microservices/youtube_integ/Dockerfile .
 ```
 
@@ -537,7 +580,8 @@ docker build -t localhost:32000/youtube_integ:latest -f ./microservices/youtube_
 
 #### **Push the Image to the Registry**
 After building the image, you need to push it to the MicroK8s registry:
-```bash
+```
+bash
 docker push localhost:32000/youtube_integ:latest
 ```
 
@@ -546,18 +590,21 @@ docker push localhost:32000/youtube_integ:latest
 #### **Additional Notes**
 - If the MicroK8s registry is configured with a different address (e.g., external IP or custom port), replace `localhost:32000` with the appropriate value.
 - Ensure that the local registry is enabled:
-  ```bash
+  ```
+bash
   microk8s enable registry
   ```
 - If you encounter issues with Docker authentication, ensure Docker is configured to use an insecure registry for `localhost:32000`:
   1. Edit the Docker daemon configuration file (`/etc/docker/daemon.json`):
-     ```json
+     ```
+json
      {
        "insecure-registries": ["localhost:32000"]
      }
      ```
   2. Restart Docker:
-     ```bash
+     ```
+bash
      sudo systemctl restart docker
      ```
 
@@ -576,7 +623,8 @@ The MicroK8s registry stores images as files within the container running the re
 
 ##### **List Images**
 Run the following command:
-```bash
+```
+bash
 microk8s ctr images list
 ```
 
@@ -588,12 +636,14 @@ This will display all images in the registry and their tags.
 You can delete images by using the `microk8s ctr images remove` command.
 
 ##### **Command to Remove an Image**
-```bash
+```
+bash
 microk8s ctr images remove <image-name>:<tag>
 ```
 
 For example:
-```bash
+```
+bash
 microk8s ctr images remove localhost:32000/youtube_integ:latest
 ```
 
@@ -603,7 +653,8 @@ This removes the specified image from the registry.
 
 #### **3. Force Cleanup of Dangling Layers**
 If you’ve deleted images but still see storage being used, it may be due to orphaned layers or cache files. Clean up unused layers with:
-```bash
+```
+bash
 microk8s ctr content gc
 ```
 
@@ -612,19 +663,22 @@ microk8s ctr content gc
 #### **4. (Optional) Interact Directly with the Registry**
 If needed, you can access the MicroK8s registry directly to inspect or clean up manually:
 1. **Access the Registry Pod**:
-   ```bash
+   ```
+bash
    microk8s kubectl -n container-registry get pods
    ```
    Look for the registry pod (usually named `registry-xxxxx`).
 
 2. **Enter the Pod**:
-   ```bash
+   ```
+bash
    microk8s kubectl -n container-registry exec -it registry-xxxxx -- sh
    ```
 
 3. **Inspect Stored Images**:
    The images are usually stored in `/var/lib/registry`. You can navigate and delete files manually if necessary:
-   ```bash
+   ```
+bash
    ls /var/lib/registry/docker/registry/v2/repositories
    ```
 
@@ -632,7 +686,8 @@ If needed, you can access the MicroK8s registry directly to inspect or clean up 
 
 #### **5. Clean All Registry Data (Optional)**
 If you want to reset the entire registry (delete all images), simply delete the registry storage volume:
-```bash
+```
+bash
 sudo rm -rf /var/snap/microk8s/common/var/lib/registry
 ```
 
@@ -645,7 +700,8 @@ To create a **ConfigMap** in MicroK8s from an `.env` file, follow these steps:
 #### 1. Prepare the `.env` file  
 Ensure your `.env` file is formatted as key-value pairs:  
 
-```sh
+```
+sh
 ## my-config.env
 DB_HOST=db.example.com
 DB_USER=admin
@@ -656,7 +712,8 @@ DB_PASS=securepassword
 
 Use the following command to create a ConfigMap from the file:
 
-```sh
+```
+sh
 microk8s kubectl create configmap my-config --from-env-file=my-config.env
 ```
 
@@ -666,7 +723,8 @@ This creates a ConfigMap named `my-config` with the key-value pairs from `my-con
 
 Check if the ConfigMap was created successfully:
 
-```sh
+```
+sh
 microk8s kubectl get configmap my-config -o yaml
 ```
 
@@ -674,7 +732,8 @@ microk8s kubectl get configmap my-config -o yaml
 
 Reference the ConfigMap in a Pod by mounting it as environment variables:
 
-```yaml
+```
+yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -691,7 +750,8 @@ spec:
 #### Alternative: Using a Helm Chart  
 If you’re using Helm, define the ConfigMap in your **values.yaml** and template it in your Helm chart:
 
-```yaml
+```
+yaml
 config:
   DB_HOST: "db.example.com"
   DB_USER: "admin"
@@ -700,7 +760,8 @@ config:
 
 Then, use a **ConfigMap template** in your chart:
 
-```yaml
+```
+yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:

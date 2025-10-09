@@ -56,7 +56,8 @@ To start scripting in Lua:
 
 ### **3. Lua Basics**
 #### **Variables and Data Types**
-```lua
+```
+lua
 local name = "Lua"
 local version = 5.4
 local isAwesome = true
@@ -65,7 +66,8 @@ print(name, version, isAwesome)
 
 #### **Control Structures**
 - **If-Else:**
-  ```lua
+  ```
+lua
   if score > 90 then
       print("A grade")
   elseif score > 75 then
@@ -75,7 +77,8 @@ print(name, version, isAwesome)
   end
   ```
 - **Loops:**
-  ```lua
+  ```
+lua
   for i = 1, 5 do
       print("Loop iteration", i)
   end
@@ -89,7 +92,8 @@ print(name, version, isAwesome)
 
 #### **Tables (Arrays & Dictionaries)**
 Tables are the core data structure in Lua:
-```lua
+```
+lua
 local player = {
     name = "Alex",
     score = 1200,
@@ -97,7 +101,8 @@ local player = {
 }
 ```
 Accessing table data:
-```lua
+```
+lua
 print(player.name)
 print(player.inventory[2])
 ```
@@ -105,7 +110,8 @@ print(player.inventory[2])
 ---
 
 ### **4. Functions in Lua**
-```lua
+```
+lua
 local function greet(name)
     return "Hello, " .. name .. "!"
 end
@@ -114,7 +120,8 @@ print(greet("Lua Developer"))
 ```
 
 Functions can be passed as arguments or stored in tables:
-```lua
+```
+lua
 local actions = {
     attack = function() print("Player attacks!") end,
     heal = function() print("Player heals!") end
@@ -128,7 +135,8 @@ actions.heal()
 
 ### **5. Modules and Packages**
 Create a module (`math_utils.lua`):
-```lua
+```
+lua
 local math_utils = {}
 
 function math_utils.square(x)
@@ -138,13 +146,15 @@ end
 return math_utils
 ```
 Use the module in another file:
-```lua
+```
+lua
 local math_utils = require("math_utils")
 print(math_utils.square(5))
 ```
 
 LuaRocks can be used to manage external packages:
-```bash
+```
+bash
 luarocks install luasocket
 ```
 
@@ -152,7 +162,8 @@ luarocks install luasocket
 
 ### **6. Error Handling**
 Use `pcall` (protected call) to catch errors without crashing the program:
-```lua
+```
+lua
 local status, err = pcall(function()
     error("Something went wrong!")
 end)
@@ -174,7 +185,8 @@ end
 
 ### **8. Embedding Lua in C**
 Sample C program embedding Lua:
-```c
+```
+c
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -192,7 +204,8 @@ int main() {
 }
 ```
 Compile with:
-```bash
+```
+bash
 gcc -o run_lua run_lua.c -llua -lm -ldl
 ```
 

