@@ -743,6 +743,13 @@ footer {
   scrollbar-gutter: stable;
   padding-right: 0.35rem;
 }
+.blog-sidebar::-webkit-scrollbar {
+  display: none;
+}
+.blog-sidebar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .blog-author-filter {
   display: flex;
