@@ -2,19 +2,14 @@
 title: Workload Identity Federation
 slug: workload-identity-federation
 author: m4xx3d0ut
-summary: TODO
+summary: Playbook for configuring workload identity federation with JWKS generation,
+  Google Cloud providers, service accounts, and GitHub Actions integration.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: Workload Identity Federation
-updated: 2025-04-14 21:03:30Z
-created: 2025-04-10 19:14:36Z
----
-
 # Workload Identity Federation
 
 ## 1. Key & JWKS Generation
@@ -104,20 +99,20 @@ Set up the identity federation configuration in the Google Cloud Console:
 1. **Navigate to IAM & Admin > Workload Identity Pools:**  
    In the GCP Console, go to **IAM & Admin** and select **Workload Identity Pools**.
 2. **Create a New Pool:**  
-   Provide a name (e.g., `ir-analytics-pool-0`) and description. Note your pool’s resource name (it will look like `projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0`).
+   Provide a name (e.g., `pool-0`) and description. Note your pool’s resource name (it will look like `projects/123456789/locations/global/workloadIdentityPools/pool-0`).
 
 ### b. Create a Workload Identity Provider
 
 1. **Within your pool, add a new provider:**  
    Select the provider type (OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).
-   - **NOTE:** The issuer URL does not have to be externally accessible, "https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json" can be used as a default value.
+   - **NOTE:** The issuer URL does not have to be externally accessible, "https://yourdomain/.well-known/jwks.json" can be used as a default value.
 3. **Set up attribute mapping:**  
    Map external identity attributes (e.g., the subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.
-   - **NOTE:** In you claims JSON, `"sub"` matches pool ID `"ir-analytics-pool-0"`
+   - **NOTE:** In you claims JSON, `"sub"` matches pool ID `"pool-0"`
 5. **Record the Provider Resource Name:**  
-   If your Provide ID is "ir-analytics-pool-0", it will look similar to:  
+   If your Provide ID is "pool-0", it will look similar to:  
 ```
-//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0
+//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/pool-0
    ```
 
 ### c. Enable Service Account Impersonation
@@ -141,18 +136,18 @@ BigQuery Metadata Viewer
 
 Instead of a service account key, you create a JSON “external account” credentials file that instructs the Google authentication library how to exchange your external token for GCP credentials.
 
-### Sample `clientLibraryConfig-ir-analytics-pool-0.json` File
+### Sample `clientLibraryConfig-pool-0.json` File
 
 ```json
 {
   "type": "external_account",
-  "audience": "//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0",
+  "audience": "//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0",
   "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
   "token_url": "https://sts.googleapis.com/v1/token",
   "credential_source": {
     "file": "/opt/lwt.json"  // This file should contain your external identity token (e.g., a JWT)
   },
-  "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/prod-sa@ir-analytics-prd.iam.gserviceaccount.com:generateAccessToken"
+  "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/prod-sa@prd.iam.gserviceaccount.com:generateAccessToken"
 }
 ```
 
@@ -168,7 +163,7 @@ With your environment set up, test the BigQuery connection by listing the tables
 
 ```bash
 # **CD from repo root**
-$ cd ir-console-data-vis-stack/analytics_cluster/analytics_api
+$ cd console-data-vis-stack/analytics_cluster/analytics_api
 
 # **Assuming your virtual env is already setup with requirements installed**
 $ source venv/bin/activate
@@ -178,7 +173,7 @@ $ python api/jwks_auth/payload.py --files api/prd-pri.json api/prd-claims.json -
 JWT Token:
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiJpci1hbmFseXRpY3MtcG9vbC0wIn0.On2MENhvc3kR8jlfn2ZCXFvdXdgIqlHnH8y3MABHw5MhTWO7OYXyOj8CzJbelHH1idbHZipLix40QK6I1mS_vAbid3EeUW7SgtMpTrt9Qp2igoM2_URnFN0NZbTDzxKjLodgAhjU7b4JGOYMbDUddJrfx9PMAaEn13d1QiA98zbBg1vAjiK7Vcv-EEeiy33079ihuOHV3H94CDCuLlPdiAPiSAF9ovbRxqf5bwmOgXAUG0bvBiazIruuUVAdGSAGSQbLIAdiPaggr5Aj7I-Ps0fCO1h1ln9Bxhv_WEb1hXoPL7iUhG4yY5UWISLL0hLQkvupNrRDVnhmwwmQ_meiYQ
 JWT Claims:
-{"aud":"//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0","iss":"https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json","sub":"ir-analytics-pool-0"}
+{"aud":"//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","iss":"https://yourdomain/.well-known/jwks.json","sub":"pool-0"}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
@@ -188,10 +183,10 @@ Generated LWT JSON:
 # **Validate the LWT (Optional)**
 $ python api/jwks_auth/payload.py --validate api/prd-pub.json /opt/lwt.json
 Validated JWT Claims from external files:
-{"aud":"//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0","exp":1744665359,"iat":1744661759,"iss":"https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json","sub":"ir-analytics-pool-0"}
+{"aud":"//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","exp":1744665359,"iat":1744661759,"iss":"https://yourdomain/.well-known/jwks.json","sub":"pool-0"}
 
 # **Test query the dataset**
-$ python api/test_bq_conn.py --dataset event_logs --creds api/clientLibraryConfig-ir-analytics-pool-0.json
+$ python api/test_bq_conn.py --dataset event_logs --creds api/clientLibraryConfig-pool-0.json
 Tables in dataset 'event_logs':
 - curated_events
 - ecomm_events
@@ -208,95 +203,6 @@ Tables in dataset 'event_logs':
 - middleware_events
 - test_insert
 - wizard_events
-```
-
----
-
----
-
-# SA Config Errors
-
-Default SA created by WIP setup
-```
-$ python dev_scripts/dev_bq_conn.py --dataset event_logs --creds clientLibraryConfig-ir-vis-jwt.json
-Traceback (most recent call last):
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 55, in <module>
-    main()
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 51, in main
-    list_tables(args.dataset)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 19, in list_tables
-    tables = list(client.list_tables(dataset_ref))
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py", line 208, in _items_iter
-    for page in self._page_iter(increment=False):
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py", line 244, in _page_iter
-    page = self._next_page()
-           ^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py", line 373, in _next_page
-    response = self._get_next_page_response()
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py", line 432, in _get_next_page_response
-    return self.api_request(
-           ^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py", line 1661, in api_request
-    return self._call_api(
-           ^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py", line 843, in _call_api
-    return call()
-           ^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-           ^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 212, in _retry_error_helper
-    raise final_exc from source_exc
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 144, in retry_target
-    result = target()
-             ^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/_http/__init__.py", line 494, in api_request
-    raise exceptions.from_http_response(response)
-google.api_core.exceptions.Forbidden: 403 GET https://bigquery.googleapis.com/bigquery/v2/projects/ir-analytics-prd/datasets/event_logs/tables?prettyPrint=false: Access Denied: Dataset ir-analytics-prd:event_logs: Permission bigquery.tables.list denied on dataset ir-analytics-prd:event_logs (or it may not exist).
-```
-
-SA created manually
-```bash
- python dev_scripts/dev_bq_conn.py --dataset event_logs --creds clientLibraryConfig-ir-analytics-pool-0.json
-Traceback (most recent call last):
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 55, in <module>
-    main()
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 51, in main
-    list_tables(args.dataset)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py", line 13, in list_tables
-    client = bigquery.Client(project=PROJECT_ID)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py", line 253, in __init__
-    super(Client, self).__init__(
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/client/__init__.py", line 339, in __init__
-    Client.__init__(
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/client/__init__.py", line 196, in __init__
-    credentials, _ = google.auth.default(scopes=scopes)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/_default.py", line 703, in default
-    effective_project_id = credentials.get_project_id(request=request)
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/external_account.py", line 391, in get_project_id
-    self.before_request(request, "GET", url, headers)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/credentials.py", line 239, in before_request
-    self._blocking_refresh(request)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/credentials.py", line 202, in _blocking_refresh
-    self.refresh(request)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/external_account.py", line 422, in refresh
-    self._impersonated_credentials.refresh(request)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py", line 254, in refresh
-    self._update_token(request)
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py", line 319, in _update_token
-    self.token, self.expiry = _make_iam_token_request(
-                              ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py", line 94, in _make_iam_token_request
-    raise exceptions.RefreshError(_REFRESH_ERROR, response_body)
-google.auth.exceptions.RefreshError: ('Unable to acquire impersonated credentials', '{\n  "error": {\n    "code": 403,\n    "message": "Permission \'iam.serviceAccounts.getAccessToken\' denied on resource (or it may not exist).",\n    "status": "PERMISSION_DENIED",\n    "details": [\n      {\n        "@type": "type.googleapis.com/google.rpc.ErrorInfo",\n        "reason": "IAM_PERMISSION_DENIED",\n        "domain": "iam.googleapis.com",\n        "metadata": {\n          "permission": "iam.serviceAccounts.getAccessToken"\n        }\n      }\n    ]\n  }\n}\n')
-
 ```
 
 ---
@@ -387,7 +293,7 @@ $ python jwks_auth/payload.py --files prd-pri.json prd-claims.json --save_lwt /o
 JWT Token:
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiIgaXItZXh0LWFuYWx5dGljcy1wcm9kLXNhIn0.EAh3y0OGUahtM2uLA4m2PcOMYKgRId8kba2qAYJCiJuU-2AalB-Lw5lfj1VmjKghdDO78NxYcSuEXrh2wmk9P2jsnH4e7YRzOA7CEXjRBVav7fIU503v-3IICLRdpgtej1sG6oJP1fK44V99ohSpg0YQhz-RuANjUqctw959knQnxUcSeWFJowIUYfGNNpsMb05xispxEpmjPVqengQEx7EyPRD2Qq3vaaYNGSqQHUAqJdKXan126RIbja0K7nhYZIRydOmV_P728YQyvfBJ2YfPPB9MFWqCjjCUX9io04HZ6-b7uusT-SYMMI3lZOh-YPsUbr4_5-Aaz-0y5JRfAQ
 JWT Claims:
-{"aud":"https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0","iss":"https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json","sub":" prod-sa"}
+{"aud":"https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","iss":"https://yourdomain/.well-known/jwks.json","sub":" prod-sa"}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
@@ -401,7 +307,7 @@ Generated LWT JSON:
 
 $ python jwks_auth/payload.py --validate prd-pub.json /opt/lwt.json
 Validated JWT Claims from external files:
-{"aud":"https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0","exp":1744412814,"iat":1744409214,"iss":"https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json","sub":" prod-sa"}
+{"aud":"https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","exp":1744412814,"iat":1744409214,"iss":"https://yourdomain/.well-known/jwks.json","sub":" prod-sa"}
 
 ```
 
@@ -410,57 +316,57 @@ Validated JWT Claims from external files:
 
 ```
 # DEV
-principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/ir-analytics-sa-000
+principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/subject/sa-000
 
 # PRD
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/prod-sa
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/prod-sa
 
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
 
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/ir-analytics-pool-0
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/pool-0
 ```
 
 External Analytics Pool
 ```
 ID
-ir-analytics-pool-0
+pool-0
 Description
 External analytics BQ WIF
 Status
 IAM principal 
-principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
+principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
 Logs 
 View
 ```
 
 Providers
 ```
-ir-analytics-vis-stack-oidc-jwt	OIDC
+vis-stack-oidc-jwt	OIDC
 ```
 
 Provider Details
 ```
-ir-analytics-vis-stack-oidc-jwt
+vis-stack-oidc-jwt
 ```
 
 Issuer URL
 ```
-https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json
+https://yourdomain/.well-known/jwks.json
 ```
 
 **NOTE:** Record the resulting IAM principal, grant to SA with `roles/iam.workloadIdentityUser`
 ```
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
 ```
 
 Audiences
 Default Audiences
 ```
 # DEV
-https://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-vis-jwt
+https://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/providers/vis-jwt
 
 # PRD
-https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-vis-stack-oidc-jwt
+https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/vis-stack-oidc-jwt
 ```
 
 OIDC 1
@@ -471,14 +377,14 @@ assertion.sub
 SA Permissions/Roles
 ```
 # DEV
-ir-analytics-sa-000@genai-analytics-435321.iam.gserviceaccount.com
-ir-analytics-sa-000
+sa-000@genai-analytics-435321.iam.gserviceaccount.com
+sa-000
 BigQuery Data Viewer
 BigQuery Job User
 BigQuery Metadata Viewer
 
 # PRD
-prod-sa@ir-analytics-prd.iam.gserviceaccount.com
+prod-sa@prd.iam.gserviceaccount.com
 prod-sa	
 BigQuery Data Viewer
 BigQuery Job User
@@ -490,8 +396,8 @@ Create a `claims.json` with your SA, issue, and audience (without `https:`)
 ```
 {
   "sub": " prod-sa",
-  "iss": "https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json",
-  "aud": "//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-vis-stack-oidc-jwt"
+  "iss": "https://yourdomain/.well-known/jwks.json",
+  "aud": "//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/vis-stack-oidc-jwt"
 }
 ```
 
@@ -506,7 +412,7 @@ Before writing any code, you need to set up your identity federation configurati
 1. **Navigate to IAM & Admin > Workload Identity Pools:**  
    In the GCP Console, go to **IAM & Admin** and select **Workload Identity Pools**.
 2. **Create a New Pool:**  
-   Provide a name (e.g., `ir-analytics-pool-0`) and description. Note your pool’s resource name (it will look like `projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0`).
+   Provide a name (e.g., `pool-0`) and description. Note your pool’s resource name (it will look like `projects/123456789/locations/global/workloadIdentityPools/pool-0`).
 
 ### b. Create a Workload Identity Provider
 
@@ -517,7 +423,7 @@ Before writing any code, you need to set up your identity federation configurati
 3. **Record the Provider Resource Name:**  
    It will look similar to:  
 ```
-//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/my-provider
+//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/my-provider
    ```
 
 ### c. Enable Service Account Impersonation
@@ -535,12 +441,12 @@ Before writing any code, you need to set up your identity federation configurati
 
 Instead of a service account key, you create a JSON file (often called an “external account” credentials file) that instructs the Google authentication library how to exchange your external token for GCP credentials.
 
-### Sample `clientLibraryConfig-ir-analytics-pool-0.json` File
+### Sample `clientLibraryConfig-pool-0.json` File
 
 ```json
 {
   "type": "external_account",
-  "audience": "//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/my-provider",
+  "audience": "//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/my-provider",
   "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
   "token_url": "https://sts.googleapis.com/v1/token",
   "credential_source": {
@@ -558,15 +464,15 @@ Instead of a service account key, you create a JSON file (often called an “ext
 
 ### NOTES
 
-External Credentials File **clientLibraryConfig-ir-vis-jwt.json**
+External Credentials File **clientLibraryConfig-vis-jwt.json**
 ```
 {
   "universe_domain": "googleapis.com",
   "type": "external_account",
-  "audience": "//iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-vis-jwt",
+  "audience": "//iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/providers/vis-jwt",
   "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
   "token_url": "https://sts.googleapis.com/v1/token",
-  "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/ir-analytics-sa-000@genai-analytics-435321.iam.gserviceaccount.com:generateAccessToken",
+  "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/sa-000@genai-analytics-435321.iam.gserviceaccount.com:generateAccessToken",
   "credential_source": {
     "file": "/opt/lwt.json",
     "format": {
@@ -584,7 +490,7 @@ External Credentials File **clientLibraryConfig-ir-vis-jwt.json**
 Tell the Google Cloud client libraries where to find your external account credentials by setting the environment variable:
 
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/clientLibraryConfig-ir-analytics-pool-0.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/clientLibraryConfig-pool-0.json"
 ```
 
 This step ensures that when you create a BigQuery client, it will automatically load and use the federated credentials.
@@ -595,7 +501,7 @@ This step ensures that when you create a BigQuery client, it will automatically 
 # **NOTE:** for BQ federated identity auth
 GCP_PROJECT="genai-analytics-435321"
 GCP_BQ_DATASET="event_logs"
-GCP_CLIENT_CONF="/app/api/clientLibraryConfig-ir-vis-jwt.json"
+GCP_CLIENT_CONF="/app/api/clientLibraryConfig-vis-jwt.json"
 GCP_PRI_KEY="/app/api/pri.json"
 GCP_CLAIMS_FILE="/app/api/claims.json"
 GCP_PUB_KEY="/app/api/pub.json"

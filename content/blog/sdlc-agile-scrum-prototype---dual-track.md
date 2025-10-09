@@ -2,22 +2,14 @@
 title: SDLC Agile_Scrum & Prototype - Dual Track
 slug: sdlc-agile-scrum-prototype---dual-track
 author: m4xx3d0ut
-summary: TODO
+summary: Maps SDLC stages onto Agile, Scrum, and prototyping dual-track workflows
+  with notes on milestones, communication, and dependency tracking.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: SDLC Agile/Scrum & Prototype - Dual Track
-updated: 2024-11-18 02:40:48Z
-created: 2024-11-17 22:13:55Z
-latitude: 33.85803833
-longitude: -118.39666500
-altitude: -2.3000
----
-
 # SDLC Agile/Scrum & Prototype
 
 ## Introduction

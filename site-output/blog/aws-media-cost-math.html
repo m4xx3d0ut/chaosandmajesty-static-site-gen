@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Core – When the Console Glows</title>
+  <title>Core – AWS Media Cost Math</title>
 
   
     
@@ -86,16 +86,16 @@
         </svg>
         Back to Chaos &amp; Majesty Journal
       </a>
-      <article class="blog-article-body" data-slug="console-glow">
+      <article class="blog-article-body" data-slug="aws-media-cost-math">
   <header class="blog-article-header">
-    <h1 class="blog-article-title">When the Console Glows</h1>
+    <h1 class="blog-article-title">AWS Media Cost Math</h1>
     <p class="blog-article-meta">
       
-        <span>May 5, 2024</span>
+        <span>Feb 6, 2025</span>
       
       
         <span aria-hidden="true">•</span>
-        <span>6 min read</span>
+        <span>5 min read</span>
       
       
         <span aria-hidden="true">•</span>
@@ -105,26 +105,31 @@
   </header>
 
   
-    <figure class="blog-hero">
-      <img src="/assets/static/img/bunny-punx.webp" alt="When the Console Glows hero image">
-    </figure>
-  
 
   <div class="blog-article-content">
-    <h2>Lighting the Grid</h2>
-<p>We wanted the interface to feel like a living console. That meant leaning into saturated greens, animated scanlines, and assets that react to cursor movement. The generator now ships with a CM-specific head partial so we can drop the terminal look onto any page without re-work.</p>
-<h3>Palette Experiments</h3>
-<ul>
-<li>Radiant phosphor (#64ffda)</li>
-<li>Deep void (#040606)</li>
-<li>Warning amber (#fcbf49)</li>
-</ul>
-<p>Those combinations keep text legible while still feeling like an underground terminal.</p>
-<h3>Asset Pipeline</h3>
-<p><code>prepare-cm-files.sh</code> now syncs SVG and JS assets straight from <code>cm-source/</code>. That keeps artists and engineers aligned without handing off zip files.</p>
-<blockquote>
-<p>TL;DR: treat every page like a terminal window and the vibe carries itself.</p>
-</blockquote>
+    <h1>Back of the Envelope AWS Media Cost Math</h1>
+<p>30 fps input
+3 live hours</p>
+<p>MC Flows 2 - $0.16 each/hr = $0.96 +
+    Input Bitrate = 10 Mbps
+    <code>(10 Mbps / 8 = 1.25 MBps / 1024 = 0.00122 GBbps * 3600 = 4.4 GB per hour * 3) * 2</code> = 26.4 GB
+    Total data transfer cost from MediaConnect to another AWS service in US East (N. Virginia) Region
+    26.4 * $0.01 = $0.26 +</p>
+<p>ML Channels 1 = 14.4 Mb/s
+    Input HD $0.36 * 3 = $1.08 +
+    Output 	&lt;=30fps $1.07 a/hr * 3 = $3.21 +</p>
+<p>MP Channel 1
+    ingest $0.03 per GB
+        14.4 / 1024 * 60 * 60 = (50.625 / 8) * 0.03 = $0.18984375 * 3 = $0.56953125
+    live origin $0.05 per GB
+    99% cache hit out 410.0625</p>
+<p>viewers 13824
+hours viewed 0.3</p>
+<p>13824 * 0.03 = 414.72 hrs
+(3 / 1024) * 60 * 60 / 8 = 1.318359375
+414.72 * 1.318359375 = 546.75 * 0.01 = 5.4675 GB after cache * $0.05 = $0.273375</p>
+<p>2500 viewers
+1.35 hours watched</p>
 
   </div>
 

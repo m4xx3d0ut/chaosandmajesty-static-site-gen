@@ -2,22 +2,14 @@
 title: SDLC Planning & Estimates
 slug: sdlc-planning-estimates
 author: m4xx3d0ut
-summary: TODO
+summary: Survey of planning and estimation frameworks (Agile, Scrum, Kanban, Waterfall,
+  RAD) with practical techniques for forecasting and tracking delivery.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: SDLC Planning & Estimates
-updated: 2024-11-17 22:10:44Z
-created: 2024-11-17 20:58:10Z
-latitude: 33.85803833
-longitude: -118.39666500
-altitude: -2.3000
----
-
 Here are the top frameworks and methodologies for software development project planning and estimating timelines:
 
 ### 1. **Agile**
@@ -171,4 +163,3 @@ It also uses **Critical Path Analysis** to identify the sequence of tasks that d
 - Enables proactive resource planning and risk mitigation.
 
 ---
-

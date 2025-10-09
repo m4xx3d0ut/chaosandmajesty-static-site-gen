@@ -2,22 +2,15 @@
 title: AWS Media Cost Math
 slug: aws-media-cost-math
 author: m4xx3d0ut
-summary: TODO
+summary: Cost worksheet for a three-hour AWS MediaConnect/MediaLive/MediaPackage workflow,
+  including data transfer and viewer egress math.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: AWS Media Cost Math
-updated: 2023-12-14 01:31:54Z
-created: 2023-12-13 01:01:52Z
-latitude: 33.84918160
-longitude: -118.38840780
-altitude: 0.0000
----
-
+# Back of the Envelope AWS Media Cost Math
 
 30 fps input
 3 live hours

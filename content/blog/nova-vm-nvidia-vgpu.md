@@ -2,22 +2,14 @@
 title: Nova VM Nvidia vGPU
 slug: nova-vm-nvidia-vgpu
 author: m4xx3d0ut
-summary: TODO
+summary: Step-by-step enablement of Nvidia vGPU on Ubuntu/KVM with OpenStack Nova,
+  covering driver patches, mediated devices, and licensing concerns.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: Nova VM Nvidia vGPU
-updated: 2024-05-22 01:03:01Z
-created: 2024-01-31 18:13:43Z
-latitude: 33.91917990
-longitude: -118.41646520
-altitude: 0.0000
----
-
 # GPU Virtualization: OpenStack Nova & KVM
 
 [toc]

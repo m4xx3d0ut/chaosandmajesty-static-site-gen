@@ -2,22 +2,14 @@
 title: SDLC Models
 slug: sdlc-models
 author: m4xx3d0ut
-summary: TODO
+summary: "Overview of major SDLC models\u2014Waterfall through Agile\u2014with usage\
+  \ guidance and the impact each has on testing and security practices."
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: SDLC Models
-updated: 2024-11-17 01:29:34Z
-created: 2024-11-16 22:03:31Z
-latitude: 33.85803833
-longitude: -118.39666500
-altitude: -2.3000
----
-
 # SDLC
 Software development models are various processes or methods that are chosen for project development depending on the objectives and goals of the project. Many development life cycle models have been developed to achieve various essential objectives. Models specify the various steps of the process and the order in which they are executed.
 

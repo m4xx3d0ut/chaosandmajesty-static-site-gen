@@ -2,22 +2,14 @@
 title: Terraform
 slug: terraform
 author: m4xx3d0ut
-summary: TODO
+summary: Terraform cheat sheet covering fmt/validate, init/plan/apply, imports, workspaces,
+  and state management best practices.
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
----
-title: Terraform
-updated: 2023-12-05 22:19:42Z
-created: 2023-12-05 21:09:36Z
-latitude: 33.84918160
-longitude: -118.38840780
-altitude: 0.0000
----
-
 # Terraform
 
 [Terraform Docs](https://developer.hashicorp.com/terraform/language)
@@ -220,4 +212,3 @@ terraform init
 ```
 
 Terraform downloads the aws provider and installs it in a hidden subdirectory of your current working directory, named .terraform. The terraform init command prints out which version of the provider was installed. Terraform also creates a lock file named .terraform.lock.hcl which specifies the exact provider versions used, so that you can control when you want to update the providers used for your project.
-
