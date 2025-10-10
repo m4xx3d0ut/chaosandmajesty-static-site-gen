@@ -3,6 +3,8 @@
   const CONTRAST_CLASS = 'contrast-mode';
   const LOGO_PAUSE_REASON_TERMINAL = 'terminal-input';
   const LOGO_PAUSE_REASON_DOOM = 'doom';
+  const TERMINAL_STORAGE_KEY = 'cm-terminal-buffer';
+  const TERMINAL_MAX_SEGMENTS = 320;
 
   function ensureLogoControl() {
     if (typeof window === 'undefined') {
@@ -483,6 +485,7 @@
   var opacity = 0;
   var intervalID = null;
   var out = 0;
+  var terminalRestored = false;
   var hello = [
       'GREETINGS PROFESSOR FALKEN.',
       'HOW ARE YOU FEELING TODAY?',
@@ -1311,6 +1314,78 @@
       return null;
   }
 
+  function getTerminalStorage() {
+      try {
+          if (typeof window === 'undefined' || !window.localStorage) {
+              return null;
+          }
+          return window.localStorage;
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function trimTerminalHtml(html) {
+      if (!html || TERMINAL_MAX_SEGMENTS <= 0) {
+          return html;
+      }
+      var segments = html.split('<br>');
+      if (segments.length <= TERMINAL_MAX_SEGMENTS) {
+          return html;
+      }
+      return segments.slice(segments.length - TERMINAL_MAX_SEGMENTS).join('<br>');
+  }
+
+  function persistTerminalBuffer(term) {
+      if (!term) {
+          return;
+      }
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return;
+      }
+      try {
+          var html = term.innerHTML;
+          if (!html) {
+              storage.removeItem(TERMINAL_STORAGE_KEY);
+              return;
+          }
+          var trimmed = trimTerminalHtml(html);
+          if (trimmed !== html) {
+              term.innerHTML = trimmed;
+          }
+          storage.setItem(TERMINAL_STORAGE_KEY, trimmed);
+      } catch (_err) {
+          // Ignore persistence failures (e.g. storage disabled)
+      }
+  }
+
+  function restoreTerminalBuffer(term) {
+      var storage = getTerminalStorage();
+      if (!term || !storage) {
+          return false;
+      }
+      try {
+          var stored = storage.getItem(TERMINAL_STORAGE_KEY);
+          if (!stored) {
+              return false;
+          }
+          term.innerHTML = stored;
+          if (stored.slice(-2) !== '$ ') {
+              term.innerHTML += '<br>$ ';
+          }
+          terminalRestored = true;
+          allowIn = true;
+          elementId = 0;
+          i = 0;
+          persistTerminalBuffer(term);
+          scrollTerm(term);
+          return true;
+      } catch (_err) {
+          return false;
+      }
+  }
+
   function clearTerminal() {
       var term = document.getElementById("tOut");
       if (!term) return;
@@ -1320,6 +1395,7 @@
       allowIn = true;
       historyIndex = commandHistory.length;
       scrollTerm(term);
+      persistTerminalBuffer(term);
   }
 
   function recordCommand(command) {
@@ -1577,6 +1653,7 @@
           }
           elementId++;
           term.innerHTML += '<br>$ ';
+          persistTerminalBuffer(term);
       }
       scrollTerm(term);
       if (elementId < msgOut.length) {
@@ -1599,7 +1676,9 @@
   function main() {
       if (!document.getElementById("tOut") || !document.getElementById("tagline")) return;
       fadeBounce();
-      terminal(hello);
+      if (!terminalRestored) {
+          terminal(hello);
+      }
   }
 
   // Only run everything after DOM is loaded!
@@ -1613,6 +1692,8 @@
       if (!termOut || !tagline) {
           return;
       }
+
+      restoreTerminalBuffer(termOut);
 
       window.scrollTo(0, 0);
       main();
