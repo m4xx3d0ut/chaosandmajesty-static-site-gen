@@ -433,7 +433,10 @@
       context: null,
       screenEl: null,
       prevScrollTop: null,
-      prevOverflow: null
+      prevOverflow: null,
+      touchControlsRoot: null,
+      virtualKeyReleasers: [],
+      sendVirtualKey: null
   };
 
   function getLatestArticles() {
@@ -782,6 +785,36 @@
       return !!element && pointerLockElement() === element;
   }
 
+  function shouldShowDoomTouchControls() {
+      if (typeof window === 'undefined') {
+          return false;
+      }
+      var hasTouchSupport = false;
+      try {
+          hasTouchSupport = ('ontouchstart' in window) || (navigator && navigator.maxTouchPoints > 0);
+      } catch (_err) {
+          hasTouchSupport = false;
+      }
+      if (!hasTouchSupport) {
+          return false;
+      }
+      if (typeof window.matchMedia === 'function') {
+          try {
+              var prefersFinePointer = window.matchMedia('(pointer: fine)').matches;
+              var isLargeViewport = window.matchMedia('(min-width: 901px)').matches;
+              if (prefersFinePointer && !window.matchMedia('(pointer: coarse)').matches) {
+                  return false;
+              }
+              if (isLargeViewport) {
+                  return false;
+              }
+          } catch (_err2) {
+              // Ignore matchMedia errors/unsupported values.
+          }
+      }
+      return true;
+  }
+
   function ensureDoomOverlay() {
       var consoleEl = document.getElementById('console');
       var screen = document.getElementById('tOut');
@@ -811,6 +844,27 @@
       var instructions = document.createElement('span');
       instructions.textContent = 'WASD / arrows to move · Ctrl / Space to shoot · `exit doom` to leave';
       controls.appendChild(instructions);
+      var controlButtons = document.createElement('div');
+      controlButtons.className = 'doom-overlay__buttons';
+
+      var escBtn = document.createElement('button');
+      escBtn.type = 'button';
+      escBtn.textContent = 'Esc';
+      escBtn.addEventListener('click', function() {
+          var canvas = doomState.canvas;
+          var hasPointerLock = supportsPointerLock(canvas);
+          if (hasPointerLock && isPointerLockedTo(canvas)) {
+              exitPointerLock();
+              setDoomStatus('Mouse free; tap canvas to capture again.');
+              focusDoomCanvas();
+              return;
+          }
+          if (typeof doomState.sendVirtualKey === 'function') {
+              doomState.sendVirtualKey(27);
+          }
+      });
+      controlButtons.appendChild(escBtn);
+
       var exitBtn = document.createElement('button');
       exitBtn.type = 'button';
       exitBtn.textContent = 'Exit DOOM';
@@ -818,8 +872,19 @@
           teardownDoom('User exit.');
           terminal(['Exited DOOM.']);
       });
-      controls.appendChild(exitBtn);
+      controlButtons.appendChild(exitBtn);
+
+      controls.appendChild(controlButtons);
       overlay.appendChild(controls);
+
+      if (shouldShowDoomTouchControls()) {
+          var touchControls = document.createElement('div');
+          touchControls.className = 'doom-touch-controls';
+          overlay.appendChild(touchControls);
+          doomState.touchControlsRoot = touchControls;
+      } else {
+          doomState.touchControlsRoot = null;
+      }
 
       screen.appendChild(overlay);
       consoleEl.classList.add('has-doom');
@@ -984,6 +1049,14 @@
       var keyDown = function(code) { exports.add_browser_event(0, code); };
       var keyUp = function(code) { exports.add_browser_event(1, code); };
 
+      doomState.sendVirtualKey = function(keyCode) {
+          var code = doomKeyCode(keyCode);
+          keyDown(code);
+          setTimeout(function() {
+              keyUp(code);
+          }, 0);
+      };
+
       registerDoomListener(canvas, 'keydown', function(event) {
           keyDown(doomKeyCode(event.keyCode));
           event.preventDefault();
@@ -1024,6 +1097,193 @@
           registerDoomListener(document, 'pointerlockerror', handlePointerLockError);
           registerDoomListener(document, 'mozpointerlockerror', handlePointerLockError);
           registerDoomListener(document, 'webkitpointerlockerror', handlePointerLockError);
+      }
+
+      if (shouldShowDoomTouchControls() && doomState.touchControlsRoot) {
+          setupTouchControls();
+      }
+
+      function bindVirtualButton(button, keyCode) {
+          if (!button) {
+              return;
+          }
+          var doomKey = doomKeyCode(keyCode);
+          var activeIds = new Set();
+          var pointerSupported = typeof window !== 'undefined' && typeof window.PointerEvent === 'function';
+
+          var pressPointer = function(pointerId) {
+              if (activeIds.size === 0) {
+                  keyDown(doomKey);
+              }
+              activeIds.add(pointerId);
+              button.classList.add('is-active');
+              focusDoomCanvas();
+          };
+          var releasePointer = function(pointerId) {
+              if (!activeIds.has(pointerId)) {
+                  return;
+              }
+              activeIds.delete(pointerId);
+              if (activeIds.size === 0) {
+                  button.classList.remove('is-active');
+                  keyUp(doomKey);
+              }
+          };
+          var releaseAll = function() {
+              if (activeIds.size > 0) {
+                  activeIds.clear();
+                  button.classList.remove('is-active');
+                  keyUp(doomKey);
+              }
+          };
+
+          doomState.virtualKeyReleasers.push(releaseAll);
+
+          registerDoomListener(button, 'contextmenu', function(event) {
+              event.preventDefault();
+          });
+
+          if (pointerSupported) {
+              registerDoomListener(button, 'pointerdown', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (typeof button.setPointerCapture === 'function') {
+                      try {
+                          button.setPointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore capture errors on unsupported targets.
+                      }
+                  }
+                  pressPointer(event.pointerId);
+              });
+              var finishPointer = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (typeof button.releasePointerCapture === 'function') {
+                      try {
+                          button.releasePointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore release errors if pointer capture was never taken.
+                      }
+                  }
+                  releasePointer(event.pointerId);
+              };
+          registerDoomListener(button, 'pointerup', finishPointer);
+          registerDoomListener(button, 'pointercancel', finishPointer);
+          } else {
+              var touchIdPrefix = 'touch-';
+              registerDoomListener(button, 'touchstart', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      pressPointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!event.changedTouches || event.changedTouches.length === 0) {
+                      pressPointer(touchIdPrefix + '0');
+                  }
+              }, { passive: false });
+              var finishTouch = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  var handled = false;
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      handled = true;
+                      releasePointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!handled) {
+                      releasePointer(touchIdPrefix + '0');
+                  }
+              };
+              registerDoomListener(button, 'touchend', finishTouch);
+              registerDoomListener(button, 'touchcancel', finishTouch);
+              registerDoomListener(button, 'mousedown', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  pressPointer('mouse');
+              });
+              registerDoomListener(button, 'mouseup', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer('mouse');
+              });
+              registerDoomListener(button, 'mouseleave', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer('mouse');
+              });
+          }
+      }
+
+      function makeTouchButton(label, keyCode, extraClass) {
+          var button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = label;
+          button.className = 'doom-touch-button' + (extraClass ? ' ' + extraClass : '');
+          bindVirtualButton(button, keyCode);
+          return button;
+      }
+
+      function setupTouchControls() {
+          var root = doomState.touchControlsRoot;
+          if (!root) {
+              return;
+          }
+
+          doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+              if (typeof releaseFn === 'function') {
+                  try {
+                      releaseFn();
+                  } catch (_err) {
+                      // ignore cleanup errors when rehydrating controls
+                  }
+              }
+          });
+          doomState.virtualKeyReleasers = [];
+
+          root.innerHTML = '';
+
+          var leftCluster = document.createElement('div');
+          leftCluster.className = 'doom-touch-controls__cluster doom-touch-controls__cluster--left';
+          var leftRow = document.createElement('div');
+          leftRow.className = 'doom-touch-controls__row';
+          leftRow.appendChild(makeTouchButton('Alt', 18, 'doom-touch-button--alt'));
+          leftRow.appendChild(makeTouchButton('Ctrl', 17, 'doom-touch-button--ctrl'));
+          leftCluster.appendChild(leftRow);
+
+          var rightCluster = document.createElement('div');
+          rightCluster.className = 'doom-touch-controls__cluster doom-touch-controls__cluster--right';
+          var enterButton = makeTouchButton('Enter', 13, 'doom-touch-button--enter');
+          rightCluster.appendChild(enterButton);
+
+          var dpad = document.createElement('div');
+          dpad.className = 'doom-touch-dpad';
+
+          var dpadTop = document.createElement('div');
+          dpadTop.className = 'doom-touch-dpad__row doom-touch-dpad__row--top';
+          dpadTop.appendChild(document.createElement('span'));
+          dpadTop.appendChild(makeTouchButton('↑', 38, 'doom-touch-button--up'));
+          dpadTop.appendChild(document.createElement('span'));
+
+          var dpadMid = document.createElement('div');
+          dpadMid.className = 'doom-touch-dpad__row doom-touch-dpad__row--middle';
+          dpadMid.appendChild(makeTouchButton('←', 37, 'doom-touch-button--left'));
+          dpadMid.appendChild(makeTouchButton('↓', 40, 'doom-touch-button--down'));
+          dpadMid.appendChild(makeTouchButton('→', 39, 'doom-touch-button--right'));
+
+          var dpadBottom = document.createElement('div');
+          dpadBottom.className = 'doom-touch-dpad__row doom-touch-dpad__row--bottom';
+          dpadBottom.appendChild(document.createElement('span'));
+          dpadBottom.appendChild(document.createElement('span'));
+          dpadBottom.appendChild(document.createElement('span'));
+
+          dpad.appendChild(dpadTop);
+          dpad.appendChild(dpadMid);
+          dpad.appendChild(dpadBottom);
+
+          rightCluster.appendChild(dpad);
+
+          root.appendChild(leftCluster);
+          root.appendChild(rightCluster);
       }
   }
 
@@ -1138,6 +1398,7 @@
       doomState.memory = null;
       doomState.loopHandle = null;
       doomState.loopFn = null;
+      doomState.sendVirtualKey = null;
       if (doomState.screenEl) {
           if (doomState.prevOverflow !== null) {
               doomState.screenEl.style.overflowY = doomState.prevOverflow;
@@ -1151,6 +1412,20 @@
       doomState.screenEl = null;
       doomState.prevScrollTop = null;
       doomState.prevOverflow = null;
+      doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+          if (typeof releaseFn === 'function') {
+              try {
+                  releaseFn();
+              } catch (_err) {
+                  // ignore failures while unwinding virtual key state
+              }
+          }
+      });
+      doomState.virtualKeyReleasers = [];
+      if (doomState.touchControlsRoot) {
+          doomState.touchControlsRoot.innerHTML = '';
+      }
+      doomState.touchControlsRoot = null;
 
       if (message) {
           terminal([message]);

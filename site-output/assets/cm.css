@@ -648,6 +648,11 @@ body > footer {
   font-size: 0.85em;
 }
 
+.doom-overlay__buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .doom-overlay__controls button {
   background: transparent;
   color: #66ff00;
@@ -662,6 +667,109 @@ body > footer {
 .doom-overlay__controls button:focus {
   background: #66ff00;
   color: #000;
+}
+
+.doom-touch-controls {
+  display: none;
+  width: 100%;
+  max-width: 640px;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: auto;
+  pointer-events: auto;
+}
+
+.doom-touch-controls__cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.doom-touch-controls__cluster--left {
+  margin-right: auto;
+  align-items: flex-start;
+}
+
+.doom-touch-controls__cluster--right {
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.doom-touch-controls__row {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.doom-touch-dpad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 9rem;
+}
+
+.doom-touch-dpad__row {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: center;
+}
+
+.doom-touch-dpad__row span {
+  display: block;
+  flex: 1 1 2.5rem;
+}
+
+.doom-touch-dpad__row--middle {
+  justify-content: space-between;
+}
+
+.doom-touch-button {
+  font-family: 'Syne Mono', monospace;
+  font-size: 1rem;
+  background: rgba(8, 8, 8, 0.85);
+  color: #66ff00;
+  border: 1px solid #66ff00;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  min-width: 3.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background 0.15s ease, color 0.15s ease;
+  touch-action: none;
+}
+
+.doom-touch-button.is-active,
+.doom-touch-button:active {
+  background: #66ff00;
+  color: #000;
+}
+
+.doom-touch-button--enter {
+  align-self: center;
+  padding-inline: 1.4rem;
+}
+
+.doom-touch-controls__cluster--left .doom-touch-button {
+  min-width: 4.2rem;
+}
+
+@media (max-width: 900px) {
+  .doom-touch-controls {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .doom-touch-controls__cluster--left {
+    align-items: flex-start;
+  }
+  .doom-touch-controls__cluster--right {
+    align-items: flex-end;
+  }
+  .doom-touch-button--enter {
+    align-self: flex-end;
+  }
 }
 
 /* --- MOBILE CONSOLE LAYOUT --- */
@@ -700,6 +808,21 @@ body > footer {
     max-height: 70vh;
     font-size: 1em;
     box-sizing: border-box;
+  }
+  .doom-overlay {
+    justify-content: flex-start;
+    padding-bottom: 6rem;
+  }
+  .doom-overlay__canvas-wrap {
+    flex: 1 1 auto;
+  }
+  .doom-touch-controls {
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .doom-touch-button {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
   }
   .term {
     width: 100%;
