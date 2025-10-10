@@ -430,7 +430,10 @@
       loopHandle: null,
       loopFn: null,
       listeners: [],
-      context: null
+      context: null,
+      screenEl: null,
+      prevScrollTop: null,
+      prevOverflow: null
   };
 
   function getLatestArticles() {
@@ -766,6 +769,12 @@
       screen.appendChild(overlay);
       consoleEl.classList.add('has-doom');
 
+      doomState.screenEl = screen;
+      doomState.prevScrollTop = screen.scrollTop;
+      doomState.prevOverflow = screen.style.overflowY;
+      screen.scrollTop = 0;
+      screen.style.overflowY = 'hidden';
+
       doomState.overlay = overlay;
       doomState.canvas = canvas;
       doomState.statusNode = status;
@@ -1038,6 +1047,19 @@
       doomState.memory = null;
       doomState.loopHandle = null;
       doomState.loopFn = null;
+      if (doomState.screenEl) {
+          if (doomState.prevOverflow !== null) {
+              doomState.screenEl.style.overflowY = doomState.prevOverflow;
+          } else {
+              doomState.screenEl.style.removeProperty('overflow-y');
+          }
+          if (doomState.prevScrollTop !== null && doomState.prevScrollTop !== undefined) {
+              doomState.screenEl.scrollTop = doomState.prevScrollTop;
+          }
+      }
+      doomState.screenEl = null;
+      doomState.prevScrollTop = null;
+      doomState.prevOverflow = null;
 
       if (message) {
           terminal([message]);
