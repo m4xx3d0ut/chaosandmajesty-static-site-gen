@@ -902,7 +902,7 @@ body > footer {
   border-radius: 12px;
   border: 1px solid rgba(102, 255, 0, 0.22);
   background: rgba(0, 0, 0, 0.55);
-  color: rgba(190, 255, 190, 0.85);
+  color: rgba(255, 140, 0, 0.95);
   font-family: var(--font-body);
   text-decoration: none;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;

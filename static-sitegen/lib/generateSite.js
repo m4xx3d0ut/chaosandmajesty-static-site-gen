@@ -307,6 +307,44 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
   const hiddenPosts = posts.filter(post => post.isHidden);
   const displayPosts = posts.filter(post => !post.isHidden);
 
+  const formatNeighbor = (post) => {
+    if (!post) return null;
+    return {
+      slug: post.slug,
+      title: post.title,
+      displayPublishedAt: post.displayPublishedAt,
+      relativeHref: post.relativeHref,
+      publicHref: post.publicHref,
+      fragmentPath: post.fragmentPath,
+      fragmentHref: post.fragmentHref
+    };
+  };
+
+  posts.forEach((post, index) => {
+    const prevVisible = (() => {
+      for (let i = index - 1; i >= 0; i -= 1) {
+        if (!posts[i].isHidden) {
+          return posts[i];
+        }
+      }
+      return null;
+    })();
+
+    const nextVisible = (() => {
+      for (let i = index + 1; i < posts.length; i += 1) {
+        if (!posts[i].isHidden) {
+          return posts[i];
+        }
+      }
+      return null;
+    })();
+
+    post.adjacent = {
+      previous: formatNeighbor(prevVisible),
+      next: formatNeighbor(nextVisible)
+    };
+  });
+
   if (displayPosts.length === 0 && !defaultPostAbs) {
     console.warn('No visible blog posts found, skipping blog generation.');
     return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };

@@ -207,7 +207,7 @@
       <div class="blog-article-shell">
         <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
           <% if (page.initialPost) { %>
-            <%- include('partials/article.ejs', { post: page.initialPost, buildAssetHref }) %>
+            <%- include('partials/article.ejs', { post: page.initialPost, buildAssetHref, buildInternalHref }) %>
             <script>
               document.addEventListener('DOMContentLoaded', function() {
                 var articleNode = document.querySelector('#blog-article [data-slug]');
@@ -257,7 +257,11 @@
       }
     });
 
+    var filteredListItems = [];
+    var currentSlug = null;
+
     function syncActiveLink(slug) {
+      currentSlug = slug || null;
       document.querySelectorAll('.blog-post-link').forEach(function(link) {
         if (slug && link.dataset.postSlug === slug) {
           link.classList.add('is-active');
@@ -265,6 +269,7 @@
           link.classList.remove('is-active');
         }
       });
+      updateArticleNav();
     }
 
     var sidebar = document.querySelector('.blog-sidebar');
@@ -330,6 +335,131 @@
       });
     }
 
+    function buildNavNeighborFromItem(item) {
+      if (!item) return null;
+      var link = item.querySelector('.blog-post-link');
+      if (!link) return null;
+      var titleNode = link.querySelector('h3');
+      var titleText = '';
+      if (titleNode && titleNode.textContent) {
+        titleText = titleNode.textContent.trim();
+      } else if (link.textContent) {
+        titleText = link.textContent.trim();
+      }
+      return {
+        slug: link.dataset.postSlug || '',
+        title: titleText,
+        href: link.getAttribute('href') || '#',
+        fragmentHref: link.getAttribute('hx-get') || link.dataset.fragmentHref || ''
+      };
+    }
+
+    function setNavLink(link, neighbor, direction) {
+      if (!link) return;
+      var fallbackTitle = direction === 'previous' ? 'No newer posts' : 'No older posts';
+      var titleEl = link.querySelector('.blog-article-nav-title');
+
+      if (!neighbor || !neighbor.slug) {
+        link.classList.add('is-disabled');
+        link.setAttribute('aria-disabled', 'true');
+        link.setAttribute('tabindex', '-1');
+        ['hx-get', 'hx-target', 'hx-swap', 'hx-push-url', 'hx-indicator'].forEach(function(attr) {
+          link.removeAttribute(attr);
+        });
+        link.dataset.targetSlug = '';
+        link.dataset.postSlug = '';
+        link.dataset.fragmentHref = '';
+        link.setAttribute('data-fragment-href', '');
+        link.setAttribute('href', '#');
+        if (titleEl) {
+          titleEl.textContent = fallbackTitle;
+        }
+        return;
+      }
+
+      link.classList.remove('is-disabled');
+      link.removeAttribute('aria-disabled');
+      link.removeAttribute('tabindex');
+      link.dataset.targetSlug = neighbor.slug;
+      link.dataset.postSlug = neighbor.slug;
+      link.dataset.fragmentHref = neighbor.fragmentHref || '';
+      link.setAttribute('data-fragment-href', neighbor.fragmentHref || '');
+      link.setAttribute('href', neighbor.href || '#');
+      if (neighbor.fragmentHref) {
+        link.setAttribute('hx-get', neighbor.fragmentHref);
+      } else {
+        link.removeAttribute('hx-get');
+      }
+      link.setAttribute('hx-target', '#blog-article');
+      link.setAttribute('hx-swap', 'innerHTML');
+      link.setAttribute('hx-push-url', '?post=' + neighbor.slug);
+      link.setAttribute('hx-indicator', '#blog-loading');
+      if (titleEl) {
+        titleEl.textContent = neighbor.title || fallbackTitle;
+      }
+    }
+
+    function updateArticleNav() {
+      var articleContainer = document.getElementById('blog-article');
+      if (!articleContainer) {
+        return;
+      }
+
+      var articleNode = articleContainer.querySelector('[data-slug]');
+      if (articleNode && !currentSlug) {
+        currentSlug = articleNode.getAttribute('data-slug');
+      }
+      if (!articleNode) {
+        currentSlug = null;
+      }
+
+      var prevLink = articleContainer.querySelector('[data-blog-nav="previous"]');
+      var nextLink = articleContainer.querySelector('[data-blog-nav="next"]');
+      if (!prevLink && !nextLink) {
+        return;
+      }
+
+      var hasActiveFilter = currentAuthor !== 'all' || Boolean(currentSearch);
+      var candidateItems = filteredListItems.length || hasActiveFilter ? filteredListItems : postItems;
+      if (!currentSlug) {
+        setNavLink(prevLink, null, 'previous');
+        setNavLink(nextLink, null, 'next');
+        return;
+      }
+
+      var currentIndex = -1;
+      for (var i = 0; i < candidateItems.length; i += 1) {
+        var item = candidateItems[i];
+        if (!item) continue;
+        var link = item.querySelector('.blog-post-link');
+        if (link && link.dataset.postSlug === currentSlug) {
+          currentIndex = i;
+          break;
+        }
+      }
+
+      if (currentIndex === -1) {
+        setNavLink(prevLink, null, 'previous');
+        setNavLink(nextLink, null, 'next');
+        return;
+      }
+
+      var prevNeighbor = null;
+      for (var j = currentIndex - 1; j >= 0; j -= 1) {
+        prevNeighbor = buildNavNeighborFromItem(candidateItems[j]);
+        if (prevNeighbor) break;
+      }
+
+      var nextNeighbor = null;
+      for (var k = currentIndex + 1; k < candidateItems.length; k += 1) {
+        nextNeighbor = buildNavNeighborFromItem(candidateItems[k]);
+        if (nextNeighbor) break;
+      }
+
+      setNavLink(prevLink, prevNeighbor, 'previous');
+      setNavLink(nextLink, nextNeighbor, 'next');
+    }
+
     function applyFilters() {
       var filteredItems = [];
       postItems.forEach(function(item) {
@@ -342,6 +472,8 @@
           filteredItems.push(item);
         }
       });
+
+      filteredListItems = filteredItems.slice();
 
       var totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
       if (currentPage >= totalPages) {
@@ -356,6 +488,7 @@
       });
 
       updatePaginationControls(totalPages, filteredItems.length);
+      updateArticleNav();
     }
 
     if (filterButtons.length) {
@@ -425,7 +558,7 @@
 
     document.addEventListener('htmx:beforeRequest', function(event) {
       var trigger = event.detail && event.detail.elt;
-      if (!trigger || !trigger.matches || !trigger.matches('.blog-post-link')) {
+      if (!trigger || !trigger.matches || (!trigger.matches('.blog-post-link') && !trigger.matches('.blog-article-nav-link'))) {
         return;
       }
       syncActiveLink(trigger.dataset.postSlug);

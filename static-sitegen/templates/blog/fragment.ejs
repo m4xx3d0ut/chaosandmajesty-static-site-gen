@@ -23,6 +23,18 @@
     if (isExternal(asset)) return asset;
     return resolvePath(asset);
   };
+  const buildInternalHref = (href) => {
+    if (!href) return '#';
+    if (isExternal(href)) return href;
+    if (href.startsWith('#')) {
+      const target = href.slice(1);
+      if (!target) {
+        return resolvePath('');
+      }
+      return resolvePath(`sections/${target}.html`);
+    }
+    return resolvePath(href);
+  };
 %>
 
-<%- include('partials/article.ejs', { post: page.post, buildAssetHref }) %>
+<%- include('partials/article.ejs', { post: page.post, buildAssetHref, buildInternalHref }) %>

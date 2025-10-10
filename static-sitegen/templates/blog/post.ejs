@@ -90,7 +90,7 @@
         </svg>
         Back to <%= page.blog?.title || 'Blog' %>
       </a>
-      <%- include('partials/article.ejs', { post: page.post, buildAssetHref }) %>
+      <%- include('partials/article.ejs', { post: page.post, buildAssetHref, buildInternalHref }) %>
     </div>
   </main>
 
