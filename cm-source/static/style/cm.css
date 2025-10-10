@@ -523,7 +523,7 @@ body > footer {
 /* --- CONSOLE DESKTOP DEFAULTS --- */
 #console {
   position: relative;
-  --cm-console-height: clamp(360px, 48vh, 480px);
+  --cm-console-height: clamp(480px, 60vh, 620px);
   display: grid;
   grid-template-rows: 1fr auto;
   gap: 0.45rem;
@@ -695,9 +695,9 @@ body > footer {
     width: 100%;
     min-width: unset;
     max-width: 100vw;
-    height: 300px;          /* Good starting value for mobile */
-    min-height: 250px;
-    max-height: 32vh;       /* Never more than 1/3 viewport */
+    height: 400px;          /* Taller default so status lines stay visible */
+    min-height: 340px;
+    max-height: 60vh;       /* Allow more space on short devices */
     font-size: 1em;
     box-sizing: border-box;
   }

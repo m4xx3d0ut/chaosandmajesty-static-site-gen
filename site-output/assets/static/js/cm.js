@@ -754,7 +754,11 @@
           element.mozRequestPointerLock ||
           element.webkitRequestPointerLock;
       if (request) {
-          request.call(element);
+          try {
+              request.call(element);
+          } catch (_err) {
+              // Browsers may throw if pointer lock is denied; ignore silently.
+          }
       }
   }
 
@@ -766,7 +770,11 @@
           document.mozExitPointerLock ||
           document.webkitExitPointerLock;
       if (exit) {
-          exit.call(document);
+          try {
+              exit.call(document);
+          } catch (_err) {
+              // Pointer lock might already be released; ignore failures.
+          }
       }
   }
 
@@ -996,7 +1004,7 @@
 
       if (pointerLockSupported) {
           var handlePointerLockChange = function() {
-              if (!doomState.active) {
+              if (!doomState.active || !doomState.overlay || !doomState.statusNode) {
                   return;
               }
               if (isPointerLockedTo(canvas)) {
@@ -1115,11 +1123,12 @@
           cancelAnimationFrame(doomState.loopHandle);
       }
 
+      doomState.active = false;
+
       removeDoomListeners();
 
       exitPointerLock();
 
-      doomState.active = false;
       doomState.overlay = null;
       doomState.canvas = null;
       doomState.statusNode = null;
