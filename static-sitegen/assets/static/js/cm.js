@@ -108,19 +108,113 @@
     var viewport = typeof window !== 'undefined' ? window.visualViewport : null;
     var baselineHeight = viewport ? viewport.height : null;
     var keyboardActive = false;
+    var keyboardMarker = null;
+    var consoleWrapper = consoleEl.closest('.console-center');
+    var consoleTranslateY = 0;
     var KEYBOARD_STATE_CLASS = 'cm-keyboard-open';
+    var KEYBOARD_MARKER_CLASS = 'cm-keyboard-anchor';
+    var KEYBOARD_MARKER_THICKNESS = 12; // Mirror --cm-keyboard-marker-thickness
     var HEIGHT_THRESHOLD = 120;
 
-    function setKeyboardState(nextState) {
-      if (keyboardActive === nextState) {
+    function getViewportBottom() {
+      if (viewport) {
+        return viewport.height + viewport.offsetTop;
+      }
+      return window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+    }
+
+    function ensureKeyboardMarker() {
+      if (keyboardMarker && keyboardMarker.parentNode === body) {
+        return keyboardMarker;
+      }
+      keyboardMarker = document.createElement('div');
+      keyboardMarker.className = KEYBOARD_MARKER_CLASS;
+      keyboardMarker.setAttribute('aria-hidden', 'true');
+      body.appendChild(keyboardMarker);
+      return keyboardMarker;
+    }
+
+    function updateKeyboardMarker(isActive) {
+      if (!isActive && !keyboardMarker) {
         return;
       }
-      keyboardActive = nextState;
-      if (keyboardActive) {
-        body.classList.add(KEYBOARD_STATE_CLASS);
-      } else {
-        body.classList.remove(KEYBOARD_STATE_CLASS);
+      var marker = ensureKeyboardMarker();
+      if (!marker) {
+        return;
       }
+      if (!isActive) {
+        marker.classList.remove('is-active');
+        marker.style.top = '';
+        return;
+      }
+      var viewportBottom = getViewportBottom();
+      var markerTop = viewportBottom - KEYBOARD_MARKER_THICKNESS;
+      if (markerTop < 0) {
+        markerTop = 0;
+      }
+      marker.style.top = markerTop + 'px';
+      marker.classList.add('is-active');
+    }
+
+    function applyConsoleTranslate(nextValue) {
+      if (!consoleWrapper) {
+        consoleTranslateY = 0;
+        return;
+      }
+      if (!nextValue) {
+        consoleWrapper.style.removeProperty('--cm-keyboard-translate');
+        consoleWrapper.classList.remove('is-keyboard-adjusted');
+        consoleTranslateY = 0;
+        return;
+      }
+      consoleWrapper.style.setProperty('--cm-keyboard-translate', nextValue + 'px');
+      consoleWrapper.classList.add('is-keyboard-adjusted');
+      consoleTranslateY = nextValue;
+    }
+
+    function updateConsoleAlignment(isActive) {
+      if (!consoleWrapper) {
+        return;
+      }
+      if (!isActive) {
+        if (consoleTranslateY !== 0) {
+          applyConsoleTranslate(0);
+        }
+        return;
+      }
+
+      window.requestAnimationFrame(function() {
+        var viewportBottom = getViewportBottom();
+        if (!viewportBottom) {
+          return;
+        }
+        var rect = consoleWrapper.getBoundingClientRect();
+        var originalBottom = rect.bottom - consoleTranslateY;
+        var desiredBottom = viewportBottom;
+        var delta = originalBottom - desiredBottom;
+        var nextTranslate = delta > 1 ? -delta : 0;
+        if (Math.abs(nextTranslate - consoleTranslateY) < 1) {
+          return;
+        }
+        applyConsoleTranslate(nextTranslate);
+      });
+    }
+
+    function setKeyboardState(nextState) {
+      var stateChanged = keyboardActive !== nextState;
+      keyboardActive = nextState;
+      if (stateChanged) {
+        if (keyboardActive) {
+          body.classList.add(KEYBOARD_STATE_CLASS);
+        } else {
+          body.classList.remove(KEYBOARD_STATE_CLASS);
+        }
+      }
+      if (!keyboardActive && consoleTranslateY !== 0) {
+        applyConsoleTranslate(0);
+      }
+      updateKeyboardMarker(keyboardActive);
+      updateConsoleAlignment(keyboardActive);
     }
 
     function updateBaseline() {
