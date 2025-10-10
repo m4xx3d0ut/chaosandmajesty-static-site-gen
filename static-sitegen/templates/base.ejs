@@ -184,6 +184,26 @@
     </div>
   </footer>
 
+  <% 
+    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;
+    const hasLatestArticleMap = latestArticleMap && Object.keys(latestArticleMap).length > 0;
+  %>
+  <% if (hasLatestArticleMap) { %>
+  <script>
+    (function(seed) {
+      var existing = window.cmLatestArticles || {};
+      if (seed && typeof seed === 'object') {
+        for (var key in seed) {
+          if (Object.prototype.hasOwnProperty.call(seed, key)) {
+            existing[key] = seed[key];
+          }
+        }
+      }
+      window.cmLatestArticles = existing;
+    })(<%- JSON.stringify(latestArticleMap) %>);
+  </script>
+  <% } %>
+
   <!-- NAV TOGGLE SCRIPT -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {

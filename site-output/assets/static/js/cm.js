@@ -403,7 +403,14 @@
       'Awaiting command...'
   ];
   var opts = ['paul', 'm4xx3d0ut', 'renee', 'matica'];
-  var latestArticles = window.cmLatestArticles || {};
+
+  function getLatestArticles() {
+      var articles = window.cmLatestArticles;
+      if (!articles || typeof articles !== 'object') {
+          return {};
+      }
+      return articles;
+  }
   var prof = [
       [
           'Seaching... Profile found!',
@@ -491,6 +498,7 @@
 
   function resolveLatest(alias) {
       if (!alias) return null;
+      var latestArticles = getLatestArticles();
       var key = alias.toLowerCase();
       for (var id in latestArticles) {
           if (!Object.prototype.hasOwnProperty.call(latestArticles, id)) continue;
