@@ -10,8 +10,6 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# SDLC Agile/Scrum & Prototype
-
 ## Introduction
 
 How the **SDLC stages** (Software Development Life Cycle) align with the **Agile**, **Scrum**, and **Prototype** models, considering their unique principles.

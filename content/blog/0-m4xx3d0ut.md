@@ -9,8 +9,6 @@ publishedAt: '2025-10-04'
 updatedAt: '2025-10-07'
 readingMinutes: 8
 ---
-# A Few Words
-
 ## The Beginning (No Preconception)
 
 **I come from a different time and place, "We" all do. We are called by many titles, but "We" are "Hackers".** It was the beginning, one could say that we evolved alongside the "home computer", the advent of the internet (the "wild west" as it were), and when "phreaking" was still a viable skill (not sorry MaBell). Our relationship with technology was, and still is, symbiotic. You wouldn't recognize the name of my first system's OS, but you've interacted with it countless times. You've interacted with it's successor, in all likelihood, recently.  Understanding these systems as they evolved (Win, Mac, \*Nix, Systems Architecture, Cloud, etc.) was not about the superficial "user level" interactions taught in school, academia as a whole failed to serve our needs, it *meant more* to us. We set out to seek the truth, the strongest of us found it and showed the rest the way. It was a hive mind in a sense, the internet was still the wild west, InfoSec was not a formal concept, the technology was young, and we shared knowledge through all open channels. It became part of us, the collective knowledge that flowed through us and "augmented" the capabilities of our (now ancient) systems. This was formative, we learned more than systems architecture and programming, we learned "survival traits" and community.

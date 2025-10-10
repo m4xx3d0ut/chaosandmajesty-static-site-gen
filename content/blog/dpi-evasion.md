@@ -10,8 +10,6 @@ readingMinutes: 16
 tags:
 - offsec
 ---
-# PEN-200 Module 19 — Beating Deep Packet Inspection
-
 ## TLDR;
 
 Module 19 is where covert transport matters. The lab notes show how we tuned tunnels to look like sanctioned traffic. Here’s the upgraded sequence.

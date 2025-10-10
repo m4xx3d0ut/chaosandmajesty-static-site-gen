@@ -11,8 +11,6 @@ readingMinutes: 80
 tags:
 - offsec
 ---
-# PEN-200 Foundations — Mindsets Before Metasploit
-
 ## TLDR;
 
 Chapters 1–5 read like philosophy at first glance, but the raw notes are packed with practical guidance—risk matrices, Cornell note templates, and reporting frameworks. This pass weaves those specifics into an onboarding brief you can hand to a new operator.

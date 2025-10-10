@@ -10,8 +10,6 @@ readingMinutes: 84
 tags:
 - offsec
 ---
-# PEN-200 Module 15 — Password Attacks That Still Work
-
 ## TLDR;
 
 Credential attacks blend automation with context. The lab notes captured wordlists, hashcat rule tweaks, and relay nuances; this revision makes them explicit.

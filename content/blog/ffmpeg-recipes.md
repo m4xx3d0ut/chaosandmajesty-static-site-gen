@@ -13,8 +13,6 @@ tags:
 publishedAt: 2023-10-20
 updatedAt: 2025-02-02
 ---
-## TLDR;
-
 - Use `-ss`/`-t` with `-c copy` to clip segments without re-encoding, and rely on `libx264`/`libx265` (or `h264_nvenc`) when you need transcodes.
 - Loop still images or test patterns with `-loop 1` and `lavfi` sources, then concat segments via a manifest to reach longer runtimes.
 - The `drawtext` filter handles timecode overlays; remember to point to a valid font and position text with expressions like `(w-tw)/2`.

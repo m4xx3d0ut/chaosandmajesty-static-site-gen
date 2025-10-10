@@ -10,8 +10,6 @@ readingMinutes: 56
 tags:
 - offsec
 ---
-# PEN-200 Module 23 — Lateral Movement and Persistence in AD
-
 ## TLDR;
 
 Lateral movement is about chaining the credentials you captured in Module 22. This update integrates the lab’s command sequences and persistence tricks.

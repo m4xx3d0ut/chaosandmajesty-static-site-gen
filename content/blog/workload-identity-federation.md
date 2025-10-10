@@ -10,8 +10,6 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# Workload Identity Federation
-
 ## 1. Key & JWKS Generation
 
 To create **pri** and **pub** JSON keys

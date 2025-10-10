@@ -11,8 +11,6 @@ readingMinutes: 79
 tags:
 - offsec
 ---
-# PEN-200 Module 9 — Weaponizing Classic Web Bugs
-
 ## TLDR;
 
 The notebook chapters for Module 9 include payload tables, encoding tricks, and lab-specific notes. This revision merges those details so you can move from detection to exploitation without guessing.

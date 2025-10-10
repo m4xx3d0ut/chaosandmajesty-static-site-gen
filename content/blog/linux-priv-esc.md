@@ -10,8 +10,6 @@ readingMinutes: 72
 tags:
 - offsec
 ---
-# PEN-200 Module 17 — Linux Privilege Escalation Guide
-
 ## TLDR;
 
 These notes expand the earlier outline with the detailed commands captured in the labs. Treat it as your Linux privesc checklist.

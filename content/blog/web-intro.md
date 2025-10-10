@@ -11,8 +11,6 @@ readingMinutes: 60
 tags:
 - offsec
 ---
-# PEN-200 Module 8 — Web App Recon to First Exploit
-
 ## TLDR;
 
 The raw notes for Module 8 document a complete workflow from fingerprinting to attack. This revision folds in those concrete steps so you can repeat the process without flipping pages.

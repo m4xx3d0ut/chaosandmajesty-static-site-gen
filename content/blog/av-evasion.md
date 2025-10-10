@@ -10,8 +10,6 @@ readingMinutes: 30
 tags:
 - offsec
 ---
-# PEN-200 Module 14 — Antivirus Evasion in 2023
-
 ## TLDR;
 
 EV signatures change weekly, so the lab notebook emphasises process over recipes. Here’s the enriched workflow that survived testing.

@@ -10,8 +10,6 @@ readingMinutes: 85
 tags:
 - offsec
 ---
-# PEN-200 Module 18 — Pivoting With SSH and Port Redirection
-
 ## TLDR;
 
 Pivoting binds the lab together. These notes expand the quick summary with concrete commands, configuration snippets, and operational guardrails.

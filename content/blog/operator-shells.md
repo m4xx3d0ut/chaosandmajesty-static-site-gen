@@ -10,8 +10,6 @@ readingMinutes: 20
 tags:
 - offsec
 ---
-# OffSec Field Notes — Shells and Tradecraft Snippets
-
 ## TLDR;
 
 This cheat sheet now captures the extra context from the raw notes: when to use each command, expected output, and follow-up actions.

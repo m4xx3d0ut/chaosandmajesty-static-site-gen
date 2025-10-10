@@ -23,8 +23,7 @@
   
 
   <div class="blog-article-content">
-    <h2>TLDR;</h2>
-<ul>
+    <ul>
 <li>Use <code>-ss</code>/<code>-t</code> with <code>-c copy</code> to clip segments without re-encoding, and rely on <code>libx264</code>/<code>libx265</code> (or <code>h264_nvenc</code>) when you need transcodes.</li>
 <li>Loop still images or test patterns with <code>-loop 1</code> and <code>lavfi</code> sources, then concat segments via a manifest to reach longer runtimes.</li>
 <li>The <code>drawtext</code> filter handles timecode overlays; remember to point to a valid font and position text with expressions like <code>(w-tw)/2</code>.</li>

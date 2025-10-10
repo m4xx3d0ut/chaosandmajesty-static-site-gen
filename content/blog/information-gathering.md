@@ -11,8 +11,6 @@ readingMinutes: 59
 tags:
 - offsec
 ---
-# PEN-200 Module 6 — Information Gathering Playbook
-
 ## TLDR;
 
 Recon sets the tempo for every engagement. This second pass keeps the methodology tight but adds the gritty detail from the lab notebook so you can copy/paste a full workflow the moment scope is approved.

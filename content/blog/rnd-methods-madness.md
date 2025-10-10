@@ -10,8 +10,6 @@ updatedAt: '2024-02-13'
 readingMinutes: 5
 heroImage: assets/static/img/blog/rnd-methods-madness/freedom-glider-trash-panda.png
 ---
-# Methods, Madness, and Shipping AI Prototypes
-
 Research and development sounds romantic until you are three espressos deep and the GPU fans are still screaming. What keeps the wheels on is a repeatable loop, so this post breaks down the core rituals the Infinite Reality R&D team uses to move from napkin sketch to production-hardened AI services. Think of it as a field guide for anyone standing up a skunkworks lab inside an enterprise.
 
 ## The R&D Loop We Actually Follow

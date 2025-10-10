@@ -11,8 +11,6 @@ readingMinutes: 28
 tags:
 - offsec
 ---
-# PEN-200 Module 11 — Client-Side Tradecraft
-
 ## TLDR;
 
 Client-side compromises hinge on believable pretext, payload quality, and disciplined logging. The lab notes captured repeatable recipes—this update folds them in.

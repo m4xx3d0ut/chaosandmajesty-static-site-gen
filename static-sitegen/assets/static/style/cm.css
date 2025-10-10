@@ -1264,6 +1264,7 @@ img.blog-image-lightbox-target:focus-visible {
   font-family: 'Syne Mono', monospace !important;
 }
 
+.blog-article-content h1,
 .blog-article-content h2,
 .blog-article-content h3,
 .blog-article-content h4 {
@@ -1272,6 +1273,14 @@ img.blog-image-lightbox-target:focus-visible {
   color: var(--blog-accent);
   margin-top: 2.5rem;
   margin-bottom: 1rem;
+}
+
+body.contrast-mode .blog-article-content h1,
+body.contrast-mode .blog-article-content h2,
+body.contrast-mode .blog-article-content h3,
+body.contrast-mode .blog-article-content h4 {
+  color: #66ff00;
+  text-shadow: 0 0 6px rgba(102, 255, 0, 0.35);
 }
 
 .blog-article-content a {

@@ -10,8 +10,6 @@ readingMinutes: 144
 tags:
 - offsec
 ---
-# PEN-200 Module 21 — Active Directory Enumeration Primer
-
 ## TLDR;
 
 Active Directory (AD) enumeration underpins every later chapter. These notes incorporate the full checklist recorded during the labs.

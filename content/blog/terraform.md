@@ -10,8 +10,6 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# Terraform
-
 [Terraform Docs](https://developer.hashicorp.com/terraform/language)
 
 ## General Usage

@@ -10,12 +10,6 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# GPU Virtualization: OpenStack Nova & KVM
-
-[toc]
-
-* * *
-
 ## Abstract (Executive)
 
 This paper outlines how a local development environment can be configured for Nvidia vGPU utilizing the KVM hypervisor.  Sections marked "Executive" are for high level consumption and all others should be assumed technical. 

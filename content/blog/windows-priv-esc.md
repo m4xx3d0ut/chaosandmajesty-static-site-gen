@@ -10,8 +10,6 @@ readingMinutes: 117
 tags:
 - offsec
 ---
-# PEN-200 Module 16 — Windows Privilege Escalation Strategies
-
 ## TLDR;
 
 These notes upgrade the earlier summary with the lab’s full checklist: what to run, what to capture, and how to explain it back to defenders.

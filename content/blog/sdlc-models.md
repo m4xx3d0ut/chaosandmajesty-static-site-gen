@@ -10,7 +10,6 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# SDLC
 Software development models are various processes or methods that are chosen for project development depending on the objectives and goals of the project. Many development life cycle models have been developed to achieve various essential objectives. Models specify the various steps of the process and the order in which they are executed.
 
 ## Table of Content

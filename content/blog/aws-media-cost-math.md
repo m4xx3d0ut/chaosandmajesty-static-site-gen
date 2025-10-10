@@ -10,7 +10,7 @@ publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
-# Back of the Envelope AWS Media Cost Math
+## Back of the Envelope AWS Media Cost Math
 
 30 fps input
 3 live hours

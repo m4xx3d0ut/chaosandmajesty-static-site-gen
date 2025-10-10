@@ -12,8 +12,6 @@ tags:
 publishedAt: 2024-01-15
 updatedAt: 2024-01-15
 ---
-# PXE Boot Server
-
 ## iVentoy (easy way)
 
 - Project page: <https://www.iventoy.com/en/index.html>

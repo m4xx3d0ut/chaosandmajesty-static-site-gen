@@ -23,8 +23,7 @@
   
 
   <div class="blog-article-content">
-    <h2>TLDR;</h2>
-<ul>
+    <ul>
 <li>Enable unattended security upgrades, lock down SSH (no root logins, limited auth tries), and default-deny inbound traffic with UFW.</li>
 <li>Layer <code>fail2ban</code>, psad, and Tripwire to detect and respond to brute-force attempts, port scans, and file integrity drift.</li>
 <li>Keep firewall logging verbose so psad can parse packets, and schedule Tripwire integrity checks with meaningful policy overrides.</li>

@@ -11,8 +11,6 @@ readingMinutes: 74
 tags:
 - offsec
 ---
-# PEN-200 Module 24 — Assembling the Pieces
-
 ## TLDR;
 
 The “Assembling the Pieces” lab is a miniature red-team engagement. These enriched notes trace the full path captured in the raw journal so you can reproduce it intentionally.

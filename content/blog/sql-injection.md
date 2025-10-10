@@ -11,8 +11,6 @@ readingMinutes: 58
 tags:
 - offsec
 ---
-# PEN-200 Module 10 — SQL Injection Field Notes
-
 ## TLDR;
 
 This module escalates quickly from theory to exploitation. The detailed lab entries emphasize mapping the query, tuning payloads, and documenting impact. Here’s the enriched playbook.

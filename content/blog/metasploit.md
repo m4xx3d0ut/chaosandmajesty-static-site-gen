@@ -11,8 +11,6 @@ readingMinutes: 124
 tags:
 - offsec
 ---
-# PEN-200 Module 20 — Metasploit With Restraint
-
 ## TLDR;
 
 Metasploit is invaluable when you treat it like any other engineering tool: scripted, logged, and explained. This pass adds the concrete procedures captured in the labs.

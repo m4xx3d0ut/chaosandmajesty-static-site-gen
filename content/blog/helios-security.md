@@ -13,8 +13,6 @@ tags:
 publishedAt: 2023-05-28
 updatedAt: 2023-08-27
 ---
-## TLDR;
-
 - Enable unattended security upgrades, lock down SSH (no root logins, limited auth tries), and default-deny inbound traffic with UFW.
 - Layer `fail2ban`, psad, and Tripwire to detect and respond to brute-force attempts, port scans, and file integrity drift.
 - Keep firewall logging verbose so psad can parse packets, and schedule Tripwire integrity checks with meaningful policy overrides.

@@ -10,8 +10,6 @@ readingMinutes: 98
 tags:
 - offsec
 ---
-# PEN-200 Module 22 — Attacking Active Directory Authentication
-
 ## TLDR;
 
 Module 22 fuses theory with hands-on abuse. The raw notes outlined full command sequences; here’s the enriched version that keeps them together.
