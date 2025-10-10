@@ -8,6 +8,8 @@
   const adjacent = post.adjacent || {};
   const navPrev = adjacent.previous || null;
   const navNext = adjacent.next || null;
+  const explicitNavFlag = typeof showArticleNav === 'boolean' ? showArticleNav : null;
+  const shouldRenderNav = explicitNavFlag !== null ? explicitNavFlag : !post.isHidden;
   const prevHrefValue = navPrev ? (navPrev.relativeHref || navPrev.publicHref || '') : '';
   const nextHrefValue = navNext ? (navNext.relativeHref || navNext.publicHref || '') : '';
   const prevHref = prevHrefValue ? resolveInternal(prevHrefValue) : '#';
@@ -70,34 +72,37 @@
     </footer>
   <% } %>
 
-  <nav class="blog-article-nav" aria-label="Post navigation">
-    <a
-      class="blog-article-nav-link<%= navPrev ? '' : ' is-disabled' %>"
-      data-blog-nav="previous"
-      <%= navPrev ? '' : 'aria-disabled="true" tabindex="-1"' %>
-      href="<%= navPrev ? prevHref : '#' %>"
-      data-default-href="<%= navPrev ? prevHref : '' %>"
-      data-default-fragment="<%= navPrev ? prevFragmentHref : '' %>"
-      data-fragment-href="<%= navPrev ? prevFragmentHref : '' %>"
-      data-target-slug="<%= navPrev ? navPrev.slug : '' %>"
-      data-post-slug="<%= navPrev ? navPrev.slug : '' %>"
-    >
-      <span class="blog-article-nav-meta">Previous</span>
-      <span class="blog-article-nav-title"><%= navPrev ? navPrev.title : 'No newer posts' %></span>
-    </a>
-    <a
-      class="blog-article-nav-link<%= navNext ? '' : ' is-disabled' %>"
-      data-blog-nav="next"
-      <%= navNext ? '' : 'aria-disabled="true" tabindex="-1"' %>
-      href="<%= navNext ? nextHref : '#' %>"
-      data-default-href="<%= navNext ? nextHref : '' %>"
-      data-default-fragment="<%= navNext ? nextFragmentHref : '' %>"
-      data-fragment-href="<%= navNext ? nextFragmentHref : '' %>"
-      data-target-slug="<%= navNext ? navNext.slug : '' %>"
-      data-post-slug="<%= navNext ? navNext.slug : '' %>"
-    >
-      <span class="blog-article-nav-meta">Next</span>
-      <span class="blog-article-nav-title"><%= navNext ? navNext.title : 'No older posts' %></span>
-    </a>
-  </nav>
+  <% if (shouldRenderNav) { %>
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link<%= navPrev ? '' : ' is-disabled' %>"
+        data-blog-nav="previous"
+        <%= navPrev ? '' : 'aria-disabled="true" tabindex="-1"' %>
+        href="<%= navPrev ? prevHref : '#' %>"
+        data-default-href="<%= navPrev ? prevHref : '' %>"
+        data-default-fragment="<%= navPrev ? prevFragmentHref : '' %>"
+        data-fragment-href="<%= navPrev ? prevFragmentHref : '' %>"
+        data-target-slug="<%= navPrev ? navPrev.slug : '' %>"
+        data-post-slug="<%= navPrev ? navPrev.slug : '' %>"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title"><%= navPrev ? navPrev.title : 'No newer posts' %></span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link<%= navNext ? '' : ' is-disabled' %>"
+        data-blog-nav="next"
+        <%= navNext ? '' : 'aria-disabled="true" tabindex="-1"' %>
+        href="<%= navNext ? nextHref : '#' %>"
+        data-default-href="<%= navNext ? nextHref : '' %>"
+        data-default-fragment="<%= navNext ? nextFragmentHref : '' %>"
+        data-fragment-href="<%= navNext ? nextFragmentHref : '' %>"
+        data-target-slug="<%= navNext ? navNext.slug : '' %>"
+        data-post-slug="<%= navNext ? navNext.slug : '' %>"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title"><%= navNext ? navNext.title : 'No older posts' %></span>
+      </a>
+    </nav>
+  <% } %>
 </article>

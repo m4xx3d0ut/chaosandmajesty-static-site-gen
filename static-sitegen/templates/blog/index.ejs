@@ -207,7 +207,12 @@
       <div class="blog-article-shell">
         <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
           <% if (page.initialPost) { %>
-            <%- include('partials/article.ejs', { post: page.initialPost, buildAssetHref, buildInternalHref }) %>
+            <%- include('partials/article.ejs', {
+              post: page.initialPost,
+              buildAssetHref,
+              buildInternalHref,
+              showArticleNav: !(page.isDefaultInitialPost || page.isHiddenInitialPost)
+            }) %>
             <script>
               document.addEventListener('DOMContentLoaded', function() {
                 var articleNode = document.querySelector('#blog-article [data-slug]');
@@ -270,6 +275,27 @@
         }
       });
       updateArticleNav();
+    }
+
+    function scrollArticleToTop() {
+      var shell = document.querySelector('.blog-article-shell');
+      if (shell && shell.scrollIntoView) {
+        try {
+          shell.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        } catch (error) {
+          // continue to fallback if smooth scrolling is unsupported
+        }
+        shell.scrollIntoView(true);
+        return;
+      }
+      if (typeof window !== 'undefined') {
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error) {
+          window.scrollTo(0, 0);
+        }
+      }
     }
 
     var sidebar = document.querySelector('.blog-sidebar');
@@ -575,6 +601,7 @@
           syncActiveLink(articleNode.getAttribute('data-slug'));
         }
         event.target.setAttribute('aria-busy', 'false');
+        scrollArticleToTop();
       }
     });
 

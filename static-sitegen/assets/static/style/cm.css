@@ -1211,6 +1211,50 @@ img.blog-image-lightbox-target:focus-visible {
   color: rgba(160, 255, 180, 0.75);
 }
 
+.blog-article-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2.5rem;
+  gap: 1.5rem;
+}
+
+.blog-article-nav-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  max-width: 18rem;
+  text-align: center;
+}
+
+.blog-article-nav-link.is-disabled {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.blog-article-nav-meta {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.blog-article-nav-title {
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.blog-article-nav-delimiter {
+  opacity: 0.35;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  line-height: 1;
+  margin: 0 0.5rem;
+}
+
 .blog-page .blog-article-content,
 .blog-page .blog-article-content :where(p, li, span, em, strong, blockquote, a, table, td, th) {
   font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
