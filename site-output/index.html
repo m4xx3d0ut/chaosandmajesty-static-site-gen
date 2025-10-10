@@ -141,10 +141,9 @@
 
   <div id="console">
     <div class="screen hscroll" id="tOut">$</div>
-    <input class="term" type="text" id="uIn" autofocus>
+    <input class="term" type="text" id="uIn" placeholder="Enter command or ?" autofocus>
   </div>
 </div>
-
 
     
 
@@ -273,9 +272,6 @@ Fellow denizians, this is our place, welcome home.</p>
       var config = window.cmDoomConfig = window.cmDoomConfig || {};
       if (!config.assetBase) {
         config.assetBase = 'assets/doom/';
-      }
-      if (!config.loader) {
-        config.loader = config.assetBase.replace(/\/+$/, '/') + 'doom.js';
       }
     })();
   </script>

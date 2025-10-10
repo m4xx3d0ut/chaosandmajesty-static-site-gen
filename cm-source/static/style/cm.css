@@ -522,6 +522,7 @@ body > footer {
 
 /* --- CONSOLE DESKTOP DEFAULTS --- */
 #console {
+  position: relative;
   --cm-console-height: clamp(360px, 48vh, 480px);
   display: grid;
   grid-template-rows: 1fr auto;
@@ -566,6 +567,11 @@ body > footer {
   padding: 0.5em 0.65em;
   font-size: 1em;
   box-sizing: border-box;
+}
+
+#console .term::placeholder {
+  color: rgba(102, 255, 0, 0.6);
+  font-style: italic;
 }
 
 #console .screen,

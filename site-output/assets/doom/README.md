@@ -1,5 +1,5 @@
 # DOOM WASM Assets
 
-Place the Emscripten build artifacts (`doom.js`, `doom.wasm`, `doom.data`, etc.) in this directory.
-The console runtime will attempt to load the loader script from here by default.
-See `scripts/build-doom.sh` and `docs/doom.md` for build instructions.
+This folder stores the `doom.wasm` binary consumed by the console minigame.
+Run `./scripts/build-doom.sh` to download or copy the artefact and consult
+`docs/doom.md` for details.

@@ -710,7 +710,6 @@
       }
       return {
           assetBase: base,
-          loader: config.loader || (base + 'doom.js'),
           canvasId: config.canvasId || 'doom-canvas'
       };
   }
@@ -958,6 +957,7 @@
 
       doomState.loopFn = step;
       doomState.loopHandle = requestAnimationFrame(step);
+      setDoomStatus('Running. Type `exit doom` to leave.');
   }
 
   function focusDoomCanvas() {
