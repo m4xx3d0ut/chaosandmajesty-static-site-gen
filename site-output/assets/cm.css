@@ -836,6 +836,31 @@ body > footer {
     border-radius: 7px;
     box-sizing: border-box;
   }
+
+  body.cm-keyboard-open .console-center {
+    gap: 0.25rem;
+  }
+
+  body.cm-keyboard-open #console {
+    outline-width: 0.1rem;
+    height: clamp(336px, 49vh, 448px);
+    min-height: 336px;
+    max-height: 49vh;
+  }
+
+  body.cm-keyboard-open .screen {
+    outline-width: 0.06rem;
+    min-height: 336px;
+    height: clamp(336px, 49vh, 448px);
+    max-height: 49vh;
+  }
+
+  body.cm-keyboard-open .term {
+    outline-width: 0.1rem;
+    padding: 0.45em 0.7em;
+    min-height: calc(1.8em * 0.7);
+    margin-bottom: 0;
+  }
 }
 
 /* Two Column Layouts */

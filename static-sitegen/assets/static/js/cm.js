@@ -65,6 +65,117 @@
     toggleVisibility();
   }
 
+  function isLikelyMobileViewport() {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    var matchesMobileWidth = false;
+    if (typeof window.matchMedia === 'function') {
+      try {
+        matchesMobileWidth = window.matchMedia('(max-width: 768px)').matches;
+      } catch (_err) {
+        matchesMobileWidth = false;
+      }
+    }
+
+    var hasTouchCapability = false;
+    try {
+      hasTouchCapability = ('ontouchstart' in window) || (navigator && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0);
+    } catch (_err2) {
+      hasTouchCapability = false;
+    }
+
+    return matchesMobileWidth || hasTouchCapability;
+  }
+
+  function initMobileConsoleKeyboardScaling() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    var body = document.body;
+    if (!body || !isLikelyMobileViewport()) {
+      return;
+    }
+
+    var consoleEl = document.getElementById('console');
+    var inputEl = document.getElementById('uIn');
+    if (!consoleEl || !inputEl) {
+      return;
+    }
+
+    var viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    var baselineHeight = viewport ? viewport.height : null;
+    var keyboardActive = false;
+    var KEYBOARD_STATE_CLASS = 'cm-keyboard-open';
+    var HEIGHT_THRESHOLD = 120;
+
+    function setKeyboardState(nextState) {
+      if (keyboardActive === nextState) {
+        return;
+      }
+      keyboardActive = nextState;
+      if (keyboardActive) {
+        body.classList.add(KEYBOARD_STATE_CLASS);
+      } else {
+        body.classList.remove(KEYBOARD_STATE_CLASS);
+      }
+    }
+
+    function updateBaseline() {
+      if (!viewport) {
+        return;
+      }
+      if (baselineHeight === null || viewport.height > baselineHeight) {
+        baselineHeight = viewport.height;
+      }
+    }
+
+    function detectKeyboardWithViewport() {
+      if (!viewport) {
+        return;
+      }
+      if (document.activeElement !== inputEl) {
+        setKeyboardState(false);
+        updateBaseline();
+        return;
+      }
+
+      updateBaseline();
+      var heightDelta = baselineHeight !== null ? (baselineHeight - viewport.height) : 0;
+      setKeyboardState(heightDelta > HEIGHT_THRESHOLD);
+    }
+
+    if (!viewport) {
+      inputEl.addEventListener('focus', function() {
+        setKeyboardState(true);
+      });
+      inputEl.addEventListener('blur', function() {
+        setKeyboardState(false);
+      });
+      return;
+    }
+
+    viewport.addEventListener('resize', detectKeyboardWithViewport);
+    viewport.addEventListener('scroll', detectKeyboardWithViewport);
+
+    inputEl.addEventListener('focus', function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
+
+    inputEl.addEventListener('blur', function() {
+      setKeyboardState(false);
+      updateBaseline();
+    });
+
+    window.addEventListener('orientationchange', function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
+  }
+
   const LIGHTBOX_STATE = {
     overlay: null,
     imageEl: null,
@@ -1795,6 +1906,8 @@
       if (!termOut || !tagline) {
           return;
       }
+
+      initMobileConsoleKeyboardScaling();
 
       window.scrollTo(0, 0);
       main();
