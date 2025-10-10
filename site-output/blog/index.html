@@ -116,6 +116,10 @@ Read the latest dispatches from Chaos and Majesty without leaving the console.
             spellcheck="false"
           >
         </div>
+        <div class="blog-sidebar-pagination is-hidden" aria-label="Post pagination controls">
+          <button type="button" class="sidebar-nav-btn" data-sidebar-prev>Prev</button>
+          <button type="button" class="sidebar-nav-btn" data-sidebar-next>Next</button>
+        </div>
         <ul class="blog-post-list">
           
             <li data-post-item data-author="m4xx3d0ut" data-title="a few words" data-summary="**i come from a different time and place, &#34;we&#34; all do. we are called by many titles, but &#34;we&#34; are &#34;hackers&#34;.** it was the beginning, one could say that we evolved alongside the &#34;home computer&#34;, the advent of the interne…">
@@ -1690,9 +1694,19 @@ We explore. We ask inconvenient questions. We refuse to apologize for curiosity.
     var filterButtons = Array.from(document.querySelectorAll('.author-filter-btn'));
     var searchInput = document.querySelector('.post-search-input');
     var postItems = Array.from(document.querySelectorAll('[data-post-item]'));
-    var pagination = document.querySelector('.blog-sidebar-pagination');
-    var prevBtn = pagination ? pagination.querySelector('[data-sidebar-prev]') : null;
-    var nextBtn = pagination ? pagination.querySelector('[data-sidebar-next]') : null;
+    var paginations = Array.from(document.querySelectorAll('.blog-sidebar-pagination'));
+    var prevButtons = [];
+    var nextButtons = [];
+    paginations.forEach(function(pagination) {
+      var prev = pagination.querySelector('[data-sidebar-prev]');
+      var next = pagination.querySelector('[data-sidebar-next]');
+      if (prev) {
+        prevButtons.push(prev);
+      }
+      if (next) {
+        nextButtons.push(next);
+      }
+    });
     var pageSize = sidebar ? parseInt(sidebar.dataset.pageSize || '6', 10) || 6 : 6;
     var currentAuthor = 'all';
     var currentSearch = '';
@@ -1721,18 +1735,22 @@ We explore. We ask inconvenient questions. We refuse to apologize for curiosity.
     }
 
     function updatePaginationControls(totalPages, visibleCount) {
-      if (!pagination) return;
-      if (visibleCount <= pageSize) {
-        pagination.classList.add('is-hidden');
-      } else {
-        pagination.classList.remove('is-hidden');
-      }
-      if (prevBtn) {
-        prevBtn.disabled = currentPage <= 0;
-      }
-      if (nextBtn) {
-        nextBtn.disabled = currentPage >= totalPages - 1;
-      }
+      if (!paginations.length) return;
+      paginations.forEach(function(pagination) {
+        if (visibleCount <= pageSize) {
+          pagination.classList.add('is-hidden');
+        } else {
+          pagination.classList.remove('is-hidden');
+        }
+        var prevBtn = pagination.querySelector('[data-sidebar-prev]');
+        var nextBtn = pagination.querySelector('[data-sidebar-next]');
+        if (prevBtn) {
+          prevBtn.disabled = currentPage <= 0;
+        }
+        if (nextBtn) {
+          nextBtn.disabled = currentPage >= totalPages - 1;
+        }
+      });
     }
 
     function applyFilters() {
@@ -1785,16 +1803,23 @@ We explore. We ask inconvenient questions. We refuse to apologize for curiosity.
       });
     }
 
-    if (pagination && prevBtn && nextBtn) {
-      prevBtn.addEventListener('click', function() {
-        if (currentPage > 0) {
-          currentPage -= 1;
-          applyFilters();
-        }
+    if (prevButtons.length) {
+      prevButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (currentPage > 0) {
+            currentPage -= 1;
+            applyFilters();
+          }
+        });
       });
-      nextBtn.addEventListener('click', function() {
-        currentPage += 1;
-        applyFilters();
+    }
+
+    if (nextButtons.length) {
+      nextButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          currentPage += 1;
+          applyFilters();
+        });
       });
     }
 

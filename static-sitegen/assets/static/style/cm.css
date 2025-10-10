@@ -847,7 +847,7 @@ body > footer {
 .blog-sidebar-pagination {
   display: flex;
   gap: 0.6rem;
-  margin-top: 0.75rem;
+  margin: 0.75rem 0;
 }
 
 .blog-sidebar-pagination.is-hidden {

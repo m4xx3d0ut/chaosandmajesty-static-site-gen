@@ -110,6 +110,10 @@
             spellcheck="false"
           >
         </div>
+        <div class="blog-sidebar-pagination is-hidden" aria-label="Post pagination controls">
+          <button type="button" class="sidebar-nav-btn" data-sidebar-prev>Prev</button>
+          <button type="button" class="sidebar-nav-btn" data-sidebar-next>Next</button>
+        </div>
         <ul class="blog-post-list">
           <% page.posts.forEach(function(post, index) { %>
             <li data-post-item data-author="<%= post.author ? post.author.id : 'unknown' %>" data-title="<%= post.title.toLowerCase() %>" data-summary="<%= (post.summary || '').toLowerCase() %>">
@@ -267,9 +271,19 @@
     var filterButtons = Array.from(document.querySelectorAll('.author-filter-btn'));
     var searchInput = document.querySelector('.post-search-input');
     var postItems = Array.from(document.querySelectorAll('[data-post-item]'));
-    var pagination = document.querySelector('.blog-sidebar-pagination');
-    var prevBtn = pagination ? pagination.querySelector('[data-sidebar-prev]') : null;
-    var nextBtn = pagination ? pagination.querySelector('[data-sidebar-next]') : null;
+    var paginations = Array.from(document.querySelectorAll('.blog-sidebar-pagination'));
+    var prevButtons = [];
+    var nextButtons = [];
+    paginations.forEach(function(pagination) {
+      var prev = pagination.querySelector('[data-sidebar-prev]');
+      var next = pagination.querySelector('[data-sidebar-next]');
+      if (prev) {
+        prevButtons.push(prev);
+      }
+      if (next) {
+        nextButtons.push(next);
+      }
+    });
     var pageSize = sidebar ? parseInt(sidebar.dataset.pageSize || '6', 10) || 6 : 6;
     var currentAuthor = 'all';
     var currentSearch = '';
@@ -298,18 +312,22 @@
     }
 
     function updatePaginationControls(totalPages, visibleCount) {
-      if (!pagination) return;
-      if (visibleCount <= pageSize) {
-        pagination.classList.add('is-hidden');
-      } else {
-        pagination.classList.remove('is-hidden');
-      }
-      if (prevBtn) {
-        prevBtn.disabled = currentPage <= 0;
-      }
-      if (nextBtn) {
-        nextBtn.disabled = currentPage >= totalPages - 1;
-      }
+      if (!paginations.length) return;
+      paginations.forEach(function(pagination) {
+        if (visibleCount <= pageSize) {
+          pagination.classList.add('is-hidden');
+        } else {
+          pagination.classList.remove('is-hidden');
+        }
+        var prevBtn = pagination.querySelector('[data-sidebar-prev]');
+        var nextBtn = pagination.querySelector('[data-sidebar-next]');
+        if (prevBtn) {
+          prevBtn.disabled = currentPage <= 0;
+        }
+        if (nextBtn) {
+          nextBtn.disabled = currentPage >= totalPages - 1;
+        }
+      });
     }
 
     function applyFilters() {
@@ -362,16 +380,23 @@
       });
     }
 
-    if (pagination && prevBtn && nextBtn) {
-      prevBtn.addEventListener('click', function() {
-        if (currentPage > 0) {
-          currentPage -= 1;
-          applyFilters();
-        }
+    if (prevButtons.length) {
+      prevButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (currentPage > 0) {
+            currentPage -= 1;
+            applyFilters();
+          }
+        });
       });
-      nextBtn.addEventListener('click', function() {
-        currentPage += 1;
-        applyFilters();
+    }
+
+    if (nextButtons.length) {
+      nextButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          currentPage += 1;
+          applyFilters();
+        });
       });
     }
 
