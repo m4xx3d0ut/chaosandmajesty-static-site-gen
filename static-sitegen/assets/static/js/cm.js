@@ -727,6 +727,53 @@
       }
   }
 
+  function pointerLockElement() {
+      if (typeof document === 'undefined') {
+          return null;
+      }
+      return document.pointerLockElement ||
+          document.mozPointerLockElement ||
+          document.webkitPointerLockElement ||
+          null;
+  }
+
+  function supportsPointerLock(element) {
+      if (!element) {
+          return false;
+      }
+      return !!(element.requestPointerLock ||
+          element.mozRequestPointerLock ||
+          element.webkitRequestPointerLock);
+  }
+
+  function requestPointerLock(element) {
+      if (!element) {
+          return;
+      }
+      var request = element.requestPointerLock ||
+          element.mozRequestPointerLock ||
+          element.webkitRequestPointerLock;
+      if (request) {
+          request.call(element);
+      }
+  }
+
+  function exitPointerLock() {
+      if (typeof document === 'undefined') {
+          return;
+      }
+      var exit = document.exitPointerLock ||
+          document.mozExitPointerLock ||
+          document.webkitExitPointerLock;
+      if (exit) {
+          exit.call(document);
+      }
+  }
+
+  function isPointerLockedTo(element) {
+      return !!element && pointerLockElement() === element;
+  }
+
   function ensureDoomOverlay() {
       var consoleEl = document.getElementById('console');
       var screen = document.getElementById('tOut');
@@ -938,9 +985,38 @@
           event.preventDefault();
       });
 
+      var pointerLockSupported = supportsPointerLock(canvas);
+
       registerDoomListener(canvas, 'click', function() {
+          if (pointerLockSupported && !isPointerLockedTo(canvas)) {
+              requestPointerLock(canvas);
+          }
           focusDoomCanvas();
       });
+
+      if (pointerLockSupported) {
+          var handlePointerLockChange = function() {
+              if (!doomState.active) {
+                  return;
+              }
+              if (isPointerLockedTo(canvas)) {
+                  setDoomStatus('Running. Press Esc to release mouse. Type `exit doom` to leave.');
+              } else {
+                  setDoomStatus('Running. Mouse free; click canvas to capture. Type `exit doom` to leave.');
+              }
+          };
+          var handlePointerLockError = function() {
+              if (doomState.active) {
+                  setDoomStatus('Unable to capture mouse. Click canvas to try again.');
+              }
+          };
+          registerDoomListener(document, 'pointerlockchange', handlePointerLockChange);
+          registerDoomListener(document, 'mozpointerlockchange', handlePointerLockChange);
+          registerDoomListener(document, 'webkitpointerlockchange', handlePointerLockChange);
+          registerDoomListener(document, 'pointerlockerror', handlePointerLockError);
+          registerDoomListener(document, 'mozpointerlockerror', handlePointerLockError);
+          registerDoomListener(document, 'webkitpointerlockerror', handlePointerLockError);
+      }
   }
 
   function beginDoomLoop(instance) {
@@ -966,7 +1042,11 @@
 
       doomState.loopFn = step;
       doomState.loopHandle = requestAnimationFrame(step);
-      setDoomStatus('Running. Type `exit doom` to leave.');
+      if (supportsPointerLock(doomState.canvas)) {
+          setDoomStatus('Running. Mouse free; click canvas to capture. Type `exit doom` to leave.');
+      } else {
+          setDoomStatus('Running. Type `exit doom` to leave.');
+      }
   }
 
   function focusDoomCanvas() {
@@ -1036,6 +1116,8 @@
       }
 
       removeDoomListeners();
+
+      exitPointerLock();
 
       doomState.active = false;
       doomState.overlay = null;
