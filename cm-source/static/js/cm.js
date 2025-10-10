@@ -1,6 +1,97 @@
 (function() {
   const CONTRAST_KEY = 'cm-contrast-mode';
   const CONTRAST_CLASS = 'contrast-mode';
+  const LOGO_PAUSE_REASON_TERMINAL = 'terminal-input';
+  const LOGO_PAUSE_REASON_DOOM = 'doom';
+
+  function ensureLogoControl() {
+    if (typeof window === 'undefined') {
+      return {
+        setController: function() {},
+        pause: function() {},
+        resume: function() {},
+        toggleManualPause: function() {},
+        isPaused: function() { return false; }
+      };
+    }
+
+    const existing = window.cmLogoControl;
+    if (existing && typeof existing.pause === 'function' && typeof existing.resume === 'function') {
+      return existing;
+    }
+
+    const pendingReasons = new Set();
+    let controller = null;
+
+    const stub = {
+      setController(nextController) {
+        controller = nextController;
+        if (!controller || typeof controller.pause !== 'function') {
+          return;
+        }
+        if (pendingReasons.size > 0) {
+          pendingReasons.forEach(reason => {
+            try {
+              controller.pause(reason);
+            } catch (err) {
+              console.error('Failed to apply pending CM logo pause reason', reason, err);
+            }
+          });
+          pendingReasons.clear();
+        }
+      },
+      pause(reason) {
+        const key = reason || 'manual';
+        if (controller && typeof controller.pause === 'function') {
+          controller.pause(key);
+          return;
+        }
+        pendingReasons.add(key);
+      },
+      resume(reason) {
+        const key = reason || 'manual';
+        if (controller && typeof controller.resume === 'function') {
+          controller.resume(key);
+          return;
+        }
+        pendingReasons.delete(key);
+      },
+      toggleManualPause() {
+        if (controller && typeof controller.toggleManualPause === 'function') {
+          controller.toggleManualPause();
+          return;
+        }
+        if (pendingReasons.has('manual')) {
+          pendingReasons.delete('manual');
+        } else {
+          pendingReasons.add('manual');
+        }
+      },
+      isPaused() {
+        if (controller && typeof controller.isPaused === 'function') {
+          return controller.isPaused();
+        }
+        return pendingReasons.size > 0;
+      }
+    };
+
+    window.cmLogoControl = stub;
+    return stub;
+  }
+
+  const logoControl = ensureLogoControl();
+
+  function pauseLogo(reason) {
+    if (logoControl && typeof logoControl.pause === 'function') {
+      logoControl.pause(reason);
+    }
+  }
+
+  function resumeLogo(reason) {
+    if (logoControl && typeof logoControl.resume === 'function') {
+      logoControl.resume(reason);
+    }
+  }
 
   function updateToggleState(toggle, isSoft) {
     if (!toggle) return;
@@ -1084,6 +1175,7 @@
       }
 
       doomState.active = true;
+      pauseLogo(LOGO_PAUSE_REASON_DOOM);
       setDoomStatus('Initializing DOOM runtime...');
 
       instantiateDoom().then(function(instance) {
@@ -1107,6 +1199,7 @@
   }
 
   function teardownDoom(message) {
+      resumeLogo(LOGO_PAUSE_REASON_DOOM);
       if (!doomState.active && !doomState.overlay) {
           return;
       }
@@ -1526,6 +1619,7 @@
       const termIn = document.getElementById("uIn");
       if (termIn) {
           termIn.addEventListener('keydown', function(e) {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
               if (e.key === 'ArrowUp') {
                   e.preventDefault();
                   navigateHistory(-1, termIn);
@@ -1544,6 +1638,18 @@
                   e.target.value = "";
                   applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'neon');
               }
+          });
+
+          termIn.addEventListener('pointerdown', function() {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
+          });
+
+          termIn.addEventListener('focus', function() {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
+          });
+
+          termIn.addEventListener('blur', function() {
+              resumeLogo(LOGO_PAUSE_REASON_TERMINAL);
           });
       }
   });

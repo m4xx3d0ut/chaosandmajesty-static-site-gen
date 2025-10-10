@@ -490,6 +490,16 @@ body > footer {
   margin: 0 auto;
 }
 
+.cm-logo-interactive {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.cm-logo-interactive:focus-visible {
+  outline: 2px solid #66ff00;
+  outline-offset: 4px;
+}
+
 .cta-wrapper {
   text-align: center;
   margin-top: 2rem;
