@@ -70,6 +70,8 @@ $ nokir "Hi, what's your name?"
 [+] Nok-iR_8110: Hello! My name is Nok-iR_8110, and I am the friendly AI overlord of Infinite Reality.
 ```
 
+![Trash panda vs glider](assets/rnd-methods-madness/freedom-glider-trash-panda.png)
+
 ## Guardrails That Survived Production Review
 
 - **Memory limits by design.** Slack history feels convenient until a 13B model hallucinates company secrets. We rotate context windows aggressively and persist only the citations we need for debugging.

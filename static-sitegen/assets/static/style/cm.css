@@ -712,6 +712,9 @@ body > footer {
   color: var(--blog-accent);
   margin-bottom: 0.75rem;
   text-transform: uppercase;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
 }
 
 .blog-hero-tagline {
@@ -911,7 +914,9 @@ body > footer {
   font-size: clamp(1.05rem, 2vw + 0.85rem, 1.3rem);
   color: rgba(214, 255, 214, 0.92);
   letter-spacing: 0.04em;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
 }
 
 .blog-post-link:hover,
@@ -1114,8 +1119,8 @@ body.contrast-mode .blog-back-to-top:focus {
   font-size: clamp(1.8rem, 2.5vw + 1.2rem, 2.5rem);
   color: var(--blog-accent);
   text-align: center;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   hyphens: auto;
 }
 

