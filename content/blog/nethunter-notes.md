@@ -24,14 +24,12 @@ updatedAt: 2023-12-24
 ### Shield Tablet K1 Mounts
 
 Bind-mount the SD card into the NetHunter rootfs:
-```
-bash
+```bash
 su --mount-master -c "mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/"
 ```
 
 Magisk boot script (`/data/adb/service.d/nhbind.sh`) to recreate the bind mount and log to logcat:
-```
-bash
+```bash
 #!/system/bin/sh
 {
   # Bind mount ext sdcard nhsys to internal nhsystem
@@ -42,8 +40,7 @@ done
 ```
 
 Termux boot script (`~/.termux/boot/nhbind`):
-```
-bash
+```bash
 #!/data/data/com.termux/files/usr/bin/sh
 su --mount-master -c "mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/"
 ```
@@ -51,8 +48,7 @@ su --mount-master -c "mount --bind /storage/emulated/0/nhsys/ /data/local/nhsyst
 ### APK Automation
 
 Install every APK in the current directory:
-```
-bash
+```bash
 for i in *; do
   echo "$i"
   adb install -r "$i"
@@ -60,8 +56,7 @@ done
 ```
 
 List third-party packages:
-```
-bash
+```bash
 adb shell pm list packages -f -3
 ```
 
@@ -75,8 +70,7 @@ kernel/oppo/msm8974/arch/arm/configs/lineageos_bacon_defconfig
 ### Metasploit + Termux PostgreSQL
 
 Run PostgreSQL in Termux to back Metasploit:
-```
-bash
+```bash
 pkg update && pkg install openssl-tool postgresql
 mkdir /path/to/db
 pg_ctl initdb -D /path/to/db
@@ -87,8 +81,7 @@ createuser --superuser --pwprompt msf
 ```
 
 Inside `psql`:
-```
-bash
+```bash
 psql postgres
 CREATE DATABASE msf;
 \l
@@ -96,8 +89,7 @@ CREATE DATABASE msf;
 ```
 
 Connect from Kali:
-```
-bash
+```bash
 msfconsole
 db_connect msf:<password>@127.0.0.1/msf
 db_status

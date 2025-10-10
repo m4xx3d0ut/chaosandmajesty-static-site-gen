@@ -1388,8 +1388,7 @@ joe@debian-privesc:~$ bash unix-privesc-check standard > output.txt
 ```
 
 The script performs numerous checks for permissions on common files.  The following excerpt reveals config files writable by normal users.
-```
-############################################
+```############################################
 Checking for writable config files
 ############################################
     Checking if anyone except root can change /etc/passwd

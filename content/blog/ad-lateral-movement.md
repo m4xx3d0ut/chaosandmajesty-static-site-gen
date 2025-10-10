@@ -1553,8 +1553,7 @@ OS{d083ce129e33c9d0342509a2aa32f53d}
 ```
 
 Capstone Exercise: Once VM Group 4 is started, the domain corp.com has been modified. Log in as the leon user on CLIENT76 and use the techniques discussed in this Module to move laterally and get the flag in the WEB04 shared folder.
-```
-#
+```#
 # RDP leon session, has local admin
 #
 

@@ -949,6 +949,23 @@ body > footer {
   display: none;
 }
 
+#blog-loading {
+  display: none;
+  margin-top: 2rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: rgba(208, 255, 208, 0.92);
+  text-align: center;
+}
+
+#blog-loading.htmx-request {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 
 .blog-article-shell {
   background: rgba(0, 0, 0, 0.55);

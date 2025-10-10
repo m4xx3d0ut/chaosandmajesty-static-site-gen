@@ -71,153 +71,132 @@
 <hr>
 <h3><strong>3. Lua Basics</strong></h3>
 <h4><strong>Variables and Data Types</strong></h4>
-<pre><code>lua
-local name = &quot;Lua&quot;
+<pre><code class="language-lua">local name = &quot;Lua&quot;
 local version = 5.4
 local isAwesome = true
 print(name, version, isAwesome)
 </code></pre>
 <h4><strong>Control Structures</strong></h4>
 <ul>
-<li><strong>If-Else:</strong><pre><code>
+<li><strong>If-Else:</strong><pre><code class="language-lua">if score &gt; 90 then
+    print(&quot;A grade&quot;)
+elseif score &gt; 75 then
+    print(&quot;B grade&quot;)
+else
+    print(&quot;Keep trying!&quot;)
+end
+</code></pre>
+</li>
+<li><strong>Loops:</strong><pre><code class="language-lua">for i = 1, 5 do
+    print(&quot;Loop iteration&quot;, i)
+end
+
+local i = 1
+while i &lt;= 5 do
+    print(&quot;While loop&quot;, i)
+    i = i + 1
+end
 </code></pre>
 </li>
 </ul>
-<p>lua
-  if score &gt; 90 then
-      print(&quot;A grade&quot;)
-  elseif score &gt; 75 then
-      print(&quot;B grade&quot;)
-  else
-      print(&quot;Keep trying!&quot;)
-  end</p>
-<pre><code>- **Loops:**
-</code></pre>
-<p>lua
-  for i = 1, 5 do
-      print(&quot;Loop iteration&quot;, i)
-  end</p>
-<p>  local i = 1
-  while i &lt;= 5 do
-      print(&quot;While loop&quot;, i)
-      i = i + 1
-  end</p>
-<pre><code>
-#### **Tables (Arrays &amp; Dictionaries)**
-Tables are the core data structure in Lua:
-</code></pre>
-<p>lua
-local player = {
+<h4><strong>Tables (Arrays &amp; Dictionaries)</strong></h4>
+<p>Tables are the core data structure in Lua:</p>
+<pre><code class="language-lua">local player = {
     name = &quot;Alex&quot;,
     score = 1200,
     inventory = {&quot;sword&quot;, &quot;shield&quot;, &quot;potion&quot;}
-}</p>
-<pre><code>Accessing table data:
+}
 </code></pre>
-<p>lua
-print(player.name)
-print(player.inventory[2])</p>
-<pre><code>
----
-
-### **4. Functions in Lua**
+<p>Accessing table data:</p>
+<pre><code class="language-lua">print(player.name)
+print(player.inventory[2])
 </code></pre>
-<p>lua
-local function greet(name)
+<hr>
+<h3><strong>4. Functions in Lua</strong></h3>
+<pre><code class="language-lua">local function greet(name)
     return &quot;Hello, &quot; .. name .. &quot;!&quot;
-end</p>
-<p>print(greet(&quot;Lua Developer&quot;))</p>
-<pre><code>
-Functions can be passed as arguments or stored in tables:
+end
+
+print(greet(&quot;Lua Developer&quot;))
 </code></pre>
-<p>lua
-local actions = {
+<p>Functions can be passed as arguments or stored in tables:</p>
+<pre><code class="language-lua">local actions = {
     attack = function() print(&quot;Player attacks!&quot;) end,
     heal = function() print(&quot;Player heals!&quot;) end
-}</p>
-<p>actions.attack()
-actions.heal()</p>
-<pre><code>
----
-
-### **5. Modules and Packages**
-Create a module (`math_utils.lua`):
-</code></pre>
-<p>lua
-local math_utils = {}</p>
-<p>function math_utils.square(x)
-    return x * x
-end</p>
-<p>return math_utils</p>
-<pre><code>Use the module in another file:
-</code></pre>
-<p>lua
-local math_utils = require(&quot;math_utils&quot;)
-print(math_utils.square(5))</p>
-<pre><code>
-LuaRocks can be used to manage external packages:
-</code></pre>
-<p>bash
-luarocks install luasocket</p>
-<pre><code>
----
-
-### **6. Error Handling**
-Use `pcall` (protected call) to catch errors without crashing the program:
-</code></pre>
-<p>lua
-local status, err = pcall(function()
-    error(&quot;Something went wrong!&quot;)
-end)</p>
-<p>if not status then
-    print(&quot;Error:&quot;, err)
-end</p>
-<pre><code>
----
-
-### **7. Useful Lua Libraries**
-- **LOVE2D:** Game development framework using Lua.
-- **LuaSocket:** Networking library for Lua.
-- **Penlight:** Utility libraries for extended Lua functionality.
-- **MoonScript:** A higher-level language that compiles to Lua.
-
----
-
-### **8. Embedding Lua in C**
-Sample C program embedding Lua:
-</code></pre>
-<p>c
-#include &lt;lua.h&gt;
-#include &lt;lauxlib.h&gt;
-#include &lt;lualib.h&gt;</p>
-<p>int main() {
-    lua_State *L = luaL_newstate();
-    luaL_openlibs(L);</p>
-<pre><code>if (luaL_dofile(L, &quot;script.lua&quot;)) {
-    fprintf(stderr, &quot;%s\n&quot;, lua_tostring(L, -1));
 }
 
-lua_close(L);
-return 0;
+actions.attack()
+actions.heal()
 </code></pre>
-<p>}</p>
-<pre><code>Compile with:
+<hr>
+<h3><strong>5. Modules and Packages</strong></h3>
+<p>Create a module (<code>math_utils.lua</code>):</p>
+<pre><code class="language-lua">local math_utils = {}
+
+function math_utils.square(x)
+    return x * x
+end
+
+return math_utils
 </code></pre>
-<p>bash
-gcc -o run_lua run_lua.c -llua -lm -ldl</p>
-<pre><code>
----
-
-### **9. Next Steps**
-- Build mini-projects like calculators, configuration loaders, or simple games.
-- Explore metatables and coroutines for advanced Lua programming.
-- ...
-- Profit!
-
----
-
-**Summary:** Lua’s simplicity and power make it an excellent language for beginners and seasoned developers alike. Mastering the basics and exploring real-world use cases opens the door to rapid automation, scripting, and game development.
+<p>Use the module in another file:</p>
+<pre><code class="language-lua">local math_utils = require(&quot;math_utils&quot;)
+print(math_utils.square(5))
 </code></pre>
+<p>LuaRocks can be used to manage external packages:</p>
+<pre><code class="language-bash">luarocks install luasocket
+</code></pre>
+<hr>
+<h3><strong>6. Error Handling</strong></h3>
+<p>Use <code>pcall</code> (protected call) to catch errors without crashing the program:</p>
+<pre><code class="language-lua">local status, err = pcall(function()
+    error(&quot;Something went wrong!&quot;)
+end)
+
+if not status then
+    print(&quot;Error:&quot;, err)
+end
+</code></pre>
+<hr>
+<h3><strong>7. Useful Lua Libraries</strong></h3>
+<ul>
+<li><strong>LOVE2D:</strong> Game development framework using Lua.</li>
+<li><strong>LuaSocket:</strong> Networking library for Lua.</li>
+<li><strong>Penlight:</strong> Utility libraries for extended Lua functionality.</li>
+<li><strong>MoonScript:</strong> A higher-level language that compiles to Lua.</li>
+</ul>
+<hr>
+<h3><strong>8. Embedding Lua in C</strong></h3>
+<p>Sample C program embedding Lua:</p>
+<pre><code class="language-c">#include &lt;lua.h&gt;
+#include &lt;lauxlib.h&gt;
+#include &lt;lualib.h&gt;
+
+int main() {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    if (luaL_dofile(L, &quot;script.lua&quot;)) {
+        fprintf(stderr, &quot;%s\n&quot;, lua_tostring(L, -1));
+    }
+
+    lua_close(L);
+    return 0;
+}
+</code></pre>
+<p>Compile with:</p>
+<pre><code class="language-bash">gcc -o run_lua run_lua.c -llua -lm -ldl
+</code></pre>
+<hr>
+<h3><strong>9. Next Steps</strong></h3>
+<ul>
+<li>Build mini-projects like calculators, configuration loaders, or simple games.</li>
+<li>Explore metatables and coroutines for advanced Lua programming.</li>
+<li>...</li>
+<li>Profit!</li>
+</ul>
+<hr>
+<p><strong>Summary:</strong> Lua’s simplicity and power make it an excellent language for beginners and seasoned developers alike. Mastering the basics and exploring real-world use cases opens the door to rapid automation, scripting, and game development.</p>
 
   </div>
 

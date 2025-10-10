@@ -1049,8 +1049,7 @@ LDAP://DC1.corp.com/CN=Debug,CN=Users,DC=corp,DC=com                            
 <pre><code>foreach ($group in $(LDAPSearch -LDAPQuery &quot;(objectCategory=group)&quot;)) { &gt;&gt; $group.properties | select {$_.cn}, {$_.member} &gt;&gt; }
 </code></pre>
 <p>Althought the env is small we still received a lot of output, focus on the three groups we noticed earlier in our enum with <code>net.exe</code>.</p>
-<pre><code>...
-Sales Department              {CN=Development Department,DC=corp,DC=com, CN=pete,CN=Users,DC=corp,DC=com, CN=stephanie,CN=Users,DC=corp,DC=com}
+<pre><code class="language-...">Sales Department              {CN=Development Department,DC=corp,DC=com, CN=pete,CN=Users,DC=corp,DC=com, CN=stephanie,CN=Users,DC=corp,DC=com}
 Management Department         CN=jen,CN=Users,DC=corp,DC=com
 Development Department        {CN=Management Department,DC=corp,DC=com, CN=pete,CN=Users,DC=corp,DC=com, CN=dave,CN=Users,DC=corp,DC=com}
 ...
@@ -1392,7 +1391,7 @@ member
 <p>We have recreated the functions of our prior script and are ready to explore more attributes and enum techniques.</p>
 <h6>Labs</h6>
 <p>Start VM Group 1 and log in to CLIENT75 as stephanie. Import the PowerView script to memory and repeat the enumeration steps outlined in this section. Which command can we use with PowerView to list the domain groups?</p>
-<pre><code>Get-NetGroup
+<pre><code class="language-Get-NetGroup">
 </code></pre>
 <p>Start VM Group 2 and log in to CLIENT75 as stephanie. Use PowerView to enumerate the modified corp.com domain. Which new user is a part of the Domain Admins group?</p>
 <pre><code>### VM Group 1
@@ -1933,7 +1932,7 @@ Users logged on via resource shares:
 <p>This concludes enum of our compromised user, including enum of active sessions within the domain.  Based on info we have gathered, we have a very interesting attack path that may lead to domain admin.</p>
 <h6>Labs</h6>
 <p>What registry key does NetSessionEnum rely on to discover logged on sessions?</p>
-<pre><code>SrvsvcSessionInfo
+<pre><code class="language-SrvsvcSessionInfo">
 </code></pre>
 <p>Start VM Group 1 and log in to CLIENT75 as stephanie. Repeat the enumeration steps outlined in this section to find the logged on sessions. Which service must be enabled on the remote machine to make it possible for PsLoggedOn to enumerate sessions?</p>
 <pre><code>Remote Registry
@@ -2512,10 +2511,10 @@ Mode                 LastWriteTime         Length Name
 <p>Note that SharpHound also supports looping, which has the collector run cyclical queries of our choice over a given period of time.  The method we used above created a snapshot of the domain, running it in a loop can gather additional info as the env changes.  The cache file speeds up the process.  Example, if a user logged on after we created our snapshot we would have missed it.  We will not use the loop func here, but recommend experimenting with it in training labs and inspecting hte results in BloodHound.</p>
 <h6>Labs</h6>
 <p>Start VM Group 1 and log in to CLIENT75 as stephanie. Gather the domain data with SharpHound as outlined in this section. Which function can we use with SharpHound to see changes happening in the domain over a longer period of time?</p>
-<pre><code>Loop
+<pre><code class="language-Loop">
 </code></pre>
 <p>Which syntax in SharpHound allows us to set a password on the resulting .zip file?</p>
-<pre><code>ZipPassword
+<pre><code class="language-ZipPassword">
 </code></pre>
 <h5>Analysing Data using BloodHound</h5>
 <p>In this section we will analyze the domain data using BloodHound in Kali, it should be noted that we can install the app and deps on Win systems as well.</p>

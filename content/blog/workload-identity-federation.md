@@ -210,8 +210,7 @@ Tables in dataset 'event_logs':
 ## 1. Key & JWKS Generation
 
 To create **pri** and **pub** JSON keys
-```
-########################################
+```########################################
 ### CREATE PUBLIC & PRIVATE KEY JSON ###
 ########################################
 
@@ -327,8 +326,7 @@ principal://iam.googleapis.com/projects/164926465179/locations/global/workloadId
 ```
 
 External Analytics Pool
-```
-ID
+```ID
 pool-0
 Description
 External analytics BQ WIF
@@ -345,8 +343,7 @@ vis-stack-oidc-jwt	OIDC
 ```
 
 Provider Details
-```
-vis-stack-oidc-jwt
+```vis-stack-oidc-jwt
 ```
 
 Issuer URL
@@ -370,8 +367,7 @@ https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdenti
 ```
 
 OIDC 1
-```
-assertion.sub
+```assertion.sub
 ```
 
 SA Permissions/Roles

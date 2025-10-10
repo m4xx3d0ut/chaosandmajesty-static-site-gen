@@ -477,8 +477,7 @@ App and user passwords are more often than not encrypted or hashed for protectio
 Unlike dict attacks, password cracking is quiet, doesn not lock accounts by failed attempts, and is unaffected by countermeasures.
 
 Example, if we gain access to a [SHA-256](https://en.wikipedia.org/wiki/SHA-2) password hash with value:
-```
-5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6
+```5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6
 ```
 We can use `sha256sum` to hash password attempts and compare the results.  If we hash `secret` twice and `secret1`, using `echo -n` to strip the newline (which would be added to the string, modifying the hash) we can see that the two `secret` hashes are the same.  The `secret1` hash is completely different, despite the similar input, showing us that plaintext `secret1` is not associated with the first hash.
 ```bash

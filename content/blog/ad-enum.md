@@ -1125,8 +1125,7 @@ foreach ($group in $(LDAPSearch -LDAPQuery "(objectCategory=group)")) { >> $grou
 ```
 
 Althought the env is small we still received a lot of output, focus on the three groups we noticed earlier in our enum with `net.exe`.
-```
-...
+```...
 Sales Department              {CN=Development Department,DC=corp,DC=com, CN=pete,CN=Users,DC=corp,DC=com, CN=stephanie,CN=Users,DC=corp,DC=com}
 Management Department         CN=jen,CN=Users,DC=corp,DC=com
 Development Department        {CN=Management Department,DC=corp,DC=com, CN=pete,CN=Users,DC=corp,DC=com, CN=dave,CN=Users,DC=corp,DC=com}
@@ -1488,8 +1487,7 @@ We have recreated the functions of our prior script and are ready to explore mor
 ###### Labs
 
 Start VM Group 1 and log in to CLIENT75 as stephanie. Import the PowerView script to memory and repeat the enumeration steps outlined in this section. Which command can we use with PowerView to list the domain groups?
-```
-Get-NetGroup
+```Get-NetGroup
 ```
 
 Start VM Group 2 and log in to CLIENT75 as stephanie. Use PowerView to enumerate the modified corp.com domain. Which new user is a part of the Domain Admins group?
@@ -2078,8 +2076,7 @@ This concludes enum of our compromised user, including enum of active sessions w
 ###### Labs
 
 What registry key does NetSessionEnum rely on to discover logged on sessions?
-```
-SrvsvcSessionInfo
+```SrvsvcSessionInfo
 ```
 
 Start VM Group 1 and log in to CLIENT75 as stephanie. Repeat the enumeration steps outlined in this section to find the logged on sessions. Which service must be enabled on the remote machine to make it possible for PsLoggedOn to enumerate sessions?
@@ -2708,13 +2705,11 @@ Note that SharpHound also supports looping, which has the collector run cyclical
 ###### Labs
 
 Start VM Group 1 and log in to CLIENT75 as stephanie. Gather the domain data with SharpHound as outlined in this section. Which function can we use with SharpHound to see changes happening in the domain over a longer period of time?
-```
-Loop
+```Loop
 ```
 
 Which syntax in SharpHound allows us to set a password on the resulting .zip file?
-```
-ZipPassword
+```ZipPassword
 ```
 
 

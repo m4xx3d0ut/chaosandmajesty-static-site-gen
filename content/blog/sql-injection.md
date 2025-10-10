@@ -282,8 +282,7 @@ MySQL [(none)]> SELECT * FROM mysql.user WHERE user = 'offsec';
 ```
 
 From your Kali Linux VM, connect to the remote MSSQL instance on VM 2 and replicate the steps to enumerate the MSSQL database. Then explore the records of the sysusers table inside the master database. What is the value of the first user listed?
-```
-public
+```public
 ```
 
 From your Kali Linux VM, connect to the remote MySQL instance on VM 3 and explore the users table present in one of the databases to get the flag.

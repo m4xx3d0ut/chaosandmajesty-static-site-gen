@@ -41,8 +41,7 @@ sudo openvpn universal.ovpn
 
 Large language models are spoiled children: they consume every byte of VRAM and still ask for more. Our reference rig is a virtualized GRID RTX6000 slice with 24GB VRAM and direct NVMe access. That buys us enough headroom to fine-tune 13B parameter models while running inference for internal users.
 
-```
-+---------------------------------------------------------------------------------------+
+```+---------------------------------------------------------------------------------------+
 | NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.1     |
 |-----------------------------------------+----------------------+----------------------|
 | GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |

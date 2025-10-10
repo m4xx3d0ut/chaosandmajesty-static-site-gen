@@ -1154,8 +1154,7 @@ uid=1(daemon) gid=1(daemon) groups=1(daemon)
 Let's explore the concept of sessions and jobs in Metasploit.  Sessions are used to interact and manage access to successfully exploited targets, while jobs are used to run modules or features in the background.
 
 When we launched the exploit with `run`, a session was created and we obtained a shell.  We can background the session with `Ctrl+Z` and prompt confirmation.  Once sent to the background, we can use `sessions -l` to list all active sessions.
-```
-id
+```id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ^Z
 Background session 2? [y/N]  y
@@ -3007,8 +3006,7 @@ offsec    ITWK01  1c3fb240ae45a2dc5951a043cf47040e  a914116eb78bec73deb381954642
 ###### Exercises
 
 Follow the steps from this section and use Kiwi to retrieve the NTLM hash of user offsec. Enter it as answer to this question.
-```
-1c3fb240ae45a2dc5951a043cf47040e
+```1c3fb240ae45a2dc5951a043cf47040e
 ```
 
 Search for a post-exploitation module that enumerates the Windows Hosts file and launch it against an active session on VM #1. What is the domain name of the only entry of this file?

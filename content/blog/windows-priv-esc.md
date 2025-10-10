@@ -2107,8 +2107,7 @@ C:\Users\dave> .\winPEAS.exe
          LightYellow        Indicates links
 ```
 - Once complete we review the findings.
-```
-...
+```...
 ����������͹ Basic System Information
 ...    
     Hostname: clientwk220
@@ -2134,8 +2133,7 @@ C:\Users\dave> .\winPEAS.exe
  - Once again, never blindly trust the output of a tool.
 - Next we have some info about security protections, PowerShell, NTLM settings.
 	- 
-```
-...    
+```...
 ����������͹ PS default transcripts history
 � Read the PS history inside these files (if any)
 ...
@@ -2175,8 +2173,7 @@ Current groups: Domain Users, Everyone, helpdesk, Builtin\Remote Desktop Users, 
  - Making it easier to understand the associations.
 - Further down we find information about processes, service, scheduled tasks, network info, and installed apps.
 - Next section of interest is `Looking for possible password files in user homes`
-```
-...    
+```...
 ����������͹ Looking for possible password files in users homes
 ...
     C:\Users\All Users\Microsoft\UEV\InboxTemplates\RoamingCredentialSettings.xml
