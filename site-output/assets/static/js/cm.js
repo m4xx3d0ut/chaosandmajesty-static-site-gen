@@ -2199,7 +2199,7 @@
                   terminal([cli]);
                   checkIn(cli);
                   e.target.value = "";
-                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'neon');
+                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
               }
           });
 
