@@ -13,26 +13,43 @@
     <% }); %>
   <% } %>
 
-  <% const rootBase = page.rootBase || page.blog?.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl.replace(/\/$/, '') : ''); %>
+  <% const rawRootBase = page.rootBase || page.blog?.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
+  <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
+  <% const hasAbsoluteBase = !!normalizedRootBase; %>
+  <% const baseDepth = (typeof page.baseDepth === 'number') ? page.baseDepth : 0; %>
+  <% const depthPrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : ''); %>
   <% const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || ''); %>
+  <% const resolvePath = (value) => {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || '/') : './');
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, '');
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || '/');
+       }
+       return depthPrefix + cleaned;
+     }; %>
   <% const buildInternalHref = (href) => {
        if (!href) return '#';
        if (isExternal(href)) return href;
        if (href.startsWith('#')) {
          const target = href.slice(1);
-         return target ? `${rootBase}/sections/${target}.html` : `${rootBase}/`;
+         if (!target) {
+           return resolvePath('');
+         }
+         return resolvePath(`sections/${target}.html`);
        }
-       const cleaned = href.replace(/^\/+/, '');
-       return `${rootBase}/${cleaned}`;
+       return resolvePath(href);
      }; %>
   <% const buildAssetHref = (asset) => {
        if (!asset) return '';
        if (isExternal(asset)) return asset;
-       if (asset.startsWith('/')) {
-         return `${rootBase}${asset}`;
-       }
-       return `${rootBase}/${asset.replace(/^\/+/, '')}`;
+       return resolvePath(asset);
      }; %>
+  <% const backHref = buildInternalHref(page.blog?.indexHref || 'blog.html'); %>
 
 </head>
 <body class="cm-body blog-page">
@@ -67,13 +84,13 @@
 
   <main class="blog-container blog-post-view">
     <div class="blog-article-shell">
-      <a class="blog-back-link" href="<%= page.blog?.indexHref || buildInternalHref('blog.html') %>">
+      <a class="blog-back-link" href="<%= backHref %>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M15 18l-6-6 6-6" />
         </svg>
         Back to <%= page.blog?.title || 'Blog' %>
       </a>
-      <%- include('partials/article.ejs', { post: page.post }) %>
+      <%- include('partials/article.ejs', { post: page.post, buildAssetHref }) %>
     </div>
   </main>
 

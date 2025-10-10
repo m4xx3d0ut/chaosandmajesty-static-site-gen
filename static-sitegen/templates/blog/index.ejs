@@ -7,25 +7,41 @@
 
   <%- include('../partials/cm-head.ejs') %>
 
-  <% const rootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl.replace(/\/$/, '') : ''); %>
+  <% const rawRootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
+  <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
+  <% const hasAbsoluteBase = !!normalizedRootBase; %>
+  <% const baseDepth = (typeof page.baseDepth === 'number') ? page.baseDepth : 0; %>
+  <% const depthPrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : ''); %>
   <% const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || ''); %>
+  <% const resolvePath = (value) => {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || '/') : './');
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, '');
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || '/');
+       }
+       return depthPrefix + cleaned;
+     }; %>
   <% const buildInternalHref = (href) => {
        if (!href) return '#';
        if (isExternal(href)) return href;
        if (href.startsWith('#')) {
          const target = href.slice(1);
-         return target ? `${rootBase}/sections/${target}.html` : `${rootBase}/`;
+         if (!target) {
+           return resolvePath('');
+         }
+         return resolvePath(`sections/${target}.html`);
        }
-       const cleaned = href.replace(/^\/+/, '');
-       return `${rootBase}/${cleaned}`;
+       return resolvePath(href);
      }; %>
   <% const buildAssetHref = (asset) => {
        if (!asset) return '';
        if (isExternal(asset)) return asset;
-       if (asset.startsWith('/')) {
-         return `${rootBase}${asset}`;
-       }
-       return `${rootBase}/${asset.replace(/^\/+/, '')}`;
+       return resolvePath(asset);
      }; %>
   <% const highlightFirstPost = page.initialPost && !page.isDefaultInitialPost && !page.isHiddenInitialPost; %>
 
@@ -97,11 +113,15 @@
         <ul class="blog-post-list">
           <% page.posts.forEach(function(post, index) { %>
             <li data-post-item data-author="<%= post.author ? post.author.id : 'unknown' %>" data-title="<%= post.title.toLowerCase() %>" data-summary="<%= (post.summary || '').toLowerCase() %>">
+              <%
+                const postHref = buildInternalHref(post.relativeHref || post.publicHref);
+                const fragmentHref = buildInternalHref(post.fragmentPath || post.fragmentHref);
+              %>
               <a
                 class="blog-post-link<%= highlightFirstPost && index === 0 ? ' is-active' : '' %>"
-                href="<%= post.publicHref || buildInternalHref(post.relativeHref) %>"
+                href="<%= postHref %>"
                 data-post-slug="<%= post.slug %>"
-                hx-get="<%= post.fragmentHref %>"
+                hx-get="<%= fragmentHref %>"
                 hx-trigger="click"
                 hx-target="#blog-article"
                 hx-swap="innerHTML"
@@ -137,11 +157,15 @@
                 data-title="<%= post.title ? post.title.toLowerCase() : '' %>"
                 data-summary="<%= (post.summary || '').toLowerCase() %>"
               >
+                <%
+                  const hiddenPostHref = buildInternalHref(post.relativeHref || post.publicHref);
+                  const hiddenFragmentHref = buildInternalHref(post.fragmentPath || post.fragmentHref);
+                %>
                 <a
                   class="blog-post-link"
-                  href="<%= post.publicHref || buildInternalHref(post.relativeHref) %>"
+                  href="<%= hiddenPostHref %>"
                   data-post-slug="<%= post.slug %>"
-                  hx-get="<%= post.fragmentHref %>"
+                  hx-get="<%= hiddenFragmentHref %>"
                   hx-trigger="click"
                   hx-target="#blog-article"
                   hx-swap="innerHTML"
@@ -179,7 +203,7 @@
       <div class="blog-article-shell">
         <div id="blog-article" aria-live="polite" aria-busy="false" hx-history-elt>
           <% if (page.initialPost) { %>
-            <%- include('partials/article.ejs', { post: page.initialPost }) %>
+            <%- include('partials/article.ejs', { post: page.initialPost, buildAssetHref }) %>
             <script>
               document.addEventListener('DOMContentLoaded', function() {
                 var articleNode = document.querySelector('#blog-article [data-slug]');

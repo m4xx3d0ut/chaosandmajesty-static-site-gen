@@ -186,7 +186,9 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     ? blogConfig.authors.map(author => {
         const normalizedAvatar = normalizeAssetPath(author.avatar);
         const avatarHref = normalizedAvatar && !isExternalUrl(normalizedAvatar)
-          ? toPublicPath(normalizedAvatar)
+          ? (publicBase
+            ? toPublicPath(normalizedAvatar)
+            : normalizedAvatar.replace(/^\/+/, ''))
           : normalizedAvatar;
         return {
           ...author,
@@ -228,7 +230,9 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     const readingMinutes = attributes.readingMinutes || estimateReadingMinutes(body);
     const heroImageNormalized = normalizeAssetPath(attributes.heroImage);
     const heroImagePath = heroImageNormalized && !isExternalUrl(heroImageNormalized)
-      ? toPublicPath(heroImageNormalized)
+      ? (publicBase
+        ? toPublicPath(heroImageNormalized)
+        : heroImageNormalized.replace(/^\/+/, ''))
       : heroImageNormalized;
 
     let postRelPath = null;
@@ -241,8 +245,8 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       postRelPath = path.posix.join(blogOutputRel, `${slug}.html`);
       fragmentRelPath = path.posix.join(fragmentRelDir, `${slug}.html`);
       canonicalHref = toPublicPath(`/${postRelPath}`);
-      publicHref = canonicalHref;
-      fragmentHref = toPublicPath(`/${fragmentRelPath}`);
+      publicHref = publicBase ? canonicalHref : postRelPath;
+      fragmentHref = publicBase ? toPublicPath(`/${fragmentRelPath}`) : fragmentRelPath;
     }
 
     return {
@@ -399,7 +403,7 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       blog: {
         title: blogConfig.title || 'Blog',
         description: blogConfig.description,
-        indexHref: toPublicPath('/blog.html'),
+        indexHref: publicBase ? toPublicPath('/blog.html') : 'blog.html',
         rootBase: publicBase
       },
       rootBase: publicBase
@@ -547,6 +551,9 @@ export async function generateSite(config, outputDir, verbose = false) {
         sectionMap
       };
     }
+    if (typeof indexPageConfigData.baseDepth !== 'number') {
+      indexPageConfigData.baseDepth = 0;
+    }
     
     // Generate blog content if enabled
     let blogArtifacts = { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
@@ -651,6 +658,9 @@ export async function generateSite(config, outputDir, verbose = false) {
       for (const page of updatedConfig.pages) {
         // Create a copy of the page to avoid modifying the original
         const pageCopy = { ...page, sectionMap };
+        if (typeof pageCopy.baseDepth !== 'number') {
+          pageCopy.baseDepth = 0;
+        }
         
         // Process markdown content if it exists
         if (pageCopy.content) {
@@ -699,6 +709,7 @@ export async function generateSite(config, outputDir, verbose = false) {
           title: sectionCopy.heading || sectionCopy.id,
           isSection: true,
           sectionMap,
+          baseDepth: typeof sectionCopy.baseDepth === 'number' ? sectionCopy.baseDepth : 1,
           // Inherit global CM settings if not specified in section
           useCmHead: sectionCopy.useCmHead ?? updatedConfig.useCmHead,
           useCmConsole: sectionCopy.useCmConsole ?? updatedConfig.useCmConsole,

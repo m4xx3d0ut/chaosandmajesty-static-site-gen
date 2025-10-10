@@ -1,8 +1,32 @@
-<% const baseUrlRaw = site && site.baseUrl ? site.baseUrl : '/'; %>
-<% const baseUrlNormalized = baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : baseUrlRaw; %>
-<% const baseUrlTrimmed = baseUrlNormalized === '/' ? '' : baseUrlNormalized; %>
-<% const assetPath = function(p) { return (baseUrlTrimmed ? baseUrlTrimmed : '') + '/' + p.replace(/^\/+/, ''); }; %>
-<% const manifestPath = (baseUrlTrimmed ? baseUrlTrimmed : '') + '/site.webmanifest'; %>
+<%
+  const explicitRootBase = page && page.rootBase ? page.rootBase : '';
+  const siteBaseUrl = site && site.baseUrl ? site.baseUrl : '';
+  const combinedBase = explicitRootBase || siteBaseUrl;
+  const normalizedBase = combinedBase ? combinedBase.replace(/\/+$/, '') : '';
+  const hasAbsoluteBase = !!normalizedBase;
+  const baseDepth = (page && typeof page.baseDepth === 'number')
+    ? page.baseDepth
+    : (page && page.isSection ? 1 : 0);
+  const relativePrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : '');
+  const assetPath = function(p) {
+    if (!p) return '';
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(p)) {
+      return p;
+    }
+    if (/^(\.\/|\.\.\/)/.test(p)) {
+      return p;
+    }
+    const cleaned = p.replace(/^\/+/, '');
+    if (hasAbsoluteBase) {
+      return cleaned ? `${normalizedBase}/${cleaned}` : normalizedBase || '/';
+    }
+    if (!cleaned) {
+      return relativePrefix || './';
+    }
+    return `${relativePrefix}${cleaned}`;
+  };
+  const manifestPath = assetPath('site.webmanifest');
+%>
 <meta
   name="viewport"
   content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"

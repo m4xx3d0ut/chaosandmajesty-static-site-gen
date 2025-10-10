@@ -1,1 +1,28 @@
-<%- include('partials/article.ejs', { post: page.post }) %>
+<%
+  const rawRootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : '');
+  const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : '';
+  const hasAbsoluteBase = !!normalizedRootBase;
+  const baseDepth = (typeof page.baseDepth === 'number') ? page.baseDepth : 0;
+  const depthPrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : '');
+  const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || '');
+  const resolvePath = (value) => {
+    if (!value) {
+      return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || '/') : './');
+    }
+    if (/^(\.\/|\.\.\/)/.test(value)) {
+      return value;
+    }
+    const cleaned = value.replace(/^\/+/, '');
+    if (hasAbsoluteBase) {
+      return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || '/');
+    }
+    return depthPrefix + cleaned;
+  };
+  const buildAssetHref = (asset) => {
+    if (!asset) return '';
+    if (isExternal(asset)) return asset;
+    return resolvePath(asset);
+  };
+%>
+
+<%- include('partials/article.ejs', { post: page.post, buildAssetHref }) %>

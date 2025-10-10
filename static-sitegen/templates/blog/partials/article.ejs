@@ -1,3 +1,9 @@
+<%
+  const resolveAsset = (typeof buildAssetHref === 'function')
+    ? buildAssetHref
+    : function(asset) { return asset; };
+%>
+
 <article class="blog-article-body" data-slug="<%= post.slug %>">
   <header class="blog-article-header">
     <h1 class="blog-article-title"><%= post.title %></h1>
@@ -18,7 +24,7 @@
 
   <% if (post.heroImagePath) { %>
     <figure class="blog-hero">
-      <img src="<%= post.heroImagePath %>" alt="<%= post.title %> hero image">
+      <img src="<%= resolveAsset(post.heroImagePath) %>" alt="<%= post.title %> hero image">
     </figure>
   <% } %>
 
@@ -29,7 +35,7 @@
   <% if (post.author) { %>
     <footer class="blog-author-card">
       <% if (post.author.avatarPath) { %>
-        <img class="blog-author-avatar" src="<%= post.author.avatarPath %>" alt="<%= post.author.name %> avatar">
+        <img class="blog-author-avatar" src="<%= resolveAsset(post.author.avatarPath) %>" alt="<%= post.author.name %> avatar">
       <% } %>
       <div class="blog-author-details">
         <strong class="blog-author-name"><%= post.author.name %></strong>
