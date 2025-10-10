@@ -1125,6 +1125,31 @@ body.contrast-mode .blog-back-to-top:focus {
   box-sizing: border-box;
 }
 
+.blog-article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.blog-article-content p > img:first-child:last-child,
+.blog-article-content figure img {
+  display: block;
+  margin: clamp(1.5rem, 4vw, 2.5rem) auto;
+}
+
+.blog-article-content figure {
+  margin: clamp(1.75rem, 5vw, 2.75rem) auto;
+  max-width: 100%;
+  text-align: center;
+}
+
+.blog-article-content figure > figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(160, 255, 180, 0.75);
+}
+
 .blog-page .blog-article-content,
 .blog-page .blog-article-content :where(p, li, span, em, strong, blockquote, a, table, td, th) {
   font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
