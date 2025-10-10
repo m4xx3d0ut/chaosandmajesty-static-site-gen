@@ -184,7 +184,7 @@ secretsdump.py corp.local/backupuser@dc01.corp.local -just-dc
 <p>We briefly discussed what NTLM is and how to recover its hashes in Password Attacks.  Now we will explore it in the context of AD.</p>
 <p><a href="https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/">NTLM auth</a> is used to auth a client to a server when connecting by IP address, instead of hostname, or if the user attempts to auth to a hostname that is not registered on the AD integrated DNS server.  Also, 3rd party apps may use NTLM instead of Kerberos.</p>
 <p>The 7 steps of NTLM proto consist of:
-<img src="../_resources/da83831f0dd967c8c67585fcd2110c12.png" alt="da83831f0dd967c8c67585fcd2110c12.png"></p>
+<img src="assets/static/resources/da83831f0dd967c8c67585fcd2110c12.png" alt="da83831f0dd967c8c67585fcd2110c12.png"></p>
 <p>In the first step the system calculates the cryto hash, known as NTLM hash, from the user&#39;s password.  Next, the client computer sends the username to the server, which returns a &quot;nonce&quot; or challenge.  The client encrypts the none using the NTLM hash and sends it in the response to the server.</p>
 <p>The server forwards the response with the username and nonce to the DC, which already knows the NTLM hash of all users.  The DC encrypts the nonce with the NTLM hash of the username and compares it to the response recieved from the server.  If equal, auth request succeeds.</p>
 <p>NTLM cannot be reversed, but as it is a fast hashing algo short passwords can be cracked quickly using modest equipment.</p>
@@ -195,7 +195,7 @@ secretsdump.py corp.local/backupuser@dc01.corp.local -just-dc
 <p>MS Kerberos was adopted from Kerberos v5 created by MIT.  Kerberos has been the primary auth mechanism since Win Server 2003.  NTLM works via challenge/response, where Kerberos uses a ticket system.</p>
 <p>In NTLM auth, the client starts the auth process with the app server itself, whereas in Kerberos auth the DC takes the role of a <a href="https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/">Key Distribution Center (KDC)</a>.  The client starts the auth process with the KDC, not the app server.  A KDC service runs on each DC and is responsible for session tickets and temporary session keys to users and computers.</p>
 <p>The client auth process at a high level:
-<img src="../_resources/22acd580bc7d406fa3a4e26113a52ef3.png" alt="22acd580bc7d406fa3a4e26113a52ef3.png"></p>
+<img src="assets/static/resources/22acd580bc7d406fa3a4e26113a52ef3.png" alt="22acd580bc7d406fa3a4e26113a52ef3.png"></p>
 <p>The process in detail; when a user logs in to a workstation, an Authentication Server Request (AS-REQ) is sent to the DC.  The DC acting as KDC also maintains the Auth Server Service.  The AS-REQ contains a timestamp encrypted using a hash derived from the password of the user and their username.</p>
 <p>The DC receives the request and looks up the password hash associated with the specific user in the <a href="https://attack.mitre.org/techniques/T1003/003/">ntds.dit</a> file and attempts to decrypt the timestamp.  If decryption succeeds and the timestamp is not a duplicate, the auth is successful.</p>
 <p><em>If the timestamp is a duplicate, it could indicate evidence of a potential replay attack.</em></p>

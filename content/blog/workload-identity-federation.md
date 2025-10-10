@@ -15,6 +15,7 @@ readingMinutes: 5
 ## 1. Key & JWKS Generation
 
 To create **pri** and **pub** JSON keys
+
 ```
 # **Create public & private keys**
 $ python api/jwks_auth/main.py --help
@@ -111,6 +112,7 @@ Set up the identity federation configuration in the Google Cloud Console:
    - **NOTE:** In you claims JSON, `"sub"` matches pool ID `"pool-0"`
 5. **Record the Provider Resource Name:**  
    If your Provide ID is "pool-0", it will look similar to:  
+
 ```
 //iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/pool-0
    ```
@@ -123,6 +125,7 @@ Set up the identity federation configuration in the Google Cloud Console:
 3. **Allow the Identity Pool to Impersonate the Service Account:**  
    In the IAM section, grant the `roles/iam.workloadIdentityUser` role on the service account to the identity pool. This allows federated credentials to impersonate the service account.
    - **NOTE:** The default SA should have the correct permissions and roles.  Be sure that role `workloadIdentityUser` is assigned along with the following permissions:
+
 ```
 BigQuery Data Viewer
 BigQuery Job User
@@ -210,6 +213,7 @@ Tables in dataset 'event_logs':
 ## 1. Key & JWKS Generation
 
 To create **pri** and **pub** JSON keys
+
 ```########################################
 ### CREATE PUBLIC & PRIVATE KEY JSON ###
 ########################################
@@ -326,6 +330,7 @@ principal://iam.googleapis.com/projects/164926465179/locations/global/workloadId
 ```
 
 External Analytics Pool
+
 ```ID
 pool-0
 Description
@@ -338,26 +343,31 @@ View
 ```
 
 Providers
+
 ```
 vis-stack-oidc-jwt	OIDC
 ```
 
 Provider Details
+
 ```vis-stack-oidc-jwt
 ```
 
 Issuer URL
+
 ```
 https://yourdomain/.well-known/jwks.json
 ```
 
 **NOTE:** Record the resulting IAM principal, grant to SA with `roles/iam.workloadIdentityUser`
+
 ```
 principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
 ```
 
 Audiences
 Default Audiences
+
 ```
 # DEV
 https://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/providers/vis-jwt
@@ -367,10 +377,12 @@ https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdenti
 ```
 
 OIDC 1
+
 ```assertion.sub
 ```
 
 SA Permissions/Roles
+
 ```
 # DEV
 sa-000@genai-analytics-435321.iam.gserviceaccount.com
@@ -386,9 +398,11 @@ BigQuery Data Viewer
 BigQuery Job User
 BigQuery Metadata Viewer
 ```
+
 Service Account must be granted access to IAM WIP principal (from pool creation) with `roles/iam.workloadIdentityUser`
 
 Create a `claims.json` with your SA, issue, and audience (without `https:`)
+
 ```
 {
   "sub": " prod-sa",
@@ -418,6 +432,7 @@ Before writing any code, you need to set up your identity federation configurati
    Map external identity attributes (like email or subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.
 3. **Record the Provider Resource Name:**  
    It will look similar to:  
+
 ```
 //iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/my-provider
    ```
@@ -461,6 +476,7 @@ Instead of a service account key, you create a JSON file (often called an “ext
 ### NOTES
 
 External Credentials File **clientLibraryConfig-vis-jwt.json**
+
 ```
 {
   "universe_domain": "googleapis.com",

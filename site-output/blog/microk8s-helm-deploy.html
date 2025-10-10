@@ -222,14 +222,17 @@ microk8s kubectl get svc
 <hr>
 <h3><strong>Troubleshooting</strong></h3>
 <ul>
-<li>Check logs:<pre><code class="language-sh">microk8s kubectl logs -l app=myapp
+<li><p>Check logs:</p>
+<pre><code class="language-sh">microk8s kubectl logs -l app=myapp
 </code></pre>
 </li>
-<li>Describe resources:<pre><code class="language-sh">microk8s kubectl describe pod &lt;pod-name&gt;
+<li><p>Describe resources:</p>
+<pre><code class="language-sh">microk8s kubectl describe pod &lt;pod-name&gt;
 microk8s kubectl describe ingress myapp
 </code></pre>
 </li>
-<li>Ensure MetalLB assigned an IP:<pre><code class="language-sh">microk8s kubectl get svc
+<li><p>Ensure MetalLB assigned an IP:</p>
+<pre><code class="language-sh">microk8s kubectl get svc
 </code></pre>
 </li>
 </ul>
@@ -269,9 +272,8 @@ metallb-speaker-xxxxx         1/1     Running   0          3d
 <p>Save and exit.</p>
 <hr>
 <h4><strong>4. Manually Create an IP Pool (If None Exists)</strong></h4>
-<h2>If there is no existing <code>IPAddressPool</code>, create one:
-```yaml
-cat &lt;&lt;EOF | microk8s kubectl apply -f -
+<p>If there is no existing <code>IPAddressPool</code>, create one:</p>
+<pre><code class="language-yaml">cat &lt;&lt;EOF | microk8s kubectl apply -f -
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -279,33 +281,35 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 192.168.1.100-192.168.1.200</h2>
-<p>apiVersion: metallb.io/v1beta1
+    - 192.168.1.100-192.168.1.200
+---
+apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: my-l2-advert
   namespace: metallb-system
-EOF</p>
-<pre><code>This defines an IP pool and advertises it to the cluster.
-
----
-
-#### **5. Verify New Configuration**
-After making changes, check:
-```sh
-microk8s kubectl get ipaddresspools.metallb.io -n metallb-system
+EOF
+</code></pre>
+<p>This defines an IP pool and advertises it to the cluster.</p>
+<hr>
+<h4><strong>5. Verify New Configuration</strong></h4>
+<p>After making changes, check:</p>
+<pre><code class="language-sh">microk8s kubectl get ipaddresspools.metallb.io -n metallb-system
 microk8s kubectl get svc -A | grep LoadBalancer
 </code></pre>
 <hr>
 <h3>MetalLB Static IP Assignment</h3>
 <h4><strong>1. Define a <code>IPAddressPool</code> for a Static IP Range</strong></h4>
-<h2>Ensure your MetalLB IP pool includes the static IPs you want to assign. If you haven&#39;t already, create or edit an <code>IPAddressPool</code> to include <code>192.168.29.16</code> and <code>192.168.29.17</code>:
-<code>sh microk8s kubectl edit ipaddresspools.metallb.io my-ip-pool -n metallb-system </code>
-Modify or add:
-<code>yaml spec:   addresses:     - 192.168.29.16-192.168.29.17 </code>
-If an <code>IPAddressPool</code> doesn’t exist, create one:
-```sh
-cat &lt;&lt;EOF | microk8s kubectl apply -f -
+<p>Ensure your MetalLB IP pool includes the static IPs you want to assign. If you haven&#39;t already, create or edit an <code>IPAddressPool</code> to include <code>192.168.29.16</code> and <code>192.168.29.17</code>:</p>
+<pre><code class="language-sh">microk8s kubectl edit ipaddresspools.metallb.io my-ip-pool -n metallb-system
+</code></pre>
+<p>Modify or add:</p>
+<pre><code class="language-yaml">spec:
+  addresses:
+    - 192.168.29.16-192.168.29.17
+</code></pre>
+<p>If an <code>IPAddressPool</code> doesn’t exist, create one:</p>
+<pre><code class="language-sh">cat &lt;&lt;EOF | microk8s kubectl apply -f -
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -313,20 +317,19 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 192.168.29.16-192.168.29.17</h2>
-<p>apiVersion: metallb.io/v1beta1
+    - 192.168.29.16-192.168.29.17
+---
+apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: my-l2-advert
   namespace: metallb-system
-EOF</p>
-<pre><code>
----
-
-#### **2. Assign a Static IP in Your Helm Chart**
-Modify your Helm chart&#39;s `values.yaml` to request a specific IP from MetalLB:
-```yaml
-service:
+EOF
+</code></pre>
+<hr>
+<h4><strong>2. Assign a Static IP in Your Helm Chart</strong></h4>
+<p>Modify your Helm chart&#39;s <code>values.yaml</code> to request a specific IP from MetalLB:</p>
+<pre><code class="language-yaml">service:
   type: LoadBalancer
   loadBalancerIP: 192.168.29.16
   port: 80

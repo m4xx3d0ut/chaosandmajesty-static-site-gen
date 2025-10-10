@@ -31,6 +31,7 @@ Installed and enable `unattended-upgrades` to automatically install security upd
 
 ##### SSHD
 Minor tweaks.  Disable root login, reduce auth tries, disable password auth, and empty passwords.
+
 ```
 PermitRootLogin no
 MaxAuthTries 2
@@ -44,6 +45,7 @@ The Uncomplicated Firewall (ufw) is a frontend for iptables and is particularly 
 
 ##### Install & Configure
 Setup Uncomplicated Fire Wall to allow SSH, HTTP, and HTTPS.  UFW will also be used as a ban mechanic for `fail2ban`.
+
 ```
 $ apt install ufw
 
@@ -73,6 +75,7 @@ Firewall is active and enabled on system startup
 ```
 
 Check UFW status.
+
 ```
 $ sudo ufw status
 
@@ -89,6 +92,7 @@ To                         Action      From
 ```
 
 Check UFW log.
+
 ```
 $ sudo cat /var/log/ufw.log
 ```
@@ -99,6 +103,7 @@ Fail2ban scans log files (e.g. /var/log/apache/error_log) and bans IPs that show
 
 ##### Install & Configure
 Install `fail2ban` and copy a `jail.local` and ignore our IP.
+
 ```
 $ apt install fail2ban
 
@@ -106,12 +111,14 @@ $ cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 ```
 
 Edit the `jail.local`
+
 ```
 [DEFAULT]
 ignoreip = {YourWanIPhere}
 ```
 
 Added custom jails to `/etc/fail2ban/jail.d/defaults-debian.conf`
+
 ```
 [sshd]
 enabled = true
@@ -140,6 +147,7 @@ logpath = %(nginx_error_log)s
 ```
 
 Disabled as needed from `jail.local`.  Reload `fail2ban` and check jail status.
+
 ```
 $ sudo fail2ban-client reload
 OK
@@ -184,6 +192,7 @@ Status for the jail: nginx-req-limit
 ```
 
 Check `fail2ban` log.
+
 ```
 $ sudo cat /var/log/fail2ban.log
 ```
@@ -194,6 +203,7 @@ The Port Scan Attack Detector psad is a lightweight system daemon written in is 
 
 ##### Install & Configure
 Install `psad` and backup the default conf.
+
 ```
 apt install psad
 
@@ -201,6 +211,7 @@ cp /etc/psad/psad.conf /etc/psad/psad.conf.bk
 ```
 
 Edit `/etc/psad/psad.conf` with the following lines and as needed.
+
 ```
 EMAIL_ADDRESSES	{YourEmal}
 HOSTNAME	{HostName}
@@ -211,6 +222,7 @@ ENABLE_AUTO_IDS_EMAILS Y;
 ```
 
 Backup UFW rules.
+
 ```
 $ sudo cp /etc/ufw/before.rules /etc/ufw/before.rules.bk
 
@@ -218,6 +230,7 @@ $ sudo cp /etc/ufw/before6.rules /etc/ufw/before6.rules.bk
 ```
 
 Edit the end of both UFW rules files as shown.
+
 ```
 ## log all traffic so psad can analyze
 -A INPUT -j LOG --log-tcp-options --log-prefix "[IPTABLES] "
@@ -229,6 +242,7 @@ COMMIT
 
 ##### SystemD Unit File
 You may need a systemd unit file to start the watchdog deamon depending on your configuration.  Create a systemd unit file for `psadwatch` in `/etc/systemd/system/psadwatchd.service`
+
 ```
 [Unit]
 Description=Port scan attack detector daemon
@@ -242,6 +256,7 @@ WantedBy=multi-user.target
 ```
 
 Reload the daemon, start, and enable `psadwatchd.service`
+
 ```
 $ systemctl daemon-reload
 
@@ -265,6 +280,7 @@ $ sudo systemctl status psadwatchd.service
 
 ##### Reload and Check
 For the changes to take effect reload UFW,  PSAD, update PSAD signatures, and send HUP to PIDs.
+
 ```bash
 sudo ufw reload
 
@@ -274,6 +290,7 @@ sudo psad -H
 ```
 
 Make sure both `psad` and, if required by your config, `psadwatchd`are running.
+
 ```
 $ ps -A | grep "psad"
 1114999 ?        00:00:00 psad
@@ -282,17 +299,20 @@ $ ps -A | grep "psad"
 ```
 
 Check `psad` status.
+
 ```
 $ sudo psad -S
 ```
 
 Check `psad` logs.
+
 ```
 $ sudo cat /var/log/psad/status.out
 ```
 
 ##### Update Signatures
 Create script for updating PSAD signatures and sending HUP to PIDs  `/usr/local/bin/psad-upd`
+
 ```
 ##!/usr/bin/env bash
 
@@ -301,11 +321,13 @@ psad -H
 ```
 
 Make the script executable.
+
 ```
 $ chmod +x /usr/local/bin/psad-upd
 ```
 
 Create a cron job to update daily.
+
 ```
 ## m h  dom mon dow   command
 0 0 * * * /usr/local/bin/psad-upd >/dev/null 2>&1
@@ -319,12 +341,14 @@ When an expected change occurs, such as upgrading a package, the baseline databa
 
 ##### Install & Configure
 Install, follow prompts to set passphrase (can be bypassed and scripted), and init `tripwire` DB.
+
 ```
 $ apt install tripwire
 $ tripwire --init
 ```
 
 Edit `/etc/tripwire/twpol.txt` and `/etc/tripwire/twcfg.txt` as needed.  You will find your file path and SMTP settings in `twcfg.txt`.  By default, it will check all of `/proc`, this is likely undesirable.  The following rules for `/proc` are more reasonable for most applications.
+
  ```
 	/dev -> $(Device) ;
 	#/proc -> $(Device) ;
@@ -352,17 +376,20 @@ Edit `/etc/tripwire/twpol.txt` and `/etc/tripwire/twcfg.txt` as needed.  You wil
 ```
 
 Every time you edit these files you must recreate encrypted policy and reinitialize the DB.
+
 ```
 $ twadmin -m P /etc/tripwire/twpol.txt
 $ tripwire --init
 ```
 
 Policy can be updated with.
+
 ```
 tripwire --update-policy --secure-mode low /etc/tripwire/twpol.txt
 ```
 
 You can run an interactive check as shown.  Note that you can use your editor of choice with the `--visual` flag.
+
 ```
 $ tripwire --check --interactive --visual micro
 ```

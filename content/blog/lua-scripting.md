@@ -55,6 +55,7 @@ To start scripting in Lua:
 
 ### **3. Lua Basics**
 #### **Variables and Data Types**
+
 ```lua
 local name = "Lua"
 local version = 5.4
@@ -64,6 +65,7 @@ print(name, version, isAwesome)
 
 #### **Control Structures**
 - **If-Else:**
+
   ```lua
   if score > 90 then
       print("A grade")
@@ -73,7 +75,9 @@ print(name, version, isAwesome)
       print("Keep trying!")
   end
   ```
+
 - **Loops:**
+
   ```lua
   for i = 1, 5 do
       print("Loop iteration", i)
@@ -88,6 +92,7 @@ print(name, version, isAwesome)
 
 #### **Tables (Arrays & Dictionaries)**
 Tables are the core data structure in Lua:
+
 ```lua
 local player = {
     name = "Alex",
@@ -95,7 +100,9 @@ local player = {
     inventory = {"sword", "shield", "potion"}
 }
 ```
+
 Accessing table data:
+
 ```lua
 print(player.name)
 print(player.inventory[2])
@@ -104,6 +111,7 @@ print(player.inventory[2])
 ---
 
 ### **4. Functions in Lua**
+
 ```lua
 local function greet(name)
     return "Hello, " .. name .. "!"
@@ -113,6 +121,7 @@ print(greet("Lua Developer"))
 ```
 
 Functions can be passed as arguments or stored in tables:
+
 ```lua
 local actions = {
     attack = function() print("Player attacks!") end,
@@ -127,6 +136,7 @@ actions.heal()
 
 ### **5. Modules and Packages**
 Create a module (`math_utils.lua`):
+
 ```lua
 local math_utils = {}
 
@@ -136,13 +146,16 @@ end
 
 return math_utils
 ```
+
 Use the module in another file:
+
 ```lua
 local math_utils = require("math_utils")
 print(math_utils.square(5))
 ```
 
 LuaRocks can be used to manage external packages:
+
 ```bash
 luarocks install luasocket
 ```
@@ -151,6 +164,7 @@ luarocks install luasocket
 
 ### **6. Error Handling**
 Use `pcall` (protected call) to catch errors without crashing the program:
+
 ```lua
 local status, err = pcall(function()
     error("Something went wrong!")
@@ -173,6 +187,7 @@ end
 
 ### **8. Embedding Lua in C**
 Sample C program embedding Lua:
+
 ```c
 #include <lua.h>
 #include <lauxlib.h>
@@ -190,7 +205,9 @@ int main() {
     return 0;
 }
 ```
+
 Compile with:
+
 ```bash
 gcc -o run_lua run_lua.c -llua -lm -ldl
 ```

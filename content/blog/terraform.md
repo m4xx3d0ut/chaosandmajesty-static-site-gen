@@ -19,11 +19,13 @@ readingMinutes: 5
 ### Format and validate the configuration
 
 Format your configuration. Terraform will print out the names of the files it modified, if any. In this case, your configuration file was already formatted correctly, so Terraform won't return any file names.
+
 ```
 terraform fmt
 ```
 
 Validate your configuration. The example configuration provided above is valid, so Terraform will return a success message.
+
 ```
 terraform validate
 ```
@@ -31,6 +33,7 @@ terraform validate
 ### Create infrastructure
 
 Apply the configuration now with the terraform apply command. Terraform will print output similar to what is shown below. We have truncated some of the output to save space.
+
 ```
 terraform apply
 ```
@@ -38,6 +41,7 @@ terraform apply
 ### Inspect state
 
 Inspect the current state using terraform show.
+
 ```
 terraform show
 ```
@@ -45,6 +49,7 @@ terraform show
 ### Manually Managing State
 
 Terraform has a built-in command called terraform state for advanced state management. Use the list subcommand to list of the resources in your project's state.
+
 ```
 terraform state list
 ```
@@ -52,6 +57,7 @@ terraform state list
 ### Destroy
 
 Destroy the resources you created.
+
 ```
 terraform destroy
 ```
@@ -61,6 +67,7 @@ terraform destroy
 ### Set the container name with a variable
 
 Create a new file called variables.tf with a block defining a new container_name variable.
+
 ```
 variable "container_name" {
   description = "Value of the name for the Docker container"
@@ -70,6 +77,7 @@ variable "container_name" {
 ```
 
 In main.tf, update the docker_container resource block to use the new variable. The container_name variable block will default to its default value ("ExampleNginxContainer") unless you declare a different value.
+
 ```
 resource "docker_container" "nginx" {
   image = docker_image.nginx.image_id
@@ -82,11 +90,13 @@ resource "docker_container" "nginx" {
 ```
 
 Apply the configuration. Respond to the confirmation prompt with a yes.
+
 ```
 terraform apply
 ```
 
 Now apply the configuration again, this time overriding the default container name by passing in a variable using the -var flag. Terraform will update the container's name attribute with the new name. Respond to the confirmation prompt with yes.
+
 ```
 terraform apply -var "container_name=YetAnotherName"
 ```
@@ -104,6 +114,7 @@ terraform apply -var "container_name=YetAnotherName"
 Simple example to create a Nginx Docker container.
 
 Create a `main.tf`
+
 ```
 terraform {
   required_providers {
@@ -133,6 +144,7 @@ resource "docker_container" "nginx" {
 ```
 
 Initialize the directory.
+
 ```
 terraform init
 ```
@@ -142,6 +154,7 @@ Terraform downloads the docker provider and installs it in a hidden subdirectory
 ### Output Docker container configuration
 
 Add the configuration below to outputs.tf to define outputs for your container's ID and the image ID.
+
 ```
 output "container_id" {
   description = "ID of the Docker container"
@@ -155,11 +168,13 @@ output "image_id" {
 ```
 
 You must apply this configuration before you can use these output values. Apply your configuration now. Respond to the confirmation prompt with yes.
+
 ```
 terraform apply
 ```
 
 Terraform prints output values to the screen when you apply your configuration. Query the outputs with the terraform output command.
+
 ```bash
 $ terraform output
 container_id = "e5fff27c62e26dc9504d21980543f21161225ab483a1e534a98311a677b9453a"
@@ -179,6 +194,7 @@ More detail on [outputs](https://developer.hashicorp.com/terraform/tutorials/con
 ### Build
 
 Create a `main.tf`
+
 ```
 terraform {
   required_providers {
@@ -207,6 +223,7 @@ resource "aws_instance" "app_server" {
 
 
 Initialize the directory.
+
 ```
 terraform init
 ```

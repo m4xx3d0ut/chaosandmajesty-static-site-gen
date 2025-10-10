@@ -24,6 +24,7 @@ updatedAt: 2023-12-04
 ### STDOUT Redirection
 
 Write STDOUT to console and file:
+
 ```bash
 command | tee command.log
 ```
@@ -31,11 +32,13 @@ command | tee command.log
 ### JSON Helpers
 
 Pretty-print JSON:
+
 ```bash
 jq . sample.json > pretty.json
 ```
 
 Minify JSON:
+
 ```bash
 jq -c < pretty.json
 ```
@@ -43,6 +46,7 @@ jq -c < pretty.json
 ### JSON Diffing
 
 Diff an application bundle after pretty-printing:
+
 ```bash
 cat min/skybox-default-streams.json.live.min | jq . > test.json
 
@@ -52,11 +56,13 @@ diff -y -d test.json pp-skybox-default-streams.json
 ### `grep` Patterns and Wildcards
 
 Match `OS{...}` blocks with basic regex:
+
 ```bash
 grep 'OS\{.*\}' your_file.txt
 ```
 
 Switch to extended regex if you want the shorthand without escaping braces:
+
 ```bash
 grep -E 'OS{.*}' your_file.txt
 ```
@@ -64,6 +70,7 @@ grep -E 'OS{.*}' your_file.txt
 ### Path and Loop Utilities
 
 Grab the last path element with parameter expansion:
+
 ```bash
 path="/path/to/your/directory/file.txt"
 last_element="${path##*/}"
@@ -71,6 +78,7 @@ echo "Last element: $last_element"
 ```
 
 Iterate through files in the current directory:
+
 ```bash
 for file in "$(pwd)"/*; do
   [ -f "$file" ] && echo "Processing file: $file"
@@ -78,6 +86,7 @@ done
 ```
 
 Template script to walk a directory:
+
 ```bash
 #!/bin/bash
 
@@ -95,6 +104,7 @@ done
 ### Recursive Find & Replace
 
 Search recursively, emit matching filenames, and replace text in place:
+
 ```bash
 grep -rli 'old-word' . | xargs -I@ sed -i 's/old-word/new-word/g' @
 ```

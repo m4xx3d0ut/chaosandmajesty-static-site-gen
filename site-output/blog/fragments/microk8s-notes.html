@@ -155,10 +155,12 @@ microk8s kubectl get services
 </li>
 <li><p>Access the service:</p>
 <ul>
-<li>If using a NodePort service, access it at <code>http://&lt;Node-IP&gt;:30000</code>. Get the Node IP:<pre><code class="language-bash">microk8s kubectl get nodes -o wide
+<li><p>If using a NodePort service, access it at <code>http://&lt;Node-IP&gt;:30000</code>. Get the Node IP:</p>
+<pre><code class="language-bash">microk8s kubectl get nodes -o wide
 </code></pre>
 </li>
-<li>If using an Ingress, add <code>youtube-integ.local</code> to your <code>/etc/hosts</code> file and access it at <code>http://youtube-integ.local</code>.</li>
+<li><p>If using an Ingress, add <code>youtube-integ.local</code> to your <code>/etc/hosts</code> file and access it at <code>http://youtube-integ.local</code>.</p>
+</li>
 </ul>
 </li>
 </ol>
@@ -314,12 +316,14 @@ Push the image to the local registry:</p>
 <li><p><strong>Configure MicroK8s to Use the Local Registry:</strong>
 If MicroK8s runs in a VM (e.g., Multipass), you need to expose the registry to MicroK8s:</p>
 <ul>
-<li>Edit Docker&#39;s daemon configuration (on the machine running MicroK8s):<pre><code class="language-json">{
+<li><p>Edit Docker&#39;s daemon configuration (on the machine running MicroK8s):</p>
+<pre><code class="language-json">{
   &quot;insecure-registries&quot;: [&quot;localhost:5000&quot;]
 }
 </code></pre>
 </li>
-<li>Restart the Docker daemon:<pre><code class="language-bash">sudo systemctl restart docker
+<li><p>Restart the Docker daemon:</p>
+<pre><code class="language-bash">sudo systemctl restart docker
 </code></pre>
 </li>
 </ul>
@@ -466,17 +470,22 @@ docker push &lt;external-ip&gt;:32000/your-image
 <hr>
 <h4><strong>Additional Notes</strong></h4>
 <ul>
-<li>If the MicroK8s registry is configured with a different address (e.g., external IP or custom port), replace <code>localhost:32000</code> with the appropriate value.</li>
-<li>Ensure that the local registry is enabled:<pre><code class="language-bash">microk8s enable registry
+<li><p>If the MicroK8s registry is configured with a different address (e.g., external IP or custom port), replace <code>localhost:32000</code> with the appropriate value.</p>
+</li>
+<li><p>Ensure that the local registry is enabled:</p>
+<pre><code class="language-bash">microk8s enable registry
 </code></pre>
 </li>
-<li>If you encounter issues with Docker authentication, ensure Docker is configured to use an insecure registry for <code>localhost:32000</code>:<ol>
-<li>Edit the Docker daemon configuration file (<code>/etc/docker/daemon.json</code>):<pre><code class="language-json">{
+<li><p>If you encounter issues with Docker authentication, ensure Docker is configured to use an insecure registry for <code>localhost:32000</code>:</p>
+<ol>
+<li><p>Edit the Docker daemon configuration file (<code>/etc/docker/daemon.json</code>):</p>
+<pre><code class="language-json">{
   &quot;insecure-registries&quot;: [&quot;localhost:32000&quot;]
 }
 </code></pre>
 </li>
-<li>Restart Docker:<pre><code class="language-bash">sudo systemctl restart docker
+<li><p>Restart Docker:</p>
+<pre><code class="language-bash">sudo systemctl restart docker
 </code></pre>
 </li>
 </ol>

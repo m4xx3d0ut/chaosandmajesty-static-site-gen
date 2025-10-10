@@ -270,7 +270,7 @@ Nmap done: 1 IP address (1 host up) scanned in 16.82 seconds
 <li>The findings also provide information about JavaScript libraries used by the web application.
 -  can be valuable data, as some versions of JavaScript libraries are known to be affected by several vulnerabilities.</li>
 </ul>
-<p><img src="../_resources/Screenshot%20from%202023-08-04%2007-30-45.png" alt="Screenshot from 2023-08-04 07-30-45.png"></p>
+<p><img src="assets/static/resources/Screenshot%20from%202023-08-04%2007-30-45.png" alt="Screenshot from 2023-08-04 07-30-45.png"></p>
 <h6>Directory Brute Force with Gobuster</h6>
 <ul>
 <li>Once we have discovered an application running on a web server, next step is to map all its publicly-accessible files and directories.</li>
@@ -289,79 +289,90 @@ Nmap done: 1 IP address (1 host up) scanned in 16.82 seconds
 <li>Dir mode.</li>
 <li>Which enumerates files and directories.</li>
 </ul>
-<h1>We need to specify the target IP using the -u parameter and a wordlist with -w. The default running threads are 10; we can reduce the amount of traffic by setting a lower number via the -t parameter.
-```bash
-kali@kali:~$ gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/dirb/common.txt -t 5</h1>
-<h1>Gobuster v3.1.0
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:                     <a href="http://192.168.50.20">http://192.168.50.20</a>
+<p>We need to specify the target IP using the -u parameter and a wordlist with -w. The default running threads are 10; we can reduce the amount of traffic by setting a lower number via the -t parameter.</p>
+<pre><code class="language-bash">kali@kali:~$ gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/dirb/common.txt -t 5
+===============================================================
+Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.50.20
 [+] Method:                  GET
 [+] Threads:                 5
 [+] Wordlist:                /usr/share/wordlists/dirb/common.txt
 [+] Negative Status codes:   404
 [+] User Agent:              gobuster/3.1.0
-[+] Timeout:                 10s</h1>
-<h1>2022/03/30 05:16:21 Starting gobuster in directory enumeration mode</h1>
-<p>/.hta                 (Status: 403) [Size: 278]
+[+] Timeout:                 10s
+===============================================================
+2022/03/30 05:16:21 Starting gobuster in directory enumeration mode
+===============================================================
+/.hta                 (Status: 403) [Size: 278]
 /.htaccess            (Status: 403) [Size: 278]
 /.htpasswd            (Status: 403) [Size: 278]
-/css                  (Status: 301) [Size: 312] [--&gt; <a href="http://192.168.50.20/css/%5D">http://192.168.50.20/css/]</a>
-/db                   (Status: 301) [Size: 311] [--&gt; <a href="http://192.168.50.20/db/%5D">http://192.168.50.20/db/]</a>
-/images               (Status: 301) [Size: 315] [--&gt; <a href="http://192.168.50.20/images/%5D">http://192.168.50.20/images/]</a>
+/css                  (Status: 301) [Size: 312] [--&gt; http://192.168.50.20/css/]
+/db                   (Status: 301) [Size: 311] [--&gt; http://192.168.50.20/db/]
+/images               (Status: 301) [Size: 315] [--&gt; http://192.168.50.20/images/]
 /index.php            (Status: 302) [Size: 0] [--&gt; ./login.php]
-/js                   (Status: 301) [Size: 311] [--&gt; <a href="http://192.168.50.20/js/%5D">http://192.168.50.20/js/]</a>
+/js                   (Status: 301) [Size: 311] [--&gt; http://192.168.50.20/js/]
 /server-status        (Status: 403) [Size: 278]
-/uploads              (Status: 301) [Size: 316] [--&gt; <a href="http://192.168.50.20/uploads/%5D">http://192.168.50.20/uploads/]</a></p>
-<h1>===============================================================
-2022/03/30 05:18:08 Finished</h1>
-<pre><code>Under the `/usr/share/wordlists/dirb/` folder we selected the `common.txt` wordlist, which found ten resources. Four of these resources are inaccessible due to insufficient privileges (Status: 403). However, the remaining six are accessible and deserve further investigation.
+/uploads              (Status: 301) [Size: 316] [--&gt; http://192.168.50.20/uploads/]
 
-###### Security Testing with Burp Suite
-
-[Burp Suite](https://portswigger.net/burp) is a GUI-based integrated platform for web application security testing. It provides several different tools via the same user interface.
-
-- Community Edition mainly contains tools used for manual testing.
-- Commercial versions include additional features.
- - Including a formidable web application vulnerability scanner.
-- Burp Suite has an extensive feature list and is worth investigating, but we will only explore a few basic functions in this section.
-
-**Interface**
--  initial four panes of the interface primarily serve as a summary for the Pro version scanner.
--   Proxy tool.
- -   In general terms, a web proxy is any dedicated hardware or software meant to intercept requests and/or responses between the web client and the web server. .
-    -   This allows administrators and testers alike to modify any requests that are intercepted by the proxy, both manually and automatically.
-        -   Some web proxies are employed to intercept company-wide TLS traffic. Known as TLS inspection devices, these perform decryption and re-encryption of the traffic and thus nullify any privacy layer provided by the HTTPS protocol.
-    - **Example:** we can intercept any request sent from the browser before it is passed on to the server.
-        - We can change almost anything about the request at this point, such as parameter names or form values.
-        - We can even add new headers.
-  - This lets us test how an application handles unexpected arbitrary input. .
-        - For example, an input field might have a size limit of 20 characters, but we could use Burp Suite to modify a request to submit 30 characters.
-
-**Proxy Tab**
-- Click the Proxy tab to reveal several sub-tabs. We&#39;ll also disable the Intercept tool, found under the Intercept tab.
-    - When Intercept is enabled, we have to manually click on Forward to send each request to its destination. Alternatively, we can click Drop to not send the request. There are times when we will want to intercept traffic and modify it, but when we are just browsing a site, having to click Forward on each request is very tedious.
-- Options sub-tab shows what ports are listening for proxy requests.
- - Default, Burp Suite enables a proxy listener on localhost:8080.
-- Burp Suite is now shipped with its own Chromium-based native web browser, which is preconfigured to work with all Burp&#39;s features. However, for this course we are going to exclusively rely on Kali&#39;s Firefox browser because it is a more flexible and modular option.
-- In some testing scenarios, we might want to capture the traffic from multiple machines, so the proxy will be configured on a standalone IP. In such cases, we will configure the browser with the external IP address of the proxy.
-- **NOTE:** Why does &quot;detectportal.firefox.com&quot; keep showing up in the proxy history? A captive portal3 is a web page that serves as a sort of gateway page when attempting to browse the Internet. It is often displayed when accepting a user agreement or authenticating through a browser to a Wi-Fi network. To ignore this, simply enter about:config in the address bar. Firefox will present a warning, but we can proceed by clicking I accept the risk!. Finally, search for &quot;network.captive-portal-service.enabled&quot; and double-click it to change the value to &quot;false&quot;. This will prevent these messages from appearing in the proxy history.
-
-**Repeater Tab**
-- We can craft new requests or easily modify the ones in History, resend them, and review the responses.
-- We can right-click a request from Proxy &gt; HTTP History and select Send to Repeater.
-- Click on Repeater, we will observe one sub-tab with the request on the left side of the window.
- - We can send multiple requests to Repeater and it will display them using separate tabs.
- - Send the request to the server by clicking Send.
-- Burp Suite will display the raw server response on the right side of the window.
- - Includes the response headers and un-rendered response content.
-
-**Intruder Tab**
-- Designed to automate a variety of attack angles.
- - Simplest to more complex web application attacks.
-
-Configure our local Kali&#39;s hosts file to statically assign the IP to the offsecwp website we are going to test.
-```bash
-kali@kali:~$ cat /etc/hosts 
+===============================================================
+2022/03/30 05:18:08 Finished
+===============================================================
+</code></pre>
+<p>Under the <code>/usr/share/wordlists/dirb/</code> folder we selected the <code>common.txt</code> wordlist, which found ten resources. Four of these resources are inaccessible due to insufficient privileges (Status: 403). However, the remaining six are accessible and deserve further investigation.</p>
+<h6>Security Testing with Burp Suite</h6>
+<p><a href="https://portswigger.net/burp">Burp Suite</a> is a GUI-based integrated platform for web application security testing. It provides several different tools via the same user interface.</p>
+<ul>
+<li>Community Edition mainly contains tools used for manual testing.</li>
+<li>Commercial versions include additional features.</li>
+<li>Including a formidable web application vulnerability scanner.</li>
+<li>Burp Suite has an extensive feature list and is worth investigating, but we will only explore a few basic functions in this section.</li>
+</ul>
+<p><strong>Interface</strong></p>
+<ul>
+<li>initial four panes of the interface primarily serve as a summary for the Pro version scanner.</li>
+<li>Proxy tool.</li>
+<li>In general terms, a web proxy is any dedicated hardware or software meant to intercept requests and/or responses between the web client and the web server. .
+-   This allows administrators and testers alike to modify any requests that are intercepted by the proxy, both manually and automatically.<ul>
+<li>Some web proxies are employed to intercept company-wide TLS traffic. Known as TLS inspection devices, these perform decryption and re-encryption of the traffic and thus nullify any privacy layer provided by the HTTPS protocol.
+- <strong>Example:</strong> we can intercept any request sent from the browser before it is passed on to the server.</li>
+<li>We can change almost anything about the request at this point, such as parameter names or form values.</li>
+<li>We can even add new headers.</li>
+</ul>
+</li>
+<li>This lets us test how an application handles unexpected arbitrary input. .
+- For example, an input field might have a size limit of 20 characters, but we could use Burp Suite to modify a request to submit 30 characters.</li>
+</ul>
+<p><strong>Proxy Tab</strong></p>
+<ul>
+<li>Click the Proxy tab to reveal several sub-tabs. We&#39;ll also disable the Intercept tool, found under the Intercept tab.<ul>
+<li>When Intercept is enabled, we have to manually click on Forward to send each request to its destination. Alternatively, we can click Drop to not send the request. There are times when we will want to intercept traffic and modify it, but when we are just browsing a site, having to click Forward on each request is very tedious.</li>
+</ul>
+</li>
+<li>Options sub-tab shows what ports are listening for proxy requests.</li>
+<li>Default, Burp Suite enables a proxy listener on localhost:8080.</li>
+<li>Burp Suite is now shipped with its own Chromium-based native web browser, which is preconfigured to work with all Burp&#39;s features. However, for this course we are going to exclusively rely on Kali&#39;s Firefox browser because it is a more flexible and modular option.</li>
+<li>In some testing scenarios, we might want to capture the traffic from multiple machines, so the proxy will be configured on a standalone IP. In such cases, we will configure the browser with the external IP address of the proxy.</li>
+<li><strong>NOTE:</strong> Why does &quot;detectportal.firefox.com&quot; keep showing up in the proxy history? A captive portal3 is a web page that serves as a sort of gateway page when attempting to browse the Internet. It is often displayed when accepting a user agreement or authenticating through a browser to a Wi-Fi network. To ignore this, simply enter about:config in the address bar. Firefox will present a warning, but we can proceed by clicking I accept the risk!. Finally, search for &quot;network.captive-portal-service.enabled&quot; and double-click it to change the value to &quot;false&quot;. This will prevent these messages from appearing in the proxy history.</li>
+</ul>
+<p><strong>Repeater Tab</strong></p>
+<ul>
+<li>We can craft new requests or easily modify the ones in History, resend them, and review the responses.</li>
+<li>We can right-click a request from Proxy &gt; HTTP History and select Send to Repeater.</li>
+<li>Click on Repeater, we will observe one sub-tab with the request on the left side of the window.</li>
+<li>We can send multiple requests to Repeater and it will display them using separate tabs.</li>
+<li>Send the request to the server by clicking Send.</li>
+<li>Burp Suite will display the raw server response on the right side of the window.</li>
+<li>Includes the response headers and un-rendered response content.</li>
+</ul>
+<p><strong>Intruder Tab</strong></p>
+<ul>
+<li>Designed to automate a variety of attack angles.</li>
+<li>Simplest to more complex web application attacks.</li>
+</ul>
+<p>Configure our local Kali&#39;s hosts file to statically assign the IP to the offsecwp website we are going to test.</p>
+<pre><code class="language-bash">kali@kali:~$ cat /etc/hosts 
 
 ...
 192.168.50.16 offsecwp
@@ -542,30 +553,34 @@ Allow: /?hl=
 {GOBUSTER}/v2
 </code></pre>
 <p>we are using the &quot;{GOBUSTER}&quot; placeholder to match any word from our wordlist, which will be appended with the version number.</p>
-<h1>Enumerate the API with gobuster using the following command:
-```bash
-kali@kali:~$ gobuster dir -u <a href="http://192.168.50.16:5002">http://192.168.50.16:5002</a> -w /usr/share/wordlists/dirb/big.txt -p pattern</h1>
-<h1>Gobuster v3.1.0
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:                     <a href="http://192.168.50.16:5001">http://192.168.50.16:5001</a>
+<p>Enumerate the API with gobuster using the following command:</p>
+<pre><code class="language-bash">kali@kali:~$ gobuster dir -u http://192.168.50.16:5002 -w /usr/share/wordlists/dirb/big.txt -p pattern
+===============================================================
+Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.50.16:5001
 [+] Method:                  GET
 [+] Threads:                 10
 [+] Wordlist:                /usr/share/wordlists/dirb/big.txt
 [+] Patterns:                pattern (1 entries)
 [+] Negative Status codes:   404
 [+] User Agent:              gobuster/3.1.0
-[+] Timeout:                 10s</h1>
-<h1>2022/04/06 04:19:46 Starting gobuster in directory enumeration mode</h1>
-<p>/books/v1             (Status: 200) [Size: 235]
+[+] Timeout:                 10s
+===============================================================
+2022/04/06 04:19:46 Starting gobuster in directory enumeration mode
+===============================================================
+/books/v1             (Status: 200) [Size: 235]
 /console              (Status: 200) [Size: 1985]
-/ui                   (Status: 308) [Size: 265] [--&gt; <a href="http://192.168.50.16:5001/ui/%5D">http://192.168.50.16:5001/ui/]</a>
-/users/v1             (Status: 200) [Size: 241]</p>
-<pre><code>We discovered multiple hits, including two interesting entries that seem to be API endpoints, /books/v1 and /users/v1.
-- If we browse to the /ui path we&#39;ll discover the entire APIs&#39; documentation. Although this is common during white-box testing, is not a luxury we normally have during a black-box test.
-
-inspect the /users API with curl.
-```bash
-kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1
+/ui                   (Status: 308) [Size: 265] [--&gt; http://192.168.50.16:5001/ui/]
+/users/v1             (Status: 200) [Size: 241]
+</code></pre>
+<p>We discovered multiple hits, including two interesting entries that seem to be API endpoints, /books/v1 and /users/v1.</p>
+<ul>
+<li>If we browse to the /ui path we&#39;ll discover the entire APIs&#39; documentation. Although this is common during white-box testing, is not a luxury we normally have during a black-box test.</li>
+</ul>
+<p>inspect the /users API with curl.</p>
+<pre><code class="language-bash">kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1
 HTTP/1.0 200 OK
 Content-Type: application/json
 Content-Length: 241
@@ -590,27 +605,31 @@ Date: Wed, 06 Apr 2022 09:27:50 GMT
 }
 </code></pre>
 <p>The application returned three user accounts, including an administrative account that seems to be worth further investigation. We can use this information to attempt another brute force attack with gobuster, this time targeting the admin user with a smaller wordlist. </p>
-<h1>To verify if any further API property is related to the username property, we&#39;ll expand the API path by inserting the admin username at the very end.
-```bash
-kali@kali:~$ gobuster dir -u <a href="http://192.168.50.16:5002/users/v1/admin/">http://192.168.50.16:5002/users/v1/admin/</a> -w /usr/share/wordlists/dirb/small.txt</h1>
-<h1>Gobuster v3.1.0
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:                     <a href="http://192.168.50.16:5001/users/v1/admin/">http://192.168.50.16:5001/users/v1/admin/</a>
+<p>To verify if any further API property is related to the username property, we&#39;ll expand the API path by inserting the admin username at the very end.</p>
+<pre><code class="language-bash">kali@kali:~$ gobuster dir -u http://192.168.50.16:5002/users/v1/admin/ -w /usr/share/wordlists/dirb/small.txt
+===============================================================
+Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.50.16:5001/users/v1/admin/
 [+] Method:                  GET
 [+] Threads:                 10
 [+] Wordlist:                /usr/share/wordlists/dirb/small.txt
 [+] Negative Status codes:   404
 [+] User Agent:              gobuster/3.1.0
-[+] Timeout:                 10s</h1>
-<h1>2022/04/06 06:40:12 Starting gobuster in directory enumeration mode</h1>
-<p>/email                (Status: 405) [Size: 142]
-/password             (Status: 405) [Size: 142]</p>
-<h1>===============================================================
-2022/04/06 06:40:35 Finished</h1>
-<pre><code>
-The password API path seems enticing for our testing purposes, so we&#39;ll probe it via curl.
-```bash
-kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/admin/password
+[+] Timeout:                 10s
+===============================================================
+2022/04/06 06:40:12 Starting gobuster in directory enumeration mode
+===============================================================
+/email                (Status: 405) [Size: 142]
+/password             (Status: 405) [Size: 142]
+
+===============================================================
+2022/04/06 06:40:35 Finished
+===============================================================
+</code></pre>
+<p>The password API path seems enticing for our testing purposes, so we&#39;ll probe it via curl.</p>
+<pre><code class="language-bash">kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/admin/password
 HTTP/1.0 405 METHOD NOT ALLOWED
 Content-Type: application/problem+json
 Content-Length: 142
@@ -753,58 +772,63 @@ PORT   STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 1.52 seconds
 </code></pre>
 <p><strong>Gobuster Notes</strong></p>
-<h1>If you get status code error:
-```
-$ sudo gobuster dir -u <a href="http://192.168.225.16">http://192.168.225.16</a> -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst</h1>
-<h1>Gobuster v3.5
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:            <a href="http://192.168.225.16">http://192.168.225.16</a>
+<p>If you get status code error:</p>
+<pre><code>$ sudo gobuster dir -u http://192.168.225.16 -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst
+===============================================================
+Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:            http://192.168.225.16
 [+] Method:         GET
 [+] Threads:        10
 [+] Wordlist:       /usr/share/wordlists/dirb/big.txt
 [+] Patterns:       gobuster.lst (2 entries)
 [+] Status codes:   401,403,204,301,302,307
 [+] User Agent:     gobuster/3.5
-[+] Timeout:        10s</h1>
-<h1>2023/08/06 21:23:14 Starting gobuster in directory enumeration mode</h1>
-<p>Error: the server returns a status code that matches the provided options for non existing urls. <a href="http://192.168.225.16/991ecf7c-4667-4bbe-a644-cb49a0419aea">http://192.168.225.16/991ecf7c-4667-4bbe-a644-cb49a0419aea</a> =&gt; 301 (Length: 0). To continue please exclude the status code or the length</p>
-<pre><code>
-Directory mode help `gobuster dir -h`
+[+] Timeout:        10s
+===============================================================
+2023/08/06 21:23:14 Starting gobuster in directory enumeration mode
+===============================================================
 
-Try with blacklist option set `-b` and/or `-s`:
+Error: the server returns a status code that matches the provided options for non existing urls. http://192.168.225.16/991ecf7c-4667-4bbe-a644-cb49a0419aea =&gt; 301 (Length: 0). To continue please exclude the status code or the length
 </code></pre>
-<h1>$ sudo gobuster dir -u <a href="http://192.168.225.16">http://192.168.225.16</a> -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst -b &quot;204,301,302,307,401,403&quot;      </h1>
-<h1>Gobuster v3.5
-by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
-<h1>[+] Url:                     <a href="http://192.168.225.16">http://192.168.225.16</a>
+<p>Directory mode help <code>gobuster dir -h</code></p>
+<p>Try with blacklist option set <code>-b</code> and/or <code>-s</code>:</p>
+<pre><code>$ sudo gobuster dir -u http://192.168.225.16 -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst -b &quot;204,301,302,307,401,403&quot;      
+===============================================================
+Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.225.16
 [+] Method:                  GET
 [+] Threads:                 10
 [+] Wordlist:                /usr/share/wordlists/dirb/big.txt
 [+] Patterns:                gobuster.lst (2 entries)
 [+] Negative Status codes:   204,301,302,307,401,403
 [+] User Agent:              gobuster/3.5
-[+] Timeout:                 10s</h1>
-<p>2023/08/06 21:23:40 Starting gobuster in directory enumeration mode</p>
-<pre><code>
-**API Abuse**
-
-Full workflow for exploiting vulnerable API.
-- Enumerate endpoints.
-- Determine allowed Methods.
- - GET.
- - POST.
- - PUT.
- - PATCH.
-- Note that manual probing with cURL may be required in some case, gobuster failed to find several endpoints.
-- Endpoint structure shown below interesting.
- - Admin.
-  - Email.
-  - Password.
-- Check for `&#39;{&quot;admin&quot;:&quot;True&quot;}&#39;` if able to register.
-- Retrieve OAuth token, use for authenticated request.
- - Cause general chaos.
-```bash
-┌──(kali㉿kali)-[~]
+[+] Timeout:                 10s
+===============================================================
+2023/08/06 21:23:40 Starting gobuster in directory enumeration mode
+</code></pre>
+<p><strong>API Abuse</strong></p>
+<p>Full workflow for exploiting vulnerable API.</p>
+<ul>
+<li>Enumerate endpoints.</li>
+<li>Determine allowed Methods.</li>
+<li>GET.</li>
+<li>POST.</li>
+<li>PUT.</li>
+<li>PATCH.</li>
+<li>Note that manual probing with cURL may be required in some case, gobuster failed to find several endpoints.</li>
+<li>Endpoint structure shown below interesting.</li>
+<li>Admin.</li>
+<li>Email.</li>
+<li>Password.</li>
+<li>Check for <code>&#39;{&quot;admin&quot;:&quot;True&quot;}&#39;</code> if able to register.</li>
+<li>Retrieve OAuth token, use for authenticated request.</li>
+<li>Cause general chaos.</li>
+</ul>
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
 └─$ gobuster dir -u http://192.168.225.16:5002/users/v1/ -w /usr/share/wordlists/dirb/small.txt  
 ===============================================================
 Gobuster v3.5
@@ -1302,11 +1326,11 @@ foreach(VST_get_records($date_start, $date_finish) as $record) {
 <p>With Burp configured as a proxy and Intercept disabled, we can start our attack by first browsing to <a href="http://offsecwp/">http://offsecwp/</a> using Firefox.</p>
 <p>We&#39;ll then go to Burp Proxy &gt; HTTP History, right-click on the request, and select Send to Repeater.</p>
 <p>Moving to the Repeater tab, we can replace the default User-Agent value with the a script tag that includes the alert method (<script>alert(42)</script>), then send the request.
-<img src="../_resources/9fc073adaf330bd5307cd7f57e30a8b1.png" alt="9fc073adaf330bd5307cd7f57e30a8b1.png"></p>
+<img src="assets/static/resources/9fc073adaf330bd5307cd7f57e30a8b1.png" alt="9fc073adaf330bd5307cd7f57e30a8b1.png"></p>
 <p>If the server responds with a 200 OK message, we should be confident that our payload is now stored in the WordPress database.</p>
 <p>To verify this, let&#39;s log in to the admin console at <a href="http://offsecwp/wp-login.php">http://offsecwp/wp-login.php</a> using the admin/password credentials.</p>
 <p>If we navigate to the Visitors plugin console at <a href="http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php">http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php</a>, we are greeted with a pop-up banner showing the number 42, proving that our code injection worked.
-<img src="../_resources/81d8b7fd4b669031e95dc1dd84c46b70.png" alt="81d8b7fd4b669031e95dc1dd84c46b70.png">
+<img src="assets/static/resources/81d8b7fd4b669031e95dc1dd84c46b70.png" alt="81d8b7fd4b669031e95dc1dd84c46b70.png">
 Excellent. We have injected an XSS payload into the web application&#39;s database and it will be served to any administrator that loads the plugin. A simple alert window is a somewhat trivial example of what can be done with XSS, so let’s try something more interesting, like creating a new administrative account.</p>
 <h6>Privilege Escalation via XSS</h6>
 <ul>

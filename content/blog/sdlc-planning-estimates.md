@@ -50,6 +50,7 @@ Here are the top frameworks and methodologies for software development project p
    - **Planning Tools**: PERT charts.
    - **Best For**: Projects with high uncertainty in task durations.
    - **Estimation Techniques**: Weighted average formula:
+
 ```
                  O + 4 * M + P
 Expected Time = _____________
@@ -57,6 +58,7 @@ Expected Time = _____________
 
 Calculated Expected Time = 15.83 Days
 ```
+
 - Optimistic (O)
 - Most Likely (M)
 - Pessimistic (P)

