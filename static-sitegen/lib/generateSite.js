@@ -627,6 +627,25 @@ export async function generateSite(config, outputDir, verbose = false) {
         };
       }
       indexPageConfigData.latestPostsByAuthor = latestPostsByAuthor;
+
+      const consoleDispatches = blogArtifacts.posts
+        .filter(post => !post.isHidden)
+        .map(post => ({
+          slug: post.slug,
+          title: post.title,
+          authorId: post.author?.id || '',
+          authorName: post.author?.name || post.author?.id || '',
+          summary: post.summary || '',
+          url: post.publicHref || post.canonicalHref || post.relativeHref,
+          publishedAtIso: post.publishedAtIso || (post.publishedAt ? post.publishedAt.toISOString() : null),
+          displayPublishedAt: post.displayPublishedAt || '',
+          readingMinutes: post.readingMinutes || null,
+          tags: Array.isArray(post.tags) ? post.tags : []
+        }));
+
+      if (consoleDispatches.length > 0) {
+        indexPageConfigData.consoleDispatches = consoleDispatches;
+      }
     }
 
     await generatePage(indexPageConfigData, updatedConfig, outputDir, verbose, 'index.html');

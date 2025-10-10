@@ -204,6 +204,52 @@
   </script>
   <% } %>
 
+  <% 
+    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;
+    const hasDispatchData = dispatchData && dispatchData.length > 0;
+  %>
+  <% if (hasDispatchData) { %>
+  <script>
+    (function(seed) {
+      var existing = Array.isArray(window.cmConsoleDispatches) ? window.cmConsoleDispatches.slice() : [];
+      var seen = new Set();
+      existing.forEach(function(entry) {
+        if (entry && entry.slug) {
+          seen.add(entry.slug);
+        }
+      });
+      if (Array.isArray(seed)) {
+        seed.forEach(function(entry) {
+          if (!entry || (entry.slug && seen.has(entry.slug))) {
+            return;
+          }
+          existing.push(entry);
+          if (entry.slug) {
+            seen.add(entry.slug);
+          }
+        });
+      }
+      window.cmConsoleDispatches = existing;
+    })(<%- JSON.stringify(dispatchData) %>);
+  </script>
+  <% } %>
+
+  <% 
+    const doomBaseDepthValue = (typeof page.baseDepth === 'number' && page.baseDepth > 0) ? '../'.repeat(page.baseDepth) : '';
+    const rootBaseValue = (typeof page.rootBase === 'string' && page.rootBase.length > 0)
+      ? page.rootBase.replace(/\/+$/, '')
+      : ((site.baseUrl && site.baseUrl !== '/') ? site.baseUrl.replace(/\/+$/, '') : '');
+    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;
+  %>
+  <script>
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '<%= doomAssetBase %>';
+      }
+    })();
+  </script>
+
   <!-- NAV TOGGLE SCRIPT -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {

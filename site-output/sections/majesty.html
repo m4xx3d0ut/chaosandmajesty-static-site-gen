@@ -214,6 +214,22 @@
   
   
 
+  
+  
+
+  
+  <script>
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '../assets/doom/';
+      }
+      if (!config.loader) {
+        config.loader = config.assetBase.replace(/\/+$/, '/') + 'doom.js';
+      }
+    })();
+  </script>
+
   <!-- NAV TOGGLE SCRIPT -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {

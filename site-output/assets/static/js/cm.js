@@ -402,7 +402,36 @@
       'ALL YOUR BASE ARE BELONG TO US!',
       'Awaiting command...'
   ];
-  var opts = ['paul', 'm4xx3d0ut', 'renee', 'matica'];
+  var profileAliases = {
+      'paul': 0,
+      'pk': 0,
+      'paulkolesa': 0,
+      'm4xx3d0ut': 0,
+      'architect': 0,
+      'th34rch1t3ct': 0,
+      'renee': 1,
+      'rr': 1,
+      'rk': 1,
+      'matica': 1,
+      'matica8': 1,
+      'reneerules': 1
+  };
+  var commandHistory = [];
+  var historyIndex = 0;
+  var DISPATCH_PAGE_SIZE = 3;
+  var doomState = {
+      active: false,
+      overlay: null,
+      canvas: null,
+      statusNode: null,
+      instancePromise: null,
+      instance: null,
+      memory: null,
+      loopHandle: null,
+      loopFn: null,
+      listeners: [],
+      context: null
+  };
 
   function getLatestArticles() {
       var articles = window.cmLatestArticles;
@@ -410,6 +439,35 @@
           return {};
       }
       return articles;
+  }
+
+  function getConsoleDispatches() {
+      var list = window.cmConsoleDispatches;
+      if (!Array.isArray(list)) {
+          return [];
+      }
+      return list
+        .map(function(entry) {
+          if (!entry) return null;
+          return {
+              slug: entry.slug || '',
+              title: entry.title || 'Untitled dispatch',
+              authorId: entry.authorId || '',
+              authorName: entry.authorName || entry.authorId || '',
+              summary: entry.summary || '',
+              url: entry.url || '',
+              publishedAtIso: entry.publishedAtIso || '',
+              displayPublishedAt: entry.displayPublishedAt || '',
+              readingMinutes: entry.readingMinutes,
+              tags: Array.isArray(entry.tags) ? entry.tags : []
+          };
+        })
+        .filter(Boolean)
+        .sort(function(a, b) {
+          var aTime = a && a.publishedAtIso ? Date.parse(a.publishedAtIso) : 0;
+          var bTime = b && b.publishedAtIso ? Date.parse(b.publishedAtIso) : 0;
+          return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+        });
   }
   var prof = [
       [
@@ -531,39 +589,760 @@
       return lines;
   }
 
-  function termFunc(input) {
-      var term = input.toLowerCase();
-      var trimmed = term.trim();
+  function normaliseCount(value, fallback, max) {
+      var parsed = parseInt(value, 10);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+          parsed = fallback;
+      }
+      if (max && parsed > max) {
+          parsed = max;
+      }
+      return parsed;
+  }
 
-      if (trimmed.startsWith('latest')) {
-          var parts = trimmed.split(/\s+/);
-          if (parts.length < 2) {
-              terminal(['Usage: latest <author>']);
-              return;
+  function formatPageHeading(label, pageIndex, totalPages) {
+      var header = label ? label : 'Dispatch feed';
+      return '// ' + header + ' // page ' + (pageIndex + 1) + '/' + totalPages;
+  }
+
+  function formatDispatchMeta(entry) {
+      var bits = [];
+      if (entry.displayPublishedAt) {
+          bits.push(entry.displayPublishedAt);
+      }
+      if (entry.readingMinutes) {
+          bits.push(entry.readingMinutes + ' min');
+      }
+      if (entry.tags && entry.tags.length) {
+          bits.push('tags: ' + entry.tags.join(', '));
+      }
+      return bits.length ? '   ' + bits.join(' • ') : null;
+  }
+
+  function formatDispatchSummary(entry, index) {
+      var author = entry.authorName || entry.authorId || 'Unknown operative';
+      var base = '[' + String(index + 1).padStart(2, '0') + '] ' + entry.title + ' // ' + author;
+      return base;
+  }
+
+  function buildDispatchLines(entries, options) {
+      var opts = options || {};
+      var perPage = opts.pageSize || DISPATCH_PAGE_SIZE;
+      var heading = opts.heading || 'Dispatch feed';
+      var emptyMessage = opts.emptyMessage || 'No dispatches to display.';
+
+      if (!entries || !entries.length) {
+          return [emptyMessage];
+      }
+
+      var lines = [];
+      var totalPages = Math.ceil(entries.length / perPage);
+
+      entries.forEach(function(entry, idx) {
+          var pageIndex = Math.floor(idx / perPage);
+          if (idx % perPage === 0) {
+              lines.push(formatPageHeading(heading, pageIndex, totalPages));
+              lines.push('---');
           }
-          var alias = parts[1];
-          var entry = resolveLatest(alias);
-          if (entry) {
-              terminal(latestLines(entry));
-          } else {
-              terminal(['No recent dispatch found for "' + alias + '".']);
+
+          lines.push(formatDispatchSummary(entry, idx));
+          var meta = formatDispatchMeta(entry);
+          if (meta) {
+              lines.push(meta);
           }
+          if (entry.summary) {
+              lines.push('   ' + entry.summary);
+          }
+          if (entry.url) {
+              lines.push('Read: ');
+              lines.push(entry.url);
+              lines.push(entry.url);
+          }
+
+          var isEndOfPage = ((idx + 1) % perPage === 0) && (idx !== entries.length - 1);
+          if (isEndOfPage) {
+              lines.push('--- continue ---');
+          } else if (idx !== entries.length - 1) {
+              lines.push('---');
+          }
+      });
+
+      lines.push('End of transmission...');
+      return lines;
+  }
+
+  function sampleDispatches(entries, count) {
+      if (!entries || !entries.length) {
+          return [];
+      }
+      var pool = entries.slice();
+      var limit = Math.min(count, pool.length);
+      var picked = [];
+      for (var i = 0; i < limit; i += 1) {
+          var idx = Math.floor(Math.random() * pool.length);
+          picked.push(pool[idx]);
+          pool.splice(idx, 1);
+      }
+      return picked;
+  }
+
+  function searchDispatches(term, entries) {
+      if (!term) return [];
+      var normalised = term.toLowerCase();
+      return entries.filter(function(entry) {
+          if (!entry) return false;
+          var haystacks = [entry.title, entry.summary, entry.authorName, entry.authorId];
+          if (entry.tags && entry.tags.length) {
+              haystacks = haystacks.concat(entry.tags.join(' '));
+          }
+          return haystacks.some(function(value) {
+              if (!value) return false;
+              return value.toLowerCase().indexOf(normalised) !== -1;
+          });
+      });
+  }
+
+  function getDoomConfig() {
+      var config = window.cmDoomConfig || {};
+      var base = config.assetBase || 'assets/doom/';
+      if (typeof base === 'string' && base.slice(-1) !== '/') {
+          base += '/';
+      }
+      return {
+          assetBase: base,
+          loader: config.loader || (base + 'doom.js'),
+          canvasId: config.canvasId || 'doom-canvas'
+      };
+  }
+
+  function isDoomSupported() {
+      return typeof WebAssembly === 'object';
+  }
+
+  function setDoomStatus(message) {
+      if (doomState.statusNode) {
+          doomState.statusNode.textContent = message || '';
+      }
+  }
+
+  function ensureDoomOverlay() {
+      var consoleEl = document.getElementById('console');
+      var screen = document.getElementById('tOut');
+      if (!consoleEl || !screen) {
+          return null;
+      }
+
+      var overlay = document.createElement('div');
+      overlay.className = 'doom-overlay';
+
+      var status = document.createElement('div');
+      status.className = 'doom-overlay__status';
+      overlay.appendChild(status);
+
+      var canvasWrap = document.createElement('div');
+      canvasWrap.className = 'doom-overlay__canvas-wrap';
+      var canvas = document.createElement('canvas');
+      canvas.id = getDoomConfig().canvasId;
+      canvas.tabIndex = -1;
+      canvas.width = 640;
+      canvas.height = 400;
+      canvasWrap.appendChild(canvas);
+      overlay.appendChild(canvasWrap);
+
+      var controls = document.createElement('div');
+      controls.className = 'doom-overlay__controls';
+      var instructions = document.createElement('span');
+      instructions.textContent = 'WASD / arrows to move · Ctrl / Space to shoot · `exit doom` to leave';
+      controls.appendChild(instructions);
+      var exitBtn = document.createElement('button');
+      exitBtn.type = 'button';
+      exitBtn.textContent = 'Exit DOOM';
+      exitBtn.addEventListener('click', function() {
+          teardownDoom('User exit.');
+          terminal(['Exited DOOM.']);
+      });
+      controls.appendChild(exitBtn);
+      overlay.appendChild(controls);
+
+      screen.appendChild(overlay);
+      consoleEl.classList.add('has-doom');
+
+      doomState.overlay = overlay;
+      doomState.canvas = canvas;
+      doomState.statusNode = status;
+
+      return overlay;
+  }
+
+  function registerDoomListener(target, type, handler, options) {
+      if (!target || !type || typeof handler !== 'function') {
           return;
       }
-      var valid = false;
-      opts.forEach((opt) => {
-          if (term.includes(opt)) {
-              valid = true;
-              if (opt === opts[0] || opt === opts[1]) {
-                  terminal(prof[0]);
-              } else if (opt == opts[2] || opt == opts[3]) {
-                  terminal(prof[1]);
+      target.addEventListener(type, handler, options || false);
+      doomState.listeners.push({ target: target, type: type, handler: handler, options: options || false });
+  }
+
+  function removeDoomListeners() {
+      doomState.listeners.forEach(function(binding) {
+          var target = binding.target;
+          if (target && typeof target.removeEventListener === 'function') {
+              try {
+                  target.removeEventListener(binding.type, binding.handler, binding.options);
+              } catch (_err) {
+                  // ignore
               }
           }
       });
-      if (!valid) {
-          terminal(['DOES NOT COMPUTE!!!']);
+      doomState.listeners = [];
+  }
+
+  function instantiateDoom() {
+      if (doomState.instancePromise) {
+          return doomState.instancePromise;
       }
+
+      var config = getDoomConfig();
+      var wasmUrl = config.assetBase + 'doom.wasm';
+      var canvas = doomState.canvas;
+      if (!canvas) {
+          return Promise.reject(new Error('DOOM canvas missing.'));
+      }
+
+      var context = canvas.getContext('2d');
+      doomState.context = context;
+      var doomScreenWidth = 320 * 2;
+      var doomScreenHeight = 200 * 2;
+
+      doomState.memory = new WebAssembly.Memory({ initial: 108 });
+      var startTime = performance.now();
+
+      function readString(offset, length) {
+          try {
+              var bytes = new Uint8Array(doomState.memory.buffer, offset, length);
+              return new TextDecoder('utf8').decode(bytes);
+          } catch (error) {
+              return '';
+          }
+      }
+
+      function drawCanvas(ptr) {
+          if (!doomState.context) {
+              return;
+          }
+          var doomScreen = new Uint8ClampedArray(doomState.memory.buffer, ptr, doomScreenWidth * doomScreenHeight * 4);
+          var renderScreen = new ImageData(doomScreen, doomScreenWidth, doomScreenHeight);
+          doomState.context.putImageData(renderScreen, 0, 0);
+      }
+
+      var importObject = {
+          js: {
+              js_console_log: function(offset, length) {
+                  console.log('[DOOM]', readString(offset, length));
+              },
+              js_stdout: function(offset, length) {
+                  console.log('[DOOM stdout]', readString(offset, length));
+              },
+              js_stderr: function(offset, length) {
+                  console.error('[DOOM stderr]', readString(offset, length));
+              },
+              js_milliseconds_since_start: function() {
+                  return performance.now() - startTime;
+              },
+              js_draw_screen: drawCanvas
+          },
+          env: {
+              memory: doomState.memory
+          }
+      };
+
+      setDoomStatus('Fetching DOOM wasm...');
+
+      doomState.instancePromise = fetch(wasmUrl).then(function(response) {
+          if (!response.ok) {
+              throw new Error('Failed to fetch DOOM wasm at ' + wasmUrl + ' (' + response.status + ')');
+          }
+          if (WebAssembly.instantiateStreaming) {
+              return WebAssembly.instantiateStreaming(response.clone(), importObject).catch(function(streamError) {
+                  return response.arrayBuffer().then(function(buffer) {
+                      return WebAssembly.instantiate(buffer, importObject);
+                  });
+              });
+          }
+          return response.arrayBuffer().then(function(buffer) {
+              return WebAssembly.instantiate(buffer, importObject);
+          });
+      }).then(function(result) {
+          doomState.instance = result.instance;
+          setDoomStatus('WASM ready. Initialising...');
+          return result.instance;
+      }).catch(function(error) {
+          doomState.instancePromise = null;
+          doomState.instance = null;
+          doomState.memory = null;
+          doomState.context = null;
+          throw error;
+      });
+
+      return doomState.instancePromise;
+  }
+
+  function setupDoomInteractions(instance) {
+      var canvas = doomState.canvas;
+      if (!canvas || !instance || !instance.exports || typeof instance.exports.add_browser_event !== 'function') {
+          return;
+      }
+
+      if (!canvas.hasAttribute('tabindex')) {
+          canvas.setAttribute('tabindex', '0');
+      }
+
+      var exports = instance.exports;
+
+      var doomKeyCode = function(keyCode) {
+          switch (keyCode) {
+              case 8: return 127; // backspace
+              case 17: return 0x80 + 0x1d; // ctrl
+              case 18: return 0x80 + 0x38; // alt
+              case 37: return 0xac; // left
+              case 38: return 0xad; // up
+              case 39: return 0xae; // right
+              case 40: return 0xaf; // down
+              default:
+                  if (keyCode >= 65 && keyCode <= 90) {
+                      return keyCode + 32;
+                  }
+                  if (keyCode >= 112 && keyCode <= 123) {
+                      return keyCode + 75;
+                  }
+                  return keyCode;
+          }
+      };
+
+      var keyDown = function(code) { exports.add_browser_event(0, code); };
+      var keyUp = function(code) { exports.add_browser_event(1, code); };
+
+      registerDoomListener(canvas, 'keydown', function(event) {
+          keyDown(doomKeyCode(event.keyCode));
+          event.preventDefault();
+      });
+      registerDoomListener(canvas, 'keyup', function(event) {
+          keyUp(doomKeyCode(event.keyCode));
+          event.preventDefault();
+      });
+
+      registerDoomListener(canvas, 'click', function() {
+          focusDoomCanvas();
+      });
+  }
+
+  function beginDoomLoop(instance) {
+      if (!instance || !instance.exports || typeof instance.exports.doom_loop_step !== 'function') {
+          setDoomStatus('DOOM runtime missing loop entry point.');
+          return;
+      }
+
+      var step = function() {
+          if (!doomState.active || !doomState.instance) {
+              return;
+          }
+          try {
+              instance.exports.doom_loop_step();
+          } catch (error) {
+              console.error('DOOM runtime error:', error);
+              setDoomStatus('Runtime error. See console for details.');
+              teardownDoom();
+              return;
+          }
+          doomState.loopHandle = requestAnimationFrame(step);
+      };
+
+      doomState.loopFn = step;
+      doomState.loopHandle = requestAnimationFrame(step);
+  }
+
+  function focusDoomCanvas() {
+      if (doomState.canvas && typeof doomState.canvas.focus === 'function') {
+          try {
+              doomState.canvas.focus({ preventScroll: true });
+          } catch (_err) {
+              doomState.canvas.focus();
+          }
+      }
+  }
+
+  function startDoom() {
+      if (!isDoomSupported()) {
+          terminal(['This browser does not support WebAssembly. Unable to launch DOOM.']);
+          return;
+      }
+      if (doomState.active) {
+          terminal(['DOOM is already running. Type `exit doom` to return.']);
+          return;
+      }
+
+      var overlay = ensureDoomOverlay();
+      if (!overlay) {
+          terminal(['Unable to mount DOOM viewport.']);
+          return;
+      }
+
+      doomState.active = true;
+      setDoomStatus('Initializing DOOM runtime...');
+
+      instantiateDoom().then(function(instance) {
+          try {
+              if (instance && instance.exports && typeof instance.exports.main === 'function') {
+                  instance.exports.main();
+              }
+          } catch (invokeError) {
+              console.error('Failed to start DOOM main()', invokeError);
+              throw invokeError;
+          }
+
+          setupDoomInteractions(instance);
+          setDoomStatus('Loaded. Click canvas to capture controls.');
+          focusDoomCanvas();
+          beginDoomLoop(instance);
+      }).catch(function(error) {
+          terminal(['Failed to load DOOM assets.', error && error.message ? error.message : '']);
+          teardownDoom();
+      });
+  }
+
+  function teardownDoom(message) {
+      if (!doomState.active && !doomState.overlay) {
+          return;
+      }
+
+      var consoleEl = document.getElementById('console');
+      if (consoleEl) {
+          consoleEl.classList.remove('has-doom');
+      }
+      if (doomState.overlay && doomState.overlay.parentNode) {
+          doomState.overlay.parentNode.removeChild(doomState.overlay);
+      }
+
+      if (doomState.loopHandle) {
+          cancelAnimationFrame(doomState.loopHandle);
+      }
+
+      removeDoomListeners();
+
+      doomState.active = false;
+      doomState.overlay = null;
+      doomState.canvas = null;
+      doomState.statusNode = null;
+      doomState.instance = null;
+      doomState.instancePromise = null;
+      doomState.context = null;
+      doomState.memory = null;
+      doomState.loopHandle = null;
+      doomState.loopFn = null;
+
+      if (message) {
+          terminal([message]);
+      }
+  }
+
+  function helpLines() {
+      return [
+          'Available commands:',
+          '---',
+          'help, ?            Show this menu',
+          'latest <alias>     Fetch the latest dispatch',
+          'top <N>            Fetch the top N dispatches (default 3)',
+          'search <term>      Search dispatches for a term',
+          'random <N>         Pull N random dispatches (default 3)',
+          'profile <alias>    Reveal a dossier',
+          'play doom          Boot the shareware DOOM build',
+          'exit doom          Shut down the DOOM session',
+          'theme <contrast|1337> Switch console contrast',
+          'theme toggle       Flip the current contrast mode',
+          'clear              Purge terminal output',
+          '↑ / ↓              Browse command history'
+      ];
+  }
+
+  function profileHelpLines() {
+      return [
+          'Usage: profile <alias>',
+          'Aliases:',
+          '  m4xx3d0ut → paul, pk, paulkolesa, m4xx3d0ut, architect, th34rch1t3ct',
+          '  ReneéRules → renee, rr, rk, matica, matica8, reneerules'
+      ];
+  }
+
+  function themeHelpLines() {
+      return [
+          'Usage: theme <contrast|1337|toggle>',
+          '  theme contrast   Engage soft contrast mode',
+          '  theme 1337       Engage neon / 1337 mode',
+          '  theme toggle     Flip between stored modes'
+      ];
+  }
+
+  function detectProfileIndex(alias) {
+      if (!alias) return null;
+      var key = alias.toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(profileAliases, key)) {
+          return profileAliases[key];
+      }
+      return null;
+  }
+
+  function detectProfileIndexFromInput(input) {
+      if (!input) return null;
+      var direct = detectProfileIndex(input);
+      if (direct !== null && direct !== undefined) {
+          return direct;
+      }
+      for (var key in profileAliases) {
+          if (!Object.prototype.hasOwnProperty.call(profileAliases, key)) continue;
+          if (input.indexOf(key) !== -1) {
+              return profileAliases[key];
+          }
+      }
+      return null;
+  }
+
+  function clearTerminal() {
+      var term = document.getElementById("tOut");
+      if (!term) return;
+      term.innerHTML = '$ ';
+      elementId = 0;
+      i = 0;
+      allowIn = true;
+      historyIndex = commandHistory.length;
+      scrollTerm(term);
+  }
+
+  function recordCommand(command) {
+      if (!command || !command.trim()) {
+          historyIndex = commandHistory.length;
+          return;
+      }
+      commandHistory.push(command);
+      historyIndex = commandHistory.length;
+  }
+
+  function navigateHistory(direction, inputEl) {
+      if (!inputEl || !commandHistory.length) {
+          return;
+      }
+      if (direction === -1) {
+          if (historyIndex > 0) {
+              historyIndex -= 1;
+          } else {
+              historyIndex = 0;
+          }
+      } else if (direction === 1) {
+          if (historyIndex < commandHistory.length) {
+              historyIndex += 1;
+          }
+      }
+
+      if (historyIndex >= commandHistory.length) {
+          historyIndex = commandHistory.length;
+          inputEl.value = '';
+      } else {
+          inputEl.value = commandHistory[historyIndex];
+          var caretPos = inputEl.value.length;
+          if (typeof inputEl.setSelectionRange === 'function') {
+              inputEl.setSelectionRange(caretPos, caretPos);
+          }
+      }
+  }
+
+  function setThemePreference(mode) {
+      if (!mode) return null;
+      var normalized = mode.toLowerCase();
+      if (normalized === 'toggle' || normalized === 'switch') {
+          if (document.body && document.body.classList.contains(CONTRAST_CLASS)) {
+              normalized = 'neon';
+          } else {
+              normalized = 'soft';
+          }
+      }
+      if (normalized === 'contrast') {
+          normalized = 'soft';
+      }
+      if (normalized === '1337' || normalized === 'leet') {
+          normalized = 'neon';
+      }
+      if (normalized !== 'soft' && normalized !== 'neon') {
+          return null;
+      }
+      var toggle = document.querySelector('.theme-toggle');
+      applyContrastPreference(normalized, toggle);
+      try {
+          window.localStorage.setItem(CONTRAST_KEY, normalized);
+      } catch (storageError) {
+          // ignore storage failures (Safari private mode, etc.)
+      }
+      return ['Console contrast channel set to ' + (normalized === 'neon' ? '1337.' : 'contrast.')];
+  }
+
+  function termFunc(input) {
+      var raw = typeof input === 'string' ? input : '';
+      var term = raw.toLowerCase();
+      var trimmed = term.trim();
+      var trimmedOriginal = raw.trim();
+
+      if (!trimmed) {
+          terminal(['Type `help` for available commands.']);
+          return;
+      }
+
+      var tokens = trimmed.split(/\s+/);
+      var command = tokens[0];
+      var argsLower = tokens.slice(1);
+      var remainderLower = trimmed.slice(command.length).trim();
+      var remainderOriginal = trimmedOriginal.slice(command.length).trim();
+
+      switch (command) {
+          case '?':
+          case 'help':
+              terminal(helpLines());
+              return;
+          case 'clear':
+          case 'cls':
+              clearTerminal();
+              terminal(['Console buffer zeroed.']);
+              return;
+          case 'theme': {
+              if (!remainderLower) {
+                  terminal(themeHelpLines());
+          return;
+          }
+          var feedback = setThemePreference(remainderLower);
+          if (feedback) {
+              terminal(feedback);
+          } else {
+              terminal(themeHelpLines());
+          }
+          return;
+          }
+          case 'play': {
+              if (!remainderLower) {
+                  terminal(['Usage: play <target>', 'Example: play doom']);
+                  return;
+              }
+              if (argsLower[0] === 'doom') {
+                  startDoom();
+              } else {
+                  terminal(['Unknown play target "' + remainderOriginal + '".']);
+              }
+              return;
+          }
+          case 'exit': {
+              if (!remainderLower) {
+                  terminal(['Usage: exit <target>', 'Example: exit doom']);
+                  return;
+              }
+              if (argsLower[0] === 'doom') {
+                  if (doomState.active) {
+                      teardownDoom('Closed DOOM session.');
+                  } else {
+                      terminal(['DOOM is not running.']);
+                  }
+              } else {
+                  terminal(['Unknown exit target "' + remainderOriginal + '".']);
+              }
+              return;
+          }
+          case 'profile': {
+              if (!remainderLower) {
+                  terminal(profileHelpLines());
+                  return;
+              }
+              var profileIndex = detectProfileIndex(remainderLower);
+              if (profileIndex !== null && profileIndex !== undefined) {
+                  terminal(prof[profileIndex]);
+              } else {
+                  terminal(['No dossier found for "' + (remainderOriginal || remainderLower) + '".']);
+              }
+              return;
+          }
+          case 'latest': {
+              if (!remainderLower) {
+                  terminal(['Usage: latest <alias>']);
+                  return;
+              }
+              var entry = resolveLatest(remainderLower);
+              if (entry) {
+                  terminal(latestLines(entry));
+              } else {
+                  terminal(['No recent dispatch found for "' + (remainderOriginal || remainderLower) + '".']);
+              }
+              return;
+          }
+          case 'top': {
+              var dispatches = getConsoleDispatches();
+              if (!dispatches.length) {
+                  terminal(['No dispatch intel logged yet.']);
+                  return;
+              }
+              var requested = argsLower[0];
+              var countTop = normaliseCount(requested, DISPATCH_PAGE_SIZE, dispatches.length);
+              var topLines = buildDispatchLines(dispatches.slice(0, countTop), {
+                  heading: 'top feed',
+                  pageSize: DISPATCH_PAGE_SIZE,
+                  emptyMessage: 'No dispatch intel logged yet.'
+              });
+              terminal(topLines);
+              return;
+          }
+          case 'search': {
+              if (!remainderLower) {
+                  terminal(['Usage: search <term>']);
+                  return;
+              }
+              var corpus = getConsoleDispatches();
+              if (!corpus.length) {
+                  terminal(['No dispatch intel logged yet.']);
+                  return;
+              }
+              var matches = searchDispatches(remainderLower, corpus);
+              if (!matches.length) {
+                  terminal(['No matches for "' + (remainderOriginal || remainderLower) + '" in dispatch logs.']);
+                  return;
+              }
+              terminal(buildDispatchLines(matches, {
+                  heading: 'search "' + (remainderOriginal || remainderLower) + '"',
+                  pageSize: DISPATCH_PAGE_SIZE
+              }));
+              return;
+          }
+          case 'random': {
+              var deck = getConsoleDispatches();
+              if (!deck.length) {
+                  terminal(['No dispatch intel logged yet.']);
+                  return;
+              }
+              var requestedRandom = argsLower[0];
+              var countRandom = normaliseCount(requestedRandom, DISPATCH_PAGE_SIZE, deck.length);
+              var randomSelection = sampleDispatches(deck, countRandom);
+              terminal(buildDispatchLines(randomSelection, {
+                  heading: 'random feed',
+                  pageSize: DISPATCH_PAGE_SIZE
+              }));
+              return;
+          }
+      }
+
+      var exactProfileIndex = detectProfileIndex(trimmed);
+      if (exactProfileIndex !== null && exactProfileIndex !== undefined) {
+          terminal(prof[exactProfileIndex]);
+          return;
+      }
+
+      var fuzzyProfileIndex = detectProfileIndexFromInput(trimmed);
+      if (fuzzyProfileIndex !== null && fuzzyProfileIndex !== undefined) {
+          terminal(prof[fuzzyProfileIndex]);
+          return;
+      }
+
+      terminal(['DOES NOT COMPUTE!!!', 'Type `help` to see available commands.']);
   }
 
   function terminal(msgOut) {
@@ -633,13 +1412,24 @@
       main();
       const termIn = document.getElementById("uIn");
       if (termIn) {
-          termIn.addEventListener("keyup", function(e) {
-              if (e.which === 13 && allowIn) {
-          var cli = e.target.value;
-          terminal([cli]);
-          checkIn(cli);
-          e.target.value = "";
-          applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'neon');
+          termIn.addEventListener('keydown', function(e) {
+              if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  navigateHistory(-1, termIn);
+              } else if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  navigateHistory(1, termIn);
+              }
+          });
+
+          termIn.addEventListener('keyup', function(e) {
+              if ((e.key === 'Enter' || e.which === 13) && allowIn) {
+                  var cli = e.target.value;
+                  recordCommand(cli);
+                  terminal([cli]);
+                  checkIn(cli);
+                  e.target.value = "";
+                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'neon');
               }
           });
       }
