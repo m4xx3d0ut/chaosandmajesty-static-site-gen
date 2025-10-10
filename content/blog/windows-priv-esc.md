@@ -160,7 +160,7 @@ S-1-5-domainidentifier-500    Administrator
  - The following example shows two PowerShell procs.
   - One started by reg `User`
   - Another started as `Admin`
-![7ed11d3f9b98c2238c60a5a1d46c584c.png](../_resources/7ed11d3f9b98c2238c60a5a1d46c584c.png)
+![7ed11d3f9b98c2238c60a5a1d46c584c.png](assets/static/resources/7ed11d3f9b98c2238c60a5a1d46c584c.png)
 - The PowerShell procs have the integrity levels of `High` and `Medium`
  - We can infer that the `High` level proc was started by admin.
  - And the `Medium` level proc was started by the user.
@@ -2898,7 +2898,7 @@ WARNING: Waiting for service 'BetaService (BetaService)' to start...
   - We find many CreateFile calls in the Operations column.
    - The CreateFile func can be used to create or open a file.
   - We see the service bin tries to locate a file called `myDLL.dll` but fails.
-![41dc8d5f1f72178ed78a9cb9a35b0ef2.png](../_resources/41dc8d5f1f72178ed78a9cb9a35b0ef2.png)
+![41dc8d5f1f72178ed78a9cb9a35b0ef2.png](assets/static/resources/41dc8d5f1f72178ed78a9cb9a35b0ef2.png)
 ```powershell
 PS C:\Users\steve> $env:path
 C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Users\steve\AppData\Local\Microsoft\WindowsApps;

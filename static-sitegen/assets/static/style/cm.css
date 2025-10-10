@@ -957,18 +957,18 @@ body > footer {
   padding: clamp(2rem, 3vw, 3.1rem);
   box-shadow: 0 15px 60px rgba(0, 0, 0, 0.55);
   width: 100%;
-  max-width: clamp(52rem, 70vw, 72rem);
+  max-width: 100%;
   min-width: 0;
-  margin: 0 auto;
+  margin: 0;
   box-sizing: border-box;
 }
 
 .blog-layout .blog-article-shell {
-  justify-self: center;
+  justify-self: stretch;
 }
 
 .blog-post-view .blog-article-shell {
-  margin: clamp(2.5rem, 6vh, 3.5rem) auto 4rem;
+  margin: clamp(2.5rem, 6vh, 3.5rem) 0 4rem;
   width: 100%;
 }
 
@@ -1087,8 +1087,8 @@ body.contrast-mode .blog-back-to-top:focus {
 .blog-article-content {
   width: 100%;
   max-width: clamp(46rem, 68vw, 60rem);
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0;
+  margin-right: 0;
   box-sizing: border-box;
 }
 

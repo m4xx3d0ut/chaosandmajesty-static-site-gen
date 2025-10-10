@@ -704,7 +704,7 @@ The notes section for that page should be directly related to the items in the c
 
 Finally, we will complete the summary section as we review our notes. To continue the example, we might write "hashing a password = additional protection. Interested in more about cracking." The content here does not need to necessarily be directly related to the material
 
-![619a2625dbb7c43ff2be15e86d4fd00e-cornell.png](../_resources/619a2625dbb7c43ff2be15e86d4fd00e-cornell.png)
+![619a2625dbb7c43ff2be15e86d4fd00e-cornell.png](assets/static/resources/619a2625dbb7c43ff2be15e86d4fd00e-cornell.png)
 
 ###### Retrieval Practice
 
@@ -753,7 +753,7 @@ The [Feynman Technique](https://fs.blog/feynman-technique/) takes its name from 
 
 ###### Knowing When You're Ready
 
-![247356f94ff812b8abc45aec089e061e-pwk-stats.png](../_resources/247356f94ff812b8abc45aec089e061e-pwk-stats.png)
+![247356f94ff812b8abc45aec089e061e-pwk-stats.png](assets/static/resources/247356f94ff812b8abc45aec089e061e-pwk-stats.png)
 
 ###### Practical Advice for Exam Takers
 

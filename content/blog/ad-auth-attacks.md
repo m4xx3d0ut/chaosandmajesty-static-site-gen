@@ -99,7 +99,7 @@ We briefly discussed what NTLM is and how to recover its hashes in Password Atta
 [NTLM auth](https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/) is used to auth a client to a server when connecting by IP address, instead of hostname, or if the user attempts to auth to a hostname that is not registered on the AD integrated DNS server.  Also, 3rd party apps may use NTLM instead of Kerberos.
 
 The 7 steps of NTLM proto consist of:
-![da83831f0dd967c8c67585fcd2110c12.png](../_resources/da83831f0dd967c8c67585fcd2110c12.png)
+![da83831f0dd967c8c67585fcd2110c12.png](assets/static/resources/da83831f0dd967c8c67585fcd2110c12.png)
 
 In the first step the system calculates the cryto hash, known as NTLM hash, from the user's password.  Next, the client computer sends the username to the server, which returns a "nonce" or challenge.  The client encrypts the none using the NTLM hash and sends it in the response to the server.
 
@@ -120,7 +120,7 @@ MS Kerberos was adopted from Kerberos v5 created by MIT.  Kerberos has been the 
 In NTLM auth, the client starts the auth process with the app server itself, whereas in Kerberos auth the DC takes the role of a [Key Distribution Center (KDC)](https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/).  The client starts the auth process with the KDC, not the app server.  A KDC service runs on each DC and is responsible for session tickets and temporary session keys to users and computers.
 
 The client auth process at a high level:
-![22acd580bc7d406fa3a4e26113a52ef3.png](../_resources/22acd580bc7d406fa3a4e26113a52ef3.png)
+![22acd580bc7d406fa3a4e26113a52ef3.png](assets/static/resources/22acd580bc7d406fa3a4e26113a52ef3.png)
 
 The process in detail; when a user logs in to a workstation, an Authentication Server Request (AS-REQ) is sent to the DC.  The DC acting as KDC also maintains the Auth Server Service.  The AS-REQ contains a timestamp encrypted using a hash derived from the password of the user and their username.
 

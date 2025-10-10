@@ -144,7 +144,7 @@ As shown above, we discovered several interesting folders that could lead to fur
  -  The findings also provide information about JavaScript libraries used by the web application.
 		-  can be valuable data, as some versions of JavaScript libraries are known to be affected by several vulnerabilities.
 
-![Screenshot from 2023-08-04 07-30-45.png](../_resources/Screenshot%20from%202023-08-04%2007-30-45.png)
+![Screenshot from 2023-08-04 07-30-45.png](assets/static/resources/Screenshot%20from%202023-08-04%2007-30-45.png)
 
 ###### Directory Brute Force with Gobuster
 
@@ -1178,14 +1178,14 @@ With Burp configured as a proxy and Intercept disabled, we can start our attack 
 We'll then go to Burp Proxy > HTTP History, right-click on the request, and select Send to Repeater.
 
 Moving to the Repeater tab, we can replace the default User-Agent value with the a script tag that includes the alert method (<script>alert(42)</script>), then send the request.
-![9fc073adaf330bd5307cd7f57e30a8b1.png](../_resources/9fc073adaf330bd5307cd7f57e30a8b1.png)
+![9fc073adaf330bd5307cd7f57e30a8b1.png](assets/static/resources/9fc073adaf330bd5307cd7f57e30a8b1.png)
 
 If the server responds with a 200 OK message, we should be confident that our payload is now stored in the WordPress database.
 
 To verify this, let's log in to the admin console at http://offsecwp/wp-login.php using the admin/password credentials.
 
 If we navigate to the Visitors plugin console at http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php, we are greeted with a pop-up banner showing the number 42, proving that our code injection worked.
-![81d8b7fd4b669031e95dc1dd84c46b70.png](../_resources/81d8b7fd4b669031e95dc1dd84c46b70.png)
+![81d8b7fd4b669031e95dc1dd84c46b70.png](assets/static/resources/81d8b7fd4b669031e95dc1dd84c46b70.png)
 Excellent. We have injected an XSS payload into the web application's database and it will be served to any administrator that loads the plugin. A simple alert window is a somewhat trivial example of what can be done with XSS, so let’s try something more interesting, like creating a new administrative account.
 
 ###### Privilege Escalation via XSS

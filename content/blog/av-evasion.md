@@ -172,7 +172,7 @@ Final size of exe file: 73802 bytes
 ```
 - Scan the exe using VirusTotal.
  - *VirusTotal is convenient, but it generates a hash along with storing the original file for each unique submission. The submitted files along with the metadata are then shared with all participating AV vendors. As such, take care when submitting sensitive payloads as the hash is considered public from the time of first submission.*.
-![d2c73438e913b954933365e758704e5f.png](../_resources/d2c73438e913b954933365e758704e5f.png)
+![d2c73438e913b954933365e758704e5f.png](assets/static/resources/d2c73438e913b954933365e758704e5f.png)
  - Many AV products flag the file as malicious based on various methods descibed here.
 
 #### 14.1 Bypassing Antivirus Detections
@@ -359,7 +359,7 @@ Final size of powershell file: 3454 bytes
 - Copy the output into the script.
 
 Next we validate the detection rate of the PS1 script.  AntiScan.me is the first choice, but does not support PS1, se we must use VirusTotal.
-![1e0e231418742146669ea4729a1b7a39.png](../_resources/1e0e231418742146669ea4729a1b7a39.png)
+![1e0e231418742146669ea4729a1b7a39.png](assets/static/resources/1e0e231418742146669ea4729a1b7a39.png)
 - 29/59, not great!
  - We need to circumvent some of the AV sig logic.
 - Scripts are just interpreted text files.

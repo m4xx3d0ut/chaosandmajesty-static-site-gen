@@ -2501,4 +2501,4 @@ OS{0ef4f475ecc264ea3fc866354dde81be}
 
 ```
 
-![Screenshot from 2023-08-30 09-10-28.png](../_resources/Screenshot%20from%202023-08-30%2009-10-28.png)
+![Screenshot from 2023-08-30 09-10-28.png](assets/static/resources/Screenshot%20from%202023-08-30%2009-10-28.png)

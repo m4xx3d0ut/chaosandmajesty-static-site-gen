@@ -2776,16 +2776,16 @@ From our info, we have discovered 4 total sessions in the domain, enumed using `
 We'll talk about "Node Info" later, there isn't much there ATM.  We are mostly interested in the "Analysis" button at this point.  Clicking it, we are presented with various pre-built options.
 
 There are many pre-built queries, to get started we will use the "Find all Domain Admins" under "Domain Information".
-![598a826b218c0697f9e9e39082ffa0e9.png](../_resources/598a826b218c0697f9e9e39082ffa0e9.png)
+![598a826b218c0697f9e9e39082ffa0e9.png](assets/static/resources/598a826b218c0697f9e9e39082ffa0e9.png)
 
 We are presented with the map below.
-![85b98c8defdefd88688fbe43d08d2017.png](../_resources/85b98c8defdefd88688fbe43d08d2017.png)
+![85b98c8defdefd88688fbe43d08d2017.png](assets/static/resources/85b98c8defdefd88688fbe43d08d2017.png)
 
 Each of the cirlce icons are known as a nodes, we can drag them and move them in the iface.  We see 3 connected nodes, Bloodhound placed them far from eachother, so we can drag them closer to keep things tidy.
 
-![822162ae5b6026ef37c2082ec1ca04af.png](../_resources/822162ae5b6026ef37c2082ec1ca04af.png)
+![822162ae5b6026ef37c2082ec1ca04af.png](assets/static/resources/822162ae5b6026ef37c2082ec1ca04af.png)
 To see what the 2 left nodes represent we can hover over them or toggle info by pressing `ctrl`.  We can tell BloodHound how to show this info by clicking settings on the right side of the iface and setting Node Label Display to Always Display:
-![a65f311584791543037dc4f3ff2c7a92.png](../_resources/a65f311584791543037dc4f3ff2c7a92.png)
+![a65f311584791543037dc4f3ff2c7a92.png](assets/static/resources/a65f311584791543037dc4f3ff2c7a92.png)
 
 Based on this view the domain admins are:
 - `jeffadmin`
@@ -2795,15 +2795,15 @@ BloodHound shows an edge in the form of a line between the user objects and `Dom
 BloodHound is capable of deep analysis, but much of its capability is out of the scope of this module.  For now, focus on the Shortest Paths shown in the analysis tab.
 
 Starting with "Find Shortes Paths to Domain Admins" as it provides a good overview without any params.
-![7aa8d6a247ad7d0eb3114c85fc819c24.png](../_resources/7aa8d6a247ad7d0eb3114c85fc819c24.png)
+![7aa8d6a247ad7d0eb3114c85fc819c24.png](assets/static/resources/7aa8d6a247ad7d0eb3114c85fc819c24.png)
 
 We can analyze the BloodHound graphs to determine the most effictient attack vector, the graph reveals a few things we missed in our ealier enum.
 
 Let's focus on the `stephanie`/CLIENT74 relationship for now, Hover the mouse over the connecting strings between nodes to see the connection type.
-![fd64c13fe6d0cd82655c2c2a39ef5bad.png](../_resources/fd64c13fe6d0cd82655c2c2a39ef5bad.png)
+![fd64c13fe6d0cd82655c2c2a39ef5bad.png](assets/static/resources/fd64c13fe6d0cd82655c2c2a39ef5bad.png)
 
 We see `stephanie` has admin privs on CLIENT74.  If we right click the line and select "? Help" we see addt info.
-![9fe295f4d34568203f9f1da634a0c701.png](../_resources/9fe295f4d34568203f9f1da634a0c701.png)
+![9fe295f4d34568203f9f1da634a0c701.png](assets/static/resources/9fe295f4d34568203f9f1da634a0c701.png)
 
 As we see, `stephanie` has several ways to obtain code exec on CLIENT74.
 
@@ -2818,13 +2818,13 @@ The "Owned Principals" is important, refering to objects we currently control in
 We know that we control the `stephanie` user with partial control over CLIENT75, since we are logged in.  We do not have admin privs, we need to link about PrivEsc later, but for now say we have control over it.
 
 To obtain "owned principal" in BloodHound, we run a search on top left, right click the object that shows in the middle of the screen, and click "Mark User as Owned".  Owned principals show in BloodHound with a skull icon next to the node.
-![06af27f7a88df78094801e5517c81b79.png](../_resources/06af27f7a88df78094801e5517c81b79.png)
+![06af27f7a88df78094801e5517c81b79.png](assets/static/resources/06af27f7a88df78094801e5517c81b79.png)
 
 Not that if we click the icon for the object we are searching, it will be places into the "node Info" button where we can see details of the object itself.
 
 Repeat the process for CLIENT75, clicking "Mark Computer as Owned" and we end up having two "owned principals".  Now we can run the "Shortes Paths to Domain Admins from Owned Principals" query.
 *It's a good idea to mark every object we have access to as owned to improve our visibility into more potential attack vectors. There may be a short path to our goals that hinges on ownership of a particular object.*
-![a6f6676ec4e486b7e88aa31168179e17.png](../_resources/a6f6676ec4e486b7e88aa31168179e17.png)
+![a6f6676ec4e486b7e88aa31168179e17.png](assets/static/resources/a6f6676ec4e486b7e88aa31168179e17.png)
 - Note that we rearranged the nodes for clarity.
 
 Read starting from the left hand node, CLIENT75.  User `stephanie` has a session there and should be able to connect to CLIENT74 where `jeffadmin` has a session, who is part of domain admin group.  If we are able to take contorl of his account through impersonation or stealing creds on CLIENT74 we become domain admin.
@@ -4642,7 +4642,7 @@ PS C:\Tools> cat \\dc1\sysvol\corp.com\Policies\oldpolicy\old-policy-backup.xml
 </Groups>
 ```
 IMPORTANT: You have to check shortest path to each user one by one to find vectors.
-![cc6dfe09044aff40135324ee032993cf.png](../_resources/cc6dfe09044aff40135324ee032993cf.png)
+![cc6dfe09044aff40135324ee032993cf.png](assets/static/resources/cc6dfe09044aff40135324ee032993cf.png)
 ```powershell
 PS C:\Tools> Get-ObjectAcl -Identity robert | ? {$_.ActiveDirectoryRights -eq "GenericAll"} | select SecurityIdentifier,ActiveDirectoryRights
 
