@@ -22,11 +22,14 @@
         <div>
             <img src="static/img/bunny-punx.webp" alt="Punks not dead" class="center">
         </div>
-        <div id="console">
-            <div class="screen hscroll" id="tOut">
-                $
+        <div class="console-stack">
+            <div id="console">
+                <div class="screen hscroll" id="tOut">
+                    $
+                </div>
+                <input class="term" type="text" id="uIn" autofocus>
             </div>
-            <input class="term" type="text" id="uIn" autofocus>
+            <button type="button" id="cm-terminal-reset" class="console-reset" aria-label="Reset terminal">Reset terminal</button>
         </div>
     </body>
     <footer>

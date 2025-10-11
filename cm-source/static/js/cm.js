@@ -598,7 +598,9 @@
   var allowIn = true;
   var elementId = 0;
   var i = 0;
-  var tSpeed = 75;
+  var TERMINAL_INITIAL_SPEED = 75;
+  var tSpeed = TERMINAL_INITIAL_SPEED;
+  var terminalTimeoutId = null;
   String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g, "");
   };
@@ -1398,6 +1400,35 @@
       persistTerminalBuffer(term);
   }
 
+  function cancelTerminalPlayback() {
+      if (terminalTimeoutId !== null) {
+          clearTimeout(terminalTimeoutId);
+          terminalTimeoutId = null;
+      }
+  }
+
+  function resetTerminalSession() {
+      var termIn = document.getElementById('uIn');
+      if (termIn) {
+          termIn.blur();
+          termIn.value = '';
+      }
+
+      cancelTerminalPlayback();
+
+      if (commandHistory && commandHistory.length) {
+          commandHistory.length = 0;
+      }
+      historyIndex = commandHistory.length;
+      terminalRestored = false;
+      elementId = 0;
+      i = 0;
+      allowIn = true;
+      tSpeed = TERMINAL_INITIAL_SPEED;
+      clearTerminal();
+      terminal(hello);
+  }
+
   function recordCommand(command) {
       if (!command || !command.trim()) {
           historyIndex = commandHistory.length;
@@ -1630,6 +1661,10 @@
   function terminal(msgOut) {
       var term = document.getElementById("tOut");
       if (!term) return; // Avoid error if missing
+      if (terminalTimeoutId !== null) {
+          clearTimeout(terminalTimeoutId);
+          terminalTimeoutId = null;
+      }
       var msg = msgOut[elementId];
       if (msg === undefined) {
           return;
@@ -1657,7 +1692,7 @@
       }
       scrollTerm(term);
       if (elementId < msgOut.length) {
-          setTimeout(terminal, tSpeed, msgOut, elementId);
+          terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
       }
       if (tSpeed > 25 && elementId >= 3) {
           tSpeed = 25;
@@ -1665,6 +1700,7 @@
       if (elementId === msgOut.length) {
           elementId = 0;
           allowIn = true;
+          terminalTimeoutId = null;
       }
   }
 
@@ -1698,6 +1734,12 @@
       window.scrollTo(0, 0);
       main();
       const termIn = document.getElementById("uIn");
+      const resetButton = document.getElementById('cm-terminal-reset');
+      if (resetButton) {
+          resetButton.addEventListener('click', function() {
+              resetTerminalSession();
+          });
+      }
       if (termIn) {
           termIn.addEventListener('keydown', function(e) {
               pauseLogo(LOGO_PAUSE_REASON_TERMINAL);

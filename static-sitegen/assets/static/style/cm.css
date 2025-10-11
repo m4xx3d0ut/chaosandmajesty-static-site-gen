@@ -152,10 +152,75 @@ body.contrast-mode .blog-author-card {
   min-width: unset;
   min-height: 406px;
   box-sizing: border-box;
+  margin-top: 0;
 }
 
 body.contrast-mode #console {
   outline-color: #e5f0ff;
+}
+
+
+.console-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  margin: clamp(1.5rem, 4vw, 2.5rem) auto 0;
+}
+
+.console-reset {
+  position: absolute;
+  top: 0;
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(102, 255, 0, 0.45);
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(190, 255, 190, 0.88);
+  font-family: 'Syne Mono', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  --console-reset-offset: calc(-100% - 0.55rem);
+  transform: translateY(var(--console-reset-offset));
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.console-reset:hover,
+.console-reset:focus-visible {
+  border-color: rgba(102, 255, 0, 0.85);
+  color: #001100;
+  background: rgba(102, 255, 0, 0.85);
+  box-shadow: 0 0.35rem 1rem rgba(102, 255, 0, 0.25);
+  transform: translateY(var(--console-reset-offset)) translateY(-1px);
+}
+
+.console-reset:active {
+  transform: translateY(var(--console-reset-offset)) translateY(1px);
+  box-shadow: 0 0.2rem 0.6rem rgba(102, 255, 0, 0.2);
+}
+
+.console-reset:focus {
+  outline: none;
+}
+
+body.contrast-mode .console-reset {
+  border-color: rgba(230, 240, 255, 0.6);
+  background: rgba(230, 240, 255, 0.85);
+  color: #0d1b2a;
+}
+
+body.contrast-mode .console-reset:hover,
+body.contrast-mode .console-reset:focus-visible {
+  border-color: rgba(230, 240, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0a1018;
+  box-shadow: 0 0.35rem 1rem rgba(230, 240, 255, 0.3);
 }
 
 #foot {
@@ -183,7 +248,7 @@ body.contrast-mode #console {
   min-width: unset;
   min-height: 396px;
   height: auto;
-  margin-top: -5px;
+  margin-top: 0;
   color: #66ff00;
   font-family: 'Syne Mono', monospace;
   overflow-y: auto;
@@ -569,7 +634,7 @@ body > footer {
   height: var(--cm-console-height);
   min-height: var(--cm-console-height);
   max-height: var(--cm-console-height);
-  margin-top: 2rem;  /* Keeps legacy spacing */
+  margin-top: 0;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -817,6 +882,18 @@ body > footer {
     padding: 0 1vw;
     box-sizing: border-box;
   }
+  .console-stack {
+    width: 100%;
+    margin: clamp(1.2rem, 5vw, 1.9rem) auto 0;
+  }
+  .console-reset {
+    right: clamp(0.55rem, 2.5vw, 0.9rem);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.07em;
+    --console-reset-offset: calc(-100% - 0.45rem);
+    transform: translateY(var(--console-reset-offset));
+  }
   #console {
     display: flex;
     flex-direction: column;
@@ -825,7 +902,7 @@ body > footer {
     max-width: 100vw;
     box-sizing: border-box;
     padding: 0.7rem;
-    margin-top: 1.1rem;     /* Matches mobile spacing */
+    margin-top: 0;
     height: auto;           /* Grows as needed for children */
     min-height: unset;
     max-height: unset;
