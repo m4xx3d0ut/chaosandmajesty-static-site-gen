@@ -920,6 +920,9 @@ body > footer {
     font-size: 1em;
     box-sizing: border-box;
   }
+  #console #tOut {
+    font-size: clamp(0.84rem, 1.2vw + 0.8rem, 1.04rem);
+  }
   .doom-overlay {
     justify-content: flex-start;
     padding-bottom: 6rem;

@@ -787,6 +787,9 @@ body > footer {
     font-size: 1em;
     box-sizing: border-box;
   }
+  #console #tOut {
+    font-size: clamp(0.84rem, 1.2vw + 0.8rem, 1.04rem);
+  }
   .term {
     width: 100%;
     min-width: unset;
