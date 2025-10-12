@@ -182,6 +182,32 @@
     return matchesMobileWidth || hasTouchCapability;
   }
 
+  function isLikelyIOS() {
+    if (typeof navigator === 'undefined') {
+      return false;
+    }
+
+    try {
+      var platform = navigator.platform || '';
+      var userAgent = navigator.userAgent || '';
+      var maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
+
+      if (/iP(hone|od|ad)/.test(platform)) {
+        return true;
+      }
+      if (/iPhone|iPad|iPod/.test(userAgent)) {
+        return true;
+      }
+      if (/Mac/.test(platform) && maxTouchPoints > 1) {
+        return true;
+      }
+    } catch (_err) {
+      return false;
+    }
+
+    return false;
+  }
+
   function initMobileConsoleKeyboardScaling() {
     if (typeof document === 'undefined') {
       return;
@@ -208,6 +234,7 @@
     var KEYBOARD_MARKER_CLASS = 'cm-keyboard-anchor';
     var KEYBOARD_MARKER_THICKNESS = 12; // Mirror --cm-keyboard-marker-thickness
     var HEIGHT_THRESHOLD = 120;
+    var prefersScrollAlignment = isLikelyIOS();
 
     function getViewportBottom() {
       if (viewport) {
@@ -254,6 +281,14 @@
         consoleTranslateY = 0;
         return;
       }
+      if (prefersScrollAlignment) {
+        if (consoleWrapper.style.getPropertyValue('--cm-keyboard-translate')) {
+          consoleWrapper.style.removeProperty('--cm-keyboard-translate');
+        }
+        consoleWrapper.classList.remove('is-keyboard-adjusted');
+        consoleTranslateY = 0;
+        return;
+      }
       if (!nextValue) {
         consoleWrapper.style.removeProperty('--cm-keyboard-translate');
         consoleWrapper.classList.remove('is-keyboard-adjusted');
@@ -285,6 +320,13 @@
         var originalBottom = rect.bottom - consoleTranslateY;
         var desiredBottom = viewportBottom;
         var delta = originalBottom - desiredBottom;
+        if (prefersScrollAlignment) {
+          if (delta > 4 && typeof window.scrollBy === 'function') {
+            var scrollAmount = delta > 600 ? 600 : delta;
+            window.scrollBy(0, scrollAmount);
+          }
+          return;
+        }
         var nextTranslate = delta > 1 ? -delta : 0;
         if (Math.abs(nextTranslate - consoleTranslateY) < 1) {
           return;

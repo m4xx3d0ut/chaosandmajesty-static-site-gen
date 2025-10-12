@@ -119,7 +119,7 @@ cat > static-sitegen/templates/partials/cm-console.ejs << 'EOL'
   <div class="console-stack">
     <div id="console">
       <div class="screen hscroll" id="tOut">$</div>
-      <input class="term" type="text" id="uIn" autofocus>
+      <input class="term" type="text" id="uIn">
     </div>
     <button type="button" id="cm-terminal-reset" class="console-reset" aria-label="Reset terminal">Reset terminal</button>
   </div>
