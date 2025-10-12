@@ -142,6 +142,18 @@ body.contrast-mode .blog-author-card {
   opacity: 0;
 }
 
+@media (max-width: 768px) {
+  #tagline {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #tagline h1 {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 #console {
   padding: 0.8rem;
   outline: 0.2rem solid #66ff00;
