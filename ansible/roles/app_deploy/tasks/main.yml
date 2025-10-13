@@ -1,0 +1,81 @@
+---
+- name: Ensure application directory exists
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_owner }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Ensure WebDAV directory exists on host
+  file:
+    path: "{{ webdav_host_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0775'
+  when: webdav_mount_enabled | bool
+
+- name: Ensure ACME webroot exists on host
+  file:
+    path: "{{ acme_webroot_host_path }}/.well-known/acme-challenge"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: letsencrypt_mount_enabled | bool
+
+- name: Render docker-compose configuration
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: "{{ app_owner }}"
+    group: "{{ app_group }}"
+    mode: '0640'
+
+- name: Record desired image reference
+  copy:
+    dest: "{{ app_dir }}/.current-image"
+    content: "{{ image_ref }}\n"
+    owner: "{{ app_owner }}"
+    group: "{{ app_group }}"
+    mode: '0640'
+
+- name: Authenticate to container registry (optional)
+  community.docker.docker_login:
+    registry_url: "{{ image_registry }}"
+    username: "{{ registry_username }}"
+    password: "{{ registry_password }}"
+  when: registry_login | bool
+
+- name: Pull deployment image explicitly
+  community.docker.docker_image:
+    name: "{{ image_ref }}"
+    source: pull
+    force_source: true
+
+- name: Stop host nginx service if requested
+  service:
+    name: "{{ host_nginx_service_name }}"
+    state: stopped
+    enabled: false
+  when: disable_host_nginx | bool
+
+- name: Apply compose project
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    pull: false
+    recreate: always
+    remove_orphans: true
+    state: present
+
+- name: Probe container health endpoint
+  uri:
+    url: "http://{{ healthcheck_address }}:{{ healthcheck_port }}{{ healthcheck_path }}"
+    status_code: 200
+    timeout: 10
+    return_content: false
+  register: healthcheck_response
+  retries: 5
+  delay: 5
+  until: healthcheck_response.status == 200

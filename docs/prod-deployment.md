@@ -8,11 +8,21 @@ A reference for promoting Chaos & Majesty builds into production via a `prod` br
 - Avoid storing secrets in the repo; rely on CI/CD secrets and the VPS keyring.
 - Support quick rollbacks and minimal downtime when promoting new releases.
 
+## Implementation Snapshot
+- Docker image now builds via a multi-stage `Dockerfile`, compiling the static bundle inside the build context before handing it to `nginxinc/nginx-unprivileged`.
+- Ansible playbook (`ansible/deploy.yml`) provisions `/opt/chaosandmajesty`, templates the Compose project, pulls the tagged image, and verifies health over `http://127.0.0.1:80/health`.
+- `.gitea/workflows/prod-deploy.yml` runs on every `prod` push, performing a smoke build, pushing the `prod`/`prod-<sha>` tags, and invoking the Ansible deploy through the CI runner.
+- Subdomain reverse-proxying is no longer automatic; extend `nginx/default.conf`
+  if you need additional upstreams beyond the primary site + WebDAV share.
+
 ## Branching & Promotion Flow
 1. Continue feature development on short-lived branches; merge to `main` after review.
 2. Cut release candidates from `main` into `prod` via a fast-forward merge (no direct commits on `prod`).
 3. Protect `prod` with branch rules (status checks, linear history) so only the GitHub Action can deploy.
 4. Tag deployments (e.g., `prod-2024-07-01`) to map VPS state to repository history.
+
+> For the full bring-up procedure (stopping host nginx, mounting Let's Encrypt,
+> and running the first playbook), see `docs/prod-first-run.md`.
 
 ## CI/CD Overview
 On every push to `prod`, a dedicated GitHub Action should:
@@ -72,7 +82,7 @@ jobs:
 
 ## Container Image Strategy
 - The current `Dockerfile` expects `site-output/` to exist; ensure the Action runs `./build-site.sh` before `docker build` so the static bundle is in place.
-- Stick with the unprivileged Nginx base image; it listens on 8080 internally, which plays well with an upstream Nginx reverse proxy on the host.
+- Stick with the unprivileged Nginx base image; it listens on 8080 internally, which plays well with an upstream Nginx reverse proxy on the host. Mount `/var/www/html/dav` into `/usr/share/nginx/html/dav` when deploying so WebDAV remains on the host filesystem.
 - Use image labels (`org.opencontainers.image.*`) for traceability; they surface in GHCR UI and `docker inspect`.
 - Consider a second build stage (FROM node:18-alpine) to compile `site-output/` inside the Docker build for reproducibility. If you switch to that, `docker build` no longer depends on CI running `./build-site.sh` first.
 
@@ -118,7 +128,7 @@ IMAGE_NAME=${1:?"Usage: deploy.sh <image>"}
 /usr/bin/docker compose -f /opt/chaosandmajesty/docker-compose.prod.yml pull
 /usr/bin/docker compose -f /opt/chaosandmajesty/docker-compose.prod.yml up -d
 /usr/bin/docker image prune -f --filter label=chaosandmajesty.prod=true
-/usr/bin/curl --fail http://127.0.0.1:8080/health
+/usr/bin/curl --fail http://127.0.0.1:80/health
 ```
 Add execution permissions (`chmod +x`). Inject the token via an environment file or SSH agent forwarding; avoid hard-coding secrets.
 

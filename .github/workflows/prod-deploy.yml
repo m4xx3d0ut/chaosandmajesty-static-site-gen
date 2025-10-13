@@ -1,0 +1,117 @@
+name: prod build and deploy
+
+on:
+  push:
+    branches:
+      - prod
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+  REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  IMAGE_TAG: prod
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Smoke build static bundle
+        run: ./build-site.sh
+
+      - name: Compute image metadata
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          if [ -n "${REGISTRY_NAMESPACE}" ]; then
+            REGISTRY_PATH="${REGISTRY_HOST}/${REGISTRY_NAMESPACE}"
+          else
+            REGISTRY_PATH="${REGISTRY_HOST}"
+          fi
+          echo "short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "registry_path=${REGISTRY_PATH}" >> "$GITHUB_OUTPUT"
+          echo "image_ref=${REGISTRY_PATH}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_HOST }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Configure Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
+            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
+          cache-from: type=registry,ref=${{ steps.meta.outputs.image_ref }}:buildcache
+          cache-to: type=registry,mode=max,ref=${{ steps.meta.outputs.image_ref }}:buildcache
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install "ansible>=9.1" "docker" "jmespath"
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf "%s" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "$KNOWN_HOSTS" ]; then
+            printf "%s\n" "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          fi
+
+      - name: Deploy with Ansible
+        working-directory: ansible
+        env:
+          ANSIBLE_FORCE_COLOR: '1'
+        run: |
+          ansible-playbook -i inventory/hosts.ini deploy.yml \
+            -e "ansible_host=${VPS_HOST}" \
+            -e "ansible_user=${VPS_USER}" \
+            -e "image_registry=${REGISTRY_HOST}" \
+            -e "image_namespace=${REGISTRY_NAMESPACE}" \
+            -e "image_name=${IMAGE_NAME}" \
+            -e "image_tag=${IMAGE_TAG}" \
+            -e "registry_username=${REGISTRY_USERNAME}" \
+            -e "registry_password=${REGISTRY_PASSWORD}"
