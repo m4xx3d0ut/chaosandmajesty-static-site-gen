@@ -30,12 +30,16 @@ LABEL org.opencontainers.image.source="https://gitea.core.home.arpa/m4xx3d0ut/ch
       org.opencontainers.image.description="Chaos & Majesty static site served by hardened Nginx"
 
 # Provide directory for optional basic-auth files or other runtime mounts
+USER root
+
 RUN apk add --no-cache curl \
     && mkdir -p /etc/nginx/auth \
     && mkdir -p /usr/share/nginx/html/dav \
     && mkdir -p /var/www/letsencrypt/.well-known/acme-challenge \
     && mkdir -p /tmp/webdav \
     && chown -R nginx:nginx /etc/nginx /usr/share/nginx/html /var/www/letsencrypt /tmp/webdav
+
+USER nginx
 
 # Copy the generated site and nginx configuration
 COPY --from=builder --chown=nginx:nginx /app/site-output/ /usr/share/nginx/html/
