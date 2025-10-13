@@ -2,14 +2,15 @@
 title: Workload Identity Federation
 slug: workload-identity-federation
 author: m4xx3d0ut
-summary: Playbook for configuring workload identity federation with JWKS generation,
-  Google Cloud providers, service accounts, and GitHub Actions integration.
+summary: "Playbook for configuring workload identity federation with JWKS generation,\
+  / Google Cloud providers, service accounts, and GitHub Actions integration."
 tags:
 - m4xx3d
 publishedAt: 2025-02-06
 updatedAt: 2025-02-06
 readingMinutes: 5
 ---
+
 ## 1. Key & JWKS Generation
 
 To create **pri** and **pub** JSON keys
@@ -36,7 +37,7 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
         {
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ"
+            "n": "yY2lgcZ2QvRu7hKwB63MO...snip...KbZTFiRTH-TUzcK8oqYXqhQ"
         }
     ]
 }
@@ -44,15 +45,15 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
 {
     "keys": [
         {
-            "d": "ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ",
-            "dp": "Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU",
-            "dq": "BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE",
+            "d": "ErEL6wnacFGmUvZRNFkaE...snip...ddaYM1K2bVIQ",
+            "dp": "Is_jhC1KQRtFlZEqxa_9Q...snip...2d2_xCSQU",
+            "dq": "BKav1gED28fY5ph_geT38...snip...548dCBHgE",
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ",
-            "p": "8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU",
-            "q": "1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE",
-            "qi": "wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ",
+            "p": "8Qst5oskOgezNYveifXbIU...snip...HX9avWRiU",
+            "q": "1g8wTdDfyJOJyZmL74vV20...snip...nRYfsSjL9OE",
+            "qi": "wVFX_l61o3_U45Gi_kSdq...snip...awm26c9WvaI"
         }
     ]
 }
@@ -62,7 +63,7 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
         {
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ"
+            "n": "yY2lgcZ2QvRu7hKwB63MO...snip...KbZTFiRTH-TUzcK8oqYXqhQ"
         }
     ]
 }
@@ -71,15 +72,15 @@ JWKS (public) JSON file saved successfully to prd-pub.json.
 {
     "keys": [
         {
-            "d": "ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ",
-            "dp": "Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU",
-            "dq": "BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE",
+            "d": "ErEL6wnacFGmUvZRNFkaE...snip...ddaYM1K2bVIQ",
+            "dp": "Is_jhC1KQRtFlZEqxa_9Q...snip...2d2_xCSQU",
+            "dq": "BKav1gED28fY5ph_geT38...snip...548dCBHgE",
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ",
-            "p": "8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU",
-            "q": "1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE",
-            "qi": "wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ",
+            "p": "8Qst5oskOgezNYveifXbIU...snip...HX9avWRiU",
+            "q": "1g8wTdDfyJOJyZmL74vV20...snip...nRYfsSjL9OE",
+            "qi": "wVFX_l61o3_U45Gi_kSdq...snip...awm26c9WvaI"
         }
     ]
 }
@@ -172,13 +173,13 @@ $ source venv/bin/activate
 # **Generate a new LWT with the private key and claims JSON**
 $ python api/jwks_auth/payload.py --files api/prd-pri.json api/prd-claims.json --save_lwt /opt/lwt.json
 JWT Token:
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiJpci1hbmFseXRpY3MtcG9vbC0wIn0.On2MENhvc3kR8jlfn2ZCXFvdXdgIqlHnH8y3MABHw5MhTWO7OYXyOj8CzJbelHH1idbHZipLix40QK6I1mS_vAbid3EeUW7SgtMpTrt9Qp2igoM2_URnFN0NZbTDzxKjLodgAhjU7b4JGOYMbDUddJrfx9PMAaEn13d1QiA98zbBg1vAjiK7Vcv-EEeiy33079ihuOHV3H94CDCuLlPdiAPiSAF9ovbRxqf5bwmOgXAUG0bvBiazIruuUVAdGSAGSQbLIAdiPaggr5Aj7I-Ps0fCO1h1ln9Bxhv_WEb1hXoPL7iUhG4yY5UWISLL0hLQkvupNrRDVnhmwwmQ_meiYQ
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29n...tcG9vbC0wIn0.On2MENhvc3kR8jlfn2ZCXFvd...hmwwmQ_meiYQ
 JWT Claims:
 {"aud":"//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","iss":"https://yourdomain/.well-known/jwks.json","sub":"pool-0"}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
-    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImV4cCI6MTc0NDY2NTM1OSwiaWF0IjoxNzQ0NjYxNzU5LCJpc3MiOiJodHRwczovL2lyLWFuYWx5dGljcy1lbnRyeS50aGVpbmZpbml0ZXJlYWxpdHkuaW8vLndlbGwta25vd24vandrcy5qc29uIiwic3ViIjoiaXItYW5hbHl0aWNzLXBvb2wtMCJ9.jrMukcTt7JDJcotNhxuFaqsow76znyaF3i0tGdN1LomXfgGuF9Ommvmp2zrBI8lYG8qgPcu9V7dEqp2FX5ZOkdUKMywIu62iz1goSvkJjLVz8qfJuK4ocpdoiSybyEySt0JTOyMAbt2Bxyt9rfJiHPphwfJV6aE6YkBpr-14xdmq-teLYJiUgdPpEg9BCiImey-IJ4h_A-IJz26T6qe8agxNqVx2saZYoIKKzAQ_dKZvq2sU5dUZGbxMM2l6Adzf4RzyMrdhy_ki75csPx8QDp6n2iM2iYEhoZuKutfOecgDANRE38OWuBO_K2VJkgKVeDZLDNSTH9KIbx_PgbmEGg"
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29n...LXBvb2wtMCJ9.jrMukcTt7JDJcotNhxuFaqso...KIbx_PgbmEGg"
 }
 
 # **Validate the LWT (Optional)**
@@ -236,7 +237,7 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
         {
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ"
         }
     ]
 }
@@ -244,15 +245,15 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
 {
     "keys": [
         {
-            "d": "ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ",
-            "dp": "Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU",
-            "dq": "BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE",
+            "d": "ErEL6wnacFGmUvZRNFkaEi5J...ddaYM1K2bVIQ",
+            "dp": "Is_jhC1KQRtFlZEqxa_9QtQM...4Tc2d2_xCSQU",
+            "dq": "BKav1gED28fY5ph_geT38Jum...rUh548dCBHgE",
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ",
-            "p": "8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU",
-            "q": "1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE",
-            "qi": "wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ",
+            "p": "8Qst5oskOgezNYveifXbIUa3...2Q4HX9avWRiU",
+            "q": "1g8wTdDfyJOJyZmL74vV20CW...GnRYfsSjL9OE",
+            "qi": "wVFX_l61o3_U45Gi_kSdqpTF...Yawm26c9WvaI"
         }
     ]
 }
@@ -262,7 +263,7 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
         {
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ"
         }
     ]
 }
@@ -271,15 +272,15 @@ JWKS (public) JSON file saved successfully to prd-pub.json.
 {
     "keys": [
         {
-            "d": "ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ",
-            "dp": "Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU",
-            "dq": "BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE",
+            "d": "ErEL6wnacFGmUvZRNFkaEi5J...ddaYM1K2bVIQ",
+            "dp": "Is_jhC1KQRtFlZEqxa_9QtQM...4Tc2d2_xCSQU",
+            "dq": "BKav1gED28fY5ph_geT38Jum...rUh548dCBHgE",
             "e": "AQAB",
             "kty": "RSA",
-            "n": "yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ",
-            "p": "8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU",
-            "q": "1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE",
-            "qi": "wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI"
+            "n": "yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ",
+            "p": "8Qst5oskOgezNYveifXbIUa3...2Q4HX9avWRiU",
+            "q": "1g8wTdDfyJOJyZmL74vV20CW...GnRYfsSjL9OE",
+            "qi": "wVFX_l61o3_U45Gi_kSdqpTF...Yawm26c9WvaI"
         }
     ]
 }
@@ -292,13 +293,13 @@ JWKS (private) JSON file saved successfully to prd-pri.json.
 
 $ python jwks_auth/payload.py --files prd-pri.json prd-claims.json --save_lwt /opt/lwt.json
 JWT Token:
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiIgaXItZXh0LWFuYWx5dGljcy1wcm9kLXNhIn0.EAh3y0OGUahtM2uLA4m2PcOMYKgRId8kba2qAYJCiJuU-2AalB-Lw5lfj1VmjKghdDO78NxYcSuEXrh2wmk9P2jsnH4e7YRzOA7CEXjRBVav7fIU503v-3IICLRdpgtej1sG6oJP1fK44V99ohSpg0YQhz-RuANjUqctw959knQnxUcSeWFJowIUYfGNNpsMb05xispxEpmjPVqengQEx7EyPRD2Qq3vaaYNGSqQHUAqJdKXan126RIbja0K7nhYZIRydOmV_P728YQyvfBJ2YfPPB9MFWqCjjCUX9io04HZ6-b7uusT-SYMMI3lZOh-YPsUbr4_5-Aaz-0y5JRfAQ
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lh...wcm9kLXNhIn0.EAh3y0OGUahtM2uLA4m2PcOM...Aaz-0y5JRfAQ
 JWT Claims:
 {"aud":"https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0","iss":"https://yourdomain/.well-known/jwks.json","sub":" prod-sa"}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
-    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImV4cCI6MTc0NDQxMjgxNCwiaWF0IjoxNzQ0NDA5MjE0LCJpc3MiOiJodHRwczovL2lyLWFuYWx5dGljcy1lbnRyeS50aGVpbmZpbml0ZXJlYWxpdHkuaW8vLndlbGwta25vd24vandrcy5qc29uIiwic3ViIjoiIGlyLWV4dC1hbmFseXRpY3MtcHJvZC1zYSJ9.OjAwSdL4PjuGw-qnanJsSR7dyIMWeb5TYYmh9pxQTC7ak_1Q8zV_EEs2-cFseG-KredCMfpKQYaU0UB1vi7VlRXkzW-WJ-KQpGTrrK3hLGzgpW8HGbhRo0NS0uapHRJT62spQUxF6sME0Odx_w3Li-Q2Hgr3CgxsPL_KwjxXndJyDm8yDNXR_dKboF0JF6gxHjSeDS5D7KbdLUCVrauKvMG733WMXdq4hCmORWvY20tkDBrlRWwpptXABjUIYLpl6Rgg1BPE8E-4P7MzRe22vYWdp31As08_Yaj4k9VZEuZDytZDEQZxGnEdq0CLexmux72k6-8XhuHh_wTyQgwtFQ"
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lh...cHJvZC1zYSJ9.OjAwSdL4PjuGw-qnanJsSR7d...Hh_wTyQgwtFQ"
 }
 
 

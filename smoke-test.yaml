@@ -125,20 +125,20 @@ blog:
   authors:
     - id: m4xx3d0ut
       name: "m4xx3d0ut"
-      title: "Chaos Wrangler"
+      title: "Chaos Operator"
       avatar: "assets/static/img/bunny-punx.webp"
-      bio: "Builder of the neon terminal core and perennial tinkerer."
+      bio: "Architect of the Neon Terminal Core and Professional Technologist."
       social:
         - label: "@m4xx3d0ut"
-          href: "https://example.com/m4xx3d0ut"
+          href: "https://www.linkedin.com/in/paul-k-a3a18196/"
     - id: reneerules
       name: "ReneéRules"
-      title: "Majesty Maestro"
+      title: "Majesty Orchestrator"
       avatar: "assets/static/img/bunny-punx.svg"
-      bio: "Curates the Majesty narrative and keeps the interface lyrical."
+      bio: "Curates the Majesty and keeps the interface vibrations high."
       social:
         - label: "@ReneeRules"
-          href: "https://example.com/reneerules"
+          href: "https://www.linkedin.com/in/rene%C3%A9-k-025083bb/"
 
 index: 
   title: Home

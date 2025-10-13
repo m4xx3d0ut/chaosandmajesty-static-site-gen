@@ -1,5 +1,5 @@
 ---
-title: SDLC Model Assessment Agile_Scrum_Prototype
+title: SDLC Model Assessment Agile Scrum Prototype
 slug: sdlc-model-assessment-agile-scrum-prototype
 author: m4xx3d0ut
 summary: Stage-by-stage comparison of Agile, Scrum, and Prototype models highlighting

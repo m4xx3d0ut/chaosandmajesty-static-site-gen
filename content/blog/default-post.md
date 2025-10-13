@@ -9,7 +9,7 @@ heroImage: assets/static/img/bunny-punx.webp
 hidden: true
 ---
 
-**Select a post to read.** Use the filters or search to dial into a signal. Everything that follows was built for people who feel most at home when the monitor glow is the only light in the room.
+**Select a post to read.** Use the filters or search to dial into a signal. Everything that follows was built for people who feel at home when the monitor glow is the only light in the room.
 
 <br>
 
@@ -17,8 +17,9 @@ hidden: true
 
 <br>
 
-> The words are ripped from The Mentor's **Conscience of a Hacker** and blasted across this console because that manifesto still explains why Chaos & Majesty exists.
-> We explore. We ask inconvenient questions. We refuse to apologize for curiosity.
+The words are ripped from The Mentor's **Conscience of a Hacker** and because that manifesto still explains why Chaos & Majesty exists.
+
+We explore. We pursue knowledge. We refuse to apologize for curiosity.
 
 <br>
 
@@ -26,9 +27,9 @@ hidden: true
 
 - It honors the tradition of breaking things just to understand them.
 - It keeps the art vocal, neon, unapologetic, and alive.
-- It invites collaborators to plug in and community to coalesce.
+- It invites others to learn and find their own way.
 
-The "hacker ethos" is alive in us. If you are reading this, it lives in you, too.
+The "hacker ethos" lives in us. If you are reading this, maybe it lives in you too.
 
 <br>
 

@@ -1,0 +1,128 @@
+
+
+
+
+<article class="blog-article-body" data-slug="doom-wasm-audio-part-1">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">An Exercise in Futility (and DOOM): wasm Audio Port Pt. 1</h1>
+    <p class="blog-article-meta">
+      
+        <span>Oct 13, 2025</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>8 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>TL;DR</h2>
+<ul>
+<li>The working branch <code>feat-doom-audio</code> now boots DOOM with WebAudio-driven sound effects, closing the silence we lived with in the first wasm drops.</li>
+<li>We expose <code>js_audio_init</code>, <code>js_audio_play_sfx</code>, and <code>js_audio_shutdown</code> so the wasm module treats our browser runtime like a soundcard.</li>
+<li>8-bit PCM lumps are cached, resampled, and mixed per-channel before they hit an <code>AudioBufferSourceNode</code>, keeping overlapping shots from crackling.</li>
+<li>We gate autoplay rules by resuming the <code>AudioContext</code> on key, click, and pointer-lock events, while scheduling buffers against <code>currentTime</code> to stay in sync.</li>
+</ul>
+<h2>Bringing the old soundcard back online</h2>
+<p>The first integration of DOOM (commit <code>866c611</code>, what you see on the site as of today) got DOOM sitting pretty in the terminal screen, but the build stayed mute. The past week on <code>feat-doom-audio</code> moved the shareware soundboard into the browser. The opening salvo:</p>
+<ul>
+<li><code>b52c11e</code> introduced a JavaScript bridge that let the wasm runtime push raw samples into our memory view.</li>
+<li><code>6d7d067</code> rewired playback, converting 8-bit lumps to floating point and scheduling them against a shared gain node so multiple SFX can play cleanly.</li>
+<li><code>23971cd</code> tightened the pipeline with buffer caching, pitch-aware resampling, and guard rails for browsers that suspend audio contexts.</li>
+</ul>
+<p>Each pass kept the terminal commands intact—<code>play doom</code> still deploys the overlay, <code>exit doom</code> tears it down—while giving us room to iterate on audio without breaking the UI shell.</p>
+<h2>WebAssembly wants a soundcard</h2>
+<p><code>instantiateDoom()</code> now provisions a 96 MiB <code>WebAssembly.Memory</code> block and wires a custom import object:</p>
+<pre><code class="language-js">js: {
+  js_audio_init(sampleRate) { initDoomAudio(sampleRate); },
+  js_audio_play_sfx(ptr, length, sampleRate, left, right, pitch) {
+    playDoomSfx(ptr, length, sampleRate, left, right, pitch);
+  },
+  js_audio_shutdown() { shutdownDoomAudio(); }
+}
+</code></pre>
+<p>The game still thinks it is talking to a DOS-era mixer. We translate that conversation into WebAudio primitives. <code>initDoomAudio</code> spins up an <code>AudioContext</code>, seeds a master gain node, records the wasm-provided sample rate (11025 Hz by default), and marks the engine live. <code>shutdownDoomAudio</code> flips the switch, clears the cache, and closes the context so re-entry stays clean.</p>
+<h2>Resampling the shareware lumps</h2>
+<p>Every sound effect the shareware WAD ships (door slides, plasma bolts, the cyberdemon&#39;s roar) arrives as unsigned 8-bit PCM. <code>playDoomSfx</code> pulls the bytes directly from the wasm memory buffer, normalises them to the <code>[-1, 1]</code> range, and caches the result in <code>doomAudioState.bufferCache</code>. The cache key ties the pointer and length, so repeated shots reuse decoded data instead of hammering the GC.</p>
+<p>Pitch adjustments from the engine arrive as a single byte. We convert that to an exponential ratio (<code>Math.pow(2, (pitch - 128) / 64)</code>) and scale the effective playback rate before shoving frames into a stereo buffer. Volume is handled per-channel (left/right gain derived from the game&#39;s 0-127 range) so directional audio survives intact. By feeding the finished <code>AudioBuffer</code> through a shared gain node we can add future master controls without rewriting the wasm side.</p>
+<h2>Keeping the browser happy</h2>
+<p>Modern browsers refuse to autoplay audio until a user interacts. <code>resumeDoomAudio()</code> tackles that rule by listening for keydown, keyup, click, focus, and pointer-lock events on the DOOM canvas. The first interaction calls <code>context.resume()</code> and subsequent inputs keep the context warm. We also schedule each <code>AudioBufferSource</code> against a <code>nextTime</code> cursor tracked in <code>doomAudioState</code>, ensuring overlapping shotgun blasts queue seamlessly even when a frame drops.</p>
+<p>Mouse capture still works the way the earlier branch taught us: clicking the canvas requests pointer lock, Esc releases it, and the overlay&#39;s status area tells you where you stand. The only new behaviour is that every exit path calls <code>shutdownDoomAudio()</code> so leaving the game stops the hum instantly.</p>
+<h2>Memory and performance guard rails</h2>
+<p>The wasm module now receives a 1,536-page (≈96 MiB) memory block. Audio lumps and texture tables chew through headroom fast—a smaller heap led to hard faults once we added streaming samples. The buffer cache tracks the active memory buffer and flushes itself if the wasm heap relocates, defending against stale <code>ArrayBuffer</code> references. Combined with the shared <code>masterGain</code> node and sequential scheduling, we minimise garbage collection churn and keep the terminal responsive while the game screams in the background.</p>
+<h2>What&#39;s next</h2>
+<p>Part II will chase the remaining gaps:</p>
+<ol>
+<li>Stream the music subsystem (the shareware IWAD ships MUS data that needs a MIDI-to-WAV bridge or an FM synth shim).</li>
+</ol>
+<p>For now, we can boot the branch, run <code>play doom</code>, and enjoy the return of E1M1&#39;s soundscape—silence is officially dead.</p>
+<p>But head our warning: &quot;thar be dragons&quot;.  I&#39;m still thinking through the approach and testing stability, this is my first foray into WebAudio and WebAssembly.  I&#39;m sure there are better ways to do this, but it&#39;s a start.  And it works... for now.  If/when I&#39;m happy with the state of audio, I&#39;ll push the project to a public repo and put a little more time into it, there are a few other features I&#39;d like to see before calling it done!</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link is-disabled"
+        data-blog-nav="previous"
+        aria-disabled=&#34;true&#34; tabindex=&#34;-1&#34;
+        href="#"
+        data-default-href=""
+        data-default-fragment=""
+        data-fragment-href=""
+        data-target-slug=""
+        data-post-slug=""
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">No newer posts</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/0-m4xx3d0ut.html"
+        data-default-href="blog/0-m4xx3d0ut.html"
+        data-default-fragment="blog/fragments/0-m4xx3d0ut.html"
+        data-fragment-href="blog/fragments/0-m4xx3d0ut.html"
+        data-target-slug="0-m4xx3d0ut"
+        data-post-slug="0-m4xx3d0ut"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">A Few Words</span>
+      </a>
+    </nav>
+  
+</article>
+

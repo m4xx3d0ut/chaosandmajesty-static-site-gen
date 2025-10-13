@@ -249,6 +249,13 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       fragmentHref = publicBase ? toPublicPath(`/${fragmentRelPath}`) : fragmentRelPath;
     }
 
+    let showArticleNav = null;
+    if (attributes.forceArticleNav === true) {
+      showArticleNav = true;
+    } else if (typeof attributes.showArticleNav === 'boolean') {
+      showArticleNav = attributes.showArticleNav;
+    }
+
     return {
       slug,
       title,
@@ -272,7 +279,8 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
       fragmentPath: fragmentRelPath,
       fragmentHref,
       seoDescription: attributes.seoDescription || summary,
-      isHidden: markHidden
+      isHidden: markHidden,
+      showArticleNav
     };
   }
 

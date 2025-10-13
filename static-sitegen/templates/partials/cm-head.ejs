@@ -1,55 +1,54 @@
+<!-- head partial (auto-generated) -->
 <%
-  const explicitRootBase = page && page.rootBase ? page.rootBase : '';
-  const siteBaseUrl = site && site.baseUrl ? site.baseUrl : '';
-  const combinedBase = explicitRootBase || siteBaseUrl;
-  const normalizedBase = combinedBase ? combinedBase.replace(/\/+$/, '') : '';
-  const hasAbsoluteBase = !!normalizedBase;
-  const baseDepth = (page && typeof page.baseDepth === 'number')
-    ? page.baseDepth
-    : (page && page.isSection ? 1 : 0);
-  const relativePrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : '');
-  const assetPath = function(p) {
-    if (!p) return '';
-    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(p)) {
-      return p;
+  const cmHeadIsExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || '');
+  const cmHeadRawRootBase =
+    (typeof headRootBase !== 'undefined' && headRootBase) ||
+    (typeof page !== 'undefined' && (page.rootBase || (page.blog && page.blog.rootBase))) ||
+    (typeof site !== 'undefined' && site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : '');
+  const cmHeadNormalizedRoot = cmHeadRawRootBase ? cmHeadRawRootBase.replace(/\/+$/, '') : '';
+  const cmHeadHasAbsoluteBase = !!cmHeadNormalizedRoot;
+  const cmHeadDepthValue =
+    (typeof headBaseDepth === 'number' && !Number.isNaN(headBaseDepth))
+      ? headBaseDepth
+      : (typeof baseDepth === 'number' && !Number.isNaN(baseDepth))
+        ? baseDepth
+        : (typeof page !== 'undefined' && typeof page.baseDepth === 'number' && !Number.isNaN(page.baseDepth))
+          ? page.baseDepth
+          : (typeof isSection !== 'undefined' && isSection ? 1 : 0);
+  const cmHeadDepthPrefix = cmHeadHasAbsoluteBase
+    ? ''
+    : (cmHeadDepthValue > 0 ? '../'.repeat(cmHeadDepthValue) : '');
+  const cmHeadResolve = (value) => {
+    if (!value) {
+      return cmHeadHasAbsoluteBase
+        ? (cmHeadNormalizedRoot || '/')
+        : (cmHeadDepthPrefix || './');
     }
-    if (/^(\.\/|\.\.\/)/.test(p)) {
-      return p;
+    if (cmHeadIsExternal(value)) {
+      return value;
     }
-    const cleaned = p.replace(/^\/+/, '');
-    if (hasAbsoluteBase) {
-      return cleaned ? `${normalizedBase}/${cleaned}` : normalizedBase || '/';
+    if (/^(?:\.\/|\.\.\/)/.test(value)) {
+      return value;
     }
-    if (!cleaned) {
-      return relativePrefix || './';
+    const cleaned = value.replace(/^\/+/, '');
+    if (cmHeadHasAbsoluteBase) {
+      return cleaned
+        ? `${cmHeadNormalizedRoot}/${cleaned}`
+        : (cmHeadNormalizedRoot || '/');
     }
-    return `${relativePrefix}${cleaned}`;
+    return cmHeadDepthPrefix + cleaned;
   };
-  const manifestPath = assetPath('site.webmanifest');
 %>
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"
-/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="<%= assetPath('assets/static/style/cm.css') %>">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="<%= cmHeadResolve('assets/static/style/cm.css') %>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
-<script type="text/javascript" src="<%= assetPath('assets/static/js/cm.js') %>"></script>
-<link rel="manifest" href="<%= manifestPath %>"/>
-<link rel="icon" type="image/x-icon" href="<%= assetPath('assets/static/img/favicon.ico') %>">
-<!-- Add terminal-style font imports -->
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
-
-<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script type="text/javascript" src="<%= cmHeadResolve('assets/static/js/cm.js') %>"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<link rel="manifest" href="<%= cmHeadResolve('site.webmanifest') %>"/>
+<link rel="icon" type="image/x-icon" href="<%= cmHeadResolve('assets/static/img/favicon.ico') %>">

@@ -8,7 +8,8 @@
   const adjacent = post.adjacent || {};
   const navPrev = adjacent.previous || null;
   const navNext = adjacent.next || null;
-  const explicitNavFlag = typeof showArticleNav === 'boolean' ? showArticleNav : null;
+  const navFlagFromPost = (post && typeof post.showArticleNav === 'boolean') ? post.showArticleNav : null;
+  const explicitNavFlag = typeof showArticleNav === 'boolean' ? showArticleNav : navFlagFromPost;
   const shouldRenderNav = explicitNavFlag !== null ? explicitNavFlag : !post.isHidden;
   const prevHrefValue = navPrev ? (navPrev.relativeHref || navPrev.publicHref || '') : '';
   const nextHrefValue = navNext ? (navNext.relativeHref || navNext.publicHref || '') : '';
