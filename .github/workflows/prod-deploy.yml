@@ -2,8 +2,9 @@ name: prod build and deploy
 
 on:
   push:
-    branches:
-      - prod
+    branches: [ prod ]
+    # Only run if site-output/ changes
+    paths: [ 'site-output/**' ]
 
 permissions:
   contents: read
@@ -17,6 +18,7 @@ env:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/prod'
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -62,14 +64,15 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile
+          no-cache: true
           push: true
           tags: |
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
-          cache-from: type=registry,ref=${{ steps.meta.outputs.image_ref }}:buildcache
-          cache-to: type=registry,mode=max,ref=${{ steps.meta.outputs.image_ref }}:buildcache
 
   deploy:
+    if: github.ref == 'refs/heads/prod'
     runs-on: self-hosted
     needs: build
     env:

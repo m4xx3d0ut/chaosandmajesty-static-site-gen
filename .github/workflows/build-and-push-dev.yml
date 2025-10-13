@@ -3,7 +3,9 @@ name: Build & Push (dev / site-output)
 on:
   push:
     branches: [ dev ]
+    # Only run if site-output/ changes
     paths: [ 'site-output/**' ]
+  # Enable manual triggering
   workflow_dispatch: {}
 
 jobs:
@@ -92,12 +94,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./Dockerfile.dev
+          no-cache: true
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
 
       - name: Output image refs
         run: |

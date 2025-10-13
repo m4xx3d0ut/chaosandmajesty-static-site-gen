@@ -39,7 +39,8 @@ RUN apk add --no-cache curl \
     && mkdir -p /tmp/webdav \
     && chown -R nginx:nginx /etc/nginx /usr/share/nginx/html /var/www/letsencrypt /tmp/webdav
 
-USER nginx
+# Drop back to the unprivileged nginx user (UID 101) so runAsNonRoot can verify it
+USER 101:101
 
 # Copy the generated site and nginx configuration
 COPY --from=builder --chown=nginx:nginx /app/site-output/ /usr/share/nginx/html/
