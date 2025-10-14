@@ -32,6 +32,7 @@ Key defaults (override in `group_vars/all.yml` or via extra-vars):
 - `webdav_host_path=/var/www/html/dav` keeps the host Joplin share mounted.
 - `letsencrypt_host_path=/etc/letsencrypt` shares existing certificates read-only.
 - `acme_webroot_host_path=/var/www/letsencrypt` is used for HTTP-01 challenges.
+- `auth_file_host_path=/etc/nginx/auth` mounts your existing WebDAV htpasswd directory read-only so credentials continue to work.
 - `disable_host_nginx=true` stops and disables the system nginx service at deploy time.
 
 The role will render a Docker Compose project in `{{ app_dir }}` (default

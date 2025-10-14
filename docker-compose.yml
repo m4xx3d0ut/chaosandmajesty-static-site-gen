@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NGINX_CONFIG: nginx/default.dev.conf
     container_name: cm-local
     ports:
       - "8080:8080"
@@ -13,4 +15,3 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
-

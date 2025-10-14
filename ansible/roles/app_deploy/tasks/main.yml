@@ -64,7 +64,7 @@
 - name: Apply compose project
   community.docker.docker_compose_v2:
     project_src: "{{ app_dir }}"
-    pull: false
+    pull: never
     recreate: always
     remove_orphans: true
     state: present

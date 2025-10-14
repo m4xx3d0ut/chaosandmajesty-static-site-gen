@@ -261,8 +261,8 @@ header:
     #   href: "contact.html"
     - label: Blog
       href: "blog.html"
-    - label: Sitemap
-      href: "sitemap.html"
+    # - label: Sitemap
+    #   href: "sitemap.html"
 
 footer:
   text: © 2025 Example Static Site. All rights reserved.

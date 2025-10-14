@@ -42,7 +42,7 @@ acme_webroot_host_path: /var/www/letsencrypt
 acme_webroot_container_path: /var/www/letsencrypt
 
 # Optional mount for sharing an nginx auth file with the container.
-auth_file_host_path: ''
+auth_file_host_path: /etc/nginx/auth
 auth_file_container_path: /etc/nginx/auth
 
 # Healthcheck path exposed by the container

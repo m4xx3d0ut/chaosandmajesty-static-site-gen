@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="../assets/static/style/cm.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,8 +61,6 @@
             
               <li><a href="../blog.html">Blog</a></li>
             
-              <li><a href="../sitemap.html">Sitemap</a></li>
-            
           </ul>
         </nav>
       
@@ -89,9 +88,6 @@
         <span aria-hidden="true">•</span>
         <span>5 min read</span>
       
-      
-        <span aria-hidden="true">•</span>
-        <span>m4xx3d0ut</span>
       
     </p>
   </header>
@@ -122,7 +118,7 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
         {
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MO...snip...KbZTFiRTH-TUzcK8oqYXqhQ&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -130,15 +126,15 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
 {
     &quot;keys&quot;: [
         {
-            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaE...snip...ddaYM1K2bVIQ&quot;,
-            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9Q...snip...2d2_xCSQU&quot;,
-            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38...snip...548dCBHgE&quot;,
+            &quot;d&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dp&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dq&quot;: &quot;&lt;omitted&gt;&quot;,
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;,
-            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIU...snip...HX9avWRiU&quot;,
-            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20...snip...nRYfsSjL9OE&quot;,
-            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdq...snip...awm26c9WvaI&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;p&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;q&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;qi&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -148,7 +144,7 @@ $ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_pr
         {
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MO...snip...KbZTFiRTH-TUzcK8oqYXqhQ&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -157,15 +153,15 @@ JWKS (public) JSON file saved successfully to prd-pub.json.
 {
     &quot;keys&quot;: [
         {
-            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaE...snip...ddaYM1K2bVIQ&quot;,
-            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9Q...snip...2d2_xCSQU&quot;,
-            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38...snip...548dCBHgE&quot;,
+            &quot;d&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dp&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dq&quot;: &quot;&lt;omitted&gt;&quot;,
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;,
-            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIU...snip...HX9avWRiU&quot;,
-            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20...snip...nRYfsSjL9OE&quot;,
-            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdq...snip...awm26c9WvaI&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;p&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;q&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;qi&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -182,7 +178,7 @@ JWKS (private) JSON file saved successfully to prd-pri.json.
 <h3>b. Create a Workload Identity Provider</h3>
 <ol>
 <li><strong>Within your pool, add a new provider:</strong><br>Select the provider type (OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).<ul>
-<li><strong>NOTE:</strong> The issuer URL does not have to be externally accessible, &quot;<a href="https://yourdomain/.well-known/jwks.json">https://yourdomain/.well-known/jwks.json</a>&quot; can be used as a default value.</li>
+<li><strong>NOTE:</strong> The issuer URL does not have to be externally accessible, &quot;<a href="https://example.internal/.well-known/jwks.json">https://example.internal/.well-known/jwks.json</a>&quot; can be used as a default value.</li>
 </ul>
 </li>
 <li><strong>Set up attribute mapping:</strong><br>Map external identity attributes (e.g., the subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.<ul>
@@ -214,13 +210,13 @@ BigQuery Metadata Viewer
 <h3>Sample <code>clientLibraryConfig-pool-0.json</code> File</h3>
 <pre><code class="language-json">{
   &quot;type&quot;: &quot;external_account&quot;,
-  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,
+  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&quot;,
   &quot;subject_token_type&quot;: &quot;urn:ietf:params:oauth:token-type:jwt&quot;,
   &quot;token_url&quot;: &quot;https://sts.googleapis.com/v1/token&quot;,
   &quot;credential_source&quot;: {
-    &quot;file&quot;: &quot;/opt/lwt.json&quot;  // This file should contain your external identity token (e.g., a JWT)
+    &quot;file&quot;: &quot;/opt/example-lwt.json&quot;  // This file should contain your external identity token (e.g., a JWT)
   },
-  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/prod-sa@prd.iam.gserviceaccount.com:generateAccessToken&quot;
+  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT_EMAIL}:generateAccessToken&quot;
 }
 </code></pre>
 <ul>
@@ -230,48 +226,36 @@ BigQuery Metadata Viewer
 </ul>
 <hr>
 <h2>4. Using the BigQuery Test Client with Federated Credentials</h2>
-<p>With your environment set up, test the BigQuery connection by listing the tables in the <code>event_logs</code> dataset of the target project ID&#39;s BigQuery instance.</p>
+<p>With your environment set up, test the BigQuery connection by listing the tables in the <code>your_dataset</code> dataset of the target project ID&#39;s BigQuery instance.</p>
 <pre><code class="language-bash"># **CD from repo root**
-$ cd console-data-vis-stack/analytics_cluster/analytics_api
+$ cd your-repo/analytics_cluster/analytics_api
 
 # **Assuming your virtual env is already setup with requirements installed**
 $ source venv/bin/activate
 
 # **Generate a new LWT with the private key and claims JSON**
-$ python api/jwks_auth/payload.py --files api/prd-pri.json api/prd-claims.json --save_lwt /opt/lwt.json
+$ python api/jwks_auth/payload.py --files api/prod-pri.json api/prod-claims.json --save_lwt /opt/lwt.json
 JWT Token:
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29n...tcG9vbC0wIn0.On2MENhvc3kR8jlfn2ZCXFvd...hmwwmQ_meiYQ
+&lt;example-jwt-token&gt;
 JWT Claims:
-{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;iss&quot;:&quot;https://yourdomain/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;pool-0&quot;}
+{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&quot;,&quot;iss&quot;:&quot;https://example.internal/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;${SUBJECT_ATTRIBUTE_VALUE}&quot;}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
-    &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29n...LXBvb2wtMCJ9.jrMukcTt7JDJcotNhxuFaqso...KIbx_PgbmEGg&quot;
+    &quot;access_token&quot;: &quot;&lt;example-access-token&gt;&quot;
 }
 
 # **Validate the LWT (Optional)**
-$ python api/jwks_auth/payload.py --validate api/prd-pub.json /opt/lwt.json
+$ python api/jwks_auth/payload.py --validate api/prod-pub.json /opt/lwt.json
 Validated JWT Claims from external files:
-{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;exp&quot;:1744665359,&quot;iat&quot;:1744661759,&quot;iss&quot;:&quot;https://yourdomain/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;pool-0&quot;}
+{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&quot;,&quot;exp&quot;:&quot;&lt;example-expiration&gt;&quot;,&quot;iat&quot;:&quot;&lt;example-issued-at&gt;&quot;,&quot;iss&quot;:&quot;https://example.internal/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;${SUBJECT_ATTRIBUTE_VALUE}&quot;}
 
 # **Test query the dataset**
-$ python api/test_bq_conn.py --dataset event_logs --creds api/clientLibraryConfig-pool-0.json
-Tables in dataset &#39;event_logs&#39;:
-- curated_events
-- ecomm_events
-- fct_agent_interactions
-- fct_cart_behaviour
-- fct_funnel_daily
-- fct_location_enters
-- fct_order_items
-- fct_orders
-- fct_sessions
-- fct_sessions_per_project
-- ir_engine
-- location_events
-- middleware_events
-- test_insert
-- wizard_events
+$ python api/test_bq_conn.py --dataset your_dataset --creds api/clientLibraryConfig-pool-0.json
+Tables in dataset &#39;your_dataset&#39;:
+- example_table_one
+- example_table_two
+- example_table_three
 </code></pre>
 <hr>
 <h2>1. Key &amp; JWKS Generation</h2>
@@ -299,7 +283,7 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
         {
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -307,15 +291,15 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
 {
     &quot;keys&quot;: [
         {
-            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5J...ddaYM1K2bVIQ&quot;,
-            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQM...4Tc2d2_xCSQU&quot;,
-            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jum...rUh548dCBHgE&quot;,
+            &quot;d&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dp&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dq&quot;: &quot;&lt;omitted&gt;&quot;,
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;,
-            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3...2Q4HX9avWRiU&quot;,
-            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW...GnRYfsSjL9OE&quot;,
-            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTF...Yawm26c9WvaI&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;p&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;q&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;qi&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -325,7 +309,7 @@ $ python jwks_auth/main.py --create --save_public prd-pub.json --save_private pr
         {
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -334,15 +318,15 @@ JWKS (public) JSON file saved successfully to prd-pub.json.
 {
     &quot;keys&quot;: [
         {
-            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5J...ddaYM1K2bVIQ&quot;,
-            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQM...4Tc2d2_xCSQU&quot;,
-            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jum...rUh548dCBHgE&quot;,
+            &quot;d&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dp&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;dq&quot;: &quot;&lt;omitted&gt;&quot;,
             &quot;e&quot;: &quot;AQAB&quot;,
             &quot;kty&quot;: &quot;RSA&quot;,
-            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0E...UzcK8oqYXqhQ&quot;,
-            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3...2Q4HX9avWRiU&quot;,
-            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW...GnRYfsSjL9OE&quot;,
-            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTF...Yawm26c9WvaI&quot;
+            &quot;n&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;p&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;q&quot;: &quot;&lt;omitted&gt;&quot;,
+            &quot;qi&quot;: &quot;&lt;omitted&gt;&quot;
         }
     ]
 }
@@ -355,13 +339,13 @@ JWKS (private) JSON file saved successfully to prd-pri.json.
 
 $ python jwks_auth/payload.py --files prd-pri.json prd-claims.json --save_lwt /opt/lwt.json
 JWT Token:
-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lh...wcm9kLXNhIn0.EAh3y0OGUahtM2uLA4m2PcOM...Aaz-0y5JRfAQ
+&lt;example-jwt-token&gt;
 JWT Claims:
-{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;iss&quot;:&quot;https://yourdomain/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot; prod-sa&quot;}
+{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;iss&quot;:&quot;https://example.internal/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;${SERVICE_ACCOUNT_SUBJECT}&quot;}
 LWT JSON saved to /opt/lwt.json
 Generated LWT JSON:
 {
-    &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lh...cHJvZC1zYSJ9.OjAwSdL4PjuGw-qnanJsSR7d...Hh_wTyQgwtFQ&quot;
+    &quot;access_token&quot;: &quot;&lt;example-access-token&gt;&quot;
 }
 
 
@@ -371,63 +355,63 @@ Generated LWT JSON:
 
 $ python jwks_auth/payload.py --validate prd-pub.json /opt/lwt.json
 Validated JWT Claims from external files:
-{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;exp&quot;:1744412814,&quot;iat&quot;:1744409214,&quot;iss&quot;:&quot;https://yourdomain/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot; prod-sa&quot;}
+{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/pool-0&quot;,&quot;exp&quot;:&quot;&lt;example-expiration&gt;&quot;,&quot;iat&quot;:&quot;&lt;example-issued-at&gt;&quot;,&quot;iss&quot;:&quot;https://example.internal/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;${SERVICE_ACCOUNT_SUBJECT}&quot;}
 </code></pre>
 <h3>NOTES</h3>
 <pre><code># DEV
-principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/subject/sa-000
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/subject/${SERVICE_ACCOUNT_NAME_DEV}
 
 # PRD
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/prod-sa
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/${SERVICE_ACCOUNT_NAME_PROD}
 
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
 
-principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/pool-0
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/pool-0
 </code></pre>
-<p>External Analytics Pool</p>
+<p>Example Analytics Pool</p>
 <pre><code class="language-ID">pool-0
 Description
-External analytics BQ WIF
+Example analytics WIF
 Status
 IAM principal 
-principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
 Logs 
 View
 </code></pre>
 <p>Providers</p>
-<pre><code>vis-stack-oidc-jwt	OIDC
+<pre><code>example-oidc-provider	OIDC
 </code></pre>
 <p>Provider Details</p>
-<pre><code class="language-vis-stack-oidc-jwt">
+<pre><code class="language-example-oidc-provider">
 </code></pre>
 <p>Issuer URL</p>
-<pre><code>https://yourdomain/.well-known/jwks.json
+<pre><code>https://example.internal/.well-known/jwks.json
 </code></pre>
 <p><strong>NOTE:</strong> Record the resulting IAM principal, grant to SA with <code>roles/iam.workloadIdentityUser</code></p>
-<pre><code>principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+<pre><code>principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
 </code></pre>
 <p>Audiences
 Default Audiences</p>
 <pre><code># DEV
-https://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/providers/vis-jwt
+https://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/providers/example-jwt-provider
 
 # PRD
-https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/vis-stack-oidc-jwt
+https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/example-oidc-provider
 </code></pre>
 <p>OIDC 1</p>
 <pre><code class="language-assertion.sub">
 </code></pre>
 <p>SA Permissions/Roles</p>
 <pre><code># DEV
-sa-000@genai-analytics-435321.iam.gserviceaccount.com
-sa-000
+${SERVICE_ACCOUNT_NAME_DEV}@${PROJECT_ID_DEV}.iam.gserviceaccount.com
+${SERVICE_ACCOUNT_NAME_DEV}
 BigQuery Data Viewer
 BigQuery Job User
 BigQuery Metadata Viewer
 
 # PRD
-prod-sa@prd.iam.gserviceaccount.com
-prod-sa	
+${SERVICE_ACCOUNT_NAME_PROD}@${PROJECT_ID_PROD}.iam.gserviceaccount.com
+${SERVICE_ACCOUNT_NAME_PROD}	
 BigQuery Data Viewer
 BigQuery Job User
 BigQuery Metadata Viewer
@@ -435,9 +419,9 @@ BigQuery Metadata Viewer
 <p>Service Account must be granted access to IAM WIP principal (from pool creation) with <code>roles/iam.workloadIdentityUser</code></p>
 <p>Create a <code>claims.json</code> with your SA, issue, and audience (without <code>https:</code>)</p>
 <pre><code>{
-  &quot;sub&quot;: &quot; prod-sa&quot;,
-  &quot;iss&quot;: &quot;https://yourdomain/.well-known/jwks.json&quot;,
-  &quot;aud&quot;: &quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/pool-0/providers/vis-stack-oidc-jwt&quot;
+  &quot;sub&quot;: &quot;${SERVICE_ACCOUNT_SUBJECT}&quot;,
+  &quot;iss&quot;: &quot;https://example.internal/.well-known/jwks.json&quot;,
+  &quot;aud&quot;: &quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/example-oidc-provider&quot;
 }
 </code></pre>
 <hr>
@@ -484,14 +468,14 @@ BigQuery Metadata Viewer
 </ul>
 <p><em>More on external account configuration can be found in the <a href="https://cloud.google.com/docs/authentication/external-account">External Account Credentials documentation</a> citeturn0doc2.</em></p>
 <h3>NOTES</h3>
-<p>External Credentials File <strong>clientLibraryConfig-vis-jwt.json</strong></p>
+<p>External Credentials File <strong>clientLibraryConfig-example-jwt-provider.json</strong></p>
 <pre><code>{
   &quot;universe_domain&quot;: &quot;googleapis.com&quot;,
   &quot;type&quot;: &quot;external_account&quot;,
-  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/pool-0/providers/vis-jwt&quot;,
+  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/providers/example-jwt-provider&quot;,
   &quot;subject_token_type&quot;: &quot;urn:ietf:params:oauth:token-type:jwt&quot;,
   &quot;token_url&quot;: &quot;https://sts.googleapis.com/v1/token&quot;,
-  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/sa-000@genai-analytics-435321.iam.gserviceaccount.com:generateAccessToken&quot;,
+  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT_NAME_DEV}@${PROJECT_ID_DEV}.iam.gserviceaccount.com:generateAccessToken&quot;,
   &quot;credential_source&quot;: {
     &quot;file&quot;: &quot;/opt/lwt.json&quot;,
     &quot;format&quot;: {
@@ -509,9 +493,9 @@ BigQuery Metadata Viewer
 <p>This step ensures that when you create a BigQuery client, it will automatically load and use the federated credentials.</p>
 <h3>NOTES</h3>
 <pre><code># **NOTE:** for BQ federated identity auth
-GCP_PROJECT=&quot;genai-analytics-435321&quot;
-GCP_BQ_DATASET=&quot;event_logs&quot;
-GCP_CLIENT_CONF=&quot;/app/api/clientLibraryConfig-vis-jwt.json&quot;
+GCP_PROJECT=&quot;${PROJECT_ID_DEV}&quot;
+GCP_BQ_DATASET=&quot;${BQ_DATASET_ID}&quot;
+GCP_CLIENT_CONF=&quot;/app/api/clientLibraryConfig-example.json&quot;
 GCP_PRI_KEY=&quot;/app/api/pri.json&quot;
 GCP_CLAIMS_FILE=&quot;/app/api/claims.json&quot;
 GCP_PUB_KEY=&quot;/app/api/pub.json&quot;
@@ -549,28 +533,6 @@ for row in results:
 
   </div>
 
-  
-    <footer class="blog-author-card">
-      
-        <img class="blog-author-avatar" src="../assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
-      
-      <div class="blog-author-details">
-        <strong class="blog-author-name">m4xx3d0ut</strong>
-        
-          <div class="blog-author-title">Chaos Operator</div>
-        
-        
-          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
-        
-        
-          <ul class="blog-author-social">
-            
-              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
-            
-          </ul>
-        
-      </div>
-    </footer>
   
 
   
