@@ -781,6 +781,9 @@
       touchControlsRoot: null,
       virtualKeyReleasers: [],
       sendVirtualKey: null,
+      keyboardToggleBtn: null,
+      keyboardVisible: false,
+      keyboardProxy: null,
       pendingLoadSlot: null,
       lastSaveMeta: null,
       lastLoadResult: null,
@@ -1832,6 +1835,265 @@
       return true;
   }
 
+  function isDesktopDoomEnvironment() {
+      return !shouldShowDoomTouchControls();
+  }
+
+  function setVirtualKeyboardState(isOpen) {
+      doomState.keyboardVisible = !!isOpen;
+      if (doomState.keyboardToggleBtn) {
+          doomState.keyboardToggleBtn.textContent = 'Toggle KB';
+          doomState.keyboardToggleBtn.setAttribute('aria-pressed', doomState.keyboardVisible ? 'true' : 'false');
+      }
+  }
+
+  function toggleVirtualKeyboard() {
+      var inputEl = document.getElementById('uIn');
+      if (!inputEl) {
+          return;
+      }
+      if (!doomState.keyboardVisible) {
+          var focused = false;
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.show === 'function') {
+              try {
+                  navigator.virtualKeyboard.show();
+              } catch (_err) {
+                  // ignore navigator virtual keyboard failures
+              }
+          }
+          try {
+              inputEl.focus({ preventScroll: true });
+              focused = true;
+          } catch (_err) {
+              inputEl.focus();
+              focused = true;
+          }
+          attachDoomKeyboardProxy(inputEl);
+          setVirtualKeyboardState(focused || (document.activeElement === inputEl));
+      } else {
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.hide === 'function') {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err2) {
+                  // ignore navigator virtual keyboard hide failures
+              }
+          }
+          inputEl.blur();
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          if (doomState.active) {
+              focusDoomCanvas();
+          }
+      }
+  }
+
+  function syncKeyboardStateFromInput(inputEl) {
+      if (!inputEl) {
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          return;
+      }
+      var isActive = document.activeElement === inputEl;
+      setVirtualKeyboardState(isActive);
+      if (isActive) {
+          attachDoomKeyboardProxy(inputEl);
+      } else {
+          detachDoomKeyboardProxy();
+      }
+  }
+
+  function convertDomKeyToDoom(keyCode, keyValue) {
+      var code = keyCode || 0;
+      var keyLower = '';
+      if (keyValue && typeof keyValue === 'string') {
+          keyLower = keyValue.toLowerCase();
+      }
+
+      if (!code || code === 229) {
+          if (keyLower.length === 1) {
+              code = keyLower.charCodeAt(0);
+          } else if (keyLower) {
+              switch (keyLower) {
+                  case 'arrowleft':
+                      code = 37;
+                      break;
+                  case 'arrowup':
+                      code = 38;
+                      break;
+                  case 'arrowright':
+                      code = 39;
+                      break;
+                  case 'arrowdown':
+                      code = 40;
+                      break;
+                  case 'escape':
+                  case 'esc':
+                      code = 27;
+                      break;
+                  case 'enter':
+                  case 'return':
+                      code = 13;
+                      break;
+                  case 'tab':
+                      code = 9;
+                      break;
+                  case 'backspace':
+                      code = 8;
+                      break;
+                  case 'space':
+                  case 'spacebar':
+                      code = 32;
+                      break;
+                  case 'control':
+                  case 'ctrl':
+                      code = 17;
+                      break;
+                  case 'alt':
+                      code = 18;
+                      break;
+                  case 'shift':
+                      code = 16;
+                      break;
+                  default:
+                      code = 0;
+              }
+          }
+      }
+
+      if (!code) {
+          return null;
+      }
+
+      switch (code) {
+          case 8: return 127;
+          case 9: return 9;
+          case 13: return 13;
+          case 16: return 0x80 + 0x2a; // shift
+          case 17: return 0x80 + 0x1d;
+          case 18: return 0x80 + 0x38;
+          case 27: return 27;
+          case 32: return 32;
+          case 37: return 0xac;
+          case 38: return 0xad;
+          case 39: return 0xae;
+          case 40: return 0xaf;
+          default:
+              if (code >= 65 && code <= 90) {
+                  return code + 32;
+              }
+              if (code >= 112 && code <= 123) {
+                  return code + 75;
+              }
+              if (keyLower.length === 1) {
+                  return keyLower.charCodeAt(0);
+              }
+              return code;
+      }
+  }
+
+  function attachDoomKeyboardProxy(inputEl) {
+      if (!doomState.active || !inputEl || doomState.keyboardProxy) {
+          return;
+      }
+      var sendChar = function(ch) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var mapped = convertDomKeyToDoom(ch.charCodeAt(0), ch);
+          if (mapped === null) {
+              return;
+          }
+          doomState.handleKeyDown(mapped);
+          window.setTimeout(function() {
+              doomState.handleKeyUp(mapped);
+          }, 0);
+      };
+
+      var keydownHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyDown(code);
+      };
+      var keyupHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyUp) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyUp(code);
+      };
+
+      var inputHandler = function(event) {
+          if (!doomState.active) {
+              return;
+          }
+          var value = inputEl.value;
+          if (!value && event && typeof event.data === 'string') {
+              value = event.data;
+          }
+          if (typeof value !== 'string' || !value.length) {
+              inputEl.value = '';
+              return;
+          }
+          for (var idx = 0; idx < value.length; idx += 1) {
+              var ch = value.charAt(idx);
+              sendChar(ch);
+          }
+          inputEl.value = '';
+      };
+
+      var compositionHandler = function(event) {
+          if (!event || typeof event.data !== 'string') {
+              return;
+          }
+          for (var idx = 0; idx < event.data.length; idx += 1) {
+              sendChar(event.data.charAt(idx));
+          }
+          inputEl.value = '';
+      };
+
+      inputEl.addEventListener('keydown', keydownHandler, true);
+      inputEl.addEventListener('keyup', keyupHandler, true);
+      inputEl.addEventListener('input', inputHandler, true);
+      inputEl.addEventListener('compositionend', compositionHandler, true);
+      inputEl.value = '';
+      doomState.keyboardProxy = {
+          element: inputEl,
+          onKeydown: keydownHandler,
+          onKeyup: keyupHandler,
+          onInput: inputHandler,
+          onComposition: compositionHandler
+      };
+  }
+
+  function detachDoomKeyboardProxy() {
+      var proxy = doomState.keyboardProxy;
+      if (!proxy || !proxy.element) {
+          doomState.keyboardProxy = null;
+          return;
+      }
+      try {
+          proxy.element.removeEventListener('keydown', proxy.onKeydown, true);
+          proxy.element.removeEventListener('keyup', proxy.onKeyup, true);
+          proxy.element.removeEventListener('input', proxy.onInput, true);
+          proxy.element.removeEventListener('compositionend', proxy.onComposition, true);
+      } catch (_err) {
+          // ignore detach errors
+      }
+      doomState.keyboardProxy = null;
+  }
+
   function ensureDoomOverlay() {
       var consoleEl = document.getElementById('console');
       var screen = document.getElementById('tOut');
@@ -1891,8 +2153,53 @@
       });
       controlButtons.appendChild(exitBtn);
 
+      var keyboardBtn = document.createElement('button');
+      keyboardBtn.type = 'button';
+      keyboardBtn.textContent = 'Toggle KB';
+      registerDoomListener(keyboardBtn, 'click', function() {
+          var inputEl = document.getElementById('uIn');
+          if (!doomState.keyboardVisible) {
+              toggleVirtualKeyboard();
+              return;
+          }
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.hide === 'function') {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err) {
+                  // ignore virtual keyboard hide failures
+              }
+          }
+          if (inputEl && document.activeElement === inputEl) {
+              inputEl.blur();
+          } else {
+              setVirtualKeyboardState(false);
+              detachDoomKeyboardProxy();
+              if (doomState.active) {
+                  focusDoomCanvas();
+              }
+          }
+      });
+      controlButtons.appendChild(keyboardBtn);
+
+      doomState.keyboardToggleBtn = keyboardBtn;
+
       controls.appendChild(controlButtons);
       overlay.appendChild(controls);
+
+      var keyboardInput = document.getElementById('uIn');
+      if (keyboardInput) {
+          registerDoomListener(keyboardInput, 'focus', function() {
+              if (doomState.active) {
+                  syncKeyboardStateFromInput(keyboardInput);
+              }
+          });
+          registerDoomListener(keyboardInput, 'blur', function() {
+              syncKeyboardStateFromInput(keyboardInput);
+          });
+          syncKeyboardStateFromInput(keyboardInput);
+      } else {
+          setVirtualKeyboardState(false);
+      }
 
       if (shouldShowDoomTouchControls()) {
           var touchControls = document.createElement('div');
@@ -2174,31 +2481,17 @@
 
       var exports = instance.exports;
 
-      var doomKeyCode = function(keyCode) {
-          switch (keyCode) {
-              case 8: return 127; // backspace
-              case 17: return 0x80 + 0x1d; // ctrl
-              case 18: return 0x80 + 0x38; // alt
-              case 37: return 0xac; // left
-              case 38: return 0xad; // up
-              case 39: return 0xae; // right
-              case 40: return 0xaf; // down
-              default:
-                  if (keyCode >= 65 && keyCode <= 90) {
-                      return keyCode + 32;
-                  }
-                  if (keyCode >= 112 && keyCode <= 123) {
-                      return keyCode + 75;
-                  }
-                  return keyCode;
-          }
-      };
-
       var keyDown = function(code) { exports.add_browser_event(0, code); };
       var keyUp = function(code) { exports.add_browser_event(1, code); };
 
+      doomState.handleKeyDown = keyDown;
+      doomState.handleKeyUp = keyUp;
+
       doomState.sendVirtualKey = function(keyCode) {
-          var code = doomKeyCode(keyCode);
+          var code = convertDomKeyToDoom(keyCode, null);
+          if (code === null) {
+              return;
+          }
           keyDown(code);
           setTimeout(function() {
               keyUp(code);
@@ -2206,12 +2499,20 @@
       };
 
       registerDoomListener(canvas, 'keydown', function(event) {
-          keyDown(doomKeyCode(event.keyCode));
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyDown(mapped);
           resumeDoomAudio();
           event.preventDefault();
       });
       registerDoomListener(canvas, 'keyup', function(event) {
-          keyUp(doomKeyCode(event.keyCode));
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyUp(mapped);
           resumeDoomAudio();
           event.preventDefault();
       });
@@ -2250,6 +2551,26 @@
           registerDoomListener(document, 'webkitpointerlockerror', handlePointerLockError);
       }
 
+      if (isDesktopDoomEnvironment()) {
+          var blockedMetaKeys = { w: true, r: true, t: true, n: true, l: true, tab: true, s: true, p: true, o: true };
+          registerDoomListener(window, 'keydown', function(event) {
+              if (!doomState.active || !isDesktopDoomEnvironment()) {
+                  return;
+              }
+              var key = (event.key || '').toLowerCase();
+              var metaCombo = event.metaKey || event.ctrlKey;
+              if (metaCombo && blockedMetaKeys[key]) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  return;
+              }
+              if (!metaCombo && (key === 'f5' || key === 'f11')) {
+                  event.preventDefault();
+                  event.stopPropagation();
+              }
+          }, true);
+      }
+
       if (shouldShowDoomTouchControls() && doomState.touchControlsRoot) {
           setupTouchControls();
       }
@@ -2258,7 +2579,10 @@
           if (!button) {
               return;
           }
-          var doomKey = doomKeyCode(keyCode);
+          var doomKey = convertDomKeyToDoom(keyCode, null);
+          if (doomKey === null) {
+              return;
+          }
           var activeIds = new Set();
           var pointerSupported = typeof window !== 'undefined' && typeof window.PointerEvent === 'function';
 
@@ -2407,7 +2731,14 @@
           var rightCluster = document.createElement('div');
           rightCluster.className = 'doom-touch-controls__cluster doom-touch-controls__cluster--right';
           var enterButton = makeTouchButton('Enter', 13, 'doom-touch-button--enter');
-          rightCluster.appendChild(enterButton);
+          var spaceButton = makeTouchButton('Space', 32, 'doom-touch-button--space');
+          spaceButton.setAttribute('aria-label', 'Space');
+
+          var actionRow = document.createElement('div');
+          actionRow.className = 'doom-touch-controls__row doom-touch-controls__row--actions';
+          actionRow.appendChild(spaceButton);
+          actionRow.appendChild(enterButton);
+          rightCluster.appendChild(actionRow);
 
           var dpad = document.createElement('div');
           dpad.className = 'doom-touch-dpad';
@@ -2497,6 +2828,11 @@
           return;
       }
 
+      if (typeof document !== 'undefined' && document.body) {
+          document.body.classList.add('doom-prevent-highlight');
+      }
+      setVirtualKeyboardState(false);
+
       doomState.active = true;
       pauseLogo(LOGO_PAUSE_REASON_DOOM);
       setDoomStatus('Initializing DOOM runtime...');
@@ -2522,6 +2858,9 @@
       }
 
       shutdownDoomAudio();
+      if (typeof document !== 'undefined' && document.body) {
+          document.body.classList.remove('doom-prevent-highlight');
+      }
 
       var consoleEl = document.getElementById('console');
       if (consoleEl) {
@@ -2553,6 +2892,9 @@
       doomState.sendVirtualKey = null;
       doomState.supportsSaveStates = false;
       doomState.pendingLoadSlot = null;
+      doomState.handleKeyDown = null;
+      doomState.handleKeyUp = null;
+      detachDoomKeyboardProxy();
       if (doomState.screenEl) {
           if (doomState.prevOverflow !== null) {
               doomState.screenEl.style.overflowY = doomState.prevOverflow;
@@ -2577,11 +2919,15 @@
       });
       doomState.virtualKeyReleasers = [];
       if (doomState.touchControlsRoot) {
-      doomState.touchControlsRoot.innerHTML = '';
+          doomState.touchControlsRoot.innerHTML = '';
       }
       doomState.touchControlsRoot = null;
       doomState.lastSaveMeta = null;
       doomState.lastLoadResult = null;
+      setVirtualKeyboardState(false);
+      doomState.keyboardToggleBtn = null;
+      doomState.keyboardVisible = false;
+      detachDoomKeyboardProxy();
 
       if (message) {
           terminal([message]);

@@ -749,6 +749,7 @@ body > footer {
   font-size: 0.95em;
   text-align: center;
   min-height: 1.6em;
+  flex-shrink: 0;
 }
 
 .doom-overlay__controls {
@@ -757,11 +758,13 @@ body > footer {
   gap: 0.75rem;
   justify-content: center;
   font-size: 0.85em;
+  flex-shrink: 0;
 }
 
 .doom-overlay__buttons {
   display: flex;
   gap: 0.75rem;
+  justify-content: center;
 }
 
 .doom-overlay__controls button {
@@ -778,6 +781,13 @@ body > footer {
 .doom-overlay__controls button:focus {
   background: #66ff00;
   color: #000;
+}
+
+body.doom-prevent-highlight .doom-overlay,
+body.doom-prevent-highlight .doom-overlay * {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .doom-touch-controls {
@@ -813,6 +823,12 @@ body > footer {
   display: flex;
   gap: 0.65rem;
   justify-content: center;
+}
+
+.doom-touch-controls__row--actions {
+  justify-content: space-between;
+  width: 100%;
+  align-self: stretch;
 }
 
 .doom-touch-dpad {
@@ -861,6 +877,11 @@ body > footer {
 .doom-touch-button--enter {
   align-self: center;
   padding-inline: 1.4rem;
+}
+
+.doom-touch-button--space {
+  align-self: flex-start;
+  min-width: 4.2rem;
 }
 
 .doom-touch-controls__cluster--left .doom-touch-button {
