@@ -3,6 +3,9 @@
   const CONTRAST_CLASS = 'contrast-mode';
   const LOGO_PAUSE_REASON_TERMINAL = 'terminal-input';
   const LOGO_PAUSE_REASON_DOOM = 'doom';
+  const DOOM_DEFAULT_ZONE_MB = 96;
+  // Boost DOOM's zone allocator so save / audio heaps fit comfortably.
+  const DOOM_DEFAULT_LAUNCH_ARGS = ['-mb', String(DOOM_DEFAULT_ZONE_MB)];
   const TERMINAL_STORAGE_KEY = 'cm-terminal-buffer';
   const TERMINAL_MAX_SEGMENTS = 320;
 
@@ -156,6 +159,253 @@
 
     window.addEventListener('scroll', toggleVisibility, { passive: true });
     toggleVisibility();
+  }
+
+  function isLikelyMobileViewport() {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    var matchesMobileWidth = false;
+    if (typeof window.matchMedia === 'function') {
+      try {
+        matchesMobileWidth = window.matchMedia('(max-width: 768px)').matches;
+      } catch (_err) {
+        matchesMobileWidth = false;
+      }
+    }
+
+    var hasTouchCapability = false;
+    try {
+      hasTouchCapability = ('ontouchstart' in window) || (navigator && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0);
+    } catch (_err2) {
+      hasTouchCapability = false;
+    }
+
+    return matchesMobileWidth || hasTouchCapability;
+  }
+
+  function isLikelyIOS() {
+    if (typeof navigator === 'undefined') {
+      return false;
+    }
+
+    try {
+      var platform = navigator.platform || '';
+      var userAgent = navigator.userAgent || '';
+      var maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
+
+      if (/iP(hone|od|ad)/.test(platform)) {
+        return true;
+      }
+      if (/iPhone|iPad|iPod/.test(userAgent)) {
+        return true;
+      }
+      if (/Mac/.test(platform) && maxTouchPoints > 1) {
+        return true;
+      }
+    } catch (_err) {
+      return false;
+    }
+
+    return false;
+  }
+
+  function initMobileConsoleKeyboardScaling() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    var body = document.body;
+    if (!body || !isLikelyMobileViewport()) {
+      return;
+    }
+
+    var consoleEl = document.getElementById('console');
+    var inputEl = document.getElementById('uIn');
+    if (!consoleEl || !inputEl) {
+      return;
+    }
+
+    var viewport = typeof window !== 'undefined' ? window.visualViewport : null;
+    var baselineHeight = viewport ? viewport.height : null;
+    var keyboardActive = false;
+    var keyboardMarker = null;
+    var consoleWrapper = consoleEl.closest('.console-center');
+    var consoleTranslateY = 0;
+    var KEYBOARD_STATE_CLASS = 'cm-keyboard-open';
+    var KEYBOARD_MARKER_CLASS = 'cm-keyboard-anchor';
+    var KEYBOARD_MARKER_THICKNESS = 12; // Mirror --cm-keyboard-marker-thickness
+    var HEIGHT_THRESHOLD = 120;
+    var prefersScrollAlignment = isLikelyIOS();
+
+    function getViewportBottom() {
+      if (viewport) {
+        return viewport.height + viewport.offsetTop;
+      }
+      return window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+    }
+
+    function ensureKeyboardMarker() {
+      if (keyboardMarker && keyboardMarker.parentNode === body) {
+        return keyboardMarker;
+      }
+      keyboardMarker = document.createElement('div');
+      keyboardMarker.className = KEYBOARD_MARKER_CLASS;
+      keyboardMarker.setAttribute('aria-hidden', 'true');
+      body.appendChild(keyboardMarker);
+      return keyboardMarker;
+    }
+
+    function updateKeyboardMarker(isActive) {
+      if (!isActive && !keyboardMarker) {
+        return;
+      }
+      var marker = ensureKeyboardMarker();
+      if (!marker) {
+        return;
+      }
+      if (!isActive) {
+        marker.classList.remove('is-active');
+        marker.style.top = '';
+        return;
+      }
+      var viewportBottom = getViewportBottom();
+      var markerTop = viewportBottom - KEYBOARD_MARKER_THICKNESS;
+      if (markerTop < 0) {
+        markerTop = 0;
+      }
+      marker.style.top = markerTop + 'px';
+      marker.classList.add('is-active');
+    }
+
+    function applyConsoleTranslate(nextValue) {
+      if (!consoleWrapper) {
+        consoleTranslateY = 0;
+        return;
+      }
+      if (prefersScrollAlignment) {
+        if (consoleWrapper.style.getPropertyValue('--cm-keyboard-translate')) {
+          consoleWrapper.style.removeProperty('--cm-keyboard-translate');
+        }
+        consoleWrapper.classList.remove('is-keyboard-adjusted');
+        consoleTranslateY = 0;
+        return;
+      }
+      if (!nextValue) {
+        consoleWrapper.style.removeProperty('--cm-keyboard-translate');
+        consoleWrapper.classList.remove('is-keyboard-adjusted');
+        consoleTranslateY = 0;
+        return;
+      }
+      consoleWrapper.style.setProperty('--cm-keyboard-translate', nextValue + 'px');
+      consoleWrapper.classList.add('is-keyboard-adjusted');
+      consoleTranslateY = nextValue;
+    }
+
+    function updateConsoleAlignment(isActive) {
+      if (!consoleWrapper) {
+        return;
+      }
+      if (!isActive) {
+        if (consoleTranslateY !== 0) {
+          applyConsoleTranslate(0);
+        }
+        return;
+      }
+
+      window.requestAnimationFrame(function() {
+        var viewportBottom = getViewportBottom();
+        if (!viewportBottom) {
+          return;
+        }
+        var rect = consoleWrapper.getBoundingClientRect();
+        var originalBottom = rect.bottom - consoleTranslateY;
+        var desiredBottom = viewportBottom;
+        var delta = originalBottom - desiredBottom;
+        if (prefersScrollAlignment) {
+          if (delta > 4 && typeof window.scrollBy === 'function') {
+            var scrollAmount = delta > 600 ? 600 : delta;
+            window.scrollBy(0, scrollAmount);
+          }
+          return;
+        }
+        var nextTranslate = delta > 1 ? -delta : 0;
+        if (Math.abs(nextTranslate - consoleTranslateY) < 1) {
+          return;
+        }
+        applyConsoleTranslate(nextTranslate);
+      });
+    }
+
+    function setKeyboardState(nextState) {
+      var stateChanged = keyboardActive !== nextState;
+      keyboardActive = nextState;
+      if (stateChanged) {
+        if (keyboardActive) {
+          body.classList.add(KEYBOARD_STATE_CLASS);
+        } else {
+          body.classList.remove(KEYBOARD_STATE_CLASS);
+        }
+      }
+      if (!keyboardActive && consoleTranslateY !== 0) {
+        applyConsoleTranslate(0);
+      }
+      updateKeyboardMarker(keyboardActive);
+      updateConsoleAlignment(keyboardActive);
+    }
+
+    function updateBaseline() {
+      if (!viewport) {
+        return;
+      }
+      if (baselineHeight === null || viewport.height > baselineHeight) {
+        baselineHeight = viewport.height;
+      }
+    }
+
+    function detectKeyboardWithViewport() {
+      if (!viewport) {
+        return;
+      }
+      if (document.activeElement !== inputEl) {
+        setKeyboardState(false);
+        updateBaseline();
+        return;
+      }
+
+      updateBaseline();
+      var heightDelta = baselineHeight !== null ? (baselineHeight - viewport.height) : 0;
+      setKeyboardState(heightDelta > HEIGHT_THRESHOLD);
+    }
+
+    if (!viewport) {
+      inputEl.addEventListener('focus', function() {
+        setKeyboardState(true);
+      });
+      inputEl.addEventListener('blur', function() {
+        setKeyboardState(false);
+      });
+      return;
+    }
+
+    viewport.addEventListener('resize', detectKeyboardWithViewport);
+    viewport.addEventListener('scroll', detectKeyboardWithViewport);
+
+    inputEl.addEventListener('focus', function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
+
+    inputEl.addEventListener('blur', function() {
+      setKeyboardState(false);
+      updateBaseline();
+    });
+
+    window.addEventListener('orientationchange', function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
   }
 
   const LIGHTBOX_STATE = {
@@ -527,8 +777,668 @@
       context: null,
       screenEl: null,
       prevScrollTop: null,
-      prevOverflow: null
+      prevOverflow: null,
+      touchControlsRoot: null,
+      virtualKeyReleasers: [],
+      sendVirtualKey: null,
+      keyboardToggleBtn: null,
+      keyboardVisible: false,
+      keyboardProxy: null,
+      pendingLoadSlot: null,
+      lastSaveMeta: null,
+      lastLoadResult: null,
+      supportsSaveStates: false
   };
+  var doomAudioState = {
+      context: null,
+      masterGain: null,
+      nextTime: 0,
+      sampleRate: 11025,
+      enabled: false,
+      bufferCache: new Map(),
+      memoryBuffer: null
+  };
+  var doomTextDecoder = (typeof TextDecoder === 'function') ? new TextDecoder('utf8') : null;
+  var DOOM_SAVE_MAX_SLOT = 5;
+  var DOOM_SAVE_KEY_PREFIX = 'cm-doom-save-slot-';
+  var DOOM_SAVE_VERSION = 1;
+
+  function clampDoomSlot(slot) {
+      var value = typeof slot === 'number' ? slot : parseInt(slot, 10);
+      if (!Number.isFinite(value)) {
+          return null;
+      }
+      if (value < 0) {
+          value = 0;
+      }
+      if (value > DOOM_SAVE_MAX_SLOT) {
+          value = DOOM_SAVE_MAX_SLOT;
+      }
+      return value | 0;
+  }
+
+  function getDoomSaveKey(slot) {
+      return DOOM_SAVE_KEY_PREFIX + slot;
+  }
+
+  function computeDoomChecksum(bytes) {
+      if (!bytes) {
+          return 0;
+      }
+      var sum = 0;
+      for (var i = 0; i < bytes.length; i++) {
+          sum = (sum + bytes[i]) & 0xffff;
+      }
+      return sum;
+  }
+
+  function encodeBase64Bytes(bytes) {
+      if (!bytes || typeof window === 'undefined' || typeof window.btoa !== 'function') {
+          return null;
+      }
+      var chunkSize = 0x8000;
+      var segments = [];
+      for (var offset = 0; offset < bytes.length; offset += chunkSize) {
+          var slice = bytes.subarray(offset, Math.min(bytes.length, offset + chunkSize));
+          var chars = new Array(slice.length);
+          for (var idx = 0; idx < slice.length; idx++) {
+              chars[idx] = String.fromCharCode(slice[idx]);
+          }
+          segments.push(chars.join(''));
+      }
+      try {
+          return window.btoa(segments.join(''));
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function decodeBase64ToBytes(encoded) {
+      if (!encoded || typeof window === 'undefined' || typeof window.atob !== 'function') {
+          return null;
+      }
+      try {
+          var binary = window.atob(encoded);
+          var length = binary.length;
+          var view = new Uint8Array(length);
+          for (var i = 0; i < length; i++) {
+              view[i] = binary.charCodeAt(i);
+          }
+          return view;
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function storeDoomSaveBytes(slot, bytes) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: 'storage-unavailable' };
+      }
+      if (!bytes || !bytes.length) {
+          return { ok: false, reason: 'empty' };
+      }
+      var encoded = encodeBase64Bytes(bytes);
+      if (!encoded) {
+          return { ok: false, reason: 'encode-failed' };
+      }
+      var record = {
+          version: DOOM_SAVE_VERSION,
+          checksum: computeDoomChecksum(bytes),
+          length: bytes.length,
+          savedAt: Date.now(),
+          data: encoded
+      };
+      try {
+          storage.setItem(getDoomSaveKey(slot), JSON.stringify(record));
+          doomState.lastSaveMeta = {
+              slot: slot,
+              savedAt: record.savedAt,
+              length: record.length
+          };
+          return { ok: true, record: record };
+      } catch (error) {
+          return { ok: false, reason: 'write-failed', error: error };
+      }
+  }
+
+  function loadDoomSaveBytes(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: 'storage-unavailable' };
+      }
+      try {
+          var raw = storage.getItem(getDoomSaveKey(slot));
+          if (!raw) {
+              return { ok: false, reason: 'missing' };
+          }
+          var parsed = JSON.parse(raw);
+          if (!parsed || parsed.version !== DOOM_SAVE_VERSION || typeof parsed.data !== 'string') {
+              return { ok: false, reason: 'invalid-metadata' };
+          }
+          var decoded = decodeBase64ToBytes(parsed.data);
+          if (!decoded) {
+              return { ok: false, reason: 'decode-failed' };
+          }
+          if (parsed.length && parsed.length !== decoded.length) {
+              return { ok: false, reason: 'length-mismatch' };
+          }
+          var checksum = computeDoomChecksum(decoded);
+          if (parsed.checksum !== undefined && parsed.checksum !== checksum) {
+              return { ok: false, reason: 'checksum-mismatch' };
+          }
+          return { ok: true, bytes: decoded, record: parsed };
+      } catch (error) {
+          return { ok: false, reason: 'read-failed', error: error };
+      }
+  }
+
+  function clearDoomSaveSlot(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: 'storage-unavailable' };
+      }
+      try {
+          storage.removeItem(getDoomSaveKey(slot));
+          if (doomState.lastSaveMeta && doomState.lastSaveMeta.slot === slot) {
+              doomState.lastSaveMeta = null;
+          }
+          if (doomState.pendingLoadSlot === slot) {
+              doomState.pendingLoadSlot = null;
+          }
+          return { ok: true };
+      } catch (error) {
+          return { ok: false, reason: 'clear-failed', error: error };
+      }
+  }
+
+  function doomSaveExists(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return false;
+      }
+      try {
+          return !!storage.getItem(getDoomSaveKey(slot));
+      } catch (_err) {
+          return false;
+      }
+  }
+
+  function queueDoomLoad(slot) {
+      doomState.pendingLoadSlot = slot;
+  }
+
+  function describeDoomSlot(slot) {
+      return 'slot ' + slot;
+  }
+
+  function formatDoomStorageError(result) {
+      if (!result) {
+          return 'Unexpected DOOM storage error.';
+      }
+      if (result.reason === 'storage-unavailable') {
+          return 'Browser storage unavailable.';
+      }
+      if (result.reason === 'encode-failed' || result.reason === 'decode-failed') {
+          return 'Unable to serialise DOOM save data.';
+      }
+      if (result.reason === 'checksum-mismatch') {
+          return 'Stored DOOM save appears corrupted.';
+      }
+      return 'DOOM storage operation failed.';
+  }
+
+  function ensureDoomAudioContext() {
+      if (!doomAudioState.enabled) {
+          return null;
+      }
+      if (doomAudioState.context) {
+          return doomAudioState.context;
+      }
+      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) {
+          doomAudioState.enabled = false;
+          return null;
+      }
+      try {
+          var context = new AudioContextCtor();
+          var gain = context.createGain();
+          gain.gain.value = 1;
+          gain.connect(context.destination);
+          doomAudioState.context = context;
+          doomAudioState.masterGain = gain;
+          doomAudioState.nextTime = context.currentTime;
+          return context;
+      } catch (_err) {
+          doomAudioState.enabled = false;
+          return null;
+      }
+  }
+
+  function initDoomAudio(sampleRate) {
+      doomAudioState.sampleRate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : 11025;
+      doomAudioState.enabled = true;
+      ensureDoomAudioContext();
+  }
+
+  function resumeDoomAudio() {
+      if (!doomAudioState.enabled) {
+          return;
+      }
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return;
+      }
+      if (context.state === 'suspended' && typeof context.resume === 'function') {
+          context.resume().catch(function() {});
+      }
+  }
+
+  function shutdownDoomAudio() {
+      doomAudioState.enabled = false;
+      doomAudioState.nextTime = 0;
+      doomAudioState.bufferCache.clear();
+      doomAudioState.memoryBuffer = null;
+      if (doomAudioState.context && typeof doomAudioState.context.close === 'function') {
+          var ctx = doomAudioState.context;
+          doomAudioState.context = null;
+          doomAudioState.masterGain = null;
+          ctx.close().catch(function() {});
+      } else if (doomAudioState.context && typeof doomAudioState.context.suspend === 'function') {
+          doomAudioState.context.suspend().catch(function() {});
+      }
+  }
+
+  function playDoomSfx(ptr, length, sampleRate, leftVolume, rightVolume, pitch) {
+      if (!doomAudioState.enabled) {
+          return;
+      }
+      var context = ensureDoomAudioContext();
+      if (!context || !doomState.memory || context.state === 'suspended') {
+          return;
+      }
+      if ((!leftVolume || leftVolume <= 0) && (!rightVolume || rightVolume <= 0)) {
+          return;
+      }
+      try {
+          if (doomAudioState.memoryBuffer !== doomState.memory.buffer) {
+              doomAudioState.bufferCache.clear();
+              doomAudioState.memoryBuffer = doomState.memory.buffer;
+          }
+          var cacheKey = ptr + ':' + length;
+          var cached = doomAudioState.bufferCache.get(cacheKey);
+          var baseRate = (sampleRate && sampleRate > 0) ? sampleRate : doomAudioState.sampleRate;
+          if (!baseRate || !isFinite(baseRate)) {
+              baseRate = 11025;
+          }
+          if (!cached) {
+              var view = new Uint8Array(doomState.memory.buffer, ptr, length);
+              var monoData = new Float32Array(length);
+              for (var idx = 0; idx < length; idx++) {
+                  monoData[idx] = (view[idx] - 128) / 128;
+              }
+              cached = { data: monoData, sampleRate: baseRate };
+              doomAudioState.bufferCache.set(cacheKey, cached);
+          } else {
+              baseRate = cached.sampleRate;
+          }
+          var mono = cached.data;
+          var ratio = Math.pow(2, (pitch - 128) / 64);
+          if (!isFinite(ratio) || ratio <= 0) {
+              ratio = 1;
+          }
+          var effectiveRate = baseRate * ratio;
+          if (!isFinite(effectiveRate) || effectiveRate <= 0) {
+              effectiveRate = baseRate;
+          }
+          var playbackRatio = effectiveRate / context.sampleRate;
+          if (!isFinite(playbackRatio) || playbackRatio <= 0) {
+              playbackRatio = baseRate / context.sampleRate;
+          }
+          if (!isFinite(playbackRatio) || playbackRatio <= 0) {
+              playbackRatio = 1;
+          }
+          var frames = Math.max(1, Math.ceil(mono.length / playbackRatio));
+          var buffer = context.createBuffer(2, frames, context.sampleRate);
+          var leftData = buffer.getChannelData(0);
+          var rightData = buffer.getChannelData(1);
+          var leftGain = Math.max(0, Math.min(1, leftVolume / 127));
+          var rightGain = Math.max(0, Math.min(1, rightVolume / 127));
+          for (var i = 0; i < frames; i++) {
+              var sourceIndex = i * playbackRatio;
+              var baseIndex = sourceIndex | 0;
+              if (baseIndex >= mono.length) {
+                  break;
+              }
+              var fraction = sourceIndex - baseIndex;
+              var sample0 = mono[baseIndex];
+              var sample1 = (baseIndex + 1 < mono.length) ? mono[baseIndex + 1] : sample0;
+              var sample = sample0 + (sample1 - sample0) * fraction;
+              leftData[i] = sample * leftGain;
+              rightData[i] = sample * rightGain;
+          }
+          var source = context.createBufferSource();
+          source.buffer = buffer;
+          if (doomAudioState.masterGain) {
+              source.connect(doomAudioState.masterGain);
+          } else {
+              source.connect(context.destination);
+          }
+          var now = context.currentTime;
+          var scheduledTime = Math.max(now, doomAudioState.nextTime);
+          source.start(scheduledTime);
+          doomAudioState.nextTime = scheduledTime + buffer.duration;
+          source.onended = function() {
+              if (doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.nextTime) {
+                  doomAudioState.nextTime = doomAudioState.context.currentTime;
+              }
+          };
+      } catch (_err) {
+          // Ignore playback errors to keep gameplay responsive.
+      }
+  }
+
+  function getDoomSaveApi() {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return null;
+      }
+      var exports = doomState.instance.exports;
+      var saveFn = exports.cm_save_state_v1 || exports.cm_save_state;
+      var loadFn = exports.cm_load_state_v1 || exports.cm_load_state;
+      var clearFn = exports.cm_clear_state_v1 || exports.cm_clear_state;
+      if (typeof saveFn === 'function' && typeof loadFn === 'function') {
+          return { saveFn: saveFn, loadFn: loadFn, clearFn: clearFn };
+      }
+      return null;
+  }
+
+  function detectDoomSaveSupport(/* instance */) {
+      var api = getDoomSaveApi();
+      doomState.supportsSaveStates = !!api;
+      return doomState.supportsSaveStates;
+  }
+
+  function triggerDoomSave(slot) {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return { ok: false, reason: 'inactive' };
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          return { ok: false, reason: 'missing-export' };
+      }
+      doomState.supportsSaveStates = true;
+      try {
+          var code = api.saveFn(slot | 0);
+          if (code === undefined || code === 0) {
+              return { ok: true, code: code };
+          }
+          return { ok: false, reason: 'engine', code: code };
+      } catch (error) {
+          return { ok: false, reason: 'exception', error: error };
+      }
+  }
+
+  function triggerDoomLoad(slot) {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return { ok: false, reason: 'inactive' };
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          return { ok: false, reason: 'missing-export' };
+      }
+      doomState.supportsSaveStates = true;
+      try {
+          var code = api.loadFn(slot | 0);
+          if (code === undefined || code === 0) {
+              return { ok: true, code: code };
+          }
+          return { ok: false, reason: 'engine', code: code };
+      } catch (error) {
+          return { ok: false, reason: 'exception', error: error };
+      }
+  }
+
+  function wasmStoreDoomSave(slot, ptr, length) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      try {
+          var bytes = new Uint8Array(doomState.memory.buffer, ptr, length);
+          var copy = new Uint8Array(bytes.length);
+          copy.set(bytes);
+          var outcome = storeDoomSaveBytes(resolvedSlot, copy);
+          if (outcome.ok) {
+              return 0;
+          }
+          return 3;
+      } catch (error) {
+          console.error('Failed to persist DOOM save state:', error);
+          return -5;
+      }
+  }
+
+  function wasmLoadDoomSave(slot, ptr, capacity) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      var outcome = loadDoomSaveBytes(resolvedSlot);
+      if (!outcome.ok) {
+          return outcome.reason === 'missing' ? 1 : 3;
+      }
+      try {
+          var bytes = outcome.bytes;
+          if (!doomState.memory || !doomState.memory.buffer) {
+              return -4;
+          }
+          if (capacity <= 0 || ptr === 0) {
+              return bytes.length;
+          }
+          var writeLength = Math.min(bytes.length, capacity);
+          var target = new Uint8Array(doomState.memory.buffer, ptr, writeLength);
+          target.set(bytes.subarray(0, writeLength));
+          doomState.lastLoadResult = {
+              slot: resolvedSlot,
+              length: writeLength,
+              savedAt: outcome.record && outcome.record.savedAt
+          };
+          return writeLength;
+      } catch (error) {
+          console.error('Failed to hydrate DOOM save state:', error);
+          return -5;
+      }
+  }
+
+  function wasmClearDoomSave(slot) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      var result = clearDoomSaveSlot(resolvedSlot);
+      return result.ok ? 0 : 3;
+  }
+
+  function handleDoomSaveCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal(['Invalid DOOM slot. Use numbers 0-' + DOOM_SAVE_MAX_SLOT + '.']);
+          return;
+      }
+      if (!doomState.active || !doomState.instance) {
+          terminal(['Launch DOOM (`play doom`) before saving progress.']);
+          return;
+      }
+      if (!getDoomSaveApi()) {
+          doomState.supportsSaveStates = false;
+          terminal(['This DOOM build does not expose save-state support yet.']);
+          return;
+      }
+      var outcome = triggerDoomSave(normalized);
+      if (outcome.ok) {
+          terminal(['Save request issued for ' + describeDoomSlot(normalized) + '.']);
+          return;
+      }
+      if (outcome.reason === 'missing-export') {
+          terminal(['This DOOM build does not support save-states yet.']);
+          return;
+      }
+      if (outcome.reason === 'engine') {
+          terminal(['Save request failed (code ' + outcome.code + ').']);
+          return;
+      }
+      if (outcome.reason === 'exception') {
+          var message = outcome.error && outcome.error.message ? outcome.error.message : 'Unexpected error.';
+          terminal(['Save request failed: ' + message]);
+          return;
+      }
+      terminal(['Unable to trigger DOOM save.']);
+  }
+
+  function handleDoomLoadCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal(['Invalid DOOM slot. Use numbers 0-' + DOOM_SAVE_MAX_SLOT + '.']);
+          return;
+      }
+      if (!doomSaveExists(normalized)) {
+          terminal(['No stored DOOM save for ' + describeDoomSlot(normalized) + '.']);
+          return;
+      }
+      if (!doomState.active || !doomState.instance) {
+          queueDoomLoad(normalized);
+          terminal(['Queued ' + describeDoomSlot(normalized) + ' to load when DOOM launches. Run `play doom` to continue.']);
+          return;
+      }
+      if (!getDoomSaveApi()) {
+          doomState.supportsSaveStates = false;
+          terminal(['This DOOM build does not expose save-state support yet.']);
+          return;
+      }
+      var outcome = triggerDoomLoad(normalized);
+      if (outcome.ok) {
+          terminal(['Loaded DOOM save ' + describeDoomSlot(normalized) + '.']);
+          return;
+      }
+      if (outcome.reason === 'missing-export') {
+          terminal(['This DOOM build does not support save-state loading yet.']);
+          return;
+      }
+      if (outcome.reason === 'engine') {
+          if (outcome.code === 1) {
+              terminal(['No stored DOOM save for ' + describeDoomSlot(normalized) + '.']);
+          } else {
+              terminal(['Load request failed (code ' + outcome.code + ').']);
+          }
+          return;
+      }
+      if (outcome.reason === 'exception') {
+          var message = outcome.error && outcome.error.message ? outcome.error.message : 'Unexpected error.';
+          terminal(['Load request failed: ' + message]);
+          return;
+      }
+      terminal(['Unable to trigger DOOM load.']);
+  }
+
+  function handleDoomClearSlotCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal(['Invalid DOOM slot. Use numbers 0-' + DOOM_SAVE_MAX_SLOT + '.']);
+          return;
+      }
+      var existed = doomSaveExists(normalized);
+      var outcome = clearDoomSaveSlot(normalized);
+      if (!outcome.ok) {
+          terminal([formatDoomStorageError(outcome)]);
+          return;
+      }
+      if (existed) {
+          terminal(['Cleared DOOM save ' + describeDoomSlot(normalized) + '.']);
+      } else {
+          terminal(['No stored DOOM save for ' + describeDoomSlot(normalized) + '.']);
+      }
+  }
+
+  function handleDoomClearAllCommand() {
+      var clearedAny = false;
+      for (var slot = 0; slot <= DOOM_SAVE_MAX_SLOT; slot++) {
+          if (doomSaveExists(slot)) {
+              var outcome = clearDoomSaveSlot(slot);
+              if (outcome.ok) {
+                  clearedAny = true;
+              }
+          }
+      }
+      if (clearedAny) {
+          terminal(['Cleared all stored DOOM saves.']);
+      } else {
+          terminal(['No DOOM saves to clear.']);
+      }
+  }
+
+  function parseDoomSlotInput(token) {
+      if (token === undefined || token === null || token === '') {
+          return 0;
+      }
+      return clampDoomSlot(token);
+  }
+
+  function doomStorageHelpLines() {
+      return [
+          'DOOM storage usage:',
+          '  clear doom <slot|all>  Remove a stored run',
+          'Note: requires updated DOOM build with save support.'
+      ];
+  }
+
+  function maybeAutoLoadDoom() {
+      if (!doomState.active || !doomState.instance) {
+          return;
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          doomState.pendingLoadSlot = null;
+          return;
+      }
+      doomState.supportsSaveStates = true;
+      var slot = doomState.pendingLoadSlot;
+      if (slot === null || slot === undefined) {
+          return;
+      }
+      doomState.pendingLoadSlot = null;
+      if (!doomSaveExists(slot)) {
+          terminal(['No stored DOOM save for ' + describeDoomSlot(slot) + '.']);
+          return;
+      }
+      window.setTimeout(function() {
+          if (!doomState.active || !doomState.instance) {
+              queueDoomLoad(slot);
+              return;
+          }
+          var outcome = triggerDoomLoad(slot);
+          if (outcome.ok) {
+              terminal(['Loaded DOOM save ' + describeDoomSlot(slot) + '.']);
+              return;
+          }
+          if (outcome.reason === 'missing-export') {
+              terminal(['This DOOM build does not support save-state loading yet.']);
+              return;
+          }
+          if (outcome.reason === 'engine') {
+              terminal(['DOOM load request failed (code ' + outcome.code + ').']);
+              return;
+          }
+          if (outcome.reason === 'exception') {
+              var message = outcome.error && outcome.error.message ? outcome.error.message : 'Unexpected error.';
+              terminal(['Failed to load DOOM save: ' + message]);
+              return;
+          }
+          terminal(['Unable to load DOOM save.']);
+      }, 250);
+  }
 
   function getLatestArticles() {
       var articles = window.cmLatestArticles;
@@ -573,12 +1483,13 @@
           'Name: Paul Kolesa',
           'Handle: m4xx3d0ut',
           'Email: ',
-          'mailto:hakr@theinfinitereality.com',
-          'hakr@theinfinitereality.com',
+          'mailto:hakr@napster.com',
+          'hakr@napster.com',
           'LinkedIn: ',
           'https://www.linkedin.com/in/paul-k-a3a18196/',
           'The Architect',
-          'About: Paul (m4xx3d0ut) is iR\'s Swiss Army Knife! Currently serving as Sr. Information Security Officer and InfoSec team lead, he is also the architect of the video infrastructure for their immersive experiences. A Pythonista at heart, he is capable of working across a number of languages and frameworks.',
+          'About: Paul (m4xx3d0ut) is Napster\'s Swiss Army Knife! Currently serving as Principal Technologist on the AI Tiger Team, he embeds with teams as an IC and arhitectural advisor. A Pythonista at heart, with an expansive background from InfoSec to Studio Production/Broadcast, he is capable of working across a number of languages and frameworks.',
+          'Specialties: Python, Node, JS, React/TS, Kubernetes, Docker, AWS, GCP, OpenStack, Microk8s, InfoSec, DevOps/DevSecOps, GitOps, LlmOps',
           '---',
           'End of transmission...'
       ],
@@ -586,10 +1497,10 @@
           'Seaching... Profile found!',
           '---',
           'Name: Renee Kresho-Kolesa',
-          'Handle: matica8',
+          'Handle: ReneeRules',
           'LinkedIn: ',
           'https://www.linkedin.com/in/rene%C3%A9-k-025083bb/',
-          'Producer/Audio Engineer/ICC',
+          'Producer/Audio Engineer/Management',
           'About: Renee rules.',
           '---',
           'End of transmission...'
@@ -807,9 +1718,25 @@
       if (typeof base === 'string' && base.slice(-1) !== '/') {
           base += '/';
       }
+      var args = null;
+      if (Array.isArray(config.args)) {
+          args = config.args.map(function(value) {
+              if (value === null || value === undefined) {
+                  return null;
+              }
+              var text = String(value);
+              return text.length ? text : null;
+          }).filter(function(entry) {
+              return entry !== null;
+          });
+          if (!args.length) {
+              args = null;
+          }
+      }
       return {
           assetBase: base,
-          canvasId: config.canvasId || 'doom-canvas'
+          canvasId: config.canvasId || 'doom-canvas',
+          args: args
       };
   }
 
@@ -878,6 +1805,295 @@
       return !!element && pointerLockElement() === element;
   }
 
+  function shouldShowDoomTouchControls() {
+      if (typeof window === 'undefined') {
+          return false;
+      }
+      var hasTouchSupport = false;
+      try {
+          hasTouchSupport = ('ontouchstart' in window) || (navigator && navigator.maxTouchPoints > 0);
+      } catch (_err) {
+          hasTouchSupport = false;
+      }
+      if (!hasTouchSupport) {
+          return false;
+      }
+      if (typeof window.matchMedia === 'function') {
+          try {
+              var prefersFinePointer = window.matchMedia('(pointer: fine)').matches;
+              var isLargeViewport = window.matchMedia('(min-width: 901px)').matches;
+              if (prefersFinePointer && !window.matchMedia('(pointer: coarse)').matches) {
+                  return false;
+              }
+              if (isLargeViewport) {
+                  return false;
+              }
+          } catch (_err2) {
+              // Ignore matchMedia errors/unsupported values.
+          }
+      }
+      return true;
+  }
+
+  function isDesktopDoomEnvironment() {
+      return !shouldShowDoomTouchControls();
+  }
+
+  function setVirtualKeyboardState(isOpen) {
+      doomState.keyboardVisible = !!isOpen;
+      if (doomState.keyboardToggleBtn) {
+          doomState.keyboardToggleBtn.textContent = 'Toggle KB';
+          doomState.keyboardToggleBtn.setAttribute('aria-pressed', doomState.keyboardVisible ? 'true' : 'false');
+      }
+  }
+
+  function toggleVirtualKeyboard() {
+      var inputEl = document.getElementById('uIn');
+      if (!inputEl) {
+          return;
+      }
+      if (!doomState.keyboardVisible) {
+          var focused = false;
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.show === 'function') {
+              try {
+                  navigator.virtualKeyboard.show();
+              } catch (_err) {
+                  // ignore navigator virtual keyboard failures
+              }
+          }
+          try {
+              inputEl.focus({ preventScroll: true });
+              focused = true;
+          } catch (_err) {
+              inputEl.focus();
+              focused = true;
+          }
+          attachDoomKeyboardProxy(inputEl);
+          setVirtualKeyboardState(focused || (document.activeElement === inputEl));
+      } else {
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.hide === 'function') {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err2) {
+                  // ignore navigator virtual keyboard hide failures
+              }
+          }
+          inputEl.blur();
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          if (doomState.active) {
+              focusDoomCanvas();
+          }
+      }
+  }
+
+  function syncKeyboardStateFromInput(inputEl) {
+      if (!inputEl) {
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          return;
+      }
+      var isActive = document.activeElement === inputEl;
+      setVirtualKeyboardState(isActive);
+      if (isActive) {
+          attachDoomKeyboardProxy(inputEl);
+      } else {
+          detachDoomKeyboardProxy();
+      }
+  }
+
+  function convertDomKeyToDoom(keyCode, keyValue) {
+      var code = keyCode || 0;
+      var keyLower = '';
+      if (keyValue && typeof keyValue === 'string') {
+          keyLower = keyValue.toLowerCase();
+      }
+
+      if (!code || code === 229) {
+          if (keyLower.length === 1) {
+              code = keyLower.charCodeAt(0);
+          } else if (keyLower) {
+              switch (keyLower) {
+                  case 'arrowleft':
+                      code = 37;
+                      break;
+                  case 'arrowup':
+                      code = 38;
+                      break;
+                  case 'arrowright':
+                      code = 39;
+                      break;
+                  case 'arrowdown':
+                      code = 40;
+                      break;
+                  case 'escape':
+                  case 'esc':
+                      code = 27;
+                      break;
+                  case 'enter':
+                  case 'return':
+                      code = 13;
+                      break;
+                  case 'tab':
+                      code = 9;
+                      break;
+                  case 'backspace':
+                      code = 8;
+                      break;
+                  case 'space':
+                  case 'spacebar':
+                      code = 32;
+                      break;
+                  case 'control':
+                  case 'ctrl':
+                      code = 17;
+                      break;
+                  case 'alt':
+                      code = 18;
+                      break;
+                  case 'shift':
+                      code = 16;
+                      break;
+                  default:
+                      code = 0;
+              }
+          }
+      }
+
+      if (!code) {
+          return null;
+      }
+
+      switch (code) {
+          case 8: return 127;
+          case 9: return 9;
+          case 13: return 13;
+          case 16: return 0x80 + 0x2a; // shift
+          case 17: return 0x80 + 0x1d;
+          case 18: return 0x80 + 0x38;
+          case 27: return 27;
+          case 32: return 32;
+          case 37: return 0xac;
+          case 38: return 0xad;
+          case 39: return 0xae;
+          case 40: return 0xaf;
+          default:
+              if (code >= 65 && code <= 90) {
+                  return code + 32;
+              }
+              if (code >= 112 && code <= 123) {
+                  return code + 75;
+              }
+              if (keyLower.length === 1) {
+                  return keyLower.charCodeAt(0);
+              }
+              return code;
+      }
+  }
+
+  function attachDoomKeyboardProxy(inputEl) {
+      if (!doomState.active || !inputEl || doomState.keyboardProxy) {
+          return;
+      }
+      var sendChar = function(ch) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var mapped = convertDomKeyToDoom(ch.charCodeAt(0), ch);
+          if (mapped === null) {
+              return;
+          }
+          doomState.handleKeyDown(mapped);
+          window.setTimeout(function() {
+              doomState.handleKeyUp(mapped);
+          }, 0);
+      };
+
+      var keydownHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyDown(code);
+      };
+      var keyupHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyUp) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyUp(code);
+      };
+
+      var inputHandler = function(event) {
+          if (!doomState.active) {
+              return;
+          }
+          var value = inputEl.value;
+          if (!value && event && typeof event.data === 'string') {
+              value = event.data;
+          }
+          if (typeof value !== 'string' || !value.length) {
+              inputEl.value = '';
+              return;
+          }
+          for (var idx = 0; idx < value.length; idx += 1) {
+              var ch = value.charAt(idx);
+              sendChar(ch);
+          }
+          inputEl.value = '';
+      };
+
+      var compositionHandler = function(event) {
+          if (!event || typeof event.data !== 'string') {
+              return;
+          }
+          for (var idx = 0; idx < event.data.length; idx += 1) {
+              sendChar(event.data.charAt(idx));
+          }
+          inputEl.value = '';
+      };
+
+      inputEl.addEventListener('keydown', keydownHandler, true);
+      inputEl.addEventListener('keyup', keyupHandler, true);
+      inputEl.addEventListener('input', inputHandler, true);
+      inputEl.addEventListener('compositionend', compositionHandler, true);
+      inputEl.value = '';
+      doomState.keyboardProxy = {
+          element: inputEl,
+          onKeydown: keydownHandler,
+          onKeyup: keyupHandler,
+          onInput: inputHandler,
+          onComposition: compositionHandler
+      };
+  }
+
+  function detachDoomKeyboardProxy() {
+      var proxy = doomState.keyboardProxy;
+      if (!proxy || !proxy.element) {
+          doomState.keyboardProxy = null;
+          return;
+      }
+      try {
+          proxy.element.removeEventListener('keydown', proxy.onKeydown, true);
+          proxy.element.removeEventListener('keyup', proxy.onKeyup, true);
+          proxy.element.removeEventListener('input', proxy.onInput, true);
+          proxy.element.removeEventListener('compositionend', proxy.onComposition, true);
+      } catch (_err) {
+          // ignore detach errors
+      }
+      doomState.keyboardProxy = null;
+  }
+
   function ensureDoomOverlay() {
       var consoleEl = document.getElementById('console');
       var screen = document.getElementById('tOut');
@@ -907,6 +2123,27 @@
       var instructions = document.createElement('span');
       instructions.textContent = 'WASD / arrows to move · Ctrl / Space to shoot · `exit doom` to leave';
       controls.appendChild(instructions);
+      var controlButtons = document.createElement('div');
+      controlButtons.className = 'doom-overlay__buttons';
+
+      var escBtn = document.createElement('button');
+      escBtn.type = 'button';
+      escBtn.textContent = 'Esc';
+      escBtn.addEventListener('click', function() {
+          var canvas = doomState.canvas;
+          var hasPointerLock = supportsPointerLock(canvas);
+          if (hasPointerLock && isPointerLockedTo(canvas)) {
+              exitPointerLock();
+              setDoomStatus('Mouse free; tap canvas to capture again.');
+              focusDoomCanvas();
+              return;
+          }
+          if (typeof doomState.sendVirtualKey === 'function') {
+              doomState.sendVirtualKey(27);
+          }
+      });
+      controlButtons.appendChild(escBtn);
+
       var exitBtn = document.createElement('button');
       exitBtn.type = 'button';
       exitBtn.textContent = 'Exit DOOM';
@@ -914,8 +2151,64 @@
           teardownDoom('User exit.');
           terminal(['Exited DOOM.']);
       });
-      controls.appendChild(exitBtn);
+      controlButtons.appendChild(exitBtn);
+
+      var keyboardBtn = document.createElement('button');
+      keyboardBtn.type = 'button';
+      keyboardBtn.textContent = 'Toggle KB';
+      registerDoomListener(keyboardBtn, 'click', function() {
+          var inputEl = document.getElementById('uIn');
+          if (!doomState.keyboardVisible) {
+              toggleVirtualKeyboard();
+              return;
+          }
+          if (navigator.virtualKeyboard && typeof navigator.virtualKeyboard.hide === 'function') {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err) {
+                  // ignore virtual keyboard hide failures
+              }
+          }
+          if (inputEl && document.activeElement === inputEl) {
+              inputEl.blur();
+          } else {
+              setVirtualKeyboardState(false);
+              detachDoomKeyboardProxy();
+              if (doomState.active) {
+                  focusDoomCanvas();
+              }
+          }
+      });
+      controlButtons.appendChild(keyboardBtn);
+
+      doomState.keyboardToggleBtn = keyboardBtn;
+
+      controls.appendChild(controlButtons);
       overlay.appendChild(controls);
+
+      var keyboardInput = document.getElementById('uIn');
+      if (keyboardInput) {
+          registerDoomListener(keyboardInput, 'focus', function() {
+              if (doomState.active) {
+                  syncKeyboardStateFromInput(keyboardInput);
+              }
+          });
+          registerDoomListener(keyboardInput, 'blur', function() {
+              syncKeyboardStateFromInput(keyboardInput);
+          });
+          syncKeyboardStateFromInput(keyboardInput);
+      } else {
+          setVirtualKeyboardState(false);
+      }
+
+      if (shouldShowDoomTouchControls()) {
+          var touchControls = document.createElement('div');
+          touchControls.className = 'doom-touch-controls';
+          overlay.appendChild(touchControls);
+          doomState.touchControlsRoot = touchControls;
+      } else {
+          doomState.touchControlsRoot = null;
+      }
 
       screen.appendChild(overlay);
       consoleEl.classList.add('has-doom');
@@ -972,14 +2265,19 @@
       var doomScreenWidth = 320 * 2;
       var doomScreenHeight = 200 * 2;
 
-      doomState.memory = new WebAssembly.Memory({ initial: 108 });
+      doomState.memory = new WebAssembly.Memory({ initial: DOOM_DEFAULT_ZONE_MB * 16 });
+      doomAudioState.bufferCache.clear();
+      doomAudioState.memoryBuffer = doomState.memory.buffer;
       var startTime = performance.now();
 
       function readString(offset, length) {
           try {
               var bytes = new Uint8Array(doomState.memory.buffer, offset, length);
+              if (doomTextDecoder) {
+                  return doomTextDecoder.decode(bytes);
+              }
               return new TextDecoder('utf8').decode(bytes);
-          } catch (error) {
+          } catch (_err) {
               return '';
           }
       }
@@ -1007,7 +2305,25 @@
               js_milliseconds_since_start: function() {
                   return performance.now() - startTime;
               },
-              js_draw_screen: drawCanvas
+              js_draw_screen: drawCanvas,
+              js_audio_init: function(sampleRate) {
+                  initDoomAudio(sampleRate);
+              },
+              js_audio_play_sfx: function(ptr, length, sampleRate, leftVolume, rightVolume, pitch) {
+                  playDoomSfx(ptr, length, sampleRate, leftVolume, rightVolume, pitch);
+              },
+              js_audio_shutdown: function() {
+                  shutdownDoomAudio();
+              },
+              js_save_state_store: function(slot, ptr, length) {
+                  return wasmStoreDoomSave(slot, ptr, length);
+              },
+              js_save_state_load: function(slot, ptr, capacity) {
+                  return wasmLoadDoomSave(slot, ptr, capacity);
+              },
+              js_save_state_clear: function(slot) {
+                  return wasmClearDoomSave(slot);
+              }
           },
           env: {
               memory: doomState.memory
@@ -1032,6 +2348,7 @@
           });
       }).then(function(result) {
           doomState.instance = result.instance;
+          detectDoomSaveSupport(result.instance);
           setDoomStatus('WASM ready. Initialising...');
           return result.instance;
       }).catch(function(error) {
@@ -1039,10 +2356,117 @@
           doomState.instance = null;
           doomState.memory = null;
           doomState.context = null;
+          shutdownDoomAudio();
           throw error;
       });
 
       return doomState.instancePromise;
+  }
+
+  function normalizeDoomArgs(args) {
+      if (!Array.isArray(args) || !args.length) {
+          return [];
+      }
+      var normalized = [];
+      for (var i = 0; i < args.length; i += 1) {
+          var current = args[i];
+          if (current === null || current === undefined) {
+              continue;
+          }
+          var value = String(current);
+          if (!value) {
+              continue;
+          }
+          if (value.toLowerCase() === '-mb') {
+              var next = (i + 1 < args.length) ? args[i + 1] : null;
+              var nextValue = (next === null || next === undefined) ? '' : String(next).trim();
+              if (nextValue) {
+                  normalized.push('-mb' + nextValue);
+                  i += 1;
+                  continue;
+              }
+          }
+          normalized.push(value);
+      }
+      return normalized;
+  }
+
+  function invokeDoomMain(instance) {
+      if (!instance || !instance.exports || typeof instance.exports.main !== 'function') {
+          throw new Error('DOOM wasm missing main() export');
+      }
+
+      var exports = instance.exports;
+      if (!doomState.memory || typeof exports.malloc !== 'function') {
+          exports.main();
+          return;
+      }
+
+      var config = getDoomConfig();
+      var extraArgs = config.args ? config.args.slice() : [];
+      var hasMbArg = extraArgs.some(function(arg) {
+          if (typeof arg !== 'string') {
+              return false;
+          }
+          if (arg.toLowerCase() === '-mb') {
+              return true;
+          }
+          if (arg.length > 3 && arg.slice(0, 3).toLowerCase() === '-mb') {
+              return true;
+          }
+          return false;
+      });
+
+      var finalArgs = ['doom.wasm'];
+      if (!hasMbArg) {
+          finalArgs = finalArgs.concat(DOOM_DEFAULT_LAUNCH_ARGS);
+      }
+      if (extraArgs.length) {
+          finalArgs = finalArgs.concat(extraArgs);
+      }
+
+      var argvStrings = normalizeDoomArgs(finalArgs);
+
+      try {
+          if (typeof console !== 'undefined' && typeof console.log === 'function') {
+              console.log('[DOOM] Launch argv:', argvStrings);
+          }
+          var writeCString = function(text) {
+              var content = (typeof text === 'string') ? text : '';
+              var length = content.length + 1;
+              var ptr = exports.malloc(length);
+              if (!ptr) {
+                  throw new Error('Failed to allocate DOOM argv string.');
+              }
+              var view = new Uint8Array(doomState.memory.buffer, ptr, length);
+              for (var j = 0; j < content.length; j += 1) {
+                  view[j] = content.charCodeAt(j) & 0xff;
+              }
+              view[length - 1] = 0;
+              return ptr;
+          };
+
+          var argc = argvStrings.length;
+          if (argc === 0) {
+              argvStrings = ['doom.wasm'];
+              argc = 1;
+          }
+          var argvPtr = exports.malloc((argc + 1) * 4);
+          if (!argvPtr) {
+              throw new Error('Failed to allocate DOOM argv table.');
+          }
+
+          var argvView = new Uint32Array(doomState.memory.buffer, argvPtr, argc + 1);
+          for (var index = 0; index < argc; index += 1) {
+              argvView[index] = writeCString(argvStrings[index]);
+          }
+          argvView[argc] = 0;
+
+          exports.main(argc, argvPtr);
+      } catch (error) {
+          console.error('Failed to launch DOOM with custom argv. Falling back to bare main()', error);
+          exports.main();
+      }
   }
 
   function setupDoomInteractions(instance) {
@@ -1057,35 +2481,39 @@
 
       var exports = instance.exports;
 
-      var doomKeyCode = function(keyCode) {
-          switch (keyCode) {
-              case 8: return 127; // backspace
-              case 17: return 0x80 + 0x1d; // ctrl
-              case 18: return 0x80 + 0x38; // alt
-              case 37: return 0xac; // left
-              case 38: return 0xad; // up
-              case 39: return 0xae; // right
-              case 40: return 0xaf; // down
-              default:
-                  if (keyCode >= 65 && keyCode <= 90) {
-                      return keyCode + 32;
-                  }
-                  if (keyCode >= 112 && keyCode <= 123) {
-                      return keyCode + 75;
-                  }
-                  return keyCode;
-          }
-      };
-
       var keyDown = function(code) { exports.add_browser_event(0, code); };
       var keyUp = function(code) { exports.add_browser_event(1, code); };
 
+      doomState.handleKeyDown = keyDown;
+      doomState.handleKeyUp = keyUp;
+
+      doomState.sendVirtualKey = function(keyCode) {
+          var code = convertDomKeyToDoom(keyCode, null);
+          if (code === null) {
+              return;
+          }
+          keyDown(code);
+          setTimeout(function() {
+              keyUp(code);
+          }, 0);
+      };
+
       registerDoomListener(canvas, 'keydown', function(event) {
-          keyDown(doomKeyCode(event.keyCode));
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyDown(mapped);
+          resumeDoomAudio();
           event.preventDefault();
       });
       registerDoomListener(canvas, 'keyup', function(event) {
-          keyUp(doomKeyCode(event.keyCode));
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyUp(mapped);
+          resumeDoomAudio();
           event.preventDefault();
       });
 
@@ -1095,6 +2523,7 @@
           if (pointerLockSupported && !isPointerLockedTo(canvas)) {
               requestPointerLock(canvas);
           }
+          resumeDoomAudio();
           focusDoomCanvas();
       });
 
@@ -1120,6 +2549,226 @@
           registerDoomListener(document, 'pointerlockerror', handlePointerLockError);
           registerDoomListener(document, 'mozpointerlockerror', handlePointerLockError);
           registerDoomListener(document, 'webkitpointerlockerror', handlePointerLockError);
+      }
+
+      if (isDesktopDoomEnvironment()) {
+          var blockedMetaKeys = { w: true, r: true, t: true, n: true, l: true, tab: true, s: true, p: true, o: true };
+          registerDoomListener(window, 'keydown', function(event) {
+              if (!doomState.active || !isDesktopDoomEnvironment()) {
+                  return;
+              }
+              var key = (event.key || '').toLowerCase();
+              var metaCombo = event.metaKey || event.ctrlKey;
+              if (metaCombo && blockedMetaKeys[key]) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  return;
+              }
+              if (!metaCombo && (key === 'f5' || key === 'f11')) {
+                  event.preventDefault();
+                  event.stopPropagation();
+              }
+          }, true);
+      }
+
+      if (shouldShowDoomTouchControls() && doomState.touchControlsRoot) {
+          setupTouchControls();
+      }
+
+      function bindVirtualButton(button, keyCode) {
+          if (!button) {
+              return;
+          }
+          var doomKey = convertDomKeyToDoom(keyCode, null);
+          if (doomKey === null) {
+              return;
+          }
+          var activeIds = new Set();
+          var pointerSupported = typeof window !== 'undefined' && typeof window.PointerEvent === 'function';
+
+          var pressPointer = function(pointerId) {
+              if (activeIds.size === 0) {
+                  keyDown(doomKey);
+              }
+              activeIds.add(pointerId);
+              button.classList.add('is-active');
+              focusDoomCanvas();
+          };
+          var releasePointer = function(pointerId) {
+              if (!activeIds.has(pointerId)) {
+                  return;
+              }
+              activeIds.delete(pointerId);
+              if (activeIds.size === 0) {
+                  button.classList.remove('is-active');
+                  keyUp(doomKey);
+              }
+          };
+          var releaseAll = function() {
+              if (activeIds.size > 0) {
+                  activeIds.clear();
+                  button.classList.remove('is-active');
+                  keyUp(doomKey);
+              }
+          };
+
+          doomState.virtualKeyReleasers.push(releaseAll);
+
+          registerDoomListener(button, 'contextmenu', function(event) {
+              event.preventDefault();
+          });
+
+          if (pointerSupported) {
+              registerDoomListener(button, 'pointerdown', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  if (typeof button.setPointerCapture === 'function') {
+                      try {
+                          button.setPointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore capture errors on unsupported targets.
+                      }
+                  }
+                  pressPointer(event.pointerId);
+              });
+              var finishPointer = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (typeof button.releasePointerCapture === 'function') {
+                      try {
+                          button.releasePointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore release errors if pointer capture was never taken.
+                      }
+                  }
+                  releasePointer(event.pointerId);
+              };
+          registerDoomListener(button, 'pointerup', finishPointer);
+          registerDoomListener(button, 'pointercancel', finishPointer);
+          } else {
+              var touchIdPrefix = 'touch-';
+              registerDoomListener(button, 'touchstart', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      pressPointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!event.changedTouches || event.changedTouches.length === 0) {
+                      pressPointer(touchIdPrefix + '0');
+                  }
+              }, { passive: false });
+              var finishTouch = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  var handled = false;
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      handled = true;
+                      releasePointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!handled) {
+                      releasePointer(touchIdPrefix + '0');
+                  }
+              };
+              registerDoomListener(button, 'touchend', finishTouch);
+              registerDoomListener(button, 'touchcancel', finishTouch);
+              registerDoomListener(button, 'mousedown', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  pressPointer('mouse');
+              });
+              registerDoomListener(button, 'mouseup', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer('mouse');
+              });
+              registerDoomListener(button, 'mouseleave', function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer('mouse');
+              });
+          }
+      }
+
+      function makeTouchButton(label, keyCode, extraClass) {
+          var button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = label;
+          button.className = 'doom-touch-button' + (extraClass ? ' ' + extraClass : '');
+          bindVirtualButton(button, keyCode);
+          return button;
+      }
+
+      function setupTouchControls() {
+          var root = doomState.touchControlsRoot;
+          if (!root) {
+              return;
+          }
+
+          doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+              if (typeof releaseFn === 'function') {
+                  try {
+                      releaseFn();
+                  } catch (_err) {
+                      // ignore cleanup errors when rehydrating controls
+                  }
+              }
+          });
+          doomState.virtualKeyReleasers = [];
+
+          root.innerHTML = '';
+
+          var leftCluster = document.createElement('div');
+          leftCluster.className = 'doom-touch-controls__cluster doom-touch-controls__cluster--left';
+          var leftRow = document.createElement('div');
+          leftRow.className = 'doom-touch-controls__row';
+          leftRow.appendChild(makeTouchButton('Alt', 18, 'doom-touch-button--alt'));
+          leftRow.appendChild(makeTouchButton('Ctrl', 17, 'doom-touch-button--ctrl'));
+          leftCluster.appendChild(leftRow);
+
+          var rightCluster = document.createElement('div');
+          rightCluster.className = 'doom-touch-controls__cluster doom-touch-controls__cluster--right';
+          var enterButton = makeTouchButton('Enter', 13, 'doom-touch-button--enter');
+          var spaceButton = makeTouchButton('Space', 32, 'doom-touch-button--space');
+          spaceButton.setAttribute('aria-label', 'Space');
+
+          var actionRow = document.createElement('div');
+          actionRow.className = 'doom-touch-controls__row doom-touch-controls__row--actions';
+          actionRow.appendChild(spaceButton);
+          actionRow.appendChild(enterButton);
+          rightCluster.appendChild(actionRow);
+
+          var dpad = document.createElement('div');
+          dpad.className = 'doom-touch-dpad';
+
+          var dpadTop = document.createElement('div');
+          dpadTop.className = 'doom-touch-dpad__row doom-touch-dpad__row--top';
+          dpadTop.appendChild(document.createElement('span'));
+          dpadTop.appendChild(makeTouchButton('↑', 38, 'doom-touch-button--up'));
+          dpadTop.appendChild(document.createElement('span'));
+
+          var dpadMid = document.createElement('div');
+          dpadMid.className = 'doom-touch-dpad__row doom-touch-dpad__row--middle';
+          dpadMid.appendChild(makeTouchButton('←', 37, 'doom-touch-button--left'));
+          dpadMid.appendChild(makeTouchButton('↓', 40, 'doom-touch-button--down'));
+          dpadMid.appendChild(makeTouchButton('→', 39, 'doom-touch-button--right'));
+
+          var dpadBottom = document.createElement('div');
+          dpadBottom.className = 'doom-touch-dpad__row doom-touch-dpad__row--bottom';
+          dpadBottom.appendChild(document.createElement('span'));
+          dpadBottom.appendChild(document.createElement('span'));
+          dpadBottom.appendChild(document.createElement('span'));
+
+          dpad.appendChild(dpadTop);
+          dpad.appendChild(dpadMid);
+          dpad.appendChild(dpadBottom);
+
+          rightCluster.appendChild(dpad);
+
+          root.appendChild(leftCluster);
+          root.appendChild(rightCluster);
       }
   }
 
@@ -1179,24 +2828,23 @@
           return;
       }
 
+      if (typeof document !== 'undefined' && document.body) {
+          document.body.classList.add('doom-prevent-highlight');
+      }
+      setVirtualKeyboardState(false);
+
       doomState.active = true;
       pauseLogo(LOGO_PAUSE_REASON_DOOM);
       setDoomStatus('Initializing DOOM runtime...');
 
       instantiateDoom().then(function(instance) {
-          try {
-              if (instance && instance.exports && typeof instance.exports.main === 'function') {
-                  instance.exports.main();
-              }
-          } catch (invokeError) {
-              console.error('Failed to start DOOM main()', invokeError);
-              throw invokeError;
-          }
-
+          invokeDoomMain(instance);
+          detectDoomSaveSupport(instance);
           setupDoomInteractions(instance);
           setDoomStatus('Loaded. Click canvas to capture controls.');
           focusDoomCanvas();
           beginDoomLoop(instance);
+          maybeAutoLoadDoom();
       }).catch(function(error) {
           terminal(['Failed to load DOOM assets.', error && error.message ? error.message : '']);
           teardownDoom();
@@ -1207,6 +2855,11 @@
       resumeLogo(LOGO_PAUSE_REASON_DOOM);
       if (!doomState.active && !doomState.overlay) {
           return;
+      }
+
+      shutdownDoomAudio();
+      if (typeof document !== 'undefined' && document.body) {
+          document.body.classList.remove('doom-prevent-highlight');
       }
 
       var consoleEl = document.getElementById('console');
@@ -1236,6 +2889,12 @@
       doomState.memory = null;
       doomState.loopHandle = null;
       doomState.loopFn = null;
+      doomState.sendVirtualKey = null;
+      doomState.supportsSaveStates = false;
+      doomState.pendingLoadSlot = null;
+      doomState.handleKeyDown = null;
+      doomState.handleKeyUp = null;
+      detachDoomKeyboardProxy();
       if (doomState.screenEl) {
           if (doomState.prevOverflow !== null) {
               doomState.screenEl.style.overflowY = doomState.prevOverflow;
@@ -1249,6 +2908,26 @@
       doomState.screenEl = null;
       doomState.prevScrollTop = null;
       doomState.prevOverflow = null;
+      doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+          if (typeof releaseFn === 'function') {
+              try {
+                  releaseFn();
+              } catch (_err) {
+                  // ignore failures while unwinding virtual key state
+              }
+          }
+      });
+      doomState.virtualKeyReleasers = [];
+      if (doomState.touchControlsRoot) {
+          doomState.touchControlsRoot.innerHTML = '';
+      }
+      doomState.touchControlsRoot = null;
+      doomState.lastSaveMeta = null;
+      doomState.lastLoadResult = null;
+      setVirtualKeyboardState(false);
+      doomState.keyboardToggleBtn = null;
+      doomState.keyboardVisible = false;
+      detachDoomKeyboardProxy();
 
       if (message) {
           terminal([message]);
@@ -1267,6 +2946,7 @@
           'profile <alias>    Reveal a dossier',
           'play doom          Boot the shareware DOOM build',
           'exit doom          Shut down the DOOM session',
+          'clear doom <slot|all> Remove stored DOOM saves',
           'theme <contrast|1337> Switch console contrast',
           'theme toggle       Flip the current contrast mode',
           'clear              Purge terminal output',
@@ -1511,6 +3191,8 @@
       var argsLower = tokens.slice(1);
       var remainderLower = trimmed.slice(command.length).trim();
       var remainderOriginal = trimmedOriginal.slice(command.length).trim();
+      var tokensOriginal = trimmedOriginal ? trimmedOriginal.split(/\s+/) : [];
+      var argsOriginal = tokensOriginal.slice(1);
 
       switch (command) {
           case '?':
@@ -1519,6 +3201,24 @@
               return;
           case 'clear':
           case 'cls':
+              if (argsLower.length && argsLower[0] === 'doom') {
+                  if (argsLower.length === 1) {
+                      terminal(doomStorageHelpLines());
+                      return;
+                  }
+                  if (argsLower[1] === 'all') {
+                      handleDoomClearAllCommand();
+                      return;
+                  }
+                  var clearToken = argsOriginal.length > 1 ? argsOriginal[1] : argsLower[1];
+                  var clearSlot = parseDoomSlotInput(clearToken);
+                  if (clearSlot === null) {
+                      terminal(['Invalid DOOM slot. Use numbers 0-' + DOOM_SAVE_MAX_SLOT + '.']);
+                  } else {
+                      handleDoomClearSlotCommand(clearSlot);
+                  }
+                  return;
+              }
               clearTerminal();
               terminal(['Console buffer zeroed.']);
               return;
@@ -1728,6 +3428,8 @@
       if (!termOut || !tagline) {
           return;
       }
+
+      initMobileConsoleKeyboardScaling();
 
       restoreTerminalBuffer(termOut);
 
