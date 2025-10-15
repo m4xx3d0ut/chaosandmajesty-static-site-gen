@@ -1,0 +1,140 @@
+
+
+
+
+<article class="blog-article-body" data-slug="doom-wasm-audio-part-2">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">An Exercise in Futility (and DOOM): wasm Audio Port Pt. 2</h1>
+    <p class="blog-article-meta">
+      
+        <span>Oct 20, 2025</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>9 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>TL;DR</h2>
+<ul>
+<li>Audio is no longer a science experiment: the <code>feat-doom-audio</code> logic merged, the buffer cache survived real-world hammering, and pointer/touch inputs now resume sound reliably.</li>
+<li>A newly minted <code>doom.wasm</code> exposes <code>cm_save_state_v1</code> / <code>cm_load_state_v1</code>; JavaScript handles slot management, base64 persistence, and deferred loads through LocalStorage.</li>
+<li>The console still only exposes <code>clear doom &lt;slot|all&gt;</code> for now; save/load plumbing lives under the hood until the launch glitches are sorted.</li>
+<li>We bumped the wasm heap to 96 MiB, validated the import surface (<code>js_audio_*</code>, <code>js_save_state_*</code>), and automated stripping custom sections during asset prep.</li>
+</ul>
+<h2>State of the soundboard</h2>
+<p>Part I ended with WebAudio working (in a technical sense) with the warning &quot;thar be dragons&quot;. Thar still be dragons, but less.</p>
+<ul>
+<li>Pointer/touch controls force <code>resumeDoomAudio()</code> before they inject virtual keys. Touchscreens no longer fall silent after a poke.</li>
+<li><code>doomAudioState</code> tracks the active <code>ArrayBuffer</code>, so heap growth or wasm-instantiated reloads flush the cache instead of playing stale noise.</li>
+<li>Every exit path (<code>exit doom</code>, overlay button, pointer-lock failure) now calls <code>shutdownDoomAudio()</code>. When you bail out, the hum dies instantly.</li>
+</ul>
+<p>The goal was to keep the entire sound path self-healing: no matter which input device prods the canvas, the audio context gets nudged awake and the master gain stays in front of the pipeline.</p>
+<h2>Save states to local browser storage</h2>
+<p>The new wasm build exports three hooks:</p>
+<pre><code class="language-c">extern int cm_save_state_v1(int slot);
+extern int cm_load_state_v1(int slot);
+extern int cm_clear_state_v1(int slot);
+</code></pre>
+<p>All three funnel through <code>js_save_state_{store,load,clear}</code> imports that we satisfy in JavaScript. The browser side does the heavy lifting:</p>
+<ol>
+<li>Clamp the requested slot (0–5) and describe it (<code>slot 2</code>) for user feedback.</li>
+<li>Copy the wasm memory region into a fresh <code>Uint8Array</code>, base64 encode it, and stash the payload + checksum in <code>localStorage</code>.</li>
+<li>Decode on demand, validate length &amp; checksum, and stream bytes back to wasm when <code>cm_load_state_v1</code> asks.</li>
+<li>Queue pending loads when DOOM isn&#39;t running yet; <code>maybeAutoLoadDoom()</code> hydrates them once <code>play doom</code> finishes booting.</li>
+</ol>
+<p>Errors bubble up to the console with context—bad slots, missing exports, checksum mismatches—so the user isn&#39;t left guessing which part failed.</p>
+<h2>Terminal muscle memory</h2>
+<p>We resisted the urge to bolt on new UI. The mini terminal already had a command vocabulary, but we learned quickly that exposing manual save/load verbs at launch confused the runtime and users alike. For now the CLI only advertises <code>clear doom &lt;slot|all&gt;</code>—handy when you want to wipe LocalStorage without DevTools. The underlying imports stay wired for automated tests and future UX, yet the day-to-day flow stays simple: launch DOOM, play, and nuke stale saves if things get weird.</p>
+<h2>A heftier wasm payload</h2>
+<p>The new artefact comes from the upstream <code>wasm-fizzbuzz</code> fork with our patches applied:</p>
+<ul>
+<li>Memory now boots at 1,536 pages (≈96 MiB). Audio lumps and serialized game state coexist without exploding the heap.</li>
+<li>Custom sections are stripped as part of <code>build-site.sh</code>, keeping the payload lean for production.</li>
+<li><code>js_audio_*</code> and <code>js_save_state_*</code> imports are mandatory; the JavaScript harness surfaces loud errors if any are missing, preventing silent regressions.</li>
+</ul>
+<p><code>spawnDoom.js</code> stays untouched for now—the CLI runtime remains the canonical host. Future work may consolidate the two harnesses, but that&#39;s a problem for another weekend.</p>
+<h2>Testing the pipeline</h2>
+<p>To validate the merge:</p>
+<ul>
+<li>Run <code>./build-site.sh</code> (or <code>make build-local</code>) to generate <code>site-output/</code> with the new wasm.</li>
+<li><code>make serve-local</code>, run <code>play doom</code>, and hammer the controls—audio should resume after every interaction and never fall silent.</li>
+<li>Use <code>clear doom 0</code> (or <code>clear doom all</code>) to sanity-check the storage hooks; verify LocalStorage entries disappear.</li>
+</ul>
+<p>Edge cases worth trying: suspend/resume the browser tab, yank pointer lock, lose network mid-load. The audio layer and save plumbing should recover without a full refresh; if a slot looks corrupt, <code>clear doom all</code> remains the panic button.</p>
+<h2>What&#39;s next</h2>
+<ol>
+<li><strong>Music, finally.</strong> The MUS lumps still sit idle. Either wire an OPL synth (emulating the AdLib chip) or convert MUS → MIDI → WebAudio.</li>
+<li><strong>State sync UI.</strong> Surface save slots in the overlay without changing layout—maybe a subtle status line when auto-load fires.</li>
+</ol>
+<p>For now, DOOM finally sounds like DOOM <em>and</em> remembers where you left off. That&#39;s good enough to make it playable. We&#39;ll tackle the soundtrack and polish once the headache subsides!</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link is-disabled"
+        data-blog-nav="previous"
+        aria-disabled=&#34;true&#34; tabindex=&#34;-1&#34;
+        href="#"
+        data-default-href=""
+        data-default-fragment=""
+        data-fragment-href=""
+        data-target-slug=""
+        data-post-slug=""
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">No newer posts</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/doom-wasm-audio-part-1.html"
+        data-default-href="blog/doom-wasm-audio-part-1.html"
+        data-default-fragment="blog/fragments/doom-wasm-audio-part-1.html"
+        data-fragment-href="blog/fragments/doom-wasm-audio-part-1.html"
+        data-target-slug="doom-wasm-audio-part-1"
+        data-post-slug="doom-wasm-audio-part-1"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">An Exercise in Futility (and DOOM): wasm Audio Port Pt. 1</span>
+      </a>
+    </nav>
+  
+</article>
+
