@@ -16,3 +16,5 @@
       changed_when: false
   roles:
     - role: app_deploy
+    - role: stagit_mirror
+      when: stagit_enabled | bool

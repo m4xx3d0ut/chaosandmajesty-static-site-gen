@@ -47,3 +47,39 @@ auth_file_container_path: /etc/nginx/auth
 
 # Healthcheck path exposed by the container
 healthcheck_path: /health
+
+# Static git mirror (stagit) defaults
+stagit_enabled: true
+stagit_user: deploy
+stagit_group: "{{ stagit_user }}"
+stagit_base_dir: /opt/chaosandmajesty/git
+stagit_repo_dir: "{{ stagit_base_dir }}/repos"
+stagit_html_dir: "{{ stagit_base_dir }}/html"
+stagit_assets_dir: "{{ stagit_html_dir }}/_assets"
+stagit_manifest_path: "{{ stagit_base_dir }}/manifest.txt"
+stagit_update_script_path: /usr/local/bin/update-stagit.sh
+stagit_packages:
+  - stagit
+  - git
+stagit_shell: /bin/bash
+stagit_ssh_dir: /home/deploy/.ssh
+stagit_known_hosts_path: "{{ stagit_ssh_dir }}/known_hosts"
+stagit_ssh_private_key_path: "{{ stagit_ssh_dir }}/id_ed25519"
+stagit_manage_user: false
+stagit_mode: pull
+stagit_config_dir: "{{ playbook_dir }}/../config/stagit"
+stagit_manifest_source: "{{ stagit_config_dir }}/manifest.txt"
+stagit_asset_source_dir: "{{ stagit_config_dir }}/assets"
+stagit_repositories: []
+stagit_default_owner: ''
+stagit_manage_style: true
+stagit_manage_assets: "{{ stagit_manage_style }}"
+stagit_asset_files:
+  - style.css
+stagit_shared_assets:
+  - style.css
+  - logo.png
+  - favicon.png
+stagit_ssh_private_key: ''
+stagit_known_hosts: []
+stagit_run_after_deploy: true

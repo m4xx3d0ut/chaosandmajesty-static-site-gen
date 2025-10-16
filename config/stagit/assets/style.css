@@ -1,0 +1,99 @@
+/*
+ * Chaos & Majesty stagit defaults. Adjust colors, fonts, and spacing as needed.
+ */
+:root {
+  --cm-background: #0f0f17;
+  --cm-surface: #161622;
+  --cm-border: #2a2a3d;
+  --cm-muted: #b6b7d2;
+  --cm-text: #f2f5ff;
+  --cm-accent: #ff5fa1;
+  --cm-mono: 'Fira Mono', 'Courier New', monospace;
+  --cm-sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  background: var(--cm-background);
+  color: var(--cm-text);
+  font-family: var(--cm-sans);
+  margin: 0;
+  padding: 0 1.5rem 2rem;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--cm-accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
+}
+
+header,
+main,
+footer {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+header {
+  padding: 2.5rem 0 1.5rem;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2.25rem;
+  margin: 0 0 0.25rem;
+}
+
+header p {
+  margin: 0;
+  color: var(--cm-muted);
+}
+
+.repo:nth-child(odd) {
+  background: var(--cm-surface);
+}
+
+.repo {
+  border: 1px solid var(--cm-border);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.repo h2 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.repo .meta {
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+}
+
+pre,
+code {
+  font-family: var(--cm-mono);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cm-border);
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 0 1rem 1.5rem;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+  }
+}

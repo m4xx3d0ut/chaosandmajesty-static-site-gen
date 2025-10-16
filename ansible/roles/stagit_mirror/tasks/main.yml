@@ -1,0 +1,142 @@
+---
+- name: Configure stagit static git mirror
+  when: stagit_enabled | bool
+  block:
+    - name: Ensure stagit packages are installed
+      package:
+        name: "{{ stagit_packages }}"
+        state: present
+      when:
+        - stagit_packages | length > 0
+        - stagit_mode == 'pull'
+
+    - name: Ensure stagit group exists
+      group:
+        name: "{{ stagit_group }}"
+        system: true
+      when: stagit_manage_user | bool
+
+    - name: Ensure stagit user exists
+      user:
+        name: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        home: "{{ stagit_base_dir }}"
+        shell: "{{ stagit_shell }}"
+        system: true
+        create_home: false
+      when: stagit_manage_user | bool
+
+    - name: Ensure stagit base directory exists
+      file:
+        path: "{{ stagit_base_dir }}"
+        state: directory
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0755'
+
+    - name: Ensure stagit repository directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0755'
+      loop:
+        - "{{ stagit_repo_dir }}"
+        - "{{ stagit_html_dir }}"
+        - "{{ stagit_assets_dir }}"
+
+    - name: Ensure stagit SSH directory exists
+      file:
+        path: "{{ stagit_ssh_dir }}"
+        state: directory
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0700'
+      when: stagit_mode == 'pull'
+
+    - name: Install stagit deploy key
+      copy:
+        dest: "{{ stagit_ssh_private_key_path }}"
+        content: "{{ stagit_ssh_private_key | trim }}\n"
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0600'
+      when:
+        - stagit_mode == 'pull'
+        - stagit_ssh_private_key | length > 0
+      no_log: true
+
+    - name: Ensure known hosts file exists
+      file:
+        path: "{{ stagit_known_hosts_path }}"
+        state: touch
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0600'
+      when: stagit_mode == 'pull'
+
+    - name: Configure known hosts entries
+      known_hosts:
+        path: "{{ stagit_known_hosts_path }}"
+        name: "{{ item.name }}"
+        key: "{{ item.key }}"
+        state: present
+      loop: "{{ stagit_known_hosts }}"
+      when:
+        - stagit_mode == 'pull'
+        - stagit_known_hosts | length > 0
+
+    - name: Render stagit manifest from repositories
+      template:
+        src: manifest.txt.j2
+        dest: "{{ stagit_manifest_path }}"
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0640'
+      when: stagit_repositories | length > 0
+
+    - name: Copy stagit manifest from source file
+      copy:
+        src: "{{ stagit_manifest_source }}"
+        dest: "{{ stagit_manifest_path }}"
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0640'
+      when:
+        - stagit_repositories | length == 0
+        - stagit_manifest_source | length > 0
+
+    - name: Deploy stagit shared assets
+      copy:
+        src: "{{ stagit_asset_source_dir }}/{{ item }}"
+        dest: "{{ stagit_assets_dir }}/{{ item }}"
+        owner: "{{ stagit_user }}"
+        group: "{{ stagit_group }}"
+        mode: '0644'
+      loop: "{{ stagit_asset_files }}"
+      when:
+        - stagit_manage_assets | bool
+        - stagit_asset_files | length > 0
+        - stagit_asset_source_dir | length > 0
+
+    - name: Install stagit update script
+      copy:
+        src: "{{ playbook_dir }}/../scripts/update-stagit.sh"
+        dest: "{{ stagit_update_script_path }}"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Run stagit update script
+      command: "{{ stagit_update_script_path }}"
+      environment:
+        STAGIT_REPOLIST: "{{ stagit_manifest_path }}"
+        STAGIT_REPOBASE: "{{ stagit_repo_dir }}"
+        STAGIT_HTMLBASE: "{{ stagit_html_dir }}"
+        STAGIT_ASSETSDIR: "{{ stagit_assets_dir }}"
+        STAGIT_SHARED_ASSETS: "{{ stagit_shared_assets | join(' ') }}"
+      become_user: "{{ stagit_user }}"
+      when:
+        - stagit_run_after_deploy | bool
+        - stagit_mode == 'pull'
