@@ -4,4 +4,4 @@
 # git@lab-gitea:org/project.git|main|project|Chaos & Majesty|Project docs|https://chaosandmajesty.com/project
 
 # CM Site Prod
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git|prod|chaosandmajesty-static-site-gen|m4xx3d0ut|Chaosandmajesty.com static site generator|
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git|prod|chaosandmajesty-static-site-gen|m4xx3d0ut|Chaosandmajesty.com static site generator|https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen

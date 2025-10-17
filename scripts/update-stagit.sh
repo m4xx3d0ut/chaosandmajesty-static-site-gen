@@ -19,6 +19,28 @@ strip() {
   printf '%s' "$value"
 }
 
+strip_suffix() {
+  local value="${1:-}"
+  local suffix="${2:-}"
+  if [[ -n "$suffix" && "$value" == *"$suffix" ]]; then
+    printf '%s' "${value%"$suffix"}"
+  else
+    printf '%s' "$value"
+  fi
+}
+
+prune_refs_except() {
+  local gitdir="$1"
+  local prefix="$2"
+  local keep="$3"
+  local ref
+
+  while IFS= read -r ref; do
+    [[ "$ref" == "$keep" ]] && continue
+    git --git-dir="$gitdir" update-ref -d "$ref"
+  done < <(git --git-dir="$gitdir" for-each-ref --format='%(refname)' "$prefix")
+}
+
 URL_REWRITE_SPEC="${STAGIT_URL_REWRITE:-}"
 declare -A URL_REWRITE_MAP=()
 
@@ -65,6 +87,146 @@ require_binary git
 require_binary stagit
 require_binary stagit-index
 
+copy_asset() {
+  local src="$1"
+  local dest="$2"
+
+  if [[ ! -f "$src" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$dest")"
+
+  if [[ -f "$dest" && ! -L "$dest" ]] && cmp -s "$src" "$dest"; then
+    return 0
+  fi
+
+  rm -f "$dest"
+  cp -f "$src" "$dest"
+}
+
+sed_escape() {
+  local str="${1//\\/\\\\}"
+  str="${str//&/\\&}"
+  printf '%s' "$str"
+}
+
+PUBLIC_HTTP_BASE="$(strip "${STAGIT_PUBLIC_HTTP_BASE:-}")"
+if [[ -n "$PUBLIC_HTTP_BASE" ]]; then
+  PUBLIC_HTTP_BASE="${PUBLIC_HTTP_BASE%/}"
+fi
+PUBLIC_LOGO_URL="$(strip "${STAGIT_PUBLIC_LOGO_URL:-/assets/static/img/not-dead.webp}")"
+PUBLIC_CLONE_BASE="$(strip "${STAGIT_PUBLIC_CLONE_BASE:-}")"
+if [[ -n "$PUBLIC_CLONE_BASE" ]]; then
+  PUBLIC_CLONE_BASE="${PUBLIC_CLONE_BASE%/}"
+fi
+PUBLIC_CLONE_SUFFIX="${STAGIT_PUBLIC_CLONE_SUFFIX:-}"
+HTTP_CLONE_BASE="$(strip "${STAGIT_HTTP_CLONE_BASE:-}")"
+if [[ -z "$HTTP_CLONE_BASE" ]]; then
+  HTTP_CLONE_BASE="$HTMLBASE"
+fi
+if [[ -n "$HTTP_CLONE_BASE" ]]; then
+  HTTP_CLONE_BASE="${HTTP_CLONE_BASE%/}"
+fi
+HTTP_CLONE_SUFFIX="${STAGIT_HTTP_CLONE_SUFFIX:-.git}"
+
+rewrite_logo_in_file() {
+  local file="$1"
+
+  [[ -f "$file" ]] || return 0
+  [[ -n "$PUBLIC_LOGO_URL" ]] || return 0
+
+  local logo_url_escaped
+  logo_url_escaped="$(sed_escape "$PUBLIC_LOGO_URL")"
+
+  sed -i \
+    -e "s@src=\"logo.png\"@src=\"${logo_url_escaped}\"@g" \
+    -e "s@src='logo.png'@src='${logo_url_escaped}'@g" \
+    -e "s@href=\"logo.png\"@href=\"${logo_url_escaped}\"@g" \
+    -e "s@href='logo.png'@href='${logo_url_escaped}'@g" \
+    "$file"
+}
+
+rewrite_logo_in_tree() {
+  local root="$1"
+  [[ -d "$root" ]] || return 0
+  [[ -n "$PUBLIC_LOGO_URL" ]] || return 0
+
+  while IFS= read -r -d '' file; do
+    rewrite_logo_in_file "$file"
+  done < <(find "$root" -type f -name '*.html' -print0)
+}
+
+rewrite_clone_url_in_tree() {
+  local root="$1"
+  local clone_url="$2"
+  local remote_url="$3"
+  [[ -d "$root" ]] || return 0
+  [[ -n "$clone_url" ]] || return 0
+  [[ -n "$remote_url" ]] || return 0
+
+  while IFS= read -r -d '' file; do
+    python3 - "$file" "$remote_url" "$clone_url" <<'PY'
+import sys
+path, old_url, new_url = sys.argv[1:]
+with open(path, 'r', encoding='utf-8') as fh:
+    original = fh.read()
+
+updated = original.replace(old_url, new_url)
+
+if updated != original:
+    with open(path, 'w', encoding='utf-8') as fh:
+        fh.write(updated)
+PY
+  done < <(find "$root" -type f -name '*.html' -print0)
+}
+
+update_root_index_stylesheet() {
+  local file="$1"
+  [[ -f "$file" ]] || return 0
+
+  sed -i \
+    -e "s@href=\"style.css\"@href=\"_assets/style.css\"@g" \
+    -e "s@href='style.css'@href='_assets/style.css'@g" \
+    "$file"
+}
+
+sync_http_clone_repo() {
+  local src="$1"
+  local dest="$2"
+  local dest_dir tmpdest
+
+  [[ -n "$HTTP_CLONE_BASE" ]] || return 0
+  [[ -n "$dest" ]] || return 1
+
+  if [[ "$dest" == "$HTTP_CLONE_BASE" ]]; then
+    log "Refusing to sync HTTP clone to base path '$dest'"
+    return 1
+  fi
+
+  dest_dir="$(dirname "$dest")"
+  mkdir -p "$dest_dir"
+
+  tmpdest="${dest}.tmp.$$"
+  rm -rf "$tmpdest"
+
+  if ! cp -a "$src" "$tmpdest"; then
+    log "Failed to copy bare repo for HTTP clone: $src -> $tmpdest"
+    rm -rf "$tmpdest"
+    return 1
+  fi
+
+  if ! git --git-dir="$tmpdest" update-server-info; then
+    log "git update-server-info failed for $tmpdest"
+    rm -rf "$tmpdest"
+    return 1
+  fi
+
+  rm -rf "$dest"
+  mv "$tmpdest" "$dest"
+  log "Exported HTTP clone to $dest"
+}
+
 mkdir -p "$REPOBASE" "$HTMLBASE" "$ASSETSDIR"
 
 if [[ ! -f "$REPOLIST" ]]; then
@@ -90,15 +252,15 @@ while IFS= read -r raw; do
   description="$(strip "${description:-}")"
   homepage="$(strip "${homepage:-}")"
 
-  url="$(rewrite_url "$url")"
+  remote_url="$(rewrite_url "$url")"
 
-  if [[ -z "$url" ]]; then
+  if [[ -z "$remote_url" ]]; then
     log "Skipping manifest entry with empty url"
     continue
   fi
 
   if [[ -z "$name" ]]; then
-    name="$(basename "$url")"
+    name="$(basename "$remote_url")"
     name="${name%.git}"
   fi
 
@@ -110,26 +272,59 @@ while IFS= read -r raw; do
     description="$name"
   fi
 
+  public_url=''
+  clone_url=''
+
+  if [[ -n "$homepage" ]]; then
+    public_url="$homepage"
+  elif [[ -n "$PUBLIC_HTTP_BASE" ]]; then
+    public_url="$PUBLIC_HTTP_BASE/$name"
+  else
+    public_url="$remote_url"
+  fi
+
+  if [[ -n "$PUBLIC_CLONE_BASE" ]]; then
+    clone_url="$PUBLIC_CLONE_BASE/$name$PUBLIC_CLONE_SUFFIX"
+  elif [[ -n "$PUBLIC_HTTP_BASE" ]]; then
+    clone_url="$PUBLIC_HTTP_BASE/$name"
+  else
+    clone_url="$remote_url"
+  fi
+
   desired["$name"]=1
 
   bare="$REPOBASE/$name.git"
   out="$HTMLBASE/$name"
+  clone_export=''
+  if [[ -n "$HTTP_CLONE_BASE" ]]; then
+    clone_export="$HTTP_CLONE_BASE/$name$HTTP_CLONE_SUFFIX"
+  fi
 
   if [[ ! -d "$bare" ]]; then
-    log "Cloning $url -> $bare"
-    if ! git clone --mirror "$url" "$bare"; then
-      log "Failed to clone $url"
+    log "Cloning $remote_url (branch $branch) -> $bare"
+    if ! git clone --bare --single-branch --branch "$branch" "$remote_url" "$bare"; then
+      log "Failed to clone $remote_url"
       continue
     fi
   fi
 
-  if ! git --git-dir="$bare" remote set-url origin "$url"; then
+  if ! git --git-dir="$bare" remote set-url origin "$remote_url"; then
     log "Failed to update remote URL for $name"
   fi
+  git --git-dir="$bare" config --unset remote.origin.mirror 2>/dev/null || true
+  git --git-dir="$bare" config --unset-all remote.origin.fetch 2>/dev/null || true
+  git --git-dir="$bare" config remote.origin.fetch "+refs/heads/$branch:refs/heads/$branch"
+  git --git-dir="$bare" config remote.origin.tagOpt --no-tags
 
-  if ! git --git-dir="$bare" fetch --prune --tags origin; then
+  if ! git --git-dir="$bare" fetch --prune --no-tags origin; then
     log "Failed to fetch updates for $name"
     continue
+  fi
+
+  prune_refs_except "$bare" "refs/heads" "refs/heads/$branch"
+  prune_refs_except "$bare" "refs/remotes/origin" "refs/remotes/origin/$branch"
+  if ! git --git-dir="$bare" gc --prune=now; then
+    log "git gc failed for $name"
   fi
 
   if ! git --git-dir="$bare" show-ref --verify --quiet "refs/heads/$branch"; then
@@ -146,11 +341,8 @@ while IFS= read -r raw; do
 
   printf '%s\n' "$description" > "$bare/description"
   printf '%s\n' "$owner" > "$bare/owner"
-  if [[ -n "$homepage" ]]; then
-    printf '%s\n' "$homepage" > "$bare/url"
-  else
-    printf '%s\n' "$url" > "$bare/url"
-  fi
+  printf '%s\n' "$public_url" > "$bare/url"
+  printf '%s\n' "$clone_url" > "$bare/cloneurl"
 
   tmpdir="$(mktemp -d)"
   if [[ ! -d "$tmpdir" ]]; then
@@ -166,13 +358,24 @@ while IFS= read -r raw; do
       cp -a "$tmpdir"/. "$out"/
       rm -rf "$tmpdir"
 
+      rewrite_logo_in_tree "$out"
+      rewrite_clone_url_in_tree "$out" "$clone_url" "$remote_url"
+
       mkdir -p "$ASSETSDIR"
       for asset in "${SHARED_ASSETS[@]}"; do
         [[ -z "$asset" ]] && continue
         if [[ -f "$ASSETSDIR/$asset" ]]; then
-          ln -snf "../_assets/$asset" "$out/$asset"
+          copy_asset "$ASSETSDIR/$asset" "$out/$asset"
         fi
       done
+
+      if [[ -n "$clone_export" ]]; then
+        if [[ "$clone_export" == "$out" ]]; then
+          log "Skipping HTTP clone export for $name due to destination conflict ($clone_export)"
+        elif ! sync_http_clone_repo "$bare" "$clone_export"; then
+          log "Failed to export HTTP clone for $name"
+        fi
+      fi
 
       log "Rendered $name ($branch)"
       processed=$((processed + 1))
@@ -190,10 +393,24 @@ while IFS= read -r raw; do
 
 done < "$REPOLIST"
 
+for asset in "${SHARED_ASSETS[@]}"; do
+  [[ -z "$asset" ]] && continue
+  if [[ -f "$ASSETSDIR/$asset" ]]; then
+    copy_asset "$ASSETSDIR/$asset" "$HTMLBASE/$asset"
+  fi
+done
+
+if [[ -f "$ASSETSDIR/style.css" ]]; then
+  copy_asset "$ASSETSDIR/style.css" "$HTMLBASE/style.css"
+fi
+
 shopt -s nullglob
 for dir in "$HTMLBASE"/*; do
   base="$(basename "$dir")"
   [[ "$base" == '_assets' ]] && continue
+  if [[ -n "$HTTP_CLONE_BASE" && "$dir" == "$HTTP_CLONE_BASE"/*"$HTTP_CLONE_SUFFIX" ]]; then
+    continue
+  fi
   if [[ -z "${desired[$base]:-}" ]]; then
     log "Removing stale HTML directory $dir"
     rm -rf "$dir"
@@ -209,6 +426,20 @@ for repo_dir in "$REPOBASE"/*.git; do
 done
 shopt -u nullglob
 
+if [[ -n "$HTTP_CLONE_BASE" ]]; then
+  shopt -s nullglob
+  for clone_dir in "$HTTP_CLONE_BASE"/*; do
+    [[ -d "$clone_dir" ]] || continue
+    clone_base="$(basename "$clone_dir")"
+    canonical="$(strip_suffix "$clone_base" "$HTTP_CLONE_SUFFIX")"
+    if [[ -z "${desired[$canonical]:-}" ]]; then
+      log "Removing stale HTTP clone $clone_dir"
+      rm -rf "$clone_dir"
+    fi
+  done
+  shopt -u nullglob
+fi
+
 shopt -s nullglob
 repos=("$REPOBASE"/*.git)
 shopt -u nullglob
@@ -217,6 +448,8 @@ if (( ${#repos[@]} )); then
   tmp_index="$HTMLBASE/index.html.tmp"
   if stagit-index "${repos[@]}" > "$tmp_index"; then
     mv "$tmp_index" "$HTMLBASE/index.html"
+    rewrite_logo_in_file "$HTMLBASE/index.html"
+    update_root_index_stylesheet "$HTMLBASE/index.html"
     log "Updated stagit index"
   else
     rm -f "$tmp_index"
@@ -239,6 +472,8 @@ else
   </body>
 </html>
 HTML
+  rewrite_logo_in_file "$HTMLBASE/index.html"
+  update_root_index_stylesheet "$HTMLBASE/index.html"
   log "No repositories mirrored; wrote placeholder index"
 fi
 

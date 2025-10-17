@@ -76,10 +76,18 @@ stagit_manage_style: true
 stagit_manage_assets: "{{ stagit_manage_style }}"
 stagit_asset_files:
   - style.css
+  - logo.png
+  - favicon.png
 stagit_shared_assets:
   - style.css
   - logo.png
   - favicon.png
+stagit_http_clone_base: "{{ stagit_html_dir }}"
+stagit_http_clone_suffix: .git
+stagit_public_clone_base: "{{ stagit_public_http_base }}"
+stagit_public_clone_suffix: .git
+stagit_public_http_base: https://cm.core.home.arpa/git
+stagit_public_logo_url: https://cm.core.home.arpa/assets/static/img/not-dead.webp
 stagit_ssh_private_key: ''
 stagit_known_hosts: []
 stagit_run_after_deploy: true

@@ -45,6 +45,8 @@
         - "{{ stagit_repo_dir }}"
         - "{{ stagit_html_dir }}"
         - "{{ stagit_assets_dir }}"
+        - "{{ stagit_http_clone_base }}"
+      when: item | length > 0
 
     - name: Ensure stagit SSH directory exists
       file:
@@ -136,6 +138,12 @@
         STAGIT_HTMLBASE: "{{ stagit_html_dir }}"
         STAGIT_ASSETSDIR: "{{ stagit_assets_dir }}"
         STAGIT_SHARED_ASSETS: "{{ stagit_shared_assets | join(' ') }}"
+        STAGIT_PUBLIC_HTTP_BASE: "{{ stagit_public_http_base }}"
+        STAGIT_PUBLIC_LOGO_URL: "{{ stagit_public_logo_url }}"
+        STAGIT_HTTP_CLONE_BASE: "{{ stagit_http_clone_base }}"
+        STAGIT_HTTP_CLONE_SUFFIX: "{{ stagit_http_clone_suffix }}"
+        STAGIT_PUBLIC_CLONE_BASE: "{{ stagit_public_clone_base }}"
+        STAGIT_PUBLIC_CLONE_SUFFIX: "{{ stagit_public_clone_suffix }}"
       become_user: "{{ stagit_user }}"
       when:
         - stagit_run_after_deploy | bool
