@@ -120,7 +120,7 @@ PUBLIC_CLONE_BASE="$(strip "${STAGIT_PUBLIC_CLONE_BASE:-}")"
 if [[ -n "$PUBLIC_CLONE_BASE" ]]; then
   PUBLIC_CLONE_BASE="${PUBLIC_CLONE_BASE%/}"
 fi
-PUBLIC_CLONE_SUFFIX="${STAGIT_PUBLIC_CLONE_SUFFIX:-}"
+PUBLIC_CLONE_SUFFIX="${STAGIT_PUBLIC_CLONE_SUFFIX:-.git}"
 HTTP_CLONE_BASE="$(strip "${STAGIT_HTTP_CLONE_BASE:-}")"
 if [[ -z "$HTTP_CLONE_BASE" ]]; then
   HTTP_CLONE_BASE="$HTMLBASE"
@@ -129,6 +129,20 @@ if [[ -n "$HTTP_CLONE_BASE" ]]; then
   HTTP_CLONE_BASE="${HTTP_CLONE_BASE%/}"
 fi
 HTTP_CLONE_SUFFIX="${STAGIT_HTTP_CLONE_SUFFIX:-.git}"
+
+ensure_suffix() {
+  local value="$1"
+  local suffix="$2"
+  if [[ -z "$suffix" ]]; then
+    printf '%s' "$value"
+    return
+  fi
+  if [[ "$value" == *"$suffix" ]]; then
+    printf '%s' "$value"
+  else
+    printf '%s%s' "$value" "$suffix"
+  fi
+}
 
 rewrite_logo_in_file() {
   local file="$1"
@@ -284,12 +298,13 @@ while IFS= read -r raw; do
   fi
 
   if [[ -n "$PUBLIC_CLONE_BASE" ]]; then
-    clone_url="$PUBLIC_CLONE_BASE/$name$PUBLIC_CLONE_SUFFIX"
+    clone_url="$PUBLIC_CLONE_BASE/$name"
   elif [[ -n "$PUBLIC_HTTP_BASE" ]]; then
     clone_url="$PUBLIC_HTTP_BASE/$name"
   else
     clone_url="$remote_url"
   fi
+  clone_url="$(ensure_suffix "$clone_url" "$PUBLIC_CLONE_SUFFIX")"
 
   desired["$name"]=1
 
@@ -431,6 +446,9 @@ if [[ -n "$HTTP_CLONE_BASE" ]]; then
   for clone_dir in "$HTTP_CLONE_BASE"/*; do
     [[ -d "$clone_dir" ]] || continue
     clone_base="$(basename "$clone_dir")"
+    if [[ -n "$HTTP_CLONE_SUFFIX" && "$clone_base" != *"$HTTP_CLONE_SUFFIX" ]]; then
+      continue
+    fi
     canonical="$(strip_suffix "$clone_base" "$HTTP_CLONE_SUFFIX")"
     if [[ -z "${desired[$canonical]:-}" ]]; then
       log "Removing stale HTTP clone $clone_dir"
