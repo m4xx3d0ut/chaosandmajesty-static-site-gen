@@ -37,6 +37,7 @@
     <%= (page.useCmConsole || site.useCmConsole || page.useCmHead || site.useCmHead || page.useCmFooter || site.useCmFooter) ? 'cm-body' : '' %>
   "
   data-theme="<%= (site.theme && site.theme.mode === 'dark') ? 'dark' : 'light' %>"
+  data-page-slug="<%= page.slug || '' %>"
   <% if (site.parallaxPush) { %>
     style="--parallax-push:<%= site.parallaxPush %>;"
   <% } %>

@@ -14,6 +14,23 @@ assets: static-sitegen/assets
 templates: static-sitegen/templates
 
 pages:
+  - title: Git
+    slug: git
+    template: git.ejs
+    useCmHead: true
+    useCmFooter: true
+    git:
+      intro: |
+        <p>Browse the Core Git front door without leaving the site. Pick a repository on the left; the activity feed loads on the right.</p>
+      repoIndexUrl: "https://cm.core.home.arpa/git/"
+      manifest: "config/stagit/manifest.txt"
+      defaultRepoLabel: "chaosandmajesty-static-site-gen"
+      repoDetailSuffix: "log.html"
+      leftPaneTitle: "Core Git"
+      leftPaneDescription: "Select a repository from the Core Git catalog."
+      rightPaneTitle: "Repository Activity"
+      rightPaneDescription: "We embed the upstream HTML so you can skim commits, branches, and files in place."
+
   # - title: About
   #   slug: about
   #   content: |
@@ -261,6 +278,8 @@ header:
     #   href: "contact.html"
     - label: Blog
       href: "blog.html"
+    - label: Git
+      href: "git.html"
     # - label: Sitemap
     #   href: "sitemap.html"
 

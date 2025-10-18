@@ -1,0 +1,670 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Core – Git</title>
+
+  
+    <meta name="description" content="All your base are belong to us.  Welcome to the Chaos and Majesty home!">
+  
+  
+    <meta name="keywords" content="development, programming, python, react, typescript, node, javascript, maker, white hat, hacker">
+  
+
+  <!-- Include CM head content if specified -->
+  
+    <!-- head partial (auto-generated) -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+<script type="text/javascript" src="assets/static/js/cm.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<link rel="manifest" href="site.webmanifest"/>
+<link rel="icon" type="image/x-icon" href="assets/static/img/favicon.ico">
+
+  
+
+  <!-- Stylesheets: use CM styles if CM is enabled, otherwise use provided styles -->
+  
+    <!-- CM styles are already included in cm-head.ejs -->
+  
+</head>
+
+<body
+  class="
+    dark-mode
+     with-parallax
+    cm-body
+  "
+  data-theme="dark"
+  data-page-slug="git"
+  
+    style="--parallax-push:10vh;"
+  
+>
+
+  <!-- Optional Parallax Background DIV -->
+  
+    <div
+      class="parallax-bg"
+      style="background-image: url(
+        'assets/template/logo-sitegen-parallax.png'
+      );"
+    ></div>
+  
+
+  <!-- HEADER -->
+  <header>
+    <div class="container header-container">
+      
+        <a href="index.html" class="logo-link">
+          <img
+            src="assets/static/img/not-dead.webp"
+            alt="Core Logo"
+            class="logo"
+          >
+        </a>
+      
+
+      
+
+      
+        <!-- Hamburger toggle (only visible on ≤768px) -->
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="index.html">Home</a></li>
+            
+              <li><a href="blog.html">Blog</a></li>
+            
+              <li><a href="git.html">Git</a></li>
+            
+            <li><button type="button" class="theme-toggle" aria-label="Toggle 1337 Mode" title="1337 Mode">1337</button></li>
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    
+      <h2 class="page-title">Git</h2>
+    
+
+    
+
+    <!-- Include 3D Logo if specified -->
+    
+
+    <!-- Include CM console if specified -->
+    
+
+    <div class="page-content
+      
+      ">
+      
+<section class="git-page">
+  <div class="git-shell">
+    
+      <div class="git-hero">
+        <p>Browse the Core Git front door without leaving the site. Pick a repository on the left; the activity feed loads on the right.</p>
+
+      </div>
+    
+
+    <div class="git-grid">
+      <aside class="git-sidebar" aria-labelledby="git-sidebar-title">
+        <header class="git-sidebar-header">
+          <h3 class="git-sidebar-title" id="git-sidebar-title">Core Git</h3>
+          <p class="git-sidebar-subtitle">Select a repository from the Core Git catalog.</p>
+        </header>
+
+        <div class="git-sidebar-search">
+          <label class="visually-hidden" for="git-search-input">Search repositories</label>
+          <input
+            id="git-search-input"
+            class="git-search-input"
+            type="search"
+            placeholder="Search repositories..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+
+        <ul class="git-repo-list" id="git-repo-list" role="listbox" aria-label="Repository list">
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/ai-system-config/log.html"
+                data-git-label="ai-system-config"
+                data-git-search="ai-system-config dev m4xx3d0ut flux llmops system configuration git/ai-system-config https://cm.core.home.arpa/git/ai-system-config/log.html https://cm.core.home.arpa/git/ai-system-config"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/ai-system-config"
+              >
+                <span class="git-repo-button-title">ai-system-config</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Flux LlmOps system configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/ai-system-config</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/cicd-dev/log.html"
+                data-git-label="cicd-dev"
+                data-git-search="cicd-dev dev m4xx3d0ut cicd skeleton git/cicd-dev https://cm.core.home.arpa/git/cicd-dev/log.html https://cm.core.home.arpa/git/cicd-dev"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/cicd-dev"
+              >
+                <span class="git-repo-button-title">cicd-dev</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">CICD Skeleton</p>
+                
+                
+                  <p class="git-repo-button-path">git/cicd-dev</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/cm-blog-content-staging/log.html"
+                data-git-label="cm-blog-content-staging"
+                data-git-search="cm-blog-content-staging dev m4xx3d0ut helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content git/cm-blog-content-staging https://cm.core.home.arpa/git/cm-blog-content-staging/log.html https://cm.core.home.arpa/git/cm-blog-content-staging"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/cm-blog-content-staging"
+              >
+                <span class="git-repo-button-title">cm-blog-content-staging</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content</p>
+                
+                
+                  <p class="git-repo-button-path">git/cm-blog-content-staging</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/platform-config/log.html"
+                data-git-label="platform-config"
+                data-git-search="platform-config dev m4xx3d0ut flux gitops platform configuration git/platform-config https://cm.core.home.arpa/git/platform-config/log.html https://cm.core.home.arpa/git/platform-config"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/platform-config"
+              >
+                <span class="git-repo-button-title">platform-config</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Flux GitOps platform configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/platform-config</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/platform-nvidia-compute/log.html"
+                data-git-label="platform-nvidia-compute"
+                data-git-search="platform-nvidia-compute dev m4xx3d0ut nvidia compute platform configuration git/platform-nvidia-compute https://cm.core.home.arpa/git/platform-nvidia-compute/log.html https://cm.core.home.arpa/git/platform-nvidia-compute"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/platform-nvidia-compute"
+              >
+                <span class="git-repo-button-title">platform-nvidia-compute</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Nvidia compute platform configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/platform-nvidia-compute</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/radiostatic-site-gen/log.html"
+                data-git-label="radiostatic-site-gen"
+                data-git-search="radiostatic-site-gen dev m4xx3d0ut radiostatic - static site generator with blog, git mirror, and a wonky mini-terminal git/radiostatic-site-gen https://cm.core.home.arpa/git/radiostatic-site-gen/log.html https://cm.core.home.arpa/git/radiostatic-site-gen"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/radiostatic-site-gen"
+              >
+                <span class="git-repo-button-title">radiostatic-site-gen</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal</p>
+                
+                
+                  <p class="git-repo-button-path">git/radiostatic-site-gen</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+                data-git-label="chaosandmajesty-static-site-gen"
+                data-git-search="chaosandmajesty-static-site-gen prod m4xx3d0ut chaosandmajesty.com static site gen project with wasm32 doom shareware integration git/chaosandmajesty-static-site-gen https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen"
+                data-git-stage="prod"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/chaosandmajesty-static-site-gen"
+              >
+                <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">PROD</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration</p>
+                
+                
+                  <p class="git-repo-button-path">git/chaosandmajesty-static-site-gen</p>
+                
+              </button>
+            </li>
+          
+        </ul>
+
+        <p class="git-empty" id="git-empty" hidden>No repositories match your search.</p>
+
+        
+          <p class="git-sidebar-footnote">
+            View the full catalog at
+            <a href="https://cm.core.home.arpa/git/" target="_blank" rel="noopener">https://cm.core.home.arpa/git/</a>.
+          </p>
+        
+      </aside>
+
+      <section class="git-content" aria-labelledby="git-content-title">
+        <header class="git-content-header">
+          <div class="git-content-meta">
+            <h3 class="git-content-title" id="git-content-title">Repository Activity</h3>
+            <p class="git-content-subtitle">
+              <span id="git-active-repo-label">chaosandmajesty-static-site-gen</span>
+            </p>
+          </div>
+          <button
+            type="button"
+            class="git-refresh"
+            id="git-refresh-default"
+            data-git-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+            data-git-default-name="chaosandmajesty-static-site-gen"
+            
+          >
+            Refresh default
+          </button>
+        </header>
+
+        <p class="git-content-description">We embed the upstream HTML so you can skim commits, branches, and files in place.</p>
+
+        <div class="git-content-body">
+          
+            <div class="git-loading" id="git-detail-indicator" role="status" aria-live="polite">
+              Loading chaosandmajesty-static-site-gen…
+            </div>
+            <div class="git-frame-wrap">
+              <iframe
+                id="git-repo-frame"
+                class="git-frame"
+                title="Repository activity viewer"
+                data-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+                data-default-name="chaosandmajesty-static-site-gen"
+                loading="lazy"
+              ></iframe>
+              <noscript>
+                <p>Enable JavaScript to view repository activity.</p>
+              </noscript>
+            </div>
+          
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function() {
+    if (typeof window === 'undefined' || !window.document) {
+      return;
+    }
+
+    var repoButtons = Array.prototype.slice.call(document.querySelectorAll('.git-repo-button'));
+    var repoItems = repoButtons.map(function(button) {
+      var detailUrl = button.getAttribute('data-git-url') || '';
+      var label = button.getAttribute('data-git-label') || detailUrl;
+      var searchText = button.getAttribute('data-git-search') || (label + ' ' + detailUrl);
+      return {
+        button: button,
+        detailUrl: detailUrl,
+        label: label,
+        searchText: searchText.toLowerCase()
+      };
+    });
+
+    var repoListEl = document.getElementById('git-repo-list');
+    var emptyStateEl = document.getElementById('git-empty');
+    var searchInput = document.getElementById('git-search-input');
+    var activeLabel = document.getElementById('git-active-repo-label');
+    var detailFrame = document.getElementById('git-repo-frame');
+    var detailIndicator = document.getElementById('git-detail-indicator');
+    var refreshBtn = document.getElementById('git-refresh-default');
+    var activeButton = null;
+    var spinnerTimeoutId = null;
+
+    function setActiveButton(button) {
+      if (activeButton && activeButton !== button) {
+        activeButton.classList.remove('git-link-active');
+      }
+      activeButton = button || null;
+      if (activeButton) {
+        activeButton.classList.add('git-link-active');
+      }
+    }
+
+    function getParentListItem(button) {
+      return button ? button.closest('.git-repo-list-item') : null;
+    }
+
+    function filterList(query) {
+      var needle = (query || '').trim().toLowerCase();
+      var matches = 0;
+      repoItems.forEach(function(entry) {
+        var li = getParentListItem(entry.button);
+        if (!li) {
+          return;
+        }
+        var isMatch = !needle || entry.searchText.indexOf(needle) !== -1;
+        li.hidden = !isMatch;
+        if (isMatch) {
+          matches += 1;
+        }
+      });
+      if (emptyStateEl && repoItems.length > 0) {
+        emptyStateEl.hidden = matches > 0;
+      }
+    }
+
+    function showIndicator() {
+      if (!detailIndicator) {
+        return;
+      }
+      detailIndicator.hidden = false;
+      if (spinnerTimeoutId) {
+        window.clearTimeout(spinnerTimeoutId);
+      }
+      spinnerTimeoutId = window.setTimeout(function() {
+        hideIndicator();
+      }, 7000);
+    }
+
+    function hideIndicator() {
+      if (!detailIndicator) {
+        return;
+      }
+      detailIndicator.hidden = true;
+      if (spinnerTimeoutId) {
+        window.clearTimeout(spinnerTimeoutId);
+        spinnerTimeoutId = null;
+      }
+    }
+
+    function activateEntry(entry, options) {
+      if (!entry || !entry.detailUrl || !detailFrame) {
+        return;
+      }
+      var label = entry.label || entry.detailUrl;
+      if (activeLabel) {
+        activeLabel.textContent = label;
+      }
+      showIndicator();
+      var forceReload = options && options.forceReload;
+      var url = entry.detailUrl;
+      if (forceReload) {
+        var separator = url.indexOf('?') === -1 ? '?' : '&';
+        url = url + separator + 'ts=' + Date.now();
+      }
+      detailFrame.setAttribute('data-active-url', entry.detailUrl);
+      detailFrame.src = url;
+      setActiveButton(entry.button);
+    }
+
+    function findEntryByUrl(url) {
+      if (!url) return null;
+      return repoItems.find(function(entry) {
+        return entry.detailUrl === url;
+      }) || null;
+    }
+
+    function findEntryByLabel(label) {
+      if (!label) return null;
+      var normalized = label.toLowerCase();
+      return repoItems.find(function(entry) {
+        return (entry.label || '').toLowerCase() === normalized;
+      }) || null;
+    }
+
+    if (detailFrame) {
+      detailFrame.addEventListener('load', function() {
+        hideIndicator();
+      });
+      detailFrame.addEventListener('error', function() {
+        hideIndicator();
+      });
+    }
+
+    repoButtons.forEach(function(button) {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        var entry = repoItems.find(function(item) {
+          return item.button === button;
+        });
+        activateEntry(entry, { forceReload: false });
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function(event) {
+        filterList(event.target.value || '');
+      });
+    }
+
+    if (refreshBtn && !refreshBtn.disabled) {
+      refreshBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        var defaultUrl = refreshBtn.getAttribute('data-git-default-url') || '';
+        var defaultName = refreshBtn.getAttribute('data-git-default-name') || '';
+        var entry = findEntryByUrl(defaultUrl) || findEntryByLabel(defaultName) || repoItems[0] || null;
+        if (entry) {
+          activateEntry(entry, { forceReload: true });
+        }
+      });
+    }
+
+    if (repoItems.length > 0) {
+      filterList('');
+      var defaultUrl = detailFrame ? detailFrame.getAttribute('data-default-url') : '';
+      var defaultName = detailFrame ? detailFrame.getAttribute('data-default-name') : '';
+      var initialEntry = findEntryByUrl(defaultUrl) || findEntryByLabel(defaultName) || repoItems[0];
+      activateEntry(initialEntry, { forceReload: false });
+    } else {
+      hideIndicator();
+    }
+  })();
+</script>
+
+    </div>
+
+    <!-- Column Layout Support -->
+    
+
+    
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <!-- Include CM footer if specified -->
+    
+      <!-- footer partial (auto-generated) -->
+<div id="foot">
+  <p>
+    <center>
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    </center>
+  </p>
+</div>
+
+    
+    
+    <div class="container footer-container">
+      
+        <nav>
+          <ul class="footer-links">
+            
+              <li>
+                <a href="https://github.com/example" target="_blank" rel="noopener">
+                  GitHub
+                </a>
+              </li>
+            
+              <li>
+                <a href="privacy.html" target="_blank" rel="noopener">
+                  Privacy Policy
+                </a>
+              </li>
+            
+              <li>
+                <a href="terms.html" target="_blank" rel="noopener">
+                  Terms
+                </a>
+              </li>
+            
+          </ul>
+        </nav>
+      
+      <p class="footer-copy">
+        &copy; 2025 Core
+      </p>
+    </div>
+  </footer>
+
+  
+  
+
+  
+  
+
+  
+  <script>
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = 'assets/doom/';
+      }
+    })();
+  </script>
+
+  <!-- NAV TOGGLE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

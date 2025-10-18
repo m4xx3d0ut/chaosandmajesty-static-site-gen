@@ -157,6 +157,276 @@ async function copyStaticFiles(outputDir, verbose = false) {
   }
 }
 
+const DEFAULT_GIT_DETAIL_SUFFIX = 'log.html';
+const DEFAULT_GIT_MANIFEST_PATH = path.join('config', 'stagit', 'manifest.txt');
+
+function deriveGitRepoPath(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  try {
+    const parsed = new URL(url, 'http://localhost');
+    const pathname = parsed.pathname || '';
+    return pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  } catch (error) {
+    return url.replace(/^https?:\/\/[^/]+/, '').replace(/^\/+/, '').replace(/\/+$/, '');
+  }
+}
+
+function buildGitRepoSearchText(record) {
+  if (!record) return '';
+  return [
+    record.label,
+    record.stage,
+    record.owner,
+    record.description,
+    record.repoPath,
+    record.detailUrl,
+    record.httpUrl
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+}
+
+function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) {
+  if (!seed) {
+    return null;
+  }
+  const suffix = (typeof detailSuffix === 'string' && detailSuffix.trim().length > 0)
+    ? detailSuffix.trim()
+    : DEFAULT_GIT_DETAIL_SUFFIX;
+
+  const normalized = { ...seed };
+  const label =
+    normalized.label ||
+    normalized.name ||
+    normalized.id ||
+    normalized.repo ||
+    normalized.detailUrl ||
+    normalized.httpUrl ||
+    '';
+
+  let httpUrl = normalized.httpUrl || normalized.browseUrl || normalized.url || '';
+  let detailUrl = normalized.detailUrl || normalized.logUrl || normalized.url || '';
+
+  if (detailUrl && !/\.html?(?:[?#]|$)/i.test(detailUrl)) {
+    const trimmed = detailUrl.replace(/\/+$/, '');
+    detailUrl = `${trimmed}/${suffix.replace(/^\/+/, '')}`;
+  } else if (!detailUrl && httpUrl) {
+    const trimmed = httpUrl.replace(/\/+$/, '');
+    detailUrl = `${trimmed}/${suffix.replace(/^\/+/, '')}`;
+  }
+
+  if (!httpUrl && detailUrl) {
+    const detail = detailUrl.replace(/[?#].*$/, '');
+    const withoutSuffix = detail.replace(new RegExp(`${suffix.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i'), '');
+    httpUrl = withoutSuffix.replace(/\/+$/, '');
+  }
+
+  const repoPath = normalized.repoPath || normalized.relativePath || deriveGitRepoPath(httpUrl || detailUrl || '');
+  const stage = normalized.stage || normalized.env || '';
+  const stageLabel = normalized.stageLabel || (stage ? stage.toUpperCase() : '');
+  const owner = normalized.owner || normalized.maintainer || '';
+  const description = normalized.description || normalized.summary || '';
+  const searchText = (normalized.searchText || buildGitRepoSearchText({
+    label,
+    stage,
+    owner,
+    description,
+    repoPath,
+    detailUrl,
+    httpUrl
+  })).toLowerCase();
+
+  const idSource = normalized.id || label || detailUrl || httpUrl;
+  const id = idSource
+    ? idSource.toString().trim().toLowerCase().replace(/\s+/g, '-')
+    : `repo-${Math.random().toString(36).slice(2, 8)}`;
+
+  return {
+    id,
+    label,
+    stage,
+    stageLabel,
+    owner,
+    description,
+    searchText,
+    repoPath,
+    detailUrl: detailUrl || '',
+    httpUrl: httpUrl || '',
+    sshUrl: normalized.sshUrl || normalized.gitUrl || '',
+    manifestSource: normalized.manifestSource || '',
+    tags: Array.isArray(normalized.tags) ? normalized.tags : (stage ? [stage.toLowerCase()] : [])
+  };
+}
+
+function dedupeGitRepos(repos) {
+  const seen = new Set();
+  const results = [];
+  for (const repo of repos) {
+    if (!repo || !repo.detailUrl) {
+      continue;
+    }
+    const key = repo.detailUrl.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    results.push(repo);
+  }
+  return results;
+}
+
+function parseGitManifestContent(content, detailSuffix, manifestSource, verbose = false) {
+  if (!content || typeof content !== 'string') {
+    return [];
+  }
+  const lines = content.split(/\r?\n/);
+  const repos = [];
+  for (const [index, rawLine] of lines.entries()) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+    const parts = line.split('|');
+    if (parts.length < 6) {
+      if (verbose) {
+        console.warn(`Skipping malformed manifest entry on line ${index + 1} in ${manifestSource || 'manifest'}`);
+      }
+      continue;
+    }
+    const [sshUrl, stage, name, owner, description, httpUrl] = parts.map(part => part.trim());
+    const repoRecord = normalizeGitRepoRecord({
+      label: name,
+      stage,
+      owner,
+      description,
+      httpUrl,
+      sshUrl,
+      manifestSource: manifestSource || ''
+    }, detailSuffix);
+    if (repoRecord) {
+      repos.push(repoRecord);
+    }
+  }
+  return repos;
+}
+
+async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
+  if (!pageConfig || !pageConfig.git) {
+    return;
+  }
+
+  const gitConfig = { ...pageConfig.git };
+  const siteGitConfig = siteConfig && siteConfig.git ? siteConfig.git : {};
+  const detailSuffix = (typeof gitConfig.repoDetailSuffix === 'string' && gitConfig.repoDetailSuffix.trim().length > 0)
+    ? gitConfig.repoDetailSuffix.trim()
+    : (typeof siteGitConfig.repoDetailSuffix === 'string' && siteGitConfig.repoDetailSuffix.trim().length > 0)
+      ? siteGitConfig.repoDetailSuffix.trim()
+      : DEFAULT_GIT_DETAIL_SUFFIX;
+
+  const manifestCandidates = [];
+  if (gitConfig.manifest) {
+    manifestCandidates.push(gitConfig.manifest);
+  }
+  if (siteGitConfig.manifest) {
+    manifestCandidates.push(siteGitConfig.manifest);
+  }
+  manifestCandidates.push(DEFAULT_GIT_MANIFEST_PATH);
+
+  let manifestContent = null;
+  let manifestResolvedPath = null;
+  for (const candidate of manifestCandidates) {
+    if (!candidate || typeof candidate !== 'string') {
+      continue;
+    }
+    const resolved = path.resolve(process.cwd(), candidate);
+    try {
+      manifestContent = await fs.readFile(resolved, 'utf8');
+      manifestResolvedPath = resolved;
+      break;
+    } catch (error) {
+      const isExplicit = candidate === gitConfig.manifest || candidate === siteGitConfig.manifest;
+      if (verbose && isExplicit) {
+        console.warn(`Unable to read git manifest at ${resolved}: ${error.message}`);
+      }
+    }
+  }
+
+  const manifestRepos = manifestContent
+    ? parseGitManifestContent(manifestContent, detailSuffix, manifestResolvedPath, verbose)
+    : [];
+
+  const manualSeeds = [];
+  if (Array.isArray(gitConfig.repos)) {
+    manualSeeds.push(...gitConfig.repos);
+  }
+  if (Array.isArray(gitConfig.fallbackRepos)) {
+    manualSeeds.push(...gitConfig.fallbackRepos);
+  }
+
+  const manualRepos = manualSeeds
+    .map(seed => normalizeGitRepoRecord(seed, detailSuffix))
+    .filter(Boolean);
+
+  let combinedRepos = dedupeGitRepos([...manifestRepos, ...manualRepos]);
+
+  combinedRepos = combinedRepos.map(repo => ({
+    ...repo,
+    searchText: repo.searchText || buildGitRepoSearchText(repo)
+  }));
+
+  combinedRepos.sort((a, b) => {
+    const stageA = (a.stageLabel || '').toLowerCase();
+    const stageB = (b.stageLabel || '').toLowerCase();
+    if (stageA && !stageB) return -1;
+    if (!stageA && stageB) return 1;
+    const stageCompare = stageA.localeCompare(stageB);
+    if (stageCompare !== 0) {
+      return stageCompare;
+    }
+    return (a.label || '').toLowerCase().localeCompare((b.label || '').toLowerCase());
+  });
+
+  const defaultLabelRaw = gitConfig.defaultRepoLabel || siteGitConfig.defaultRepoLabel || '';
+  const defaultUrlRaw = gitConfig.defaultRepoUrl || siteGitConfig.defaultRepoUrl || '';
+
+  if (!gitConfig.defaultRepoUrl && defaultLabelRaw) {
+    const matchByLabel = combinedRepos.find(repo => (repo.label || '').toLowerCase() === defaultLabelRaw.toLowerCase());
+    if (matchByLabel) {
+      gitConfig.defaultRepoUrl = matchByLabel.detailUrl;
+    }
+  }
+
+  if (!gitConfig.defaultRepoUrl && defaultUrlRaw) {
+    gitConfig.defaultRepoUrl = defaultUrlRaw;
+  }
+
+  if (!gitConfig.defaultRepoLabel && defaultLabelRaw) {
+    gitConfig.defaultRepoLabel = defaultLabelRaw;
+  }
+
+  if (!gitConfig.defaultRepoUrl && combinedRepos.length > 0) {
+    gitConfig.defaultRepoUrl = combinedRepos[0].detailUrl;
+    if (!gitConfig.defaultRepoLabel) {
+      gitConfig.defaultRepoLabel = combinedRepos[0].label;
+    }
+  } else if (!gitConfig.defaultRepoLabel && gitConfig.defaultRepoUrl) {
+    const matchByUrl = combinedRepos.find(repo => repo.detailUrl === gitConfig.defaultRepoUrl);
+    if (matchByUrl) {
+      gitConfig.defaultRepoLabel = matchByUrl.label;
+    }
+  }
+
+  gitConfig.repoDetailSuffix = detailSuffix;
+  gitConfig.generatedRepos = manifestRepos;
+  gitConfig.resolvedRepos = combinedRepos;
+  gitConfig.manifestResolvedPath = manifestResolvedPath;
+
+  pageConfig.git = gitConfig;
+}
+
 async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) {
   const postsDir = path.resolve(process.cwd(), blogConfig.postsDir || 'content/blog');
   const blogOutputRel = (blogConfig.outputDir || 'blog').replace(/^(\.\/)+/, '').replace(/\\/g, '/');
@@ -725,6 +995,10 @@ export async function generateSite(config, outputDir, verbose = false) {
         const pageCopy = { ...page, sectionMap };
         if (typeof pageCopy.baseDepth !== 'number') {
           pageCopy.baseDepth = 0;
+        }
+
+        if (pageCopy.git) {
+          await hydrateGitPageConfig(pageCopy, updatedConfig, verbose);
         }
         
         // Process markdown content if it exists
