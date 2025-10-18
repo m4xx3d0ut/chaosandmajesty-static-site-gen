@@ -1181,6 +1181,10 @@ body[data-page-slug="git"] .footer-container {
   padding: 0.35rem 0.75rem;
 }
 
+.git-loading.is-hidden {
+  display: none;
+}
+
 .git-loading::before {
   content: '';
   width: 0.75rem;
@@ -1423,16 +1427,19 @@ body[data-page-slug="git"] .footer-container {
   border: 1px solid rgba(102, 255, 0, 0.22);
   background: rgba(3, 8, 18, 0.92);
   overflow: hidden;
-  min-height: clamp(24rem, 70vh, 46rem);
-  display: flex;
-  flex-direction: column;
+  display: block;
+  min-height: clamp(24rem, 80vh, 64rem);
+  height: clamp(24rem, 80vh, 64rem);
 }
 
 .git-frame {
-  flex: 1 1 auto;
+  display: block;
   width: 100%;
   border: 0;
   background: transparent;
+  min-height: clamp(24rem, 80vh, 64rem);
+  height: clamp(24rem, 80vh, 64rem);
+  transition: height 0.18s ease-in-out;
 }
 
 @media (min-width: 1280px) {

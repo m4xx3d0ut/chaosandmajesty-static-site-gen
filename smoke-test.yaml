@@ -19,6 +19,7 @@ pages:
     template: git.ejs
     useCmHead: true
     useCmFooter: true
+    hideTitle: true
     git:
       intro: |
         <p>Browse the Core Git front door without leaving the site. Pick a repository on the left; the activity feed loads on the right.</p>
