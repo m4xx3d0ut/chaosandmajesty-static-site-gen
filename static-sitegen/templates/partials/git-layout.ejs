@@ -181,17 +181,22 @@
             <div
               class="git-frame-wrap"
               id="git-frame-wrap"
-              data-default-height="calc(100vh + 16rem)"
+              data-default-height="clamp(32rem, calc(100vh + 8rem), 88rem)"
             >
-              <iframe
-                id="git-repo-frame"
-                class="git-frame"
-                title="Repository activity viewer"
-                data-default-url="<%= safeDefaultRepoUrl %>"
-                data-default-name="<%= safeDefaultRepoLabel %>"
-                data-default-height="clamp(24rem, 80vh, 64rem)"
-                loading="lazy"
-              ></iframe>
+              <div
+                class="git-frame-scaler"
+                id="git-frame-scaler"
+              >
+                <iframe
+                  id="git-repo-frame"
+                  class="git-frame"
+                  title="Repository activity viewer"
+                  data-default-url="<%= safeDefaultRepoUrl %>"
+                  data-default-name="<%= safeDefaultRepoLabel %>"
+                  data-default-height="clamp(32rem, calc(100vh + 8rem), 88rem)"
+                  loading="lazy"
+                ></iframe>
+              </div>
               <noscript>
                 <p>Enable JavaScript to view repository activity.</p>
               </noscript>
@@ -230,6 +235,7 @@
     var emptyStateEl = document.getElementById('git-empty');
     var searchInput = document.getElementById('git-search-input');
     var frameWrap = document.getElementById('git-frame-wrap');
+    var frameScaler = document.getElementById('git-frame-scaler');
     var activeLabel = document.getElementById('git-active-repo-label');
     var detailFrame = document.getElementById('git-repo-frame');
     var detailIndicator = document.getElementById('git-detail-indicator');
@@ -241,6 +247,8 @@
     var frameDefaultHeight = null;
     var frameObserver = null;
     var postMessageOriginAllowlist = null;
+    var frameScaleValue = 1;
+    var resizeScaleRafId = null;
 
     function resolveComputedDimension(element, propertyNames) {
       if (!element || !window.getComputedStyle) {
@@ -268,10 +276,16 @@
       if (!frameDefaultHeight) {
         frameDefaultHeight = detailFrame.getAttribute('data-default-height') || frameInitialHeight || '';
       }
+      detailFrame.style.height = '100%';
+      detailFrame.style.minHeight = '100%';
     }
 
     if (!frameDefaultHeight) {
-      frameDefaultHeight = 'clamp(24rem, 80vh, 64rem)';
+      frameDefaultHeight = 'clamp(32rem, calc(100vh + 8rem), 88rem)';
+    }
+
+    if (frameWrap && frameScaler) {
+      syncFrameScale(true);
     }
 
     function applyFrameHeight(heightValue) {
@@ -279,13 +293,89 @@
         return;
       }
       if (frameWrap) {
+        frameWrap.style.setProperty('--git-frame-base-height', heightValue);
         frameWrap.style.height = heightValue;
         frameWrap.style.minHeight = heightValue;
       }
-      if (detailFrame) {
-        detailFrame.style.height = heightValue;
-        detailFrame.style.minHeight = heightValue;
+      if (frameScaler) {
+        frameScaler.style.setProperty('--git-frame-base-height', heightValue);
       }
+      if (detailFrame) {
+        detailFrame.style.setProperty('--git-frame-base-height', heightValue);
+        detailFrame.style.height = '100%';
+        detailFrame.style.minHeight = '100%';
+      }
+      applyFrameScale(frameScaleValue);
+    }
+
+    function determineFrameScale() {
+      if (typeof window === 'undefined') {
+        return 1;
+      }
+      var width = window.innerWidth || (document && document.documentElement && document.documentElement.clientWidth) || 0;
+      if (!width) {
+        return 1;
+      }
+      if (width <= 420) {
+        return 0.8;
+      }
+      if (width <= 540) {
+        return 0.84;
+      }
+      if (width <= 640) {
+        return 0.86;
+      }
+      if (width <= 900) {
+        return 0.92;
+      }
+      if (width <= 1200) {
+        return 0.96;
+      }
+      return 1;
+    }
+
+    function applyFrameScale(scaleValue) {
+      if (!frameWrap || !frameScaler) {
+        return;
+      }
+      var normalized = typeof scaleValue === 'number' && !isNaN(scaleValue) ? scaleValue : 1;
+      if (normalized < 0.6) {
+        normalized = 0.6;
+      } else if (normalized > 1.05) {
+        normalized = 1.05;
+      }
+      frameWrap.style.setProperty('--git-frame-scale', normalized);
+      frameScaler.style.setProperty('--git-frame-scale', normalized);
+    }
+
+    function syncFrameScale(force) {
+      if (!frameWrap || !frameScaler) {
+        frameScaleValue = 1;
+        return;
+      }
+      var nextScale = determineFrameScale();
+      if (!force && Math.abs(nextScale - frameScaleValue) < 0.01) {
+        return;
+      }
+      frameScaleValue = nextScale;
+      applyFrameScale(frameScaleValue);
+    }
+
+    function queueScaleSync() {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      if (!window.requestAnimationFrame) {
+        syncFrameScale(false);
+        return;
+      }
+      if (resizeScaleRafId) {
+        window.cancelAnimationFrame(resizeScaleRafId);
+      }
+      resizeScaleRafId = window.requestAnimationFrame(function() {
+        resizeScaleRafId = null;
+        syncFrameScale(false);
+      });
     }
 
     function cleanupFrameObserver() {
@@ -583,6 +673,15 @@
         revealFrame();
         cleanupFrameObserver();
         applyFrameHeight(frameDefaultHeight);
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', function() {
+        if (!frameWrap || !frameScaler) {
+          return;
+        }
+        queueScaleSync();
       });
     }
 
