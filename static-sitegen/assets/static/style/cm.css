@@ -1088,6 +1088,7 @@ body[data-page-slug="git"] .footer-container {
 }
 
 .git-shell {
+  position: relative;
   width: 100%;
   max-width: var(--git-max-width);
   margin: 0 auto;
@@ -1109,6 +1110,15 @@ body[data-page-slug="git"] .footer-container {
   grid-template-columns: minmax(var(--git-sidebar-width), 26rem) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 2.5rem);
   align-items: start;
+}
+
+.git-shell.is-sidebar-collapsed .git-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.git-shell.is-sidebar-collapsed .git-sidebar {
+  display: none;
 }
 
 .git-sidebar,
@@ -1358,6 +1368,44 @@ body[data-page-slug="git"] .footer-container {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.git-content-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.git-sidebar-toggle {
+  background: rgba(12, 28, 12, 0.65);
+  border: 1px solid rgba(102, 255, 0, 0.45);
+  color: rgba(190, 255, 190, 0.9);
+  font-family: 'Syne Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.git-sidebar-toggle:hover,
+.git-sidebar-toggle:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(102, 255, 0, 0.22);
+  outline: none;
+}
+
+.git-sidebar-toggle:active {
+  transform: translateY(1px);
+}
+
+.git-shell.is-sidebar-collapsed .git-sidebar-toggle {
+  background: linear-gradient(135deg, rgba(102, 255, 0, 0.2), rgba(102, 255, 0, 0.36));
+  color: #061407;
+  border-color: rgba(102, 255, 0, 0.65);
 }
 
 .git-content-title {

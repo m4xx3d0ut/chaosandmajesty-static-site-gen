@@ -128,7 +128,7 @@
     
 
     <div class="git-grid">
-      <aside class="git-sidebar" aria-labelledby="git-sidebar-title">
+      <aside class="git-sidebar" id="git-sidebar" aria-labelledby="git-sidebar-title">
         <header class="git-sidebar-header">
           <h3 class="git-sidebar-title" id="git-sidebar-title">Core Git</h3>
           <p class="git-sidebar-subtitle">Select a repository from the Core Git catalog.</p>
@@ -413,21 +413,32 @@
               <span id="git-active-repo-label">chaosandmajesty-static-site-gen</span>
             </p>
           </div>
-          <button
-            type="button"
-            class="git-refresh"
-            id="git-refresh-default"
-            data-git-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
-            data-git-default-name="chaosandmajesty-static-site-gen"
-            data-git-default-fragment="git/chaosandmajesty-static-site-gen/index.html"
-            data-git-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
-            data-git-default-files="git/chaosandmajesty-static-site-gen/files.html"
-            data-git-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
-            data-git-default-readme="git/chaosandmajesty-static-site-gen/readme.html"
-            
-          >
-            Refresh default
-          </button>
+          <div class="git-content-actions">
+            <button
+              type="button"
+              class="git-sidebar-toggle"
+              id="git-sidebar-toggle"
+              aria-expanded="true"
+              aria-controls="git-sidebar"
+            >
+              Hide repos
+            </button>
+            <button
+              type="button"
+              class="git-refresh"
+              id="git-refresh-default"
+              data-git-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+              data-git-default-name="chaosandmajesty-static-site-gen"
+              data-git-default-fragment="git/chaosandmajesty-static-site-gen/index.html"
+              data-git-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
+              data-git-default-files="git/chaosandmajesty-static-site-gen/files.html"
+              data-git-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
+              data-git-default-readme="git/chaosandmajesty-static-site-gen/readme.html"
+              
+            >
+              Refresh default
+            </button>
+          </div>
         </header>
 
         <p class="git-content-description">We embed the upstream HTML so you can skim commits, branches, and files in place.</p>
@@ -438,10 +449,10 @@
               Loading chaosandmajesty-static-site-gen…
             </div>
             <nav class="git-panel-tabs" id="git-panel-tabs" aria-label="Repository views">
-              <button type="button" class="git-tab-button is-active" data-git-tab="log">Log</button>
-              <button type="button" class="git-tab-button" data-git-tab="files">Files</button>
-              <button type="button" class="git-tab-button" data-git-tab="refs">Refs</button>
-              <button type="button" class="git-tab-button" data-git-tab="readme">README</button>
+              <button type="button" class="git-tab-button" data-git-tab="log" aria-pressed="false">Log</button>
+              <button type="button" class="git-tab-button" data-git-tab="files" aria-pressed="false">Files</button>
+              <button type="button" class="git-tab-button" data-git-tab="readme" aria-pressed="false">README</button>
+              <button type="button" class="git-tab-button" data-git-tab="refs" aria-pressed="false">Refs</button>
             </nav>
             <div
               class="git-panel-container"
@@ -479,12 +490,12 @@
       return;
     }
 
-    var TAB_ORDER = ['log', 'files', 'readme', 'refs'];
+    var TAB_ORDER = ['readme', 'log', 'files', 'refs'];
     var TAB_LABELS = {
       log: 'Log',
       files: 'Files',
-      refs: 'Refs',
-      readme: 'README'
+      readme: 'README',
+      refs: 'Refs'
     };
 
     var repoButtons = Array.prototype.slice.call(document.querySelectorAll('.git-repo-button'));
@@ -525,12 +536,18 @@
       tabMap[tab] = button;
     });
 
+    var gitShell = document.querySelector('.git-shell');
+    var sidebar = document.getElementById('git-sidebar');
+    var sidebarToggle = document.getElementById('git-sidebar-toggle');
+
     var activeEntry = null;
     var activeButton = null;
     var activeTab = 'log';
     var pendingController = null;
     var pendingFileController = null;
     var activeFileButton = null;
+    var sidebarCollapsed = false;
+    var sidebarAutoCollapsed = false;
 
     function escapeHtml(value) {
       if (value == null) {
@@ -756,7 +773,7 @@
           return;
         }
         var fragment = getFragmentForTab(entry, tab);
-        var isAvailable = !!fragment;
+        var isAvailable = tab === 'log' ? true : !!fragment;
         button.disabled = !isAvailable;
         button.classList.toggle('is-disabled', !isAvailable);
       });
@@ -766,7 +783,9 @@
       Object.keys(tabMap).forEach(function(key) {
         var button = tabMap[key];
         if (!button) return;
-        button.classList.toggle('is-active', key === tab);
+        var isActive = key === tab;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
     }
 
@@ -785,8 +804,31 @@
       abortPendingFileRequest();
     }
 
+    function setSidebarCollapsed(collapsed, options) {
+      options = options || {};
+      sidebarCollapsed = collapsed;
+      if (options.reason === 'auto') {
+        sidebarAutoCollapsed = collapsed;
+      } else if (options.reason === 'manual') {
+        sidebarAutoCollapsed = false;
+      } else if (!collapsed) {
+        sidebarAutoCollapsed = false;
+      }
+      if (gitShell) {
+        gitShell.classList.toggle('is-sidebar-collapsed', collapsed);
+      }
+      if (sidebar) {
+        sidebar.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+      }
+      if (sidebarToggle) {
+        sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        sidebarToggle.textContent = collapsed ? 'Show repos' : 'Hide repos';
+      }
+    }
+
     function enhancePanel(tab) {
       if (tab === 'files') {
+        activeFileButton = null;
         initFilesPanel();
       } else {
         activeFileButton = null;
@@ -816,7 +858,7 @@
       if (controller) {
         pendingFileController = controller;
       }
-      preview.innerHTML = '<div class="git-panel-message git-panel-message--loading">Loading file…</div>';
+      preview.innerHTML = renderPanelMessage('loading', 'Loading file…');
       var requestUrl = resolveRelative(blobPath);
       fetch(requestUrl, controller ? { signal: controller.signal } : {})
         .then(function(response) {
@@ -843,7 +885,7 @@
             pendingFileController = null;
           }
         });
-      setActiveFileButton(sourceButton);
+      setActiveFileButton(sourceButton || null);
     }
 
     function initFilesPanel() {
@@ -874,17 +916,25 @@
       if (!entry) {
         return;
       }
+      options = options || {};
+      if (tab === 'files' && !sidebarCollapsed) {
+        setSidebarCollapsed(true, { reason: 'auto' });
+      } else if (tab !== 'files' && sidebarAutoCollapsed && sidebarCollapsed) {
+        setSidebarCollapsed(false, { reason: 'auto' });
+      }
+
       var fragment = getFragmentForTab(entry, tab);
       if (!fragment) {
         hideIndicator();
-        setPanelUnavailable(entry, tab);
         setActiveTab(tab);
+        setPanelUnavailable(entry, tab);
         activeTab = tab;
         return;
       }
+
       abortPendingRequest();
-      activeTab = tab;
       setActiveTab(tab);
+      activeTab = tab;
       var label = entry.label || entry.detailUrl || 'Repository';
       showIndicator('Loading ' + label + ' · ' + (TAB_LABELS[tab] || 'view') + '…');
       var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -892,7 +942,7 @@
         pendingController = controller;
       }
       var requestUrl = resolveRelative(fragment);
-      if (options && options.forceReload) {
+      if (options.forceReload) {
         var separator = requestUrl.indexOf('?') === -1 ? '?' : '&';
         requestUrl = requestUrl + separator + 'ts=' + Date.now();
       }
@@ -924,13 +974,21 @@
         });
     }
 
-    function resolveInitialTab(entry, desired) {
-      var preferred = desired && TAB_ORDER.indexOf(desired) !== -1 ? desired : 'log';
-      if (getFragmentForTab(entry, preferred)) {
-        return preferred;
+    function resolveTab(entry, desired) {
+      var order = [];
+      if (desired) {
+        order.push(desired);
       }
-      for (var i = 0; i < TAB_ORDER.length; i += 1) {
-        var candidate = TAB_ORDER[i];
+      TAB_ORDER.forEach(function(tab) {
+        if (order.indexOf(tab) === -1) {
+          order.push(tab);
+        }
+      });
+      for (var i = 0; i < order.length; i += 1) {
+        var candidate = order[i];
+        if (candidate === 'log') {
+          return 'log';
+        }
         if (getFragmentForTab(entry, candidate)) {
           return candidate;
         }
@@ -942,18 +1000,34 @@
       if (!entry) {
         return;
       }
-      var forceReload = options && options.forceReload;
-      var requestedTab = options && options.tab;
-      if (activeEntry === entry && !forceReload && (!requestedTab || requestedTab === activeTab)) {
+      options = options || {};
+      var forceReload = !!options.forceReload;
+      var requestedTab = typeof options.tab === 'string' ? options.tab : null;
+      var previousEntry = activeEntry;
+      var isSameEntry = previousEntry === entry;
+
+      if (isSameEntry && !forceReload && !requestedTab) {
         return;
       }
+
       activeEntry = entry;
       setActiveButton(entry.button);
       if (activeLabel) {
         activeLabel.textContent = entry.label || entry.detailUrl || 'selected repository';
       }
+
       updateTabAvailability(entry);
-      var nextTab = resolveInitialTab(entry, requestedTab || activeTab);
+
+      var targetTab;
+      if (requestedTab) {
+        targetTab = requestedTab;
+      } else if (!isSameEntry) {
+        targetTab = 'readme';
+      } else {
+        targetTab = activeTab;
+      }
+
+      var nextTab = resolveTab(entry, targetTab);
       loadPanel(entry, nextTab, { forceReload: forceReload });
     }
 
@@ -963,7 +1037,7 @@
         var entry = findEntry(function(candidate) {
           return candidate.button === button;
         });
-        activateEntry(entry, { tab: 'log' });
+        activateEntry(entry, {});
       });
     });
 
@@ -1010,7 +1084,17 @@
       });
     }
 
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function(event) {
+        event.preventDefault();
+        var nextCollapsed = !sidebarCollapsed;
+        setSidebarCollapsed(nextCollapsed, { reason: 'manual' });
+      });
+    }
+
+    setSidebarCollapsed(false);
     filterList('');
+
     var initialFragment = panelContainer ? panelContainer.getAttribute('data-default-fragment') : '';
     var initialUrl = panelContainer ? panelContainer.getAttribute('data-default-url') : '';
     var initialName = panelContainer ? panelContainer.getAttribute('data-default-name') : '';
@@ -1022,7 +1106,7 @@
       null;
 
     if (initialEntry) {
-      activateEntry(initialEntry, { tab: 'log' });
+      activateEntry(initialEntry, {});
     } else {
       hideIndicator();
     }
