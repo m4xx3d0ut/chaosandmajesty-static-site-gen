@@ -1,0 +1,110 @@
+
+
+
+
+<article class="blog-article-body" data-slug="aws-media-cost-math">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">AWS Media Cost Math</h1>
+    <p class="blog-article-meta">
+      
+        <span>Feb 6, 2025</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>5 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>Back of the Envelope AWS Media Cost Math</h2>
+<p>30 fps input
+3 live hours</p>
+<p>MC Flows 2 - $0.16 each/hr = $0.96 +
+    Input Bitrate = 10 Mbps
+    <code>(10 Mbps / 8 = 1.25 MBps / 1024 = 0.00122 GBbps * 3600 = 4.4 GB per hour * 3) * 2</code> = 26.4 GB
+    Total data transfer cost from MediaConnect to another AWS service in US East (N. Virginia) Region
+    26.4 * $0.01 = $0.26 +</p>
+<p>ML Channels 1 = 14.4 Mb/s
+    Input HD $0.36 * 3 = $1.08 +
+    Output 	&lt;=30fps $1.07 a/hr * 3 = $3.21 +</p>
+<p>MP Channel 1
+    ingest $0.03 per GB
+        14.4 / 1024 * 60 * 60 = (50.625 / 8) * 0.03 = $0.18984375 * 3 = $0.56953125
+    live origin $0.05 per GB
+    99% cache hit out 410.0625</p>
+<p>viewers 13824
+hours viewed 0.3</p>
+<p>13824 * 0.03 = 414.72 hrs
+(3 / 1024) * 60 * 60 / 8 = 1.318359375
+414.72 * 1.318359375 = 546.75 * 0.01 = 5.4675 GB after cache * $0.05 = $0.273375</p>
+<p>2500 viewers
+1.35 hours watched</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="blog/0-m4xx3d0ut.html"
+        data-default-href="blog/0-m4xx3d0ut.html"
+        data-default-fragment="blog/fragments/0-m4xx3d0ut.html"
+        data-fragment-href="blog/fragments/0-m4xx3d0ut.html"
+        data-target-slug="0-m4xx3d0ut"
+        data-post-slug="0-m4xx3d0ut"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">A Few Words</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/nova-vm-nvidia-vgpu.html"
+        data-default-href="blog/nova-vm-nvidia-vgpu.html"
+        data-default-fragment="blog/fragments/nova-vm-nvidia-vgpu.html"
+        data-fragment-href="blog/fragments/nova-vm-nvidia-vgpu.html"
+        data-target-slug="nova-vm-nvidia-vgpu"
+        data-post-slug="nova-vm-nvidia-vgpu"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Nova VM Nvidia vGPU</span>
+      </a>
+    </nav>
+  
+</article>
+

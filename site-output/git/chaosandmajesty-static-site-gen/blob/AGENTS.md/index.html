@@ -1,13 +1,16 @@
 
-    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/AGENTS.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/AGENTS.md/raw.txt" data-git-line-count="22">
       <header class="git-file-header">
-        <h4 class="git-file-title">AGENTS.md</h4>
-        <div class="git-file-meta">
-          <span>2.7 KB</span>
-          <span>AGENTS.md</span>
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">AGENTS.md</h4>
+          <div class="git-file-meta">2.7 KB · 22 lines · AGENTS.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/AGENTS.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
         </div>
       </header>
-      <div class="git-file-body">
+      <div class="git-file-body" data-git-file-body>
         <h1>Repository Guidelines</h1>
 <h2>Project Structure &amp; Module Organization</h2>
 <p>The static generator lives in <code>static-sitegen/</code> (ES modules in <code>lib/</code>, CLI at <code>bin/sitegen.js</code>, EJS templates under <code>templates/</code>). YAML configs such as <code>smoke-test.yaml</code> describe the site and render into <code>site-output/</code>. Designers&#39; assets belong in <code>cm-source/</code>; run <code>prepare-cm-files.sh</code> to hydrate <code>static-sitegen/assets/</code> with JS, CSS, images, and partials. Helper scripts (<code>build-site.sh</code>, <code>prepare-cm-files.sh</code>) pair with Docker artifacts (<code>Dockerfile</code>, <code>docker-compose.yml</code>, <code>Makefile</code>) for local or container builds.</p>

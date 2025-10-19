@@ -1,0 +1,108 @@
+name: Build & Push (dev / site-output)
+
+on:
+  push:
+    branches: [ dev ]
+    # Only run if site-output/ changes
+    paths: [ 'site-output/**' ]
+  # Enable manual triggering
+  workflow_dispatch: {}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      # ⬅️ push through the host-exposed NodePort so DinD can reach it
+      REGISTRY: reg.microk8s.core.home.arpa:32000
+      IMAGE_NAME: cm
+      TAG_SHA: dev-${{ github.sha }}
+      TAG_MAJOR: latest
+
+    steps:
+      - name: Install SSH client (if missing)
+        run: |
+          set -e
+          if ! command -v ssh-keyscan >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
+
+      - name: DNS & connectivity checks (in-cluster)
+        env:
+          GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
+          GITEA_SSH_PORT: "2222"
+          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== resolv.conf ==="; cat /etc/resolv.conf || true; echo
+          echo "=== getent hosts (gitea ssh svc) ==="
+          getent hosts "$GITEA_SVC_HOST" || (echo "FATAL: cannot resolve $GITEA_SVC_HOST" && exit 1)
+          echo
+          echo "=== TCP check gitea ssh ==="
+          timeout 5 bash -c ">/dev/tcp/$GITEA_SVC_HOST/$GITEA_SSH_PORT" || (echo "FATAL: cannot reach $GITEA_SVC_HOST:$GITEA_SSH_PORT" && exit 1)
+          echo "OK"; echo
+          echo "=== getent hosts (registry) ==="
+          REGISTRY_HOST="${REGISTRY_HOSTPORT%%:*}"
+          getent hosts "$REGISTRY_HOST" || (echo "FATAL: cannot resolve $REGISTRY_HOST" && exit 1)
+          echo
+          echo "=== TCP check registry ==="
+          REGISTRY_PORT="${REGISTRY_HOSTPORT##*:}"
+          timeout 5 bash -c ">/dev/tcp/$REGISTRY_HOST/$REGISTRY_PORT" || (echo "FATAL: cannot reach $REGISTRY_HOSTPORT" && exit 1)
+          echo "OK"
+
+      - name: Setup SSH material
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo "Host gitea-ssh.git-local.svc.cluster.local"
+            echo "  User git"
+            echo "  IdentityFile ~/.ssh/id_ci"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } >> ~/.ssh/config
+
+      - name: Clone repo (SSH via in-cluster service)
+        run: |
+          REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          git clone --depth 1 --branch dev "$REPO_SSH" .
+
+      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.
+      - name: Registry login (optional)
+        if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          config-inline: |
+            [registry."reg.microk8s.core.home.arpa:32000"]
+              http = true
+              insecure = true
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.dev
+          no-cache: true
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
+
+      - name: Output image refs
+        run: |
+          echo "Pushed:"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}"

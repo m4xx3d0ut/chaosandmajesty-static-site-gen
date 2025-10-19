@@ -317,6 +317,7 @@
     var activeFileButton = null;
     var sidebarCollapsed = false;
     var sidebarAutoCollapsed = false;
+    var pendingPermalinkState = null;
 
     function escapeHtml(value) {
       if (value == null) {
@@ -331,6 +332,13 @@
         .replace(/'/g, '&#039;');
     }
 
+    function buildEntryKey(entry) {
+      if (!entry) {
+        return '';
+      }
+      return entry.id || entry.detailUrl || entry.label || '';
+    }
+
     function resolveRelative(pathValue) {
       if (!pathValue) return '';
       if (/^(?:[a-z]+:)?\/\//i.test(pathValue)) {
@@ -343,6 +351,110 @@
         return pathValue;
       }
       return './' + pathValue;
+    }
+
+    function fallbackCopyText(text) {
+      return new Promise(function(resolve) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('aria-hidden', 'true');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        var succeeded = false;
+        try {
+          succeeded = document.execCommand('copy');
+        } catch (copyError) {
+          console.warn('Copy failed', copyError);
+        }
+        document.body.removeChild(textarea);
+        resolve(!!succeeded);
+      });
+    }
+
+    function copyTextToClipboard(text) {
+      if (!text) {
+        return Promise.resolve(false);
+      }
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        return navigator.clipboard.writeText(text).then(function() {
+          return true;
+        }).catch(function() {
+          return fallbackCopyText(text);
+        });
+      }
+      return fallbackCopyText(text);
+    }
+
+    function flashCopyFeedback(target, message, duration) {
+      if (!target) {
+        return;
+      }
+      if (typeof document === 'undefined') {
+        return;
+      }
+      var bubble = target.__gitCopyBubble;
+      if (!bubble || !document.body.contains(bubble)) {
+        bubble = document.createElement('span');
+        bubble.className = 'git-copy-feedback';
+        bubble.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(bubble);
+        target.__gitCopyBubble = bubble;
+      }
+      var rect = target.getBoundingClientRect();
+      bubble.textContent = message || 'Copied!';
+      bubble.classList.remove('is-visible');
+      if (bubble.__gitHideTimer) {
+        window.clearTimeout(bubble.__gitHideTimer);
+      }
+      var schedule =
+        typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+          ? window.requestAnimationFrame.bind(window)
+          : function(callback) {
+              return setTimeout(callback, 16);
+            };
+      var top = Math.max(rect.top, 0);
+      var left = rect.left + rect.width / 2;
+      bubble.style.top = top + 'px';
+      bubble.style.left = left + 'px';
+      schedule(function() {
+        bubble.classList.add('is-visible');
+      });
+      var timeout = Number.isFinite(duration) ? duration : 1600;
+      bubble.__gitHideTimer = window.setTimeout(function() {
+        bubble.classList.remove('is-visible');
+      }, timeout);
+    }
+
+    function buildBlobPermalink(fragmentPath, lineNumber) {
+      if (!fragmentPath || !lineNumber) {
+        return '';
+      }
+      var baseHref = window.location.href.split('#')[0];
+      var repoKey = panelSlot
+        ? (panelSlot.getAttribute('data-git-active-entry-key') || panelSlot.getAttribute('data-git-active-entry') || '')
+        : '';
+      if (!repoKey) {
+        var slugMatch = fragmentPath.match(/^git\/([^/]+)/);
+        if (slugMatch && slugMatch[1]) {
+          repoKey = slugMatch[1];
+        }
+      }
+      var activeTab = panelSlot ? (panelSlot.getAttribute('data-git-active-tab') || '') : '';
+      if (!activeTab) {
+        activeTab = 'files';
+      }
+      var params = new URLSearchParams();
+      if (repoKey) {
+        params.set('repo', repoKey);
+      }
+      if (activeTab) {
+        params.set('tab', activeTab);
+      }
+      params.set('blob', fragmentPath);
+      params.set('line', lineNumber);
+      return baseHref + '#' + params.toString();
     }
 
     function showIndicator(message) {
@@ -362,6 +474,21 @@
 
     function renderPanelMessage(kind, htmlMessage) {
       return '<div class="git-panel-message git-panel-message--' + kind + '">' + htmlMessage + '</div>';
+    }
+
+    function setPanelMetadata(entry, tab, fragment) {
+      if (!panelSlot) {
+        return;
+      }
+      var entryKey = buildEntryKey(entry);
+      var entryLabel = entry && entry.label ? entry.label : '';
+      var entryUrl = entry && entry.detailUrl ? entry.detailUrl : '';
+      panelSlot.setAttribute('data-git-active-entry', entryKey);
+      panelSlot.setAttribute('data-git-active-entry-key', entryKey);
+      panelSlot.setAttribute('data-git-active-entry-label', entryLabel);
+      panelSlot.setAttribute('data-git-active-entry-url', entryUrl);
+      panelSlot.setAttribute('data-git-active-tab', tab || '');
+      panelSlot.setAttribute('data-git-active-fragment', fragment || '');
     }
 
     function setPanelContent(html, tab) {
@@ -433,37 +560,16 @@
           if (!commandText) {
             return;
           }
-          var fallback = function() {
-            var textarea = document.createElement('textarea');
-            textarea.value = commandText;
-            textarea.setAttribute('aria-hidden', 'true');
-            textarea.style.position = 'absolute';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-              document.execCommand('copy');
-              button.classList.add('is-copied');
-            } catch (copyError) {
-              console.warn('Copy failed', copyError);
+          copyTextToClipboard(commandText).then(function(success) {
+            if (!success) {
+              return;
             }
-            document.body.removeChild(textarea);
+            button.classList.add('is-copied');
+            flashCopyFeedback(button, 'Copied!');
             window.setTimeout(function() {
               button.classList.remove('is-copied');
             }, 1600);
-          };
-          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-            navigator.clipboard.writeText(commandText).then(function() {
-              button.classList.add('is-copied');
-              window.setTimeout(function() {
-                button.classList.remove('is-copied');
-              }, 1600);
-            }).catch(function() {
-              fallback();
-            });
-          } else {
-            fallback();
-          }
+          });
         });
       });
     }
@@ -614,6 +720,19 @@
       }
     }
 
+    function expandTreeAncestors(element) {
+      if (!element) {
+        return;
+      }
+      var current = element.parentElement;
+      while (current) {
+        if (current.tagName && current.tagName.toLowerCase() === 'details') {
+          current.open = true;
+        }
+        current = current.parentElement;
+      }
+    }
+
     function loadBlobPreview(blobPath, sourceButton) {
       if (!panelSlot) {
         return;
@@ -621,6 +740,9 @@
       var preview = panelSlot.querySelector('[data-git-file-preview]');
       if (!preview) {
         return;
+      }
+      if (panelSlot) {
+        panelSlot.setAttribute('data-git-active-blob', blobPath || '');
       }
       abortPendingFileRequest();
       var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -642,6 +764,7 @@
           }
           preview.innerHTML = html;
           enableCloneCopy(preview);
+          enhanceBlobPreview(preview);
         })
         .catch(function(error) {
           if (controller && controller.signal.aborted) {
@@ -661,6 +784,7 @@
       if (!panelSlot) {
         return;
       }
+      var activeEntryKey = panelSlot.getAttribute('data-git-active-entry-key') || '';
       var treeButtons = Array.prototype.slice.call(panelSlot.querySelectorAll('.git-tree-entry'));
       if (treeButtons.length === 0) {
         return;
@@ -675,10 +799,273 @@
           loadBlobPreview(blobPath, button);
         });
       });
+      if (
+        pendingPermalinkState &&
+        pendingPermalinkState.repoKey &&
+        pendingPermalinkState.repoKey === activeEntryKey &&
+        pendingPermalinkState.blob
+      ) {
+        var targetBlobPath = pendingPermalinkState.blob;
+        var targetButton = null;
+        treeButtons.forEach(function(button) {
+          if (targetButton) {
+            return;
+          }
+          if ((button.getAttribute('data-git-blob') || '') === targetBlobPath) {
+            targetButton = button;
+          }
+        });
+        if (targetButton) {
+          expandTreeAncestors(targetButton);
+          loadBlobPreview(targetBlobPath, targetButton);
+        }
+      }
       var preview = panelSlot.querySelector('[data-git-file-preview]');
       if (preview) {
         preview.setAttribute('tabindex', '-1');
       }
+    }
+
+    function enhanceBlobPreview(root) {
+      if (!root) {
+        return;
+      }
+      var panel = root.querySelector('[data-git-panel-section="blob"]');
+      if (!panel) {
+        return;
+      }
+
+      var rawPath = panel.getAttribute('data-git-raw-path') || '';
+      var fragmentPath = panel.getAttribute('data-git-fragment-path') || '';
+
+      var copyButton = panel.querySelector('[data-git-file-copy]');
+      if (copyButton && copyButton.getAttribute('data-copy-bound') !== 'true') {
+        copyButton.setAttribute('data-copy-bound', 'true');
+        if (!rawPath) {
+          copyButton.disabled = true;
+        } else {
+          copyButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            if (copyButton.getAttribute('data-copy-loading') === 'true') {
+              return;
+            }
+            var cached = copyButton.__gitRawCache;
+            var handleCopy = function(text) {
+              if (!text) {
+                return;
+              }
+              copyTextToClipboard(text).then(function(success) {
+                if (!success) {
+                  return;
+                }
+                copyButton.classList.add('is-copied');
+                flashCopyFeedback(copyButton, 'Copied!');
+                window.setTimeout(function() {
+                  copyButton.classList.remove('is-copied');
+                }, 1600);
+              });
+            };
+            if (typeof cached === 'string') {
+              handleCopy(cached);
+              return;
+            }
+            copyButton.setAttribute('data-copy-loading', 'true');
+            copyButton.classList.add('is-loading');
+            var requestUrl = resolveRelative(rawPath);
+            fetch(requestUrl)
+              .then(function(response) {
+                if (!response.ok) {
+                  throw new Error('Request failed with status ' + response.status);
+                }
+                return response.text();
+              })
+              .then(function(text) {
+                copyButton.__gitRawCache = text;
+                handleCopy(text);
+              })
+              .catch(function(error) {
+                console.warn('Unable to copy file contents', error);
+              })
+              .finally(function() {
+                copyButton.classList.remove('is-loading');
+                copyButton.removeAttribute('data-copy-loading');
+              });
+          });
+        }
+      }
+
+      var highlightedLine = null;
+      var highlightedButton = null;
+
+      function setHighlightedLine(lineNumber, sourceButton) {
+        if (highlightedLine) {
+          highlightedLine.classList.remove('is-highlighted');
+        }
+        if (highlightedButton) {
+          highlightedButton.classList.remove('is-highlighted');
+        }
+        var targetLine = panel.querySelector('#L' + lineNumber);
+        if (targetLine) {
+          targetLine.classList.add('is-highlighted');
+          try {
+            targetLine.scrollIntoView({ block: 'nearest' });
+          } catch (scrollError) {
+            // noop
+          }
+          highlightedLine = targetLine;
+        } else {
+          highlightedLine = null;
+        }
+        if (sourceButton) {
+          sourceButton.classList.add('is-highlighted');
+          highlightedButton = sourceButton;
+        } else {
+          highlightedButton = null;
+        }
+      }
+
+      var lineButtons = Array.prototype.slice.call(panel.querySelectorAll('[data-git-line-anchor]'));
+      lineButtons.forEach(function(button) {
+        if (button.getAttribute('data-copy-bound') === 'true') {
+          return;
+        }
+        button.setAttribute('data-copy-bound', 'true');
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var lineNumber = button.getAttribute('data-git-line-anchor');
+          if (!lineNumber) {
+            return;
+          }
+          setHighlightedLine(lineNumber, button);
+          if (!fragmentPath) {
+            return;
+          }
+          var permalink = buildBlobPermalink(fragmentPath, lineNumber);
+          if (!permalink) {
+            return;
+          }
+          copyTextToClipboard(permalink).then(function(success) {
+            if (!success) {
+              return;
+            }
+            button.classList.add('is-copied');
+            flashCopyFeedback(button, 'Permalink copied!');
+            window.setTimeout(function() {
+              button.classList.remove('is-copied');
+            }, 1600);
+          });
+        });
+      });
+
+      if (pendingPermalinkState) {
+        var activeEntryKey = panelSlot ? panelSlot.getAttribute('data-git-active-entry-key') : '';
+        var targetRepoKey = pendingPermalinkState.repoKey || '';
+        var targetBlobPath = pendingPermalinkState.blob || '';
+        var targetLine = pendingPermalinkState.line || '';
+        var panelBlobPath = panel.getAttribute('data-git-fragment-path') || '';
+        if (
+          activeEntryKey &&
+          targetRepoKey &&
+          activeEntryKey === targetRepoKey &&
+          panelBlobPath &&
+          targetBlobPath &&
+          panelBlobPath === targetBlobPath
+        ) {
+          if (targetLine) {
+            var targetButton = panel.querySelector('[data-git-line-anchor="' + targetLine + '"]');
+            setHighlightedLine(targetLine, targetButton);
+          }
+          pendingPermalinkState = null;
+        }
+      }
+    }
+
+    function parseLocationHash() {
+      if (typeof window === 'undefined') {
+        return null;
+      }
+      var hash = window.location.hash || '';
+      if (!hash || hash.length <= 1) {
+        return null;
+      }
+      var params = new URLSearchParams(hash.slice(1));
+      var state = {};
+      var hasValue = false;
+      ['repo', 'tab', 'blob', 'line'].forEach(function(key) {
+        var value = params.get(key);
+        if (value != null && value !== '') {
+          state[key] = value;
+          hasValue = true;
+        }
+      });
+      return hasValue ? state : null;
+    }
+
+    function restoreLocationState() {
+      var state = parseLocationHash();
+      if (!state) {
+        pendingPermalinkState = null;
+        return false;
+      }
+      var repoKey = state.repo || '';
+      var blobPath = state.blob || '';
+      var tab = state.tab || (blobPath ? 'files' : '');
+      var lineRaw = state.line || '';
+      var line = lineRaw.replace(/[^\d]/g, '');
+
+      var targetEntry = null;
+      if (repoKey) {
+        targetEntry = findEntry(function(entry) {
+          return buildEntryKey(entry) === repoKey;
+        });
+      }
+      if (!targetEntry && blobPath) {
+        var slugMatch = blobPath.match(/^git\/([^/]+)/);
+        if (slugMatch && slugMatch[1]) {
+          var slugId = slugMatch[1];
+          targetEntry = findEntry(function(entry) {
+            return (entry.id && entry.id === slugId) || buildEntryKey(entry) === slugId;
+          });
+        }
+      }
+      if (!targetEntry && blobPath) {
+        targetEntry = findEntryByFragment(blobPath);
+      }
+      if (!targetEntry) {
+        pendingPermalinkState = null;
+        return false;
+      }
+
+      var resolvedTab = tab || 'readme';
+      if (blobPath) {
+        resolvedTab = 'files';
+      }
+
+      if (
+        activeEntry === targetEntry &&
+        blobPath &&
+        panelSlot &&
+        (panelSlot.getAttribute('data-git-active-blob') || '') === blobPath
+      ) {
+        pendingPermalinkState = {
+          repoKey: buildEntryKey(targetEntry),
+          blob: blobPath,
+          line: line,
+          tab: resolvedTab
+        };
+        enhanceBlobPreview(panelSlot);
+        return true;
+      }
+
+      pendingPermalinkState = {
+        repoKey: buildEntryKey(targetEntry),
+        blob: blobPath,
+        line: line,
+        tab: resolvedTab
+      };
+
+      activateEntry(targetEntry, { tab: resolvedTab, forceReload: true });
+      return true;
     }
 
     function loadPanel(entry, tab, options) {
@@ -693,6 +1080,7 @@
       }
 
       var fragment = getFragmentForTab(entry, tab);
+      setPanelMetadata(entry, tab, fragment);
       if (!fragment) {
         hideIndicator();
         setActiveTab(tab);
@@ -874,10 +1262,15 @@
       repoItems[0] ||
       null;
 
-    if (initialEntry) {
-      activateEntry(initialEntry, {});
-    } else {
-      hideIndicator();
+    var locationStateApplied = restoreLocationState();
+    if (!locationStateApplied) {
+      if (initialEntry) {
+        activateEntry(initialEntry, {});
+      } else {
+        hideIndicator();
+      }
     }
+
+    window.addEventListener('hashchange', restoreLocationState);
   })();
 </script>

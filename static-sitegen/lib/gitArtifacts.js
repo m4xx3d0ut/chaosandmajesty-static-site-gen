@@ -717,6 +717,46 @@ function buildReadmeFragmentHtml(payload) {
   `;
 }
 
+function splitContentLines(content) {
+  const normalized = (content || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const hasTrailingNewline = normalized.endsWith('\n');
+  const lines = normalized.split('\n');
+  if (hasTrailingNewline) {
+    lines.pop();
+  }
+  if (lines.length === 0) {
+    lines.push('');
+  }
+  return { lines, normalized };
+}
+
+function renderCodeListingHtml(content) {
+  const { lines } = splitContentLines(content);
+  const fragments = lines.map((line, index) => {
+    const lineNumber = index + 1;
+    const safeLine = line.length > 0 ? escapeHtml(line) : '&#8203;';
+    return `
+      <li class="git-code-line" id="L${lineNumber}" data-git-line="${lineNumber}">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="${lineNumber}"
+          aria-label="Copy permalink for line ${lineNumber}"
+          title="Copy permalink for line ${lineNumber}"
+        >${lineNumber}</button>
+        <span class="git-code-text">${safeLine}</span>
+      </li>
+    `;
+  });
+  return `
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        ${fragments.join('\n')}
+      </ol>
+    </div>
+  `;
+}
+
 async function resolveTemplatePath(templatesDir, filename) {
   if (!templatesDir) {
     return null;
@@ -733,8 +773,9 @@ async function resolveTemplatePath(templatesDir, filename) {
 function buildBlobFragmentHtml(payload) {
   if (!payload || payload.skipped) {
     const reason = payload && payload.reason ? escapeHtml(payload.reason) : 'Preview unavailable.';
+    const fragmentAttr = payload && payload.fragmentPath ? ` data-git-fragment-path="${escapeHtml(payload.fragmentPath)}"` : '';
     return `
-      <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <article class="git-file-panel" data-git-panel-section="blob"${fragmentAttr}>
         <header class="git-file-header">
           <h4 class="git-file-title">${escapeHtml(payload && payload.fileName ? payload.fileName : 'File preview')}</h4>
         </header>
@@ -742,16 +783,44 @@ function buildBlobFragmentHtml(payload) {
       </article>
     `;
   }
+
+  const fragmentAttr = payload.fragmentPath ? ` data-git-fragment-path="${escapeHtml(payload.fragmentPath)}"` : '';
+  const rawAttr = payload.rawPath ? ` data-git-raw-path="${escapeHtml(payload.rawPath)}"` : '';
+  const lineCountAttr = Number.isFinite(payload.lineCount) ? ` data-git-line-count="${payload.lineCount}"` : '';
+
+  const metaParts = [];
+  if (payload.sizeLabel) {
+    metaParts.push(escapeHtml(payload.sizeLabel));
+  }
+  if (payload.lineCountLabel) {
+    metaParts.push(escapeHtml(payload.lineCountLabel));
+  }
+  if (payload.path) {
+    metaParts.push(escapeHtml(payload.path));
+  }
+  const metaHtml = metaParts.length > 0 ? `<div class="git-file-meta">${metaParts.join(' · ')}</div>` : '';
+
+  const rawHref = payload.rawHref ? escapeHtml(payload.rawHref) : '';
+  const copyButton = payload.rawPath
+    ? `<button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>`
+    : `<button type="button" class="git-file-action git-file-action--copy" data-git-file-copy disabled>Copy</button>`;
+  const rawButton = payload.rawPath
+    ? `<a class="git-file-action git-file-action--raw" href="${rawHref}" target="_blank" rel="noopener">Raw</a>`
+    : '';
+
   return `
-    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+    <article class="git-file-panel" data-git-panel-section="blob"${fragmentAttr}${rawAttr}${lineCountAttr}>
       <header class="git-file-header">
-        <h4 class="git-file-title">${escapeHtml(payload.fileName || 'File preview')}</h4>
-        <div class="git-file-meta">
-          ${payload.sizeLabel ? `<span>${escapeHtml(payload.sizeLabel)}</span>` : ''}
-          ${payload.path ? `<span>${escapeHtml(payload.path)}</span>` : ''}
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">${escapeHtml(payload.fileName || 'File preview')}</h4>
+          ${metaHtml}
+        </div>
+        <div class="git-file-actions">
+          ${rawButton}
+          ${copyButton}
         </div>
       </header>
-      <div class="git-file-body">
+      <div class="git-file-body" data-git-file-body>
         ${payload.bodyHtml}
       </div>
     </article>
@@ -782,24 +851,51 @@ async function ensureBlobFragment({
   let bodyHtml = '';
   let skipped = false;
   let reason = null;
+  let rawPath = null;
+  let rawHref = null;
+  let lineCount = null;
+  let lineCountLabel = '';
+  let textContent = '';
+
   if (result.skipped) {
     skipped = true;
     reason = result.reason;
   } else {
+    textContent = typeof result.content === 'string' ? result.content : '';
+    const { lines } = splitContentLines(textContent);
+    lineCount = lines.length;
+    lineCountLabel = `${lineCount} line${lineCount === 1 ? '' : 's'}`;
+
     if (isLikelyMarkdown(fileNode.path)) {
-      bodyHtml = marked.parse(result.content || '');
+      bodyHtml = marked.parse(textContent);
     } else {
-      bodyHtml = `<pre><code>${escapeHtml(result.content || '')}</code></pre>`;
+      bodyHtml = renderCodeListingHtml(textContent);
     }
+
+    const rawRel = toPosixPath(path.join('git', slug, 'blob', ...segments, 'raw.txt'));
+    rawPath = rawRel;
+    rawHref = rawRel.startsWith('/') || rawRel.startsWith('.') ? rawRel : `./${rawRel}`;
+    await fs.writeFile(path.join(blobDir, 'raw.txt'), textContent, 'utf8');
   }
 
   const payload = skipped
-    ? { skipped: true, reason, fileName: fileNode.name, path: fileNode.path }
+    ? {
+        skipped: true,
+        reason,
+        fileName: fileNode.name,
+        path: fileNode.path,
+        fragmentPath: fragmentRel
+      }
     : {
         fileName: fileNode.name,
         path: fileNode.path,
         sizeLabel: formatFileSize(fileNode.size),
-        bodyHtml
+        bodyHtml,
+        fragmentPath: fragmentRel,
+        rawPath,
+        rawHref,
+        lineCount,
+        lineCountLabel
       };
 
   const blobTemplatePath = await resolveTemplatePath(templatesDir, 'blob.ejs');
@@ -824,6 +920,7 @@ async function ensureBlobFragment({
 
   return {
     fragmentPath: fragmentRel,
+    rawPath,
     skipped,
     reason,
     blobKey,

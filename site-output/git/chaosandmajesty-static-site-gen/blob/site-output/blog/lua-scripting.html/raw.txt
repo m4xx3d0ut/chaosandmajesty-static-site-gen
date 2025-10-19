@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core – Lua Scripting</title>
+
+  
+    <!-- head partial (auto-generated) -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../assets/static/style/cm.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+<script type="text/javascript" src="../assets/static/js/cm.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<link rel="manifest" href="../site.webmanifest"/>
+<link rel="icon" type="image/x-icon" href="../assets/static/img/favicon.ico">
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+</head>
+<body class="cm-body blog-page">
+  <header>
+    <div class="container header-container">
+      
+      
+      
+        <a href="../index.html" class="logo-link">
+          <img src="../assets/static/img/not-dead.webp" alt="Core Logo" class="logo">
+        </a>
+      
+      
+      
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="../index.html">Home</a></li>
+            
+              <li><a href="../blog.html">Blog</a></li>
+            
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <main class="blog-container blog-post-view">
+    <div class="blog-article-shell">
+      <a class="blog-back-link" href="../blog.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Back to Chaos &amp; Majesty Journal
+      </a>
+      
+
+<article class="blog-article-body" data-slug="lua-scripting">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Lua Scripting</h1>
+    <p class="blog-article-meta">
+      
+        <span>Dec 19, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>3 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>TLDR;</h2>
+<ul>
+<li>Install Lua from your package manager (or lua.org) and pick an editor with syntax support so you can iterate quickly on <code>.lua</code> files.</li>
+<li>Learn the core language building blocks—tables, functions, control flow, and modules—then practice by wiring Lua into common host environments.</li>
+<li>Extend Lua with C libraries or popular ecosystems like LOVE2D and LuaRocks to build real projects beyond the REPL.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<p>Lua is a lightweight, high-level programming language designed for embedding in other applications. It’s known for its simplicity, speed, and flexibility, making it ideal for scripting, game development, and configuration files. Below is a comprehensive introduction to Lua scripting for beginners:</p>
+<hr>
+<h3><strong>1. Key Features of Lua</strong></h3>
+<ul>
+<li><strong>Lightweight:</strong> Small memory footprint, ideal for embedded systems.</li>
+<li><strong>Extensible:</strong> Can be easily integrated with C and other languages.</li>
+<li><strong>Fast:</strong> Efficient execution with a simple virtual machine.</li>
+<li><strong>Simple Syntax:</strong> Easy to learn for beginners and concise for experienced developers.</li>
+<li><strong>Dynamic Typing:</strong> Variables can hold values of any type without explicit declarations.</li>
+</ul>
+<hr>
+<h3><strong>2. Setting Up Lua</strong></h3>
+<p>To start scripting in Lua:</p>
+<ol>
+<li><p><strong>Install Lua:</strong></p>
+<ul>
+<li>Download Lua from <a href="https://www.lua.org/download.html">lua.org</a>.</li>
+<li>Use a package manager (<code>apt</code>, <code>brew</code>, etc.) for easier installation:<ul>
+<li>Linux: <code>sudo apt-get install lua5.4</code></li>
+<li>macOS: <code>brew install lua</code></li>
+<li>Windows: Use Lua binaries from the official website.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Choose a Text Editor or IDE:</strong></p>
+<ul>
+<li>Use a simple editor like VS Code, Sublime Text, or Notepad++.</li>
+<li>Install Lua extensions for syntax highlighting and debugging.</li>
+</ul>
+</li>
+<li><p><strong>Run Lua Scripts:</strong></p>
+<ul>
+<li>Create a script, e.g., <code>script.lua</code>.</li>
+<li>Run it in the terminal with <code>lua script.lua</code>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3><strong>3. Lua Basics</strong></h3>
+<h4><strong>Variables and Data Types</strong></h4>
+<pre><code class="language-lua">local name = &quot;Lua&quot;
+local version = 5.4
+local isAwesome = true
+print(name, version, isAwesome)
+</code></pre>
+<h4><strong>Control Structures</strong></h4>
+<ul>
+<li><p><strong>If-Else:</strong></p>
+<pre><code class="language-lua">if score &gt; 90 then
+    print(&quot;A grade&quot;)
+elseif score &gt; 75 then
+    print(&quot;B grade&quot;)
+else
+    print(&quot;Keep trying!&quot;)
+end
+</code></pre>
+</li>
+<li><p><strong>Loops:</strong></p>
+<pre><code class="language-lua">for i = 1, 5 do
+    print(&quot;Loop iteration&quot;, i)
+end
+
+local i = 1
+while i &lt;= 5 do
+    print(&quot;While loop&quot;, i)
+    i = i + 1
+end
+</code></pre>
+</li>
+</ul>
+<h4><strong>Tables (Arrays &amp; Dictionaries)</strong></h4>
+<p>Tables are the core data structure in Lua:</p>
+<pre><code class="language-lua">local player = {
+    name = &quot;Alex&quot;,
+    score = 1200,
+    inventory = {&quot;sword&quot;, &quot;shield&quot;, &quot;potion&quot;}
+}
+</code></pre>
+<p>Accessing table data:</p>
+<pre><code class="language-lua">print(player.name)
+print(player.inventory[2])
+</code></pre>
+<hr>
+<h3><strong>4. Functions in Lua</strong></h3>
+<pre><code class="language-lua">local function greet(name)
+    return &quot;Hello, &quot; .. name .. &quot;!&quot;
+end
+
+print(greet(&quot;Lua Developer&quot;))
+</code></pre>
+<p>Functions can be passed as arguments or stored in tables:</p>
+<pre><code class="language-lua">local actions = {
+    attack = function() print(&quot;Player attacks!&quot;) end,
+    heal = function() print(&quot;Player heals!&quot;) end
+}
+
+actions.attack()
+actions.heal()
+</code></pre>
+<hr>
+<h3><strong>5. Modules and Packages</strong></h3>
+<p>Create a module (<code>math_utils.lua</code>):</p>
+<pre><code class="language-lua">local math_utils = {}
+
+function math_utils.square(x)
+    return x * x
+end
+
+return math_utils
+</code></pre>
+<p>Use the module in another file:</p>
+<pre><code class="language-lua">local math_utils = require(&quot;math_utils&quot;)
+print(math_utils.square(5))
+</code></pre>
+<p>LuaRocks can be used to manage external packages:</p>
+<pre><code class="language-bash">luarocks install luasocket
+</code></pre>
+<hr>
+<h3><strong>6. Error Handling</strong></h3>
+<p>Use <code>pcall</code> (protected call) to catch errors without crashing the program:</p>
+<pre><code class="language-lua">local status, err = pcall(function()
+    error(&quot;Something went wrong!&quot;)
+end)
+
+if not status then
+    print(&quot;Error:&quot;, err)
+end
+</code></pre>
+<hr>
+<h3><strong>7. Useful Lua Libraries</strong></h3>
+<ul>
+<li><strong>LOVE2D:</strong> Game development framework using Lua.</li>
+<li><strong>LuaSocket:</strong> Networking library for Lua.</li>
+<li><strong>Penlight:</strong> Utility libraries for extended Lua functionality.</li>
+<li><strong>MoonScript:</strong> A higher-level language that compiles to Lua.</li>
+</ul>
+<hr>
+<h3><strong>8. Embedding Lua in C</strong></h3>
+<p>Sample C program embedding Lua:</p>
+<pre><code class="language-c">#include &lt;lua.h&gt;
+#include &lt;lauxlib.h&gt;
+#include &lt;lualib.h&gt;
+
+int main() {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+
+    if (luaL_dofile(L, &quot;script.lua&quot;)) {
+        fprintf(stderr, &quot;%s\n&quot;, lua_tostring(L, -1));
+    }
+
+    lua_close(L);
+    return 0;
+}
+</code></pre>
+<p>Compile with:</p>
+<pre><code class="language-bash">gcc -o run_lua run_lua.c -llua -lm -ldl
+</code></pre>
+<hr>
+<h3><strong>9. Next Steps</strong></h3>
+<ul>
+<li>Build mini-projects like calculators, configuration loaders, or simple games.</li>
+<li>Explore metatables and coroutines for advanced Lua programming.</li>
+<li>...</li>
+<li>Profit!</li>
+</ul>
+<hr>
+<p><strong>Summary:</strong> Lua’s simplicity and power make it an excellent language for beginners and seasoned developers alike. Mastering the basics and exploring real-world use cases opens the door to rapid automation, scripting, and game development.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="../assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="../blog/microk8s-notes.html"
+        data-default-href="../blog/microk8s-notes.html"
+        data-default-fragment="../blog/fragments/microk8s-notes.html"
+        data-fragment-href="../blog/fragments/microk8s-notes.html"
+        data-target-slug="microk8s-notes"
+        data-post-slug="microk8s-notes"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">MicroK8s Deployment Notes</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="../blog/lv-vg-management.html"
+        data-default-href="../blog/lv-vg-management.html"
+        data-default-fragment="../blog/fragments/lv-vg-management.html"
+        data-fragment-href="../blog/fragments/lv-vg-management.html"
+        data-target-slug="lv-vg-management"
+        data-post-slug="lv-vg-management"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">LV &amp; VG Management</span>
+      </a>
+    </nav>
+  
+</article>
+
+    </div>
+  </main>
+
+  <footer>
+    
+      <!-- footer partial (auto-generated) -->
+<div id="foot">
+  <p>
+    <center>
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    </center>
+  </p>
+</div>
+
+    
+    <div class="container footer-container">
+      <p class="footer-copy">&copy; 2025 Core</p>
+    </div>
+  </footer>
+
+  <button type="button" class="blog-back-to-top" aria-label="Back to top">
+    ▲
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
