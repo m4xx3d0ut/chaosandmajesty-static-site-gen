@@ -132,76 +132,24 @@ jobs:
           echo "BUILD_SHA=${BUILD_SHA}" >> "$GITHUB_ENV"
           echo "TAG_SHA=dev-${BUILD_SHA}" >> "$GITHUB_ENV"
 
-      - name: Cache stagit fallback tarball
-        run: |
-          set -euo pipefail
-          mkdir -p scripts/stagit
-          if compgen -G 'scripts/stagit/stagit-*.tar.gz' > /dev/null 2>&1; then
-            echo "Stagit tarball already cached; skipping download"
-            exit 0
-          fi
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-          refs=(main master)
-          mirrors=(
-            "chaosandmajesty-mirrors/stagit"
-            "rski/stagit"
-          )
+      - name: Install dependencies
+        run: npm ci
 
-          for ref in "${refs[@]}"; do
-            for mirror in "${mirrors[@]}"; do
-              url="https://codeload.github.com/${mirror}/stagit/tar.gz/refs/heads/${ref}"
-              tmp="$(mktemp scripts/stagit/stagit-download-XXXXXX.tar.gz)"
-              if curl -fsSL "$url" -o "$tmp"; then
-                dest="scripts/stagit/stagit-${ref}.tar.gz"
-                mv "$tmp" "$dest"
-                ln -sfn "$(basename "$dest")" scripts/stagit/stagit-fallback.tar.gz
-                echo "Cached stagit ${ref} tarball from ${mirror}"
-                exit 0
-              fi
-              rm -f "$tmp"
-            done
-          done
-
-          echo "WARNING: Unable to cache stagit tarball from remote mirrors; using bundled archive if available" >&2
-
-      - name: Install stagit toolchain
-        run: |
-          scripts/install-stagit.sh
-
-      - name: Generate stagit HTML (dev check)
+      - name: Build static site (includes Git frontend)
         env:
-          STAGIT_REPOLIST: ${{ github.workspace }}/config/stagit/manifest.txt
-          STAGIT_REPOBASE: ${{ github.workspace }}/tmp/stagit/repos
-          STAGIT_HTMLBASE: ${{ github.workspace }}/tmp/stagit/html
-          STAGIT_ASSETSDIR: ${{ github.workspace }}/tmp/stagit/html/_assets
-          STAGIT_SHARED_ASSETS: style.css logo.png favicon.png
-          STAGIT_URL_REWRITE: >-
-            git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/,ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
-        run: |
-          set -euo pipefail
-          rm -rf tmp/stagit
-          mkdir -p tmp/stagit/html/_assets
-          if [ -d config/stagit/assets ]; then
-            cp -a config/stagit/assets/. tmp/stagit/html/_assets/
-          fi
-          scripts/update-stagit.sh
+          SYNC_GIT_MANIFEST_URL_REWRITE: ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
+        run: ./build-site.sh
 
-      - name: Copy stagit mirror into site output
-        run: |
-          set -euo pipefail
-          if [ ! -d tmp/stagit/html ]; then
-            echo "WARN: stagit HTML directory missing; skipping copy" >&2
-            exit 0
-          fi
-          mkdir -p site-output
-          rm -rf site-output/git
-          cp -a tmp/stagit/html site-output/git
-
-      - name: Upload stagit HTML artifact (dev)
+      - name: Upload git frontend artifact (dev)
         uses: actions/upload-artifact@v3
         with:
-          name: stagit-html-dev
-          path: tmp/stagit/html
+          name: git-frontend-dev
+          path: site-output/git
           retention-days: 3
 
       # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.

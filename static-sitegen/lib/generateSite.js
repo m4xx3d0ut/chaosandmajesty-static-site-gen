@@ -283,6 +283,38 @@ function dedupeGitRepos(repos) {
   return results;
 }
 
+function slugifyRepoKey(value) {
+  if (!value) {
+    return '';
+  }
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+async function findFirstExistingDirectory(paths) {
+  if (!Array.isArray(paths) || paths.length === 0) {
+    return null;
+  }
+  for (const candidate of paths) {
+    if (!candidate) {
+      continue;
+    }
+    try {
+      const stats = await fs.stat(candidate);
+      if (stats.isDirectory()) {
+        return candidate;
+      }
+    } catch {
+      // Ignore missing paths
+    }
+  }
+  return null;
+}
+
 function parseGitManifestContent(content, detailSuffix, manifestSource, verbose = false) {
   if (!content || typeof content !== 'string') {
     return [];
@@ -417,7 +449,41 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
 
   let combinedRepos = dedupeGitRepos([...manifestRepos, ...manualRepos]);
 
-  combinedRepos = combinedRepos.map(repo => {
+  const mirrorDirInputs = [
+    gitConfig.manifestMirrorDir,
+    siteGitConfig.manifestMirrorDir,
+    process.env.SITEGEN_GIT_MANIFEST_DIR,
+    process.env.SITEGEN_GIT_MIRRORS_DIR,
+    process.env.GIT_MANIFEST_MIRRORS_DIR,
+    process.env.GIT_MANIFEST_CACHE_DIR
+  ];
+  const mirrorDirs = [];
+  const seenMirrorDirs = new Set();
+  for (const input of mirrorDirInputs) {
+    if (!input || typeof input !== 'string') {
+      continue;
+    }
+    const resolvedDir = path.resolve(process.cwd(), input);
+    if (seenMirrorDirs.has(resolvedDir)) {
+      continue;
+    }
+    seenMirrorDirs.add(resolvedDir);
+    mirrorDirs.push(resolvedDir);
+  }
+  const defaultMirrorDir = path.resolve(process.cwd(), 'tmp', 'git-mirrors');
+  if (!seenMirrorDirs.has(defaultMirrorDir)) {
+    seenMirrorDirs.add(defaultMirrorDir);
+    mirrorDirs.push(defaultMirrorDir);
+  }
+  if (mirrorDirs.length > 0) {
+    gitConfig.manifestMirrorDir = mirrorDirs[0];
+  }
+
+  const processedRepos = [];
+  for (const repo of combinedRepos) {
+    if (!repo) {
+      continue;
+    }
     const nextRepo = { ...repo };
     nextRepo.searchText = nextRepo.searchText || buildGitRepoSearchText(nextRepo);
 
@@ -463,10 +529,68 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
         nextRepo.overrideDepth = matchedOverride.depth;
       }
       nextRepo.localOverride = matchedOverride;
+    } else if (!nextRepo.localPath && mirrorDirs.length > 0) {
+      const slugSources = [
+        nextRepo.id,
+        nextRepo.label,
+        nextRepo.repoPath,
+        deriveGitRepoPath(nextRepo.detailUrl || nextRepo.httpUrl || ''),
+        nextRepo.detailUrl,
+        nextRepo.httpUrl,
+        nextRepo.sshUrl
+      ];
+      const slugCandidates = new Set();
+      const rawPathCandidates = new Set();
+      for (const source of slugSources) {
+        if (!source) {
+          continue;
+        }
+        const trimmed = source.toString().trim();
+        if (!trimmed) {
+          continue;
+        }
+        rawPathCandidates.add(trimmed);
+        const slug = slugifyRepoKey(trimmed);
+        if (slug) {
+          slugCandidates.add(slug);
+        }
+        if (trimmed.includes('/')) {
+          const tail = trimmed.split('/').pop();
+          if (tail) {
+            rawPathCandidates.add(tail);
+            const tailSlug = slugifyRepoKey(tail);
+            if (tailSlug) {
+              slugCandidates.add(tailSlug);
+            }
+          }
+        }
+      }
+
+      const candidatePaths = [];
+      for (const dir of mirrorDirs) {
+        for (const slug of slugCandidates) {
+          candidatePaths.push(path.join(dir, slug));
+        }
+        for (const rawPath of rawPathCandidates) {
+          const normalized = rawPath.replace(/^[./]+/, '');
+          if (normalized) {
+            candidatePaths.push(path.join(dir, normalized));
+          }
+        }
+      }
+
+      const resolvedMirrorPath = await findFirstExistingDirectory(candidatePaths);
+      if (resolvedMirrorPath) {
+        nextRepo.localPath = resolvedMirrorPath;
+        nextRepo.mirrorPath = resolvedMirrorPath;
+        nextRepo.manifestMirror = resolvedMirrorPath;
+      }
     }
 
-    return nextRepo;
-  });
+    processedRepos.push(nextRepo);
+  }
+
+  combinedRepos = processedRepos;
 
   combinedRepos.sort((a, b) => {
     const stageA = (a.stageLabel || '').toLowerCase();

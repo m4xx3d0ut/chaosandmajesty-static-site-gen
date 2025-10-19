@@ -1,6 +1,6 @@
-# Managed stagit manifest (url|branch|name|owner|description|homepage)
-# Populate with the repositories you wish to mirror. Lines beginning with '#'
-# are ignored. Example:
+# Git manifest (url|branch|name|owner|description|homepage)
+# Consumed by scripts/sync-git-manifest.sh and the Git page renderer.
+# Lines beginning with '#' are ignored. Example:
 # git@lab-gitea:org/project.git|main|project|Chaos & Majesty|Project docs|https://chaosandmajesty.com/project
 
 # CM Site Prod

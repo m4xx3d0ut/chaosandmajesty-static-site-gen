@@ -95,35 +95,10 @@ jobs:
         run: npm ci
 
       - name: Smoke build static bundle
+        env:
+          SYNC_GIT_MANIFEST_URL_REWRITE: ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
         run: ./build-site.sh
 
-      - name: Install stagit toolchain
-        run: |
-          scripts/install-stagit.sh
-
-      - name: Generate stagit HTML (push mode)
-        env:
-          STAGIT_REPOLIST: ${{ github.workspace }}/config/stagit/manifest.txt
-          STAGIT_REPOBASE: ${{ github.workspace }}/tmp/stagit/repos
-          STAGIT_HTMLBASE: ${{ github.workspace }}/tmp/stagit/html
-          STAGIT_ASSETSDIR: ${{ github.workspace }}/tmp/stagit/html/_assets
-          STAGIT_SHARED_ASSETS: style.css logo.png favicon.png
-          STAGIT_URL_REWRITE: >-
-            git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/,ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
-        run: |
-          set -euo pipefail
-          rm -rf tmp/stagit
-          mkdir -p tmp/stagit/html/_assets
-          if [ -d config/stagit/assets ]; then
-            cp -a config/stagit/assets/. tmp/stagit/html/_assets/
-          fi
-          scripts/update-stagit.sh
-
-      - name: Upload stagit HTML artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: stagit-html
-          path: tmp/stagit/html
 
       - name: Normalize registry host
         id: normalize-registry
@@ -231,17 +206,6 @@ jobs:
             git checkout --detach "${GITHUB_SHA}"
           fi
 
-      - name: Cache stagit fallback tarball
-        run: |
-          set -euo pipefail
-          mkdir -p scripts/stagit
-          if [ ! -f scripts/stagit/stagit-master.tar.gz ]; then
-            curl -fsSL https://codeload.github.com/chaosandmajesty-mirrors/stagit/tar.gz/refs/heads/master \
-              -o scripts/stagit/stagit-master.tar.gz || \
-            curl -fsSL https://codeload.github.com/rski/stagit/tar.gz/refs/heads/master \
-              -o scripts/stagit/stagit-master.tar.gz
-          fi
-
       - name: Install Ansible
         run: |
           set -euo pipefail
@@ -253,12 +217,6 @@ jobs:
           python -m pip install --upgrade pip ${TRUSTED_HOST_ARGS}
           pip install ${TRUSTED_HOST_ARGS} "ansible>=9.1" "docker" "jmespath"
           ansible-galaxy collection install -r ansible/requirements.yml
-
-      - name: Download stagit HTML artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: stagit-html
-          path: tmp/stagit/html
 
       - name: Configure SSH
         env:
@@ -288,19 +246,4 @@ jobs:
             -e "image_name=${IMAGE_NAME}" \
             -e "image_tag=${IMAGE_TAG}" \
             -e "registry_username=${REGISTRY_USERNAME}" \
-            -e "registry_password=${REGISTRY_PASSWORD}" \
-            -e "stagit_enabled=true" \
-            -e "stagit_mode=push" \
-            -e "stagit_manage_user=false" \
-            -e "stagit_user=${VPS_USER}" \
-            -e "stagit_group=${VPS_USER}" \
-            -e "stagit_run_after_deploy=false" \
-            -e "stagit_manage_assets=false"
-
-      - name: Sync stagit HTML to VPS
-        env:
-          STAGIT_DEST: /opt/chaosandmajesty/git/html/
-        run: |
-          set -euo pipefail
-          RSYNC_SSH="ssh -i $HOME/.ssh/gitea-ci-prod -o StrictHostKeyChecking=yes"
-          rsync -az --delete -e "$RSYNC_SSH" tmp/stagit/html/ "${VPS_USER}@${VPS_HOST}:${STAGIT_DEST}"
+            -e "registry_password=${REGISTRY_PASSWORD}"

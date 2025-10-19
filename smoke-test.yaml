@@ -28,9 +28,9 @@ pages:
       defaultRepoLabel: "chaosandmajesty-static-site-gen"
       repoDetailSuffix: "log.html"
       leftPaneTitle: "Core Git"
-      leftPaneDescription: "Select a repository from the Core Git catalog."
+      leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/stagit/manifest.txt)."
       rightPaneTitle: "Repository Activity"
-      rightPaneDescription: "We embed the upstream HTML so you can skim commits, branches, and files in place."
+      rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
       localRepoOverrides:
         chaosandmajesty-static-site-gen: .
 
