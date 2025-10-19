@@ -1,0 +1,499 @@
+# gateway/app.py - gateway:0.1.4
+import os
+import httpx
+import asyncio
+import logging
+import time
+import uuid
+import json
+from typing import List, Optional, Dict, Any
+from fastapi import FastAPI, HTTPException, Body, Request, Header
+from pydantic import BaseModel
+from kubernetes import client as k8s, config as k8s_config
+from kubernetes.client import V1Scale
+from kubernetes.client.rest import ApiException
+
+
+# Configure logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL),
+    format='%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
+)
+logger = logging.getLogger("ai-gateway")
+
+# Optional external providers (disabled when no keys)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# vLLM base URLs (in-cluster service)
+VLLM_BASE = os.getenv("VLLM_BASE_URL", "http://vllm.ai.svc.cluster.local:8000").rstrip("/")
+CACHECTL = os.getenv("CACHECTL_URL", "http://vllm.ai.svc.cluster.local:8081").rstrip("/")
+
+logger.info(f"Starting AI Gateway - vLLM: {VLLM_BASE}, CacheCtl: {CACHECTL}")
+logger.info(f"External providers - OpenAI: {'enabled' if OPENAI_API_KEY else 'disabled'}, Gemini: {'enabled' if GEMINI_API_KEY else 'disabled'}")
+
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+
+# Simple in-memory cache for /v1/models
+_models_cache: Optional[Dict[str, Any]] = None
+_models_cache_time: float = 0
+MODELS_CACHE_TTL = 30  # seconds
+
+# Allowlist: expose both vLLM and TGI aliases for the 4 coding models.
+# Convention: "@tgi" suffix selects the TGI service; no suffix uses vLLM.
+ALLOW_MODELS = [
+    # GLM
+    "zai-org/glm-edge-1.5b-chat",
+    "zai-org/glm-edge-4b-chat",
+
+    # coding models (vLLM default)
+    "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "Qwen/Qwen2.5-Coder-14B-Instruct",
+    "bigcode/starcoder2-15b-instruct",
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+    # TGI aliases
+    "Qwen/Qwen2.5-Coder-7B-Instruct@tgi",
+    "Qwen/Qwen2.5-Coder-14B-Instruct@tgi",
+    "bigcode/starcoder2-15b@tgi",
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct@tgi",
+]
+
+# Per-model deployment and service maps (Option A)
+DEPLOYMENTS = {
+    "zai-org/glm-edge-1.5b-chat": "vllm-glm-edge-1p5b",
+    "zai-org/glm-edge-4b-chat":   "vllm-glm-edge-4b",
+    "Qwen/Qwen2.5-Coder-7B-Instruct":             "vllm-qwen2p5-coder-7b",
+    "Qwen/Qwen2.5-Coder-14B-Instruct":            "vllm-qwen2p5-coder-14b",
+    "bigcode/starcoder2-15b":            "vllm-starcoder2-15b",
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct":"vllm-dsc2-lite-16b",
+    "Qwen/Qwen2.5-Coder-7B-Instruct@tgi":             "tgi-qwen2p5-coder-7b",
+    "Qwen/Qwen2.5-Coder-14B-Instruct@tgi":            "tgi-qwen2p5-coder-14b",
+    "bigcode/starcoder2-15b@tgi":            "tgi-starcoder2-15b",
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct@tgi":"tgi-dsc2-lite-16b",
+}
+
+# Map presented model-id -> { url, served_name }
+MODEL_BACKENDS = {
+    "zai-org/glm-edge-1.5b-chat": { "url": "http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8000", "served_name": "zai-org/glm-edge-1.5b-chat" },
+    "zai-org/glm-edge-4b-chat":   { "url": "http://vllm-glm-edge-4b.ai.svc.cluster.local:8000",   "served_name": "zai-org/glm-edge-4b-chat" },
+
+    # vLLM (default)
+    "Qwen/Qwen2.5-Coder-7B-Instruct":              { "url": "http://vllm-qwen2p5-coder-7b.ai.svc.cluster.local:8000",  "served_name": "Qwen/Qwen2.5-Coder-7B-Instruct" },
+    "Qwen/Qwen2.5-Coder-14B-Instruct":             { "url": "http://vllm-qwen2p5-coder-14b.ai.svc.cluster.local:8000", "served_name": "Qwen/Qwen2.5-Coder-14B-Instruct" },
+    "bigcode/starcoder2-15b":             { "url": "http://vllm-starcoder2-15b.ai.svc.cluster.local:8000",    "served_name": "bigcode/starcoder2-15b" },
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct": { "url": "http://vllm-dsc2-lite-16b.ai.svc.cluster.local:8000",     "served_name": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct" },
+
+    # TGI variants (suffix @tgi)
+    "Qwen/Qwen2.5-Coder-7B-Instruct@tgi":              { "url": "http://tgi-qwen2p5-coder-7b.ai.svc.cluster.local:8000",  "served_name": "Qwen/Qwen2.5-Coder-7B-Instruct" },
+    "Qwen/Qwen2.5-Coder-14B-Instruct@tgi":             { "url": "http://tgi-qwen2p5-coder-14b.ai.svc.cluster.local:8000", "served_name": "Qwen/Qwen2.5-Coder-14B-Instruct" },
+    "bigcode/starcoder2-15b@tgi":             { "url": "http://tgi-starcoder2-15b.ai.svc.cluster.local:8000",    "served_name": "bigcode/starcoder2-15b" },
+    "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct@tgi": { "url": "http://tgi-dsc2-lite-16b.ai.svc.cluster.local:8000",     "served_name": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct" },
+}
+
+# ----- SDKs: only configure when keys are present
+use_openai = False
+use_gemini = False
+if OPENAI_API_KEY:
+    try:
+        from openai import OpenAI
+        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        use_openai = True
+    except Exception:
+        pass
+
+if GEMINI_API_KEY:
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        use_gemini = True
+    except Exception:
+        pass
+
+app = FastAPI(title="AI Gateway", version="0.2.0")
+
+
+class HotloadReq(BaseModel):
+    model: str  # e.g. "local:zai-org/glm-edge-4b-chat"
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    model: Optional[str] = None   # "local:<repo_id>" | "openai:<model>" | "gemini:<model>"
+    messages: List[ChatMessage]
+    temperature: Optional[float] = 0.7
+    max_tokens: Optional[int] = 512
+    stream: Optional[bool] = False
+
+
+# lazy init k8s client (in-cluster)
+def _k8s():
+    try:
+        k8s_config.load_incluster_config()
+    except Exception:
+        # allow local dev too
+        k8s_config.load_kube_config()
+    return k8s.AppsV1Api()
+
+# simple admin token guard
+def _check_admin_token(x_admin_token: str | None):
+    if not ADMIN_TOKEN:
+        return  # disabled
+    if not x_admin_token or x_admin_token != ADMIN_TOKEN:
+        raise HTTPException(401, "unauthorized")
+
+# route to per-model service
+async def _local_chat(base_url: str, req: ChatRequest, served_name: str):
+    payload = req.model_dump()
+    payload["model"] = served_name  # canonical HF id for backend
+    async with httpx.AsyncClient(timeout=600) as cx:
+        r = await cx.post(f"{base_url}/v1/chat/completions", json=payload)
+        if r.status_code >= 400:
+            raise HTTPException(r.status_code, r.text)
+        return r.json()
+
+def _core():
+    try:
+        k8s_config.load_incluster_config()
+    except Exception:
+        k8s_config.load_kube_config()
+    return k8s.CoreV1Api()
+
+def _svc_has_endpoints(ns: str, name: str) -> bool:
+    try:
+        core = _core()
+        eps = core.read_namespaced_endpoints(name=name, namespace=ns)
+        for subset in (eps.subsets or []):
+            if subset.addresses:
+                return True
+    except ApiException:
+        pass
+    return False
+
+def _model_ready(repo: str) -> bool:
+    ns = os.getenv("POD_NAMESPACE", "ai")
+    svc_name = None
+    if repo in MODEL_BACKENDS:
+        # extract the DNS service name between 'http://' and '.ai.svc'
+        backend = MODEL_BACKENDS[repo]
+        if isinstance(backend, dict):
+            url = backend["url"]
+        else:
+            url = backend  # backward compatibility
+        host = url.split("://",1)[1].split(".ai.svc",1)[0]
+        svc_name = host  # e.g., vllm-glm-edge-1p5b
+    if not svc_name:
+        return False
+    return _svc_has_endpoints(ns, svc_name)
+
+# --- Helpers for atomic-ish scale by delta with retries/bounds
+async def _scale_deployment_delta(api: k8s.AppsV1Api, *, ns: str, name: str, delta: int,
+                                  min_replicas: int = 0, max_replicas: Optional[int] = None,
+                                  retries: int = 5, backoff: float = 0.2) -> int:
+    attempt = 0
+    while True:
+        # read current scale
+        scale: V1Scale = api.read_namespaced_deployment_scale(name=name, namespace=ns)
+        cur = scale.spec.replicas or 0
+
+        # clamp to [min, max]
+        new = cur + delta
+        if new < min_replicas:
+            new = min_replicas
+        if max_replicas is not None and new > max_replicas:
+            new = max_replicas
+
+        if new == cur:
+            return cur  # nothing to do
+
+        # optimistic patch; include resourceVersion to avoid stomping concurrent updates
+        body = {
+            "metadata": {"resourceVersion": scale.metadata.resource_version},
+            "spec": {"replicas": new}
+        }
+        try:
+            api.patch_namespaced_deployment_scale(name=name, namespace=ns, body=body)
+            return new
+        except ApiException as e:
+            # 409 conflict => retry (another writer updated scale); others bubble up
+            if e.status == 409 and attempt < retries:
+                attempt += 1
+                await asyncio.sleep(backoff * (2 ** (attempt - 1)))
+                continue
+            raise
+
+# ---- Helpers for vLLM MMS management
+async def vllm_list_models():
+    logger.debug(f"Listing models from vLLM: {VLLM_BASE}/v1/models")
+    start_time = time.time()
+    # Much smaller connect timeout; moderate read timeout
+    timeout = httpx.Timeout(connect=0.2, read=2.0, write=2.0, pool=2.0)
+    async with httpx.AsyncClient(timeout=timeout) as cx:
+        try:
+            r = await cx.get(f"{VLLM_BASE}/v1/models")
+            r.raise_for_status()
+            result = r.json()
+            logger.debug(f"vLLM list_models took {time.time() - start_time:.2f}s, found {len(result.get('data', []))} models")
+            return result
+        except Exception as e:
+            logger.error(f"vLLM list_models failed after {time.time() - start_time:.2f}s: {e}")
+            raise
+
+async def vllm_load_model(repo_id: str):
+    logger.info(f"Loading model: {repo_id}")
+    if repo_id not in ALLOW_MODELS:
+        logger.warning(f"Model not in allowlist: {repo_id}, allowed: {ALLOW_MODELS}")
+        raise HTTPException(400, f"model not allowed: {repo_id}")
+    
+    payload = {"model": repo_id}
+    start_time = time.time()
+    async with httpx.AsyncClient(timeout=600) as cx:
+        try:
+            r = await cx.post(f"{VLLM_BASE}/v1/models", json=payload)
+            if r.status_code >= 400:
+                logger.error(f"vLLM load failed for {repo_id}: {r.status_code} {r.text}")
+                raise HTTPException(r.status_code, r.text)
+            result = r.json()
+            logger.info(f"Model {repo_id} loaded successfully in {time.time() - start_time:.2f}s")
+            return result
+        except httpx.TimeoutException:
+            logger.error(f"vLLM load timeout for {repo_id} after {time.time() - start_time:.2f}s")
+            raise HTTPException(504, f"Model load timeout: {repo_id}")
+        except Exception as e:
+            logger.error(f"vLLM load error for {repo_id}: {e}")
+            raise
+
+async def vllm_unload_model(repo_id: str):
+    logger.info(f"Unloading model: {repo_id}")
+    start_time = time.time()
+    async with httpx.AsyncClient(timeout=120) as cx:
+        try:
+            r = await cx.delete(f"{VLLM_BASE}/v1/models/{repo_id}")
+            if r.status_code == 404:
+                logger.warning(f"Model not loaded: {repo_id}")
+                raise HTTPException(404, f"model not loaded: {repo_id}")
+            if r.status_code >= 400:
+                logger.error(f"vLLM unload failed for {repo_id}: {r.status_code} {r.text}")
+                raise HTTPException(r.status_code, r.text)
+            logger.info(f"Model {repo_id} unloaded in {time.time() - start_time:.2f}s")
+            return {"ok": True}
+        except Exception as e:
+            logger.error(f"vLLM unload error for {repo_id}: {e}")
+            raise
+
+async def vllm_chat_openai_compat(req: ChatRequest, served_name: str):
+    logger.debug(f"Forwarding chat request to vLLM for model: {served_name}")
+    payload = req.model_dump()
+    payload["model"] = served_name
+    start_time = time.time()
+    
+    async with httpx.AsyncClient(timeout=600) as cx:
+        try:
+            r = await cx.post(f"{VLLM_BASE}/v1/chat/completions", json=payload)
+            if r.status_code >= 400:
+                logger.error(f"vLLM chat failed for {served_name}: {r.status_code} {r.text}")
+                raise HTTPException(r.status_code, r.text)
+            result = r.json()
+            logger.debug(f"vLLM chat completed for {served_name} in {time.time() - start_time:.2f}s")
+            return result
+        except httpx.TimeoutException:
+            logger.error(f"vLLM chat timeout for {served_name} after {time.time() - start_time:.2f}s")
+            raise HTTPException(504, f"Chat timeout for model: {served_name}")
+        except Exception as e:
+            logger.error(f"vLLM chat error for {served_name}: {e}")
+            raise
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    request_id = request.headers.get("x-request-id", str(uuid.uuid4())[:8])
+    start_time = time.time()
+    
+    logger.info(f"[{request_id}] {request.method} {request.url.path} - Start")
+    
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        logger.info(f"[{request_id}] {request.method} {request.url.path} - {response.status_code} ({duration:.2f}s)")
+        response.headers["x-request-id"] = request_id
+        return response
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"[{request_id}] {request.method} {request.url.path} - ERROR ({duration:.2f}s): {e}")
+        raise
+
+@app.get("/healthz")
+async def healthz():
+    return {"ok": True}
+
+@app.get("/v1/models")
+async def list_models():
+    global _models_cache, _models_cache_time
+    
+    # Check cache
+    now = time.time()
+    if _models_cache and (now - _models_cache_time) < MODELS_CACHE_TTL:
+        logger.debug(f"Returning cached models (age: {now - _models_cache_time:.1f}s)")
+        return _models_cache
+    
+    logger.debug("Listing all available models")
+    data = []
+    ns = os.getenv("POD_NAMESPACE", "ai")
+
+    # Optional fast path: only call vLLM if the shared 'vllm' Service has endpoints
+    loaded_set = set()
+    if _svc_has_endpoints(ns, "vllm"):
+        try:
+            models = await vllm_list_models()  # now fast-failing
+            loaded_set = {m.get("id") for m in models.get("data", [])}
+            for m in models.get("data", []):
+                data.append({"id": f"local:{m.get('id')}", "provider": "local", "ready": True})
+        except Exception as e:
+            logger.debug(f"Skipping vLLM list due to error: {e}")
+
+    # Fill the rest from the allowlist using per-model Service endpoints
+    for repo in ALLOW_MODELS:
+        if repo not in loaded_set:
+            data.append({"id": f"local:{repo}", "provider": "local", "ready": _model_ready(repo)})
+
+    if use_openai:
+        data.append({"id": "openai:gpt-4o-mini", "provider": "openai", "ready": True})
+    if use_gemini:
+        data.append({"id": "gemini:gemini-1.5-pro", "provider": "gemini", "ready": True})
+
+    result = {"data": data}
+    
+    # Update cache
+    _models_cache = result
+    _models_cache_time = now
+    
+    return result
+
+@app.post("/admin/hotload")
+async def hotload(req: HotloadReq, x_admin_token: Optional[str] = Header(None)):
+    _check_admin_token(x_admin_token)
+    if not req.model.startswith("local:"):
+        raise HTTPException(400, "hotload supports only local models")
+    repo = req.model.split("local:", 1)[1]
+    if repo not in DEPLOYMENTS:
+        raise HTTPException(400, f"unknown model repo: {repo}")
+    name = DEPLOYMENTS[repo]
+    ns = os.getenv("POD_NAMESPACE", "ai")
+    api = _k8s()
+
+    # Optional upper bound via annotation (default 1 to keep single-GPU nodes safe)
+    try:
+        d = k8s.AppsV1Api().read_namespaced_deployment(name=name, namespace=ns)
+        max_rep = int(d.metadata.annotations.get("ai.zlabs.dev/maxReplicas", "1"))
+    except Exception:
+        max_rep = 1
+
+    try:
+        logger.info(f"hotload: {name} +1 (max {max_rep})")
+        new = await _scale_deployment_delta(api, ns=ns, name=name, delta=+1, min_replicas=0, max_replicas=max_rep)
+        return {"ok": True, "scaled": {"deployment": name, "replicas": new}}
+    except ApiException as e:
+        logger.exception("hotload k8s ApiException")
+        raise HTTPException(e.status or 500, f"k8s scale error: {e.reason}")
+    except Exception as e:
+        logger.exception("hotload unexpected error")
+        raise HTTPException(500, f"hotload failed: {e}")
+
+@app.post("/admin/unload")
+async def unload(req: HotloadReq, x_admin_token: Optional[str] = Header(None)):
+    _check_admin_token(x_admin_token)
+    if not req.model.startswith("local:"):
+        raise HTTPException(400, "unload supports only local models")
+    repo = req.model.split("local:", 1)[1]
+    if repo not in DEPLOYMENTS:
+        raise HTTPException(400, f"unknown model repo: {repo}")
+    name = DEPLOYMENTS[repo]
+    ns = os.getenv("POD_NAMESPACE", "ai")
+    api = _k8s()
+    try:
+        logger.info(f"unload: {name} -1")
+        new = await _scale_deployment_delta(api, ns=ns, name=name, delta=-1, min_replicas=0)
+        return {"ok": True, "scaled": {"deployment": name, "replicas": new}}
+    except ApiException as e:
+        logger.exception("unload k8s ApiException")
+        raise HTTPException(e.status or 500, f"k8s scale error: {e.reason}")
+
+@app.post("/admin/purge-cache")
+async def purge_cache(req: HotloadReq, x_admin_token: Optional[str] = Header(None)):
+    _check_admin_token(x_admin_token)
+    if not req.model.startswith("local:"):
+        raise HTTPException(400, "purge-cache supports only local models")
+    repo = req.model.split("local:", 1)[1]
+    # best-effort scale to 0 first
+    try:
+        await unload(req, x_admin_token=x_admin_token)
+    except Exception:
+        pass
+    base = MODEL_BACKENDS.get(repo)  # sidecar sits with each vLLM; we’ll use the shared one as before if you prefer
+    # keep using the shared cachectl on the 1p5b pod (your existing env) or call each pod’s 8081 if you prefer
+    async with httpx.AsyncClient(timeout=120) as cx:
+        r = await cx.get(f"{CACHECTL}/purge", params={"repo_id": repo})
+        if r.status_code >= 400:
+            raise HTTPException(r.status_code, r.text)
+        return r.json()
+
+@app.post("/v1/chat/completions")
+async def chat(req: ChatRequest = Body(...)):
+    logger.info(f"Chat request - model: {req.model}, messages: {len(req.messages)}, temp: {req.temperature}")
+    if not req.model:
+        raise HTTPException(400, "please specify model, e.g. local:zai-org/GLM-4.5-Air")
+
+    provider, name = req.model.split(":", 1) if ":" in req.model else ("local", req.model)
+
+    if provider == "local":
+        if name not in MODEL_BACKENDS:
+            raise HTTPException(400, f"unknown local model: {name}")
+        mapping = MODEL_BACKENDS[name]
+        base = mapping["url"]
+        served = mapping.get("served_name", name)
+        return await _local_chat(base, req, served)
+
+    elif provider == "openai":
+        if not use_openai:
+            logger.warning("OpenAI request but no API key configured")
+            raise HTTPException(501, "OpenAI disabled (no API key configured)")
+        
+        logger.info(f"Processing OpenAI request: {name}")
+        try:
+            resp = openai_client.chat.completions.create(
+                model=name,
+                messages=[m.model_dump() for m in req.messages],
+                temperature=req.temperature, max_tokens=req.max_tokens, stream=req.stream
+            )
+            logger.debug(f"OpenAI request completed for {name}")
+            return resp.model_dump()
+        except Exception as e:
+            logger.error(f"OpenAI request failed for {name}: {e}")
+            raise HTTPException(500, f"OpenAI error: {str(e)}")
+
+    elif provider == "gemini":
+        if not use_gemini:
+            logger.warning("Gemini request but no API key configured")
+            raise HTTPException(501, "Gemini disabled (no API key configured)")
+        
+        logger.info(f"Processing Gemini request: {name}")
+        try:
+            import google.generativeai as genai
+            model = genai.GenerativeModel(name)
+            prompt = "\n".join([f"{m.role}: {m.content}" for m in req.messages])
+            out = model.generate_content(prompt, generation_config={"temperature": req.temperature, "max_output_tokens": req.max_tokens})
+            text = out.text or ""
+            logger.debug(f"Gemini request completed for {name}, response length: {len(text)}")
+            return {
+                "id":"chatcmpl_gemini","object":"chat.completion","model":req.model,
+                "choices":[{"index":0,"message":{"role":"assistant","content":text},"finish_reason":"stop"}],
+            }
+        except Exception as e:
+            logger.error(f"Gemini request failed for {name}: {e}")
+            raise HTTPException(500, f"Gemini error: {str(e)}")
+    else:
+        logger.warning(f"Unknown provider requested: {provider}")
+        raise HTTPException(400, f"unknown provider {provider}")
+

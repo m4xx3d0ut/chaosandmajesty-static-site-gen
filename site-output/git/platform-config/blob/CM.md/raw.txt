@@ -1,0 +1,173 @@
+# CM Static Site Deployment Guide
+
+This guide covers deploying the CM static site to Kubernetes using Flux GitOps.
+
+## Overview
+
+The CM app is deployed as a static site generator with the following architecture:
+- **Namespace**: `web`
+- **Image**: `reg.microk8s.core.home.arpa:32000/cm:latest`
+- **Ingress**: `cm.core.home.arpa` with TLS
+- **Resources**: Minimal footprint (50m CPU, 64Mi RAM)
+
+## Current Deployment Configuration
+
+Your deployment is currently configured with:
+
+<augment_code_snippet path="gitops/apps/cm/deployment.yaml" mode="EXCERPT">
+````yaml
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+````
+
+## Prerequisites
+
+- Flux installed and pointing to your `platform-config` repo
+- Ingress NGINX running with DNS for `cm.core.home.arpa`
+- Nodes can pull from `reg.microk8s.core.home.arpa:32000`
+- cert-manager with `local-ca` ClusterIssuer (for TLS)
+
+## Deployment Structure
+
+```
+gitops/apps/cm/
+├── kustomization.yaml    # Kustomize configuration
+├── namespace.yaml        # web namespace
+├── deployment.yaml       # CM app deployment
+├── service.yaml         # ClusterIP service
+└── ingress.yaml         # NGINX ingress with TLS
+```
+
+## Verification Commands
+
+```bash
+# Check deployment status
+kubectl -n web get deploy,svc,ingress,pods
+
+# Check rollout status
+kubectl -n web rollout status deploy/cm
+
+# Test the endpoint
+curl -H "Host: cm.core.home.arpa" https://cm.core.home.arpa/
+
+# Check Flux reconciliation
+flux get kustomizations -A
+```
+
+## Updating the Deployment
+
+### Method 1: Image Updates
+```bash
+# Build and push new image
+docker build -t reg.microk8s.core.home.arpa:32000/cm:2025.01.15-1 .
+docker push reg.microk8s.core.home.arpa:32000/cm:2025.01.15-1
+
+# Update deployment manifest
+yq -i '.spec.template.spec.containers[0].image="reg.microk8s.core.home.arpa:32000/cm:2025.01.15-1"' gitops/apps/cm/deployment.yaml
+
+# Commit and push
+git commit -am "cm: bump image to 2025.01.15-1"
+git push
+```
+
+### Method 2: Configuration Changes
+Edit the relevant YAML files in `gitops/apps/cm/`, commit, and push. Flux will automatically reconcile.
+
+## Scaling for Different Traffic Levels
+
+### Production Readiness
+For production workloads, consider these improvements:
+
+````yaml path=gitops/apps/cm/deployment.yaml mode=EDIT
+spec:
+  replicas: 2  # High availability
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # Zero-downtime updates
+      maxSurge: 1
+````
+
+### Auto-scaling (Optional)
+Add horizontal pod autoscaler:
+
+````yaml path=gitops/apps/cm/hpa.yaml mode=EDIT
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cm-hpa
+  namespace: web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cm
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+````
+
+## Security (Optional)
+
+Restrict network access to ingress controller only:
+
+````yaml path=gitops/apps/cm/network-policy.yaml mode=EDIT
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cm-allow-ingress
+  namespace: web
+spec:
+  podSelector:
+    matchLabels:
+      app: cm
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - port: 8080
+          protocol: TCP
+````
+
+## Troubleshooting
+
+**Pod not starting:**
+```bash
+kubectl -n web describe pod -l app=cm
+kubectl -n web logs -l app=cm
+```
+
+**Ingress issues:**
+```bash
+kubectl -n web describe ingress cm
+kubectl get events -n web --sort-by='.lastTimestamp'
+```
+
+**Flux not reconciling:**
+```bash
+flux get sources git -A
+flux reconcile kustomization apps -n flux-system
+```
+
+This deployment provides a solid foundation for the CM static site with room for scaling as traffic grows.

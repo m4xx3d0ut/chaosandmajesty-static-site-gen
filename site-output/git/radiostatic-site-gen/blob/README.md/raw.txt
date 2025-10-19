@@ -1,0 +1,112 @@
+# RadioStatic Static Site Generator
+
+RadioStatic turns a YAML configuration, Markdown content, and a folder of static assets into a secure, retro-flavoured static website. Built for security-minded developers and makers, it ships with a self-contained demo so newcomers can explore every feature without importing Chaos & Majesty assets or copy.
+
+---
+
+## Quick Start
+
+```bash
+# Install dependencies (one time)
+npm install
+
+# Build the demo site (defaults to smoke-test.yaml)
+./build-site.sh
+
+# Or supply your own configuration file and output directory
+./build-site.sh path/to/your-config.yaml path/to/output
+
+# Preview locally
+make serve-local
+```
+
+The generated site lives under `site-output/` (or whichever directory you passed to `build-site.sh`).
+
+---
+
+## Demo Project Overview
+
+The repository includes a retro RadioStatic demo that exercises every generator feature:
+
+- **Configuration** – `smoke-test.yaml` wires up the home page, sections, blog, sitemap, and sample navigation.
+- **Content** – `content/blog/` contains Markdown posts for two fictional authors plus a default article rendered on the blog landing page.
+- **Assets** – `examples/demo-site/assets/` ships the RadioStatic signal palette: retro CSS, refreshed SVG artwork, and metadata files referenced by the demo configuration.
+- **Stagit Sample** – `examples/demo-site/stagit/` includes a tiny bare git repository and placeholder HTML to illustrate publishing a repository mirror alongside your site (see [docs/demo-guide.md](docs/demo-guide.md)).
+
+Run `./prepare-demo-assets.sh` if you want to sync the example assets into `static-sitegen/assets/` for experimentation; otherwise the build script copies directly from `examples/demo-site/assets/`.
+
+---
+
+## Project Layout
+
+```
+├── build-site.sh                 # Wrapper around the generator CLI
+├── makefile / docker-compose.yml # Optional container workflows
+├── smoke-test.yaml               # Demo configuration file
+├── content/                      # Markdown sources (blog posts, sections)
+├── examples/demo-site/           # Bundled demo assets and stagit sample
+├── static-sitegen/               # RadioStatic engine (ES modules + templates)
+│   ├── bin/radiostatic.js        # CLI interface
+│   ├── lib/                      # Core generation logic
+│   ├── templates/                # EJS templates used for rendering
+│   └── assets/                   # Default theme assets
+└── site-output/                  # Generated HTML (created by the build script)
+```
+
+---
+
+## Key Features
+
+- **YAML-first configuration** – control navigation, sections, theming, blog behaviour, and metadata from a single file.
+- **Signal console** – beam a retro command console onto any page with `useCmConsole` (soon `useTerminalConsole`); the bundled script simulates a shortwave prompt with history and custom commands.
+- **Blog engine** – Markdown posts with front matter for authors, hero art, summaries, publish dates, and fragments for partial rendering.
+- **Security-first output** – RadioStatic emits flat HTML, CSS, and assets so you can host on hardened object storage or CDNs without a long-running process.
+- **Portable assets** – point the `assets` key to any directory and RadioStatic mirrors the structure into the final build (including `site.webmanifest` and `robots.txt`).
+- **Section support** – reusable content blocks rendered as standalone pages and linkable from navigation or CTAs.
+- **Stagit showcase** – optional HTML bundle that demonstrates how to surface git repository metadata alongside your marketing site.
+
+---
+
+## Working With Configurations
+
+- Pass a different YAML file to `./build-site.sh` or `make build-local CONFIG=path/to/config.yaml`.
+- Use the `assets` key in the YAML file to point at your own asset directory. Everything inside that folder is copied to `site-output/assets/`.
+- Supply alternate output directories via `./build-site.sh your.yaml public-site` or `make build-local CONFIG=your.yaml OUTPUT=public-site`.
+- Set `RADIOSTATIC_VERBOSE=0` (legacy `SITEGEN_VERBOSE` still works) to suppress verbose logging during builds.
+
+Refer to [docs/configuration.md](docs/configuration.md) for a breakdown of the most common keys.
+
+---
+
+## Scripts & Commands
+
+- `./build-site.sh [config] [output]` – wraps the generator, validates the output, and prints a quick file listing.
+- `./prepare-demo-assets.sh [source-dir]` – copies assets into `static-sitegen/assets/` (defaults to the demo asset directory).
+- `make build-local CONFIG=... OUTPUT=...` – convenience wrapper around `build-site.sh`.
+- `make serve-local` – serves the `site-output/` directory on `http://localhost:8080`.
+- `make build`, `make up`, `make down` – Docker workflows if you prefer containerised builds.
+
+---
+
+## Customising the Demo
+
+1. Duplicate `smoke-test.yaml` under a new name and adjust site metadata, navigation, and section copy.
+2. Add or edit Markdown files in `content/blog/`, updating front matter fields (`title`, `author`, `summary`, `heroImage`, etc.).
+3. Update artwork under `examples/demo-site/assets/static/img/` or point the YAML configuration at a different asset directory.
+4. Re-run `./build-site.sh your-config.yaml` and refresh the served site.
+
+Template updates live under `static-sitegen/templates/`. Copy the EJS files elsewhere if you need to version a highly customised theme.
+
+---
+
+## Documentation
+
+- [docs/demo-guide.md](docs/demo-guide.md) – end-to-end walkthrough for building and serving the demo.
+- [docs/configuration.md](docs/configuration.md) – explanations of the most common YAML keys and how they map to templates.
+- [FEAT.md](FEAT.md) – active development plan for the repo refresh.
+
+---
+
+## Contributing
+
+Pull requests are welcome! Please keep changes focused, follow the existing JavaScript style (ES modules, 2-space indentation, single quotes), and include updated build output or screenshots when behaviour changes. Run `./build-site.sh` before submitting to ensure the generator still produces a working demo.

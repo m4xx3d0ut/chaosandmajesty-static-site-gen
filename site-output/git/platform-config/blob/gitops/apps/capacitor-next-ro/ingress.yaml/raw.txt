@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: capacitor-next-ro
+  namespace: flux-system
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [capacitor.core.home.arpa]
+      secretName: capacitor-next-ro-tls
+  rules:
+    - host: capacitor.core.home.arpa
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: capacitor-next-ro
+                port:
+                  number: 80

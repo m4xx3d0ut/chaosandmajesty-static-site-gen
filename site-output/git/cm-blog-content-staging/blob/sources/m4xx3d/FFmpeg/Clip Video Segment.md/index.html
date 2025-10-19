@@ -1,0 +1,36 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Clip Video Segment.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Clip Video Segment.md/raw.txt" data-git-line-count="24">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Clip Video Segment.md</h4>
+          <div class="git-file-meta">1.1 KB · 24 lines · sources/m4xx3d/FFmpeg/Clip Video Segment.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Clip Video Segment.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Clip Video Segment
+updated: 2023-07-03 18:29:48Z
+created: 2023-07-03 18:29:34Z
+latitude: 33.88473610
+longitude: -118.41090890
+altitude: 0.0000</h2>
+<p>To output the first 20 seconds of an input MP4 video to a new video file using ffmpeg, you can use the <code>-ss</code> (start time) and <code>-t</code> (duration) options. Here&#39;s an example command:</p>
+<pre><code class="language-bash">ffmpeg -ss 00:00:00 -t 00:00:20 -i input.mp4 -c copy output.mp4
+</code></pre>
+<p>Let&#39;s break down the command:</p>
+<ul>
+<li><code>-ss 00:00:00</code>: Specifies the start time of the segment you want to extract. In this case, it is set to 00:00:00, indicating the beginning of the video.</li>
+<li><code>-t 00:00:20</code>: Specifies the duration of the segment you want to extract. In this case, it is set to 00:00:20, indicating 20 seconds.</li>
+<li><code>-i input.mp4</code>: Specifies the input video file.</li>
+<li><code>-c copy</code>: Copies the video and audio streams from the input to the output without re-encoding.</li>
+<li><code>output.mp4</code>: Specifies the output video file.</li>
+</ul>
+<p>Make sure to replace <code>input.mp4</code> with the path to your actual input video file, and <code>output.mp4</code> with the desired name/path for the output file.</p>
+
+      </div>
+    </article>
+  

@@ -1,0 +1,12 @@
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/healthz")  # readiness
+def healthz(): return {"ok": True}
+
+@app.get("/livez")    # liveness
+def livez(): return {"ok": True}
+
+@app.get("/v1/status")
+def status(): return {"service": "retriever", "ready": True}
+

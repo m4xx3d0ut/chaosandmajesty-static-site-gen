@@ -1,0 +1,552 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/iR/R&amp;D/iR AS - Workload Identity Federation.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/iR/R&amp;D/iR AS - Workload Identity Federation.md/raw.txt" data-git-line-count="626">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">iR AS - Workload Identity Federation.md</h4>
+          <div class="git-file-meta">36 KB · 626 lines · sources/iR/R&amp;D/iR AS - Workload Identity Federation.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/iR/R&amp;D/iR AS - Workload Identity Federation.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: iR AS - Workload Identity Federation
+updated: 2025-04-14 21:03:30Z
+created: 2025-04-10 19:14:36Z</h2>
+<h1>iR AS - Workload Identity Federation</h1>
+<h2>1. Key &amp; JWKS Generation</h2>
+<p>To create <strong>pri</strong> and <strong>pub</strong> JSON keys</p>
+<pre><code># **Create public &amp; private keys**
+$ python api/jwks_auth/main.py --help
+usage: main.py [-h] [--create] [--stdout] [--save_public SAVE_PUBLIC] [--save_private SAVE_PRIVATE]
+
+options:
+  -h, --help            show this help message and exit
+  --create              Generate JWKS
+  --stdout              Print output to STDOUT
+  --save_public SAVE_PUBLIC
+                        File path to save public JWKS
+  --save_private SAVE_PRIVATE
+                        File path to save private JWKS
+
+$ python api/jwks_auth/main.py --create --save_public api/ir-ext-analytics-prd-pub.json --save_private api/ir-ext-analytics-prd-pri.json --stdout
+[*] Creating JWKS...
+[*] JWKS Public JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;
+        }
+    ]
+}
+[*] JWKS Private JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ&quot;,
+            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU&quot;,
+            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE&quot;,
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;,
+            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU&quot;,
+            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE&quot;,
+            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI&quot;
+        }
+    ]
+}
+[*] JWKS Public JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;
+        }
+    ]
+}
+JWKS (public) JSON file saved successfully to ir-ext-analytics-prd-pub.json.
+[*] JWKS Private JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ&quot;,
+            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU&quot;,
+            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE&quot;,
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;,
+            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU&quot;,
+            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE&quot;,
+            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI&quot;
+        }
+    ]
+}
+JWKS (private) JSON file saved successfully to ir-ext-analytics-prd-pri.json.
+</code></pre>
+<hr>
+<h2>2. Configure Workload Identity Federation in Google Cloud</h2>
+<p>Set up the identity federation configuration in the Google Cloud Console:</p>
+<h3>a. Create a Workload Identity Pool</h3>
+<ol>
+<li><strong>Navigate to IAM &amp; Admin &gt; Workload Identity Pools:</strong><br>In the GCP Console, go to <strong>IAM &amp; Admin</strong> and select <strong>Workload Identity Pools</strong>.</li>
+<li><strong>Create a New Pool:</strong><br>Provide a name (e.g., <code>ir-analytics-pool-0</code>) and description. Note your pool’s resource name (it will look like <code>projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0</code>).</li>
+</ol>
+<h3>b. Create a Workload Identity Provider</h3>
+<ol>
+<li><strong>Within your pool, add a new provider:</strong><br>Select the provider type (OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).<ul>
+<li><strong>NOTE:</strong> The issuer URL does not have to be externally accessible, &quot;<a href="https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json">https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json</a>&quot; can be used as a default value.</li>
+</ul>
+</li>
+<li><strong>Set up attribute mapping:</strong><br>Map external identity attributes (e.g., the subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.<ul>
+<li><strong>NOTE:</strong> In you claims JSON, <code>&quot;sub&quot;</code> matches pool ID <code>&quot;ir-analytics-pool-0&quot;</code></li>
+</ul>
+</li>
+<li><strong>Record the Provider Resource Name:</strong><br>If your Provide ID is &quot;ir-analytics-pool-0&quot;, it will look similar to:</li>
+</ol>
+<pre><code>//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0
+</code></pre>
+<h3>c. Enable Service Account Impersonation</h3>
+<ol>
+<li><strong>Create (or select) a service account:</strong><br>Ensure it has the necessary BigQuery permissions.<ul>
+<li><strong>NOTE:</strong> A default SA should be created by the WIP</li>
+</ul>
+</li>
+<li><strong>Allow the Identity Pool to Impersonate the Service Account:</strong><br>In the IAM section, grant the <code>roles/iam.workloadIdentityUser</code> role on the service account to the identity pool. This allows federated credentials to impersonate the service account.<ul>
+<li><strong>NOTE:</strong> The default SA should have the correct permissions and roles.  Be sure that role <code>workloadIdentityUser</code> is assigned along with the following permissions:</li>
+</ul>
+</li>
+</ol>
+<pre><code>BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+</code></pre>
+<hr>
+<h2>3. Create an External Credentials File</h2>
+<p>Instead of a service account key, you create a JSON “external account” credentials file that instructs the Google authentication library how to exchange your external token for GCP credentials.</p>
+<h3>Sample <code>clientLibraryConfig-ir-analytics-pool-0.json</code> File</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;external_account&quot;,
+  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0&quot;,
+  &quot;subject_token_type&quot;: &quot;urn:ietf:params:oauth:token-type:jwt&quot;,
+  &quot;token_url&quot;: &quot;https://sts.googleapis.com/v1/token&quot;,
+  &quot;credential_source&quot;: {
+    &quot;file&quot;: &quot;/opt/ir-ext-analytics-lwt.json&quot;  // This file should contain your external identity token (e.g., a JWT)
+  },
+  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/ir-ext-analytics-prod-sa@ir-analytics-prd.iam.gserviceaccount.com:generateAccessToken&quot;
+}
+</code></pre>
+<ul>
+<li><strong>audience:</strong> Use the provider resource name from your Workload Identity Provider.</li>
+<li><strong>credential_source:</strong> Retrieve your external token JSON file.</li>
+<li><strong>service_account_impersonation_url:</strong> Points to the connected service account.</li>
+</ul>
+<hr>
+<h2>4. Using the BigQuery Test Client with Federated Credentials</h2>
+<p>With your environment set up, test the BigQuery connection by listing the tables in the <code>event_logs</code> dataset of the target project ID&#39;s BigQuery instance.</p>
+<pre><code class="language-bash"># **CD from repo root**
+$ cd ir-console-data-vis-stack/analytics_cluster/analytics_api
+
+# **Assuming your virtual env is already setup with requirements installed**
+$ source venv/bin/activate
+
+# **Generate a new LWT with the private key and claims JSON**
+$ python api/jwks_auth/payload.py --files api/ir-ext-analytics-prd-pri.json api/ir-ext-analytics-prd-claims.json --save_lwt /opt/ir-ext-analytics-lwt.json
+JWT Token:
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiJpci1hbmFseXRpY3MtcG9vbC0wIn0.On2MENhvc3kR8jlfn2ZCXFvdXdgIqlHnH8y3MABHw5MhTWO7OYXyOj8CzJbelHH1idbHZipLix40QK6I1mS_vAbid3EeUW7SgtMpTrt9Qp2igoM2_URnFN0NZbTDzxKjLodgAhjU7b4JGOYMbDUddJrfx9PMAaEn13d1QiA98zbBg1vAjiK7Vcv-EEeiy33079ihuOHV3H94CDCuLlPdiAPiSAF9ovbRxqf5bwmOgXAUG0bvBiazIruuUVAdGSAGSQbLIAdiPaggr5Aj7I-Ps0fCO1h1ln9Bxhv_WEb1hXoPL7iUhG4yY5UWISLL0hLQkvupNrRDVnhmwwmQ_meiYQ
+JWT Claims:
+{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0&quot;,&quot;iss&quot;:&quot;https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;ir-analytics-pool-0&quot;}
+LWT JSON saved to /opt/ir-ext-analytics-lwt.json
+Generated LWT JSON:
+{
+    &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIvL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImV4cCI6MTc0NDY2NTM1OSwiaWF0IjoxNzQ0NjYxNzU5LCJpc3MiOiJodHRwczovL2lyLWFuYWx5dGljcy1lbnRyeS50aGVpbmZpbml0ZXJlYWxpdHkuaW8vLndlbGwta25vd24vandrcy5qc29uIiwic3ViIjoiaXItYW5hbHl0aWNzLXBvb2wtMCJ9.jrMukcTt7JDJcotNhxuFaqsow76znyaF3i0tGdN1LomXfgGuF9Ommvmp2zrBI8lYG8qgPcu9V7dEqp2FX5ZOkdUKMywIu62iz1goSvkJjLVz8qfJuK4ocpdoiSybyEySt0JTOyMAbt2Bxyt9rfJiHPphwfJV6aE6YkBpr-14xdmq-teLYJiUgdPpEg9BCiImey-IJ4h_A-IJz26T6qe8agxNqVx2saZYoIKKzAQ_dKZvq2sU5dUZGbxMM2l6Adzf4RzyMrdhy_ki75csPx8QDp6n2iM2iYEhoZuKutfOecgDANRE38OWuBO_K2VJkgKVeDZLDNSTH9KIbx_PgbmEGg&quot;
+}
+
+# **Validate the LWT (Optional)**
+$ python api/jwks_auth/payload.py --validate api/ir-ext-analytics-prd-pub.json /opt/ir-ext-analytics-lwt.json
+Validated JWT Claims from external files:
+{&quot;aud&quot;:&quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0&quot;,&quot;exp&quot;:1744665359,&quot;iat&quot;:1744661759,&quot;iss&quot;:&quot;https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot;ir-analytics-pool-0&quot;}
+
+# **Test query the dataset**
+$ python api/test_bq_conn.py --dataset event_logs --creds api/clientLibraryConfig-ir-analytics-pool-0.json
+Tables in dataset &#39;event_logs&#39;:
+- curated_events
+- ecomm_events
+- fct_agent_interactions
+- fct_cart_behaviour
+- fct_funnel_daily
+- fct_location_enters
+- fct_order_items
+- fct_orders
+- fct_sessions
+- fct_sessions_per_project
+- ir_engine
+- location_events
+- middleware_events
+- test_insert
+- wizard_events
+</code></pre>
+<hr>
+<hr>
+<h1>SA Config Errors</h1>
+<p>Default SA created by WIP setup</p>
+<pre><code>$ python dev_scripts/dev_bq_conn.py --dataset event_logs --creds clientLibraryConfig-ir-vis-jwt.json
+Traceback (most recent call last):
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 55, in &lt;module&gt;
+    main()
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 51, in main
+    list_tables(args.dataset)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 19, in list_tables
+    tables = list(client.list_tables(dataset_ref))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py&quot;, line 208, in _items_iter
+    for page in self._page_iter(increment=False):
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py&quot;, line 244, in _page_iter
+    page = self._next_page()
+           ^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py&quot;, line 373, in _next_page
+    response = self._get_next_page_response()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/page_iterator.py&quot;, line 432, in _get_next_page_response
+    return self.api_request(
+           ^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py&quot;, line 1661, in api_request
+    return self._call_api(
+           ^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py&quot;, line 843, in _call_api
+    return call()
+           ^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py&quot;, line 293, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py&quot;, line 153, in retry_target
+    _retry_error_helper(
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_base.py&quot;, line 212, in _retry_error_helper
+    raise final_exc from source_exc
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py&quot;, line 144, in retry_target
+    result = target()
+             ^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/_http/__init__.py&quot;, line 494, in api_request
+    raise exceptions.from_http_response(response)
+google.api_core.exceptions.Forbidden: 403 GET https://bigquery.googleapis.com/bigquery/v2/projects/ir-analytics-prd/datasets/event_logs/tables?prettyPrint=false: Access Denied: Dataset ir-analytics-prd:event_logs: Permission bigquery.tables.list denied on dataset ir-analytics-prd:event_logs (or it may not exist).
+</code></pre>
+<p>SA created manually</p>
+<pre><code class="language-bash"> python dev_scripts/dev_bq_conn.py --dataset event_logs --creds clientLibraryConfig-ir-analytics-pool-0.json
+Traceback (most recent call last):
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 55, in &lt;module&gt;
+    main()
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 51, in main
+    list_tables(args.dataset)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/api/dev_scripts/dev_bq_conn.py&quot;, line 13, in list_tables
+    client = bigquery.Client(project=PROJECT_ID)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/bigquery/client.py&quot;, line 253, in __init__
+    super(Client, self).__init__(
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/client/__init__.py&quot;, line 339, in __init__
+    Client.__init__(
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/cloud/client/__init__.py&quot;, line 196, in __init__
+    credentials, _ = google.auth.default(scopes=scopes)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/_default.py&quot;, line 703, in default
+    effective_project_id = credentials.get_project_id(request=request)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/external_account.py&quot;, line 391, in get_project_id
+    self.before_request(request, &quot;GET&quot;, url, headers)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/credentials.py&quot;, line 239, in before_request
+    self._blocking_refresh(request)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/credentials.py&quot;, line 202, in _blocking_refresh
+    self.refresh(request)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/external_account.py&quot;, line 422, in refresh
+    self._impersonated_credentials.refresh(request)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py&quot;, line 254, in refresh
+    self._update_token(request)
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py&quot;, line 319, in _update_token
+    self.token, self.expiry = _make_iam_token_request(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/m4xx3d0ut/git/ir-analytics/ir-console-data-vis-stack/analytics_cluster/analytics_api/venv/lib/python3.11/site-packages/google/auth/impersonated_credentials.py&quot;, line 94, in _make_iam_token_request
+    raise exceptions.RefreshError(_REFRESH_ERROR, response_body)
+google.auth.exceptions.RefreshError: (&#39;Unable to acquire impersonated credentials&#39;, &#39;{\n  &quot;error&quot;: {\n    &quot;code&quot;: 403,\n    &quot;message&quot;: &quot;Permission \&#39;iam.serviceAccounts.getAccessToken\&#39; denied on resource (or it may not exist).&quot;,\n    &quot;status&quot;: &quot;PERMISSION_DENIED&quot;,\n    &quot;details&quot;: [\n      {\n        &quot;@type&quot;: &quot;type.googleapis.com/google.rpc.ErrorInfo&quot;,\n        &quot;reason&quot;: &quot;IAM_PERMISSION_DENIED&quot;,\n        &quot;domain&quot;: &quot;iam.googleapis.com&quot;,\n        &quot;metadata&quot;: {\n          &quot;permission&quot;: &quot;iam.serviceAccounts.getAccessToken&quot;\n        }\n      }\n    ]\n  }\n}\n&#39;)
+</code></pre>
+<hr>
+<h2>1. Key &amp; JWKS Generation</h2>
+<p>To create <strong>pri</strong> and <strong>pub</strong> JSON keys</p>
+<pre><code>########################################
+### CREATE PUBLIC &amp; PRIVATE KEY JSON ###
+########################################
+
+$ python jwks_auth/main.py --help
+usage: main.py [-h] [--create] [--stdout] [--save_public SAVE_PUBLIC] [--save_private SAVE_PRIVATE]
+
+options:
+  -h, --help            show this help message and exit
+  --create              Generate JWKS
+  --stdout              Print output to STDOUT
+  --save_public SAVE_PUBLIC
+                        File path to save public JWKS
+  --save_private SAVE_PRIVATE
+                        File path to save private JWKS
+
+$ python jwks_auth/main.py --create --save_public ir-ext-analytics-prd-pub.json --save_private ir-ext-analytics-prd-pri.json --stdout
+[*] Creating JWKS...
+[*] JWKS Public JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;
+        }
+    ]
+}
+[*] JWKS Private JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ&quot;,
+            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU&quot;,
+            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE&quot;,
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;,
+            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU&quot;,
+            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE&quot;,
+            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI&quot;
+        }
+    ]
+}
+[*] JWKS Public JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;
+        }
+    ]
+}
+JWKS (public) JSON file saved successfully to ir-ext-analytics-prd-pub.json.
+[*] JWKS Private JSON:
+{
+    &quot;keys&quot;: [
+        {
+            &quot;d&quot;: &quot;ErEL6wnacFGmUvZRNFkaEi5Jy-QCX_A5-BssfJ96O5KgervLoRQVnCejWK5uJX1MIGIzEK0It7tNrtJJ3VHJnhuvTC56g4x14GTzfoxMYGz0PcFOFk_7E4yqU-IS-lxT82PH3HJMS2p842Qh4qCZn0lBY5zC2h-nm0HepBBF5R-6F4HXbGQrW50lo_4ck85uFCLkH19q8J20_ffnLS2hvLWT62hUPb3tsjNpf4n5Ji0PpUUczmuvH2w8sP7sNOofu8juvIe97BITRSaJ2HLyNqrCXlSAvJXOkIFaqdWN5wmmII06XI0eruhrpbtEUVe7UOUucZ0MzjddaYM1K2bVIQ&quot;,
+            &quot;dp&quot;: &quot;Is_jhC1KQRtFlZEqxa_9QtQMxIovlO56CyBIj0tOgHBrGlgH35IXWe5rM4HE_t0eZMPM_xUXOnwrtsU8VoBF_PD7YTHorB3M_Tkb9Sp9lxenGRbemsr5b3sufo-ANw233boJtaqUqeOHT_RDL8ySQ3kdKohR30b4Tc2d2_xCSQU&quot;,
+            &quot;dq&quot;: &quot;BKav1gED28fY5ph_geT38Jumq_lDs4VZva2p6V9HOdoJBjew7GXo1ef5nEw-rtOPE8kia_P5sSOJ5Amiii10bQs_NMLTKkJg1xUEXSXMwOWQN6KgIeY-sopKCg4Z3IP_Ve8W0Wixaeux1-dwtwTTgzH-tmt9ZPKrUh548dCBHgE&quot;,
+            &quot;e&quot;: &quot;AQAB&quot;,
+            &quot;kty&quot;: &quot;RSA&quot;,
+            &quot;n&quot;: &quot;yY2lgcZ2QvRu7hKwB63MOW0EsYf84X-MbzR_PRAtyZhSXIevwSTE1z98mK29wvbq1NRO2FDYs7A9lgBt1azJoMxt-M8Ya7Ox5t4eny_gsUzzh89iyfOHDR7Lss81Kg9dvRRoV8lbvNmmuEIu-capuJ7-FqVy_t-hGRetm9qjFm5Pqy05wAvKvrmssKAbowfC1heo6FJtKQf7XFI78iOl9QbPfgNHUBP8ZBhjMvcjezxQpVbi8e1BtZGHfASWJg52Gr2l0B26fKtGtzInsw2OKkf9xzRPtQOVxNIBzG5FHWgwlHnJCtv21mcL5k0fmUzkbZTFiRTH-TUzcK8oqYXqhQ&quot;,
+            &quot;p&quot;: &quot;8Qst5oskOgezNYveifXbIUa3jpcyM9LbnGv2k4LETOR7FaQnelUrP7CDLQ89thxTP2Bcr9yvXIL3j0sxke9oB1Q0vxhPyhS_d2pMtnimb6EtpfyVc-KUOt75lTffgSXPPwtDa5LmuUb6EA3u2pZiEtyqthEM8dK2Q4HX9avWRiU&quot;,
+            &quot;q&quot;: &quot;1g8wTdDfyJOJyZmL74vV20CW8ZtEdK736lHnYJLN3bW7AwFIpS72nlkU5yo-ZRPCChsA6iOIHEQj4P5OWSrlH5TmHSEQu_Z9YtnJvMsg2CWX8iEJcVOF5Nn955NmlTAnLb1CPzFoBTukmh5QQydJWiic1rAleNIGnRYfsSjL9OE&quot;,
+            &quot;qi&quot;: &quot;wVFX_l61o3_U45Gi_kSdqpTFxztXYDG22gvMN1dChBf2sNJHNXCyjp7xNfA4Dts_aYdTKnkuG8FXWKLbB1dyYwHt1JGmMOSW0Ki2QygTqHjH2z0MjDynqm4K5VPfWBjm_jMOoiJsYwjqYg3Rqibb26CwUyVLvCOYawm26c9WvaI&quot;
+        }
+    ]
+}
+JWKS (private) JSON file saved successfully to ir-ext-analytics-prd-pri.json.
+
+
+#######################
+### CREATE LWT JSON ###
+#######################
+
+$ python jwks_auth/payload.py --files ir-ext-analytics-prd-pri.json ir-ext-analytics-prd-claims.json --save_lwt /opt/ir-ext-analytics-lwt.json
+JWT Token:
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImlzcyI6Imh0dHBzOi8vaXItYW5hbHl0aWNzLWVudHJ5LnRoZWluZmluaXRlcmVhbGl0eS5pby8ud2VsbC1rbm93bi9qd2tzLmpzb24iLCJzdWIiOiIgaXItZXh0LWFuYWx5dGljcy1wcm9kLXNhIn0.EAh3y0OGUahtM2uLA4m2PcOMYKgRId8kba2qAYJCiJuU-2AalB-Lw5lfj1VmjKghdDO78NxYcSuEXrh2wmk9P2jsnH4e7YRzOA7CEXjRBVav7fIU503v-3IICLRdpgtej1sG6oJP1fK44V99ohSpg0YQhz-RuANjUqctw959knQnxUcSeWFJowIUYfGNNpsMb05xispxEpmjPVqengQEx7EyPRD2Qq3vaaYNGSqQHUAqJdKXan126RIbja0K7nhYZIRydOmV_P728YQyvfBJ2YfPPB9MFWqCjjCUX9io04HZ6-b7uusT-SYMMI3lZOh-YPsUbr4_5-Aaz-0y5JRfAQ
+JWT Claims:
+{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0&quot;,&quot;iss&quot;:&quot;https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot; ir-ext-analytics-prod-sa&quot;}
+LWT JSON saved to /opt/ir-ext-analytics-lwt.json
+Generated LWT JSON:
+{
+    &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lhbS5nb29nbGVhcGlzLmNvbS9wcm9qZWN0cy8xNjQ5MjY0NjUxNzkvbG9jYXRpb25zL2dsb2JhbC93b3JrbG9hZElkZW50aXR5UG9vbHMvaXItYW5hbHl0aWNzLXBvb2wtMC9wcm92aWRlcnMvaXItYW5hbHl0aWNzLXBvb2wtMCIsImV4cCI6MTc0NDQxMjgxNCwiaWF0IjoxNzQ0NDA5MjE0LCJpc3MiOiJodHRwczovL2lyLWFuYWx5dGljcy1lbnRyeS50aGVpbmZpbml0ZXJlYWxpdHkuaW8vLndlbGwta25vd24vandrcy5qc29uIiwic3ViIjoiIGlyLWV4dC1hbmFseXRpY3MtcHJvZC1zYSJ9.OjAwSdL4PjuGw-qnanJsSR7dyIMWeb5TYYmh9pxQTC7ak_1Q8zV_EEs2-cFseG-KredCMfpKQYaU0UB1vi7VlRXkzW-WJ-KQpGTrrK3hLGzgpW8HGbhRo0NS0uapHRJT62spQUxF6sME0Odx_w3Li-Q2Hgr3CgxsPL_KwjxXndJyDm8yDNXR_dKboF0JF6gxHjSeDS5D7KbdLUCVrauKvMG733WMXdq4hCmORWvY20tkDBrlRWwpptXABjUIYLpl6Rgg1BPE8E-4P7MzRe22vYWdp31As08_Yaj4k9VZEuZDytZDEQZxGnEdq0CLexmux72k6-8XhuHh_wTyQgwtFQ&quot;
+}
+
+
+#############################
+### TEST TOKEN VALIDATION ###
+#############################
+
+$ python jwks_auth/payload.py --validate ir-ext-analytics-prd-pub.json /opt/ir-ext-analytics-lwt.json
+Validated JWT Claims from external files:
+{&quot;aud&quot;:&quot;https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-pool-0&quot;,&quot;exp&quot;:1744412814,&quot;iat&quot;:1744409214,&quot;iss&quot;:&quot;https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json&quot;,&quot;sub&quot;:&quot; ir-ext-analytics-prod-sa&quot;}
+</code></pre>
+<h3>NOTES</h3>
+<pre><code># DEV
+principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/ir-analytics-sa-000
+
+# PRD
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/ir-ext-analytics-prod-sa
+
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+
+principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/ir-analytics-pool-0
+</code></pre>
+<p>External Analytics Pool</p>
+<pre><code>ID
+ir-analytics-pool-0
+Description
+External analytics BQ WIF
+Status
+IAM principal 
+principal://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
+Logs 
+View
+</code></pre>
+<p>Providers</p>
+<pre><code>ir-analytics-vis-stack-oidc-jwt	OIDC
+</code></pre>
+<p>Provider Details</p>
+<pre><code>ir-analytics-vis-stack-oidc-jwt
+</code></pre>
+<p>Issuer URL</p>
+<pre><code>https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json
+</code></pre>
+<p><strong>NOTE:</strong> Record the resulting IAM principal, grant to SA with <code>roles/iam.workloadIdentityUser</code></p>
+<pre><code>principal://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+</code></pre>
+<p>Audiences
+Default Audiences</p>
+<pre><code># DEV
+https://iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-vis-jwt
+
+# PRD
+https://iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-vis-stack-oidc-jwt
+</code></pre>
+<p>OIDC 1</p>
+<pre><code>assertion.sub
+</code></pre>
+<p>SA Permissions/Roles</p>
+<pre><code># DEV
+ir-analytics-sa-000@genai-analytics-435321.iam.gserviceaccount.com
+ir-analytics-sa-000
+BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+
+# PRD
+ir-ext-analytics-prod-sa@ir-analytics-prd.iam.gserviceaccount.com
+ir-ext-analytics-prod-sa	
+BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+</code></pre>
+<p>Service Account must be granted access to IAM WIP principal (from pool creation) with <code>roles/iam.workloadIdentityUser</code></p>
+<p>Create a <code>claims.json</code> with your SA, issue, and audience (without <code>https:</code>)</p>
+<pre><code>{
+  &quot;sub&quot;: &quot; ir-ext-analytics-prod-sa&quot;,
+  &quot;iss&quot;: &quot;https://ir-analytics-entry.theinfinitereality.io/.well-known/jwks.json&quot;,
+  &quot;aud&quot;: &quot;//iam.googleapis.com/projects/164926465179/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-analytics-vis-stack-oidc-jwt&quot;
+}
+</code></pre>
+<hr>
+<h2>2. Configure Workload Identity Federation in Google Cloud</h2>
+<p>Before writing any code, you need to set up your identity federation configuration in the Google Cloud Console:</p>
+<h3>a. Create a Workload Identity Pool</h3>
+<ol>
+<li><strong>Navigate to IAM &amp; Admin &gt; Workload Identity Pools:</strong><br>In the GCP Console, go to <strong>IAM &amp; Admin</strong> and select <strong>Workload Identity Pools</strong>.</li>
+<li><strong>Create a New Pool:</strong><br>Provide a name (e.g., <code>ir-analytics-pool-0</code>) and description. Note your pool’s resource name (it will look like <code>projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0</code>).</li>
+</ol>
+<h3>b. Create a Workload Identity Provider</h3>
+<ol>
+<li><strong>Within your pool, add a new provider:</strong><br>Select the provider type (for example, OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).</li>
+<li><strong>Set up attribute mapping:</strong><br>Map external identity attributes (like email or subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.</li>
+<li><strong>Record the Provider Resource Name:</strong><br>It will look similar to:</li>
+</ol>
+<pre><code>//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/my-provider
+</code></pre>
+<h3>c. Enable Service Account Impersonation</h3>
+<ol>
+<li><strong>Create (or select) a service account:</strong><br>Ensure it has the necessary BigQuery permissions.</li>
+<li><strong>Allow the Identity Pool to Impersonate the Service Account:</strong><br>In the IAM section, grant the <code>roles/iam.workloadIdentityUser</code> role on the service account to the identity pool. This allows federated credentials to impersonate the service account.</li>
+</ol>
+<p><em>For additional details, refer to the <a href="https://cloud.google.com/docs/authentication/workload-identity-federation">Workload Identity Federation documentation</a> citeturn0doc1.</em></p>
+<hr>
+<h2>3. Create an External Credentials File</h2>
+<p>Instead of a service account key, you create a JSON file (often called an “external account” credentials file) that instructs the Google authentication library how to exchange your external token for GCP credentials.</p>
+<h3>Sample <code>clientLibraryConfig-ir-analytics-pool-0.json</code> File</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;external_account&quot;,
+  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/my-provider&quot;,
+  &quot;subject_token_type&quot;: &quot;urn:ietf:params:oauth:token-type:jwt&quot;,
+  &quot;token_url&quot;: &quot;https://sts.googleapis.com/v1/token&quot;,
+  &quot;credential_source&quot;: {
+    &quot;file&quot;: &quot;/path/to/external/token&quot;  // This file should contain your external identity token (e.g., a JWT)
+  },
+  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/my-service-account@my-project.iam.gserviceaccount.com:generateAccessToken&quot;
+}
+</code></pre>
+<ul>
+<li><strong>audience:</strong> Use the provider resource name from your Workload Identity Provider.</li>
+<li><strong>credential_source:</strong> Configure how to retrieve your external token. This might be a file, a command, or another source.</li>
+<li><strong>service_account_impersonation_url:</strong> Points to the service account you wish to impersonate.</li>
+</ul>
+<p><em>More on external account configuration can be found in the <a href="https://cloud.google.com/docs/authentication/external-account">External Account Credentials documentation</a> citeturn0doc2.</em></p>
+<h3>NOTES</h3>
+<p>External Credentials File <strong>clientLibraryConfig-ir-vis-jwt.json</strong></p>
+<pre><code>{
+  &quot;universe_domain&quot;: &quot;googleapis.com&quot;,
+  &quot;type&quot;: &quot;external_account&quot;,
+  &quot;audience&quot;: &quot;//iam.googleapis.com/projects/237949795725/locations/global/workloadIdentityPools/ir-analytics-pool-0/providers/ir-vis-jwt&quot;,
+  &quot;subject_token_type&quot;: &quot;urn:ietf:params:oauth:token-type:jwt&quot;,
+  &quot;token_url&quot;: &quot;https://sts.googleapis.com/v1/token&quot;,
+  &quot;service_account_impersonation_url&quot;: &quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/ir-analytics-sa-000@genai-analytics-435321.iam.gserviceaccount.com:generateAccessToken&quot;,
+  &quot;credential_source&quot;: {
+    &quot;file&quot;: &quot;/opt/ir-ext-analytics-lwt.json&quot;,
+    &quot;format&quot;: {
+      &quot;type&quot;: &quot;json&quot;,
+      &quot;subject_token_field_name&quot;: &quot;access_token&quot;
+    }
+  }
+}
+</code></pre>
+<hr>
+<h2>4. Set the Environment Variable</h2>
+<p>Tell the Google Cloud client libraries where to find your external account credentials by setting the environment variable:</p>
+<pre><code class="language-bash">export GOOGLE_APPLICATION_CREDENTIALS=&quot;/path/to/clientLibraryConfig-ir-analytics-pool-0.json&quot;
+</code></pre>
+<p>This step ensures that when you create a BigQuery client, it will automatically load and use the federated credentials.</p>
+<h3>NOTES</h3>
+<pre><code># **NOTE:** for BQ federated identity auth
+GCP_PROJECT=&quot;genai-analytics-435321&quot;
+GCP_BQ_DATASET=&quot;event_logs&quot;
+GCP_CLIENT_CONF=&quot;/app/api/clientLibraryConfig-ir-vis-jwt.json&quot;
+GCP_PRI_KEY=&quot;/app/api/ir-ext-analytics-pri.json&quot;
+GCP_CLAIMS_FILE=&quot;/app/api/ir-ext-analytics-claims.json&quot;
+GCP_PUB_KEY=&quot;/app/api/ir-ext-analytics-pub.json&quot;
+</code></pre>
+<hr>
+<h2>5. Using the BigQuery Python Client with Federated Credentials</h2>
+<p>With your environment set up, your Python code remains almost identical to using any other form of credentials. The <code>google-cloud-bigquery</code> library leverages the credentials provided via the environment variable.</p>
+<h3>Sample Code</h3>
+<pre><code class="language-python">from google.cloud import bigquery
+
+# The client automatically picks up the federated credentials from the environment.
+client = bigquery.Client()
+
+query = &quot;&quot;&quot;
+    SELECT name, SUM(number) as total
+    FROM `bigquery-public-data.usa_names.usa_1910_2013`
+    GROUP BY name
+    ORDER BY total DESC
+    LIMIT 10
+&quot;&quot;&quot;
+
+query_job = client.query(query)
+results = query_job.result()
+
+print(&quot;Top 10 Names by Total Count:&quot;)
+for row in results:
+    print(f&quot;{row.name}: {row.total}&quot;)
+</code></pre>
+<p>When this script runs, the BigQuery client:</p>
+<ul>
+<li>Reads the JSON credentials file specified by <code>GOOGLE_APPLICATION_CREDENTIALS</code>.</li>
+<li>Uses the external token (provided via your <code>credential_source</code>) and exchanges it for short-lived Google Cloud credentials via the Security Token Service (STS).</li>
+<li>Impersonates the designated service account and accesses BigQuery as allowed by the service account’s permissions.</li>
+</ul>
+
+      </div>
+    </article>
+  

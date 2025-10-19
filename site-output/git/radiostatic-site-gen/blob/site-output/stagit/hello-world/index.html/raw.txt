@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>hello-world · RadioStatic Demo</title>
+  <link rel="stylesheet" href="../../assets/static/style/terminal-console.css" />
+  <style>
+    body {
+      background: #111214;
+      color: #f5f5f6;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+      padding: 40px 24px;
+    }
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    a {
+      color: #ff9800;
+      text-decoration: none;
+    }
+    a:hover,
+    a:focus-visible {
+      text-decoration: underline;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 152, 0, 0.25);
+    }
+    code {
+      font-family: 'Share Tech Mono', monospace;
+      background: rgba(26, 28, 32, 0.85);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>hello-world</h1>
+    <span>·</span>
+    <a href="../index.html">All repositories</a>
+  </header>
+  <p>A small repository included with the demo to showcase stagit-style output.</p>
+  <section>
+    <h2>Recent commits</h2>
+    <ul>
+      <li>
+        <strong>Added sample script</strong>
+        <div><code>src/index.js</code></div>
+        <div>Author: Demo User · Commit: <code>0ec62e0</code></div>
+      </li>
+      <li>
+        <strong>Initial commit</strong>
+        <div><code>README.md</code></div>
+        <div>Author: Demo User · Commit: <code>7b2815f</code></div>
+      </li>
+    </ul>
+  </section>
+</body>
+</html>

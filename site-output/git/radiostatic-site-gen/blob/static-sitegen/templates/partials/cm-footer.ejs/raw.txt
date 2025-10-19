@@ -1,0 +1,6 @@
+<!-- Terminal footer partial -->
+<div class="terminal-footer">
+  <p>
+    <%= page.cmFooterText || site.cmFooterText || 'This is placeholder copy. Update cmFooterText in your YAML file.' %>
+  </p>
+</div>

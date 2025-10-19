@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+console.warn(
+  'The SiteGen CLI has been renamed to RadioStatic. Forwarding your command to the new executable...'
+);
+
+await import('./radiostatic.js');

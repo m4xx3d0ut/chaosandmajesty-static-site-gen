@@ -194,11 +194,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/ai-system-config"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/ai-system-config/index.html"
+                data-git-commits="git/ai-system-config/commits.json"
+                data-git-files="git/ai-system-config/files.html"
+                data-git-refs="git/ai-system-config/refs.html"
+                data-git-readme="git/ai-system-config/readme.html"
               >
                 <span class="git-repo-button-title">ai-system-config</span>
                 <div class="git-repo-button-meta">
@@ -229,11 +229,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/cicd-dev"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/cicd-dev/index.html"
+                data-git-commits="git/cicd-dev/commits.json"
+                data-git-files="git/cicd-dev/files.html"
+                data-git-refs="git/cicd-dev/refs.html"
+                data-git-readme="git/cicd-dev/readme.html"
               >
                 <span class="git-repo-button-title">cicd-dev</span>
                 <div class="git-repo-button-meta">
@@ -264,11 +264,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/cm-blog-content-staging"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/cm-blog-content-staging/index.html"
+                data-git-commits="git/cm-blog-content-staging/commits.json"
+                data-git-files="git/cm-blog-content-staging/files.html"
+                data-git-refs="git/cm-blog-content-staging/refs.html"
+                data-git-readme="git/cm-blog-content-staging/readme.html"
               >
                 <span class="git-repo-button-title">cm-blog-content-staging</span>
                 <div class="git-repo-button-meta">
@@ -299,11 +299,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/platform-config"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/platform-config/index.html"
+                data-git-commits="git/platform-config/commits.json"
+                data-git-files="git/platform-config/files.html"
+                data-git-refs="git/platform-config/refs.html"
+                data-git-readme="git/platform-config/readme.html"
               >
                 <span class="git-repo-button-title">platform-config</span>
                 <div class="git-repo-button-meta">
@@ -334,11 +334,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/platform-nvidia-compute"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/platform-nvidia-compute/index.html"
+                data-git-commits="git/platform-nvidia-compute/commits.json"
+                data-git-files="git/platform-nvidia-compute/files.html"
+                data-git-refs="git/platform-nvidia-compute/refs.html"
+                data-git-readme="git/platform-nvidia-compute/readme.html"
               >
                 <span class="git-repo-button-title">platform-nvidia-compute</span>
                 <div class="git-repo-button-meta">
@@ -369,11 +369,11 @@
                 data-git-stage="dev"
                 data-git-owner="m4xx3d0ut"
                 data-git-path="git/radiostatic-site-gen"
-                data-git-fragment=""
-                data-git-commits=""
-                data-git-files=""
-                data-git-refs=""
-                data-git-readme=""
+                data-git-fragment="git/radiostatic-site-gen/index.html"
+                data-git-commits="git/radiostatic-site-gen/commits.json"
+                data-git-files="git/radiostatic-site-gen/files.html"
+                data-git-refs="git/radiostatic-site-gen/refs.html"
+                data-git-readme="git/radiostatic-site-gen/readme.html"
               >
                 <span class="git-repo-button-title">radiostatic-site-gen</span>
                 <div class="git-repo-button-meta">
@@ -475,7 +475,7 @@
       return;
     }
 
-    var TAB_ORDER = ['readme', 'log', 'files', 'refs'];
+    var TAB_ORDER = ['log', 'readme', 'files', 'refs'];
     var TAB_LABELS = {
       log: 'Log',
       files: 'Files',
@@ -1394,7 +1394,7 @@
       if (requestedTab) {
         targetTab = requestedTab;
       } else if (!isSameEntry) {
-        targetTab = 'readme';
+        targetTab = 'log';
       } else {
         targetTab = activeTab;
       }

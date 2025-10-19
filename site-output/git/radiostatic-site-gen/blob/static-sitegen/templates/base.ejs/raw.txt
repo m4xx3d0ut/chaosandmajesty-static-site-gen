@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title><%= site.title %> – <%= page.title %></title>
+
+  <% if (site.meta && site.meta.description) { %>
+    <meta name="description" content="<%= site.meta.description %>">
+  <% } %>
+  <% if (site.meta && site.meta.keywords) { %>
+    <meta name="keywords" content="<%= site.meta.keywords %>">
+  <% } %>
+
+  <!-- Include CM head content if specified -->
+  <% const includeCmAssets = !!(page.useCmHead || site.useCmHead); %>
+  <% if (includeCmAssets) { %>
+    <%- include('partials/cm-head.ejs') %>
+  <% } %>
+
+  <% 
+    const isExternalHref = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || '');
+    const normalizeStyle = (href) => {
+      if (!href) {
+        return '';
+      }
+      if (isExternalHref(href)) {
+        return href;
+      }
+      if (/^(?:\.{1,2}\/)/.test(href)) {
+        return href;
+      }
+      if (href.startsWith('/')) {
+        return href;
+      }
+      const depthValue = Number.isInteger(page.baseDepth) && page.baseDepth >= 0
+        ? page.baseDepth
+        : (isSection ? 1 : 0);
+      const depthPrefix = depthValue > 0 ? '../'.repeat(depthValue) : '';
+      return depthPrefix + href.replace(/^\/+/, '');
+    };
+    const collectedStyles = [];
+    if (Array.isArray(site.styles) && site.styles.length > 0) {
+      collectedStyles.push(...site.styles);
+    }
+    if (Array.isArray(page.styles) && page.styles.length > 0) {
+      collectedStyles.push(...page.styles);
+    }
+    if (collectedStyles.length === 0) {
+      collectedStyles.push('assets/modern.css');
+    }
+    const seenStyles = new Set();
+    const normalizedStyles = collectedStyles
+      .map(normalizeStyle)
+      .filter((href) => {
+        if (!href) {
+          return false;
+        }
+        if (seenStyles.has(href)) {
+          return false;
+        }
+        seenStyles.add(href);
+        return true;
+      });
+  %>
+  <% normalizedStyles.forEach(function(styleHref) { %>
+    <link rel="stylesheet" href="<%= styleHref %>">
+  <% }); %>
+</head>
+
+<body
+  class="
+    <%= (site.theme && site.theme.mode === 'dark') ? 'dark-mode' : 'light-mode' %>
+    <%= site.parallaxImage ? ' with-parallax' : '' %>
+    <%= (page.useCmConsole || site.useCmConsole || page.useCmHead || site.useCmHead || page.useCmFooter || site.useCmFooter) ? 'cm-body' : '' %>
+  "
+  data-theme="<%= (site.theme && site.theme.mode === 'dark') ? 'dark' : 'light' %>"
+  <% if (site.parallaxPush) { %>
+    style="--parallax-push:<%= site.parallaxPush %>;"
+  <% } %>
+>
+
+  <!-- Optional Parallax Background DIV -->
+  <% if (site.parallaxImage) { %>
+    <div
+      class="parallax-bg"
+      style="background-image: url(
+        '<%= isSection ? '../' + site.parallaxImage : site.parallaxImage %>'
+      );"
+    ></div>
+  <% } %>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container header-container">
+      <% if (site.logo) { %>
+        <a href="<%= isSection ? '../index.html' : 'index.html' %>" class="logo-link">
+          <img
+            src="<%= isSection ? '../' + site.logo : site.logo %>"
+            alt="<%= site.title %> Logo"
+            class="logo"
+          >
+        </a>
+      <% } else { %>
+        <h1 class="logo-text"><%= site.title %></h1>
+      <% } %>
+
+      <% 
+        // Compute navLinks for header; skip if absent or empty
+        var navLinks = (site.header && site.header.links && site.header.links.length > 0)
+          ? site.header.links.filter(function(link) { return !!link && !!link.label && !!link.href; })
+          : [];
+      %>
+
+      <% if (navLinks.length > 0) { %>
+        <!-- Hamburger toggle (only visible on ≤768px) -->
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            <% navLinks.forEach(function(link) { 
+                 let href = link.href;
+                 if (link.href.startsWith('#')) {
+                   href = isSection
+                     ? '../sections/' + link.href.substring(1) + '.html'
+                     : 'sections/' + link.href.substring(1) + '.html';
+                 } else if (link.href === '/' || link.href === 'index.html') {
+                   href = isSection ? '../index.html' : 'index.html';
+                 } else if (!link.href.match(/^https?:\/\//)) {
+                   href = isSection ? '../' + link.href : link.href;
+                 }
+            %>
+              <li><a href="<%= href %>"><%= link.label %></a></li>
+            <% }); %>
+            <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
+          </ul>
+        </nav>
+      <% } %>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    <% if (!page.hideTitle) { %>
+      <h2 class="page-title"><%= page.title %></h2>
+    <% } %>
+
+    <% if (page.image) { %>
+      <div class="page-image<%= page.fullWidthImage ? ' full-viewport' : '' %>">
+        <img src="<%= isSection ? '../' + page.image : page.image %>" alt="<%= page.title %> image">
+      </div>
+    <% } %>
+
+    <!-- Include 3D Logo if specified -->
+    <% if ((page.use3DLogo || site.use3DLogo) && !(page.useCmConsole || site.useCmConsole)) { %>
+      <%- include('partials/cm-image.ejs') %>
+    <% } else if ((page.cmImage || site.cmImage) && !(page.useCmConsole || site.useCmConsole)) { %>
+      <%- include('partials/cm-image.ejs') %>
+    <% } %>
+
+    <!-- Include CM console if specified -->
+    <% if (page.useCmConsole || site.useCmConsole) { %>
+      <%- include('partials/cm-console.ejs') %>
+    <% } %>
+
+    <div class="page-content
+      <%= page.contentFont === 'terminal' ? 'content-font-terminal' : 
+         page.contentFont === 'modern-mono' ? 'content-font-modern-mono' : 
+         page.contentFont === 'system-mono' ? 'content-font-system-mono' : '' %>
+      <%= page.terminalStyle ? 'terminal-style' : '' %>">
+      <%- content %>
+    </div>
+
+    <!-- Column Layout Support -->
+    <% if (page.columnLayout && page.columnLayout.enabled) { %>
+      <div class="two-column-layout <%= page.columnLayout.ratio.replace('/', '-') %>">
+        <div class="left-column">
+          <%- page.columnLayout.processedLeftContent || page.columnLayout.leftContent || '' %>
+        </div>
+        <div class="right-column">
+          <%- page.columnLayout.processedRightContent || page.columnLayout.rightContent || '' %>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (page.cta) { %>
+      <div class="cta-wrapper">
+        <a class="cta-btn" href="<%= page.cta.href %>">
+          <%= page.cta.label %>
+        </a>
+      </div>
+    <% } %>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <!-- Include CM footer if specified -->
+    <% if (page.useCmFooter || site.useCmFooter) { %>
+      <%- include('partials/cm-footer.ejs') %>
+    <% } %>
+    
+    <div class="container footer-container">
+      <% if (site.footer && site.footer.links && site.footer.links.length > 0) { %>
+        <nav>
+          <ul class="footer-links">
+            <% site.footer.links.forEach(function(link) { %>
+              <li>
+                <a href="<%= link.href %>" target="_blank" rel="noopener">
+                  <%= link.label %>
+                </a>
+              </li>
+            <% }); %>
+          </ul>
+        </nav>
+      <% } %>
+      <p class="footer-copy">
+        &copy; <%= new Date().getFullYear() %> <%= site.title || 'Static Site' %>
+      </p>
+    </div>
+  </footer>
+
+  <% 
+    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;
+    const hasLatestArticleMap = latestArticleMap && Object.keys(latestArticleMap).length > 0;
+  %>
+  <% if (hasLatestArticleMap) { %>
+  <script>
+    (function(seed) {
+      var existing = window.radiostaticLatestArticles || window.sitegenLatestArticles || window.cmLatestArticles || {};
+      if (seed && typeof seed === 'object') {
+        for (var key in seed) {
+          if (Object.prototype.hasOwnProperty.call(seed, key)) {
+            existing[key] = seed[key];
+          }
+        }
+      }
+      window.radiostaticLatestArticles = existing;
+      window.sitegenLatestArticles = existing;
+      window.cmLatestArticles = existing;
+    })(<%- JSON.stringify(latestArticleMap) %>);
+  </script>
+  <% } %>
+
+  <% 
+    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;
+    const hasDispatchData = dispatchData && dispatchData.length > 0;
+  %>
+  <% if (hasDispatchData) { %>
+  <script>
+    (function(seed) {
+      var existingSeed = window.radiostaticConsoleDispatches || window.sitegenConsoleDispatches || window.cmConsoleDispatches;
+      var existing = Array.isArray(existingSeed) ? existingSeed.slice() : [];
+      var seen = new Set();
+      existing.forEach(function(entry) {
+        if (entry && entry.slug) {
+          seen.add(entry.slug);
+        }
+      });
+      if (Array.isArray(seed)) {
+        seed.forEach(function(entry) {
+          if (!entry || (entry.slug && seen.has(entry.slug))) {
+            return;
+          }
+          existing.push(entry);
+          if (entry.slug) {
+            seen.add(entry.slug);
+          }
+        });
+      }
+      window.radiostaticConsoleDispatches = existing;
+      window.sitegenConsoleDispatches = existing;
+      window.cmConsoleDispatches = existing;
+    })(<%- JSON.stringify(dispatchData) %>);
+  </script>
+  <% } %>
+
+  <% 
+    const doomBaseDepthValue = (typeof page.baseDepth === 'number' && page.baseDepth > 0) ? '../'.repeat(page.baseDepth) : '';
+    const rootBaseValue = (typeof page.rootBase === 'string' && page.rootBase.length > 0)
+      ? page.rootBase.replace(/\/+$/, '')
+      : ((site.baseUrl && site.baseUrl !== '/') ? site.baseUrl.replace(/\/+$/, '') : '');
+    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;
+  %>
+  <script>
+    (function() {
+      var config = window.radiostaticDoomConfig = window.radiostaticDoomConfig || window.sitegenDoomConfig || window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '<%= doomAssetBase %>';
+      }
+      window.sitegenDoomConfig = config;
+      window.cmDoomConfig = config;
+    })();
+  </script>
+
+  <!-- NAV TOGGLE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

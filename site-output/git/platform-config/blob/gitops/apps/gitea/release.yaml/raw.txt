@@ -1,0 +1,157 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gitea
+  namespace: git-local
+spec:
+  releaseName: gitea
+  storageNamespace: git-local
+  interval: 10m
+  targetNamespace: git-local
+
+  chart:
+    spec:
+      # Pull the chart you pushed to your local OCI registry
+      chart: gitea
+      version: 12.2.0
+      sourceRef:
+        kind: HelmRepository
+        name: gitea-charts
+        namespace: flux-system
+
+  install:
+    createNamespace: true
+    timeout: 10m
+    remediation:
+      retries: 3
+  upgrade:
+    timeout: 10m
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+
+  # Merge order is top->bottom (later entries win on conflicts).
+  valuesFrom:
+    - kind: Secret
+      name: secret-gitea
+      valuesKey: values.yaml
+      optional: true
+    - kind: Secret
+      name: secret-init
+      valuesKey: values.yaml
+      optional: true
+    - kind: Secret
+      name: secret-inline-config
+      valuesKey: values.yaml
+      optional: true
+    - kind: Secret
+      name: secret-postgresql
+      valuesKey: values.yaml
+      optional: true
+    - kind: Secret
+      name: secret-valkey
+      valuesKey: values.yaml
+      optional: true
+    - kind: Secret
+      name: secret-runner-token
+      valuesKey: values.yaml
+      optional: true
+
+  # Non-secret tweaks live here (kept in Git as plain YAML).
+  # These are merged AFTER valuesFrom.
+  values:
+    namespace: git-local
+
+    persistence:
+      enabled: true
+      claimName: git-repos-pvc
+      create: false
+      mount: true
+      mountPath: /data
+      storageClass: ""
+      size: 20Gi
+      accessModes: [ReadWriteMany]
+
+    podSecurityContext:
+      fsGroup: 1000
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        add: [SYS_CHROOT, NET_ADMIN, NET_RAW, SYS_MODULE, SYS_ADMIN]
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+
+    deployment:
+      env:
+        - name: DOCKER_TLS_VERIFY
+          value: "0"
+
+    service:
+      http: { type: ClusterIP, port: 3000 }
+      ssh:  { type: ClusterIP, port: 22 }
+
+    gitea:
+      admin:
+        username: core_admin
+        email: admin@gitea.core.home.arpa
+      config:
+        server:
+          PROTOCOL: http
+          ROOT_URL: https://gitea.core.home.arpa/
+          DOMAIN: gitea.core.home.arpa
+          START_SSH_SERVER: true
+          DISABLE_SSH: false
+          SSH_DOMAIN: gitea.core.home.arpa
+          SSH_PORT: 32222
+          LFS_START_SERVER: true
+        actions:
+          ENABLED: true
+        repository:
+          ROOT: /data/git/gitea-repositories
+
+    postgresql-ha:
+      enabled: false
+
+    postgresql:
+      enabled: true
+      architecture: standalone
+      primary:
+        persistence:
+          enabled: true
+          storageClass: microk8s-hostpath
+          size: 10Gi
+
+    valkey:
+      enabled: true
+      architecture: standalone
+      master:
+        persistence:
+          enabled: true
+          storageClass: microk8s-hostpath
+          size: 8Gi
+
+    valkey-cluster:
+      enabled: false
+
+    provisioning:
+      enabled: true
+      publish:
+        repository: bitnami/kubectl
+        tag: 1.29.0
+        pullPolicy: IfNotPresent
+      ttlSecondsAfterFinished: 300
+
+    # ingress:
+    #   enabled: true
+    #   className: nginx
+    #   hosts:
+    #     - host: gitea.core.home.arpa
+    #       paths:
+    #         - path: /
+    #           pathType: Prefix
+    #   tls:
+    #     - secretName: gitea-core-tls
+    #       hosts: [gitea.core.home.arpa]

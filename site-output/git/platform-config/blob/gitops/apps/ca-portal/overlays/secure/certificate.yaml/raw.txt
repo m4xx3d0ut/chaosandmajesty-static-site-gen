@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-portal-tls
+  namespace: ca-portal
+spec:
+  secretName: ca-portal-tls
+  dnsNames:
+    - ca.core.home.arpa
+  issuerRef:
+    name: org-ca
+    kind: ClusterIssuer
+

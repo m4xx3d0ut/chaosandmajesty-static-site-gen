@@ -1,0 +1,12 @@
+# .sops.yaml
+# Encrypt Secret payloads committed under gitops/ (reconciled) and
+# keep snapshot copies in live-export/secrets/ encrypted (not reconciled).
+creation_rules:
+  - path_regex: ^gitops/apps/ca-portal/site-configmap\.yaml$
+    encrypted_regex: '^$'     # encrypt nothing in this file
+  - path_regex: ^gitops/.+\.ya?ml$
+    encrypted_regex: '^(data|stringData)$'
+    age: 'age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x'
+  - path_regex: ^live-export/secrets/.+\.ya?ml$
+    encrypted_regex: '^(data|stringData)$'
+    age: 'age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x'

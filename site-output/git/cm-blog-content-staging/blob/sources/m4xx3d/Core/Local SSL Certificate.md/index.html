@@ -1,0 +1,193 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Local SSL Certificate.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Local SSL Certificate.md/raw.txt" data-git-line-count="215">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Local SSL Certificate.md</h4>
+          <div class="git-file-meta">6.1 KB · 215 lines · sources/m4xx3d/Core/Local SSL Certificate.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Local SSL Certificate.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Local SSL Certificate
+updated: 2023-12-11 20:58:17Z
+created: 2023-12-06 20:11:33Z
+latitude: 33.84918160
+longitude: -118.38840780
+altitude: 0.0000</h2>
+<h1>Local SSL Certificate</h1>
+<p><a href="https://gist.github.com/cecilemuller/9492b848eb8fe46d462abeb26656c4f8">https://gist.github.com/cecilemuller/9492b848eb8fe46d462abeb26656c4f8</a></p>
+<h2>Generate Cert</h2>
+<p>Install OpenSSL.</p>
+<pre><code>cd /usr/local/src/
+sudo wget https://www.openssl.org/source/openssl-3.2.0.tar.gz
+sudo tar -xf openssl-3.2.0.tar.gz
+cd openss**Import pem to Browser**
+1. Chrome settings (Settings &gt; Privacy and Security &gt; Security &gt; Manage certificates &gt; Authorities &gt; Import). Check Trust this certificate for identifying websites
+2. Firefox: Preferences &gt; Privacy and Security &gt; Certificates &gt; View Certificates &gt; Authorities &gt; import. Check Trust this CA to identify websitesl-3.2.0
+sudo ./config -Wl,--enable-new-dtags,-rpath,&#39;$(LIBRPATH)&#39;
+sudo make
+sudo make install
+</code></pre>
+<h3>CA (Option 0)</h3>
+<p>Generate pem, key, crt.</p>
+<pre><code>openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout localCA.key -out localCA.pem -subj &quot;/C=US/CN=Local-Root-CA&quot;
+openssl x509 -outform pem -in localCA.pem -out localCA.crt
+</code></pre>
+<p>Create ext.</p>
+<pre><code>authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = localhost
+DNS.2 = hyp3rion.local
+DNS.3 = www.hyp3rion.local
+</code></pre>
+<p>Generate key, csr, and crt.</p>
+<pre><code>openssl req -new -nodes -newkey rsa:2048 -keyout local.key -out local.csr -subj &quot;/C=US/ST=CA/L=HB/O=Local-Certificates/CN=hyp3rion.local&quot;
+
+openssl x509 -req -sha256 -days 1024 -in local.csr -CA $HOME/local_ssl/ca/root/localCA.pem -CAkey $HOME/local_ssl/ca/root/localCA.key -CAcreateserial -extfile hyp3rion.ext -out local.crt
+</code></pre>
+<p><strong>Import pem to Browser</strong></p>
+<ol>
+<li>Chrome settings (Settings &gt; Privacy and Security &gt; Security &gt; Manage certificates &gt; Authorities &gt; Import). Check Trust this certificate for identifying websites</li>
+<li>Firefox: Preferences &gt; Privacy and Security &gt; Certificates &gt; View Certificates &gt; Authorities &gt; import. Check Trust this CA to identify websites</li>
+</ol>
+<h3>CA (Option 1, WiP so probably won&#39;t work without editing)</h3>
+<pre><code class="language-bash">if [ &quot;$EUID&quot; -ne 0 ]
+  then echo &quot;Please run as root&quot;
+  exit
+fi
+
+export CA=hyp3rion
+export NAME=&quot;hyp3rion.local&quot;
+export DAYS=3650
+
+echo &quot;----------------------------------------------------&quot;
+echo &quot;[!] Once prompted, set FQDN to the value to: $NAME -&quot;
+echo &quot;----------------------------------------------------&quot;
+
+# you probably want to have this in its own directory
+mkdir /etc/ssl/$CA &amp;&amp; cd /etc/ssl/$CA
+
+# generate private key
+openssl genrsa -des3 -out $CA.key 2048
+
+# generate root certificate
+openssl req -x509 -new -nodes -key $CA.key -sha256 -days 825 -out $CA.pem
+
+# if CA files were in a separate directory
+cd .. &amp;&amp; mkdir /etc/ssl/$NAME &amp;&amp; cd /etc/ssl/$NAME
+
+# generate private key
+openssl genrsa -out $NAME.key 2048
+
+# Create a certificate-signing request
+# Once prompted, set FQDN to the value of $NAME
+openssl req -new -key $NAME.key -out $NAME.csr
+
+# Create a config file for the extensions
+&gt;$NAME.ext cat &lt;&lt;-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = www.$NAME
+DNS.2 = $NAME
+EOF
+
+# Create the signed certificate
+#openssl x509 -req -in $NAME.csr -CA $CA.pem -CAkey $CA.key -CAcreateserial -out $NAME.crt -days $DAYS -sha256 -extfile $NAME.ext
+
+sudo openssl x509 -req -in $NAME.csr -CA /etc/ssl/$CA/$CA.pem -CAkey /etc/ssl/$CA/$CA.key -CAcreateserial -out $NAME.crt -days $DAYS -sha256 -extfile $NAME.ext
+</code></pre>
+<p><strong>Import pem to Browser</strong></p>
+<ol>
+<li>Chrome settings (Settings &gt; Privacy and Security &gt; Security &gt; Manage certificates &gt; Authorities &gt; Import). Check Trust this certificate for identifying websites</li>
+<li>Firefox: Preferences &gt; Privacy and Security &gt; Certificates &gt; View Certificates &gt; Authorities &gt; import. Check Trust this CA to identify websites</li>
+</ol>
+<h3>Cert &amp; Key (Option 2, self-signed but without CA Root Cert)</h3>
+<p>Create conf.</p>
+<pre><code>cd
+mkdir local_ssl
+cd local_ssl
+touch ssl.conf
+</code></pre>
+<p>Edit <code>ssl.conf</code>.</p>
+<pre><code>[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+C = &lt;--COUNTRY CODE - 2 Characters--&gt;
+ST = &lt;--PROVINCE/ STATE--&gt;
+L = &lt;--CITY--&gt;
+O = &lt;--ORGANISATION--&gt;
+OU = &lt;--DEPARTMENT--&gt;
+CN = &lt;--CERTIFICATE ISSUER NAME - Can be anything--&gt;
+[v3_req]
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = &lt;--DOMAIN NAME--&gt;
+DNS.2 = &lt;--DOMAIN NAME 2--&gt;
+</code></pre>
+<p>Create the cert.</p>
+<pre><code>openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout localhost.key -out localhost.crt -config ssl.conf -extensions &#39;v3_req&#39;
+
+openssl x509 -req -in hyp3rion.local.csr -CA .pem -CAkey $CA.key -CAcreateserial -out $NAME.crt -days 825 -sha256 -extfile $NAME.ext
+
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout cert.key -out cert.crt -config req.conf -extensions v3_req
+</code></pre>
+<p>Copy the cert and key to the SSL directory.</p>
+<pre><code class="language-bash">sudo cp localhost.crt /etc/ssl/certs/localhost.crt
+sudo cp localhost.key /etc/ssl/private/localhost.key
+</code></pre>
+<h2>Configure Nginx for SSL</h2>
+<p>Edit the Nginx conf to include.</p>
+<pre><code>server {
+      listen 443 ssl;
+      listen [::]:443 ssl;
+      ssl_certificate /etc/ssl/certs/localhost.crt;
+      ssl_certificate_key /etc/ssl/private/localhost.key;
+      ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+</code></pre>
+<p>(or)</p>
+<pre><code>server {
+      listen 443 ssl;
+      listen [::]:443 ssl;
+      ssl_certificate /etc/ssl/hyp3rion/hyp3rion.pem;
+      ssl_certificate_key /etc/ssl/hyp3rion.key;
+      ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+</code></pre>
+<p>(If desired) Redirect all HTTP requests to HTTPS.</p>
+<pre><code>server {
+    listen 80;
+    listen [::]:80;
+    server_name &lt;YOUR-SERVER-NAME&gt;;
+    return 301 https://$server_name$request_uri;
+}
+</code></pre>
+<p>Test the Nginx conf and reload.</p>
+<pre><code class="language-bash">sudo nginx -T
+sudo systemctl restart nginx
+</code></pre>
+<h2>Add Cert to Local DB</h2>
+<p>Install <code>libnss3-tools</code>.</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install libnss3-tools
+</code></pre>
+<p>Add cert to the DB.</p>
+<pre><code class="language-bash">sudo cp localhost.crt /usr/share/ca-certificates/
+certutil -d sql:$HOME/.pki/nssdb -A -t &quot;CT,c,c&quot; -n &quot;localhost&quot; -i /usr/share/ca-certificates/localhost.crt
+</code></pre>
+
+      </div>
+    </article>
+  

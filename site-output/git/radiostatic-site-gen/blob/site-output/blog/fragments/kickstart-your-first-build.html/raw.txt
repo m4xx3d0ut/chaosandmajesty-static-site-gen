@@ -1,0 +1,98 @@
+
+
+
+
+<article class="blog-article-body" data-slug="kickstart-your-first-build">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Kickstart Your First Build</h1>
+    <p class="blog-article-meta">
+      
+        <span>Apr 12, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>4 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>Your Name</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="assets/static/img/hero-blog-card.svg" alt="Kickstart Your First Build hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <p>Ready to see RadioStatic in action? Start here:</p>
+<ol>
+<li>Install dependencies with <code>npm install</code> (already done for the demo branch).</li>
+<li>Run <code>./build-site.sh</code> to compile the demo configuration and generate HTML under <code>site-output/</code>.</li>
+<li>Launch <code>make serve-local</code> to view the pages at <a href="http://localhost:8080">http://localhost:8080</a>.</li>
+</ol>
+<p>From there you can swap the YAML file, edit Markdown content, and rebuild. The entire flow runs offline so you can iterate quickly and keep your broadcast secure.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/avatar-alex.svg" alt="Your Name avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">Your Name</strong>
+        
+          <div class="blog-author-title">Signal Keeper</div>
+        
+        
+          <p class="blog-author-bio">Introduce yourself or your crew with a quick sentence about why you broadcast.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/you" target="_blank" rel="noopener">@yourhandle</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link is-disabled"
+        data-blog-nav="previous"
+        aria-disabled=&#34;true&#34; tabindex=&#34;-1&#34;
+        href="#"
+        data-default-href=""
+        data-default-fragment=""
+        data-fragment-href=""
+        data-target-slug=""
+        data-post-slug=""
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">No newer posts</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/launch-checklist.html"
+        data-default-href="blog/launch-checklist.html"
+        data-default-fragment="blog/fragments/launch-checklist.html"
+        data-fragment-href="blog/fragments/launch-checklist.html"
+        data-target-slug="launch-checklist"
+        data-post-slug="launch-checklist"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Launch Checklist</span>
+      </a>
+    </nav>
+  
+</article>
+

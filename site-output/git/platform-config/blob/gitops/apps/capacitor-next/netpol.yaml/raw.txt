@@ -1,0 +1,18 @@
+# gitops/apps/capacitor-next/netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx-to-capacitor-next
+  namespace: flux-system
+spec:
+  podSelector:
+    matchLabels: { app: capacitor-next }
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3333

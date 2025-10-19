@@ -1,0 +1,27 @@
+---
+title: "Welcome to RadioStatic"
+slug: welcome-to-radiostatic
+author: your-name
+summary: "A quick tour of the RadioStatic demo and how it keeps your broadcast secure."
+publishedAt: 2024-01-01
+heroImage: assets/static/img/hero-blog-card.svg
+readingMinutes: 2
+seoDescription: "Introduce newcomers to the RadioStatic demo, retro signal theme, and maker-friendly workflow."
+tags:
+  - getting-started
+  - demo
+---
+
+RadioStatic ships with a signal-inspired demo so you can inspect the generated HTML before wiring up your own content. This post is rendered on the home page by default and covers the essentials.
+
+## What this broadcast includes
+
+- A homepage with a retro console hero section.
+- A blog index backed by Markdown files and radio-flavoured copy.
+- A simulated signal archive (stagit HTML) to showcase code project listings.
+
+## Secure next steps
+
+Update the Markdown files inside `content/blog/` (or point the generator at your own directory) to replace these examples with your voice. Each file supports front matter fields such as `title`, `author`, `summary`, and `tags`—check the additional posts for ideas.
+
+When you're ready, run `./build-site.sh` with your configuration file to regenerate the output in `site-output/` and keep the RadioStatic signal fresh.

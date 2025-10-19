@@ -1,0 +1,106 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/README.md/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/README.md/raw.txt" data-git-line-count="112">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">README.md</h4>
+          <div class="git-file-meta">6.0 KB · 112 lines · README.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/README.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>RadioStatic Static Site Generator</h1>
+<p>RadioStatic turns a YAML configuration, Markdown content, and a folder of static assets into a secure, retro-flavoured static website. Built for security-minded developers and makers, it ships with a self-contained demo so newcomers can explore every feature without importing Chaos &amp; Majesty assets or copy.</p>
+<hr>
+<h2>Quick Start</h2>
+<pre><code class="language-bash"># Install dependencies (one time)
+npm install
+
+# Build the demo site (defaults to smoke-test.yaml)
+./build-site.sh
+
+# Or supply your own configuration file and output directory
+./build-site.sh path/to/your-config.yaml path/to/output
+
+# Preview locally
+make serve-local
+</code></pre>
+<p>The generated site lives under <code>site-output/</code> (or whichever directory you passed to <code>build-site.sh</code>).</p>
+<hr>
+<h2>Demo Project Overview</h2>
+<p>The repository includes a retro RadioStatic demo that exercises every generator feature:</p>
+<ul>
+<li><strong>Configuration</strong> – <code>smoke-test.yaml</code> wires up the home page, sections, blog, sitemap, and sample navigation.</li>
+<li><strong>Content</strong> – <code>content/blog/</code> contains Markdown posts for two fictional authors plus a default article rendered on the blog landing page.</li>
+<li><strong>Assets</strong> – <code>examples/demo-site/assets/</code> ships the RadioStatic signal palette: retro CSS, refreshed SVG artwork, and metadata files referenced by the demo configuration.</li>
+<li><strong>Stagit Sample</strong> – <code>examples/demo-site/stagit/</code> includes a tiny bare git repository and placeholder HTML to illustrate publishing a repository mirror alongside your site (see <a href="docs/demo-guide.md">docs/demo-guide.md</a>).</li>
+</ul>
+<p>Run <code>./prepare-demo-assets.sh</code> if you want to sync the example assets into <code>static-sitegen/assets/</code> for experimentation; otherwise the build script copies directly from <code>examples/demo-site/assets/</code>.</p>
+<hr>
+<h2>Project Layout</h2>
+<pre><code>├── build-site.sh                 # Wrapper around the generator CLI
+├── makefile / docker-compose.yml # Optional container workflows
+├── smoke-test.yaml               # Demo configuration file
+├── content/                      # Markdown sources (blog posts, sections)
+├── examples/demo-site/           # Bundled demo assets and stagit sample
+├── static-sitegen/               # RadioStatic engine (ES modules + templates)
+│   ├── bin/radiostatic.js        # CLI interface
+│   ├── lib/                      # Core generation logic
+│   ├── templates/                # EJS templates used for rendering
+│   └── assets/                   # Default theme assets
+└── site-output/                  # Generated HTML (created by the build script)
+</code></pre>
+<hr>
+<h2>Key Features</h2>
+<ul>
+<li><strong>YAML-first configuration</strong> – control navigation, sections, theming, blog behaviour, and metadata from a single file.</li>
+<li><strong>Signal console</strong> – beam a retro command console onto any page with <code>useCmConsole</code> (soon <code>useTerminalConsole</code>); the bundled script simulates a shortwave prompt with history and custom commands.</li>
+<li><strong>Blog engine</strong> – Markdown posts with front matter for authors, hero art, summaries, publish dates, and fragments for partial rendering.</li>
+<li><strong>Security-first output</strong> – RadioStatic emits flat HTML, CSS, and assets so you can host on hardened object storage or CDNs without a long-running process.</li>
+<li><strong>Portable assets</strong> – point the <code>assets</code> key to any directory and RadioStatic mirrors the structure into the final build (including <code>site.webmanifest</code> and <code>robots.txt</code>).</li>
+<li><strong>Section support</strong> – reusable content blocks rendered as standalone pages and linkable from navigation or CTAs.</li>
+<li><strong>Stagit showcase</strong> – optional HTML bundle that demonstrates how to surface git repository metadata alongside your marketing site.</li>
+</ul>
+<hr>
+<h2>Working With Configurations</h2>
+<ul>
+<li>Pass a different YAML file to <code>./build-site.sh</code> or <code>make build-local CONFIG=path/to/config.yaml</code>.</li>
+<li>Use the <code>assets</code> key in the YAML file to point at your own asset directory. Everything inside that folder is copied to <code>site-output/assets/</code>.</li>
+<li>Supply alternate output directories via <code>./build-site.sh your.yaml public-site</code> or <code>make build-local CONFIG=your.yaml OUTPUT=public-site</code>.</li>
+<li>Set <code>RADIOSTATIC_VERBOSE=0</code> (legacy <code>SITEGEN_VERBOSE</code> still works) to suppress verbose logging during builds.</li>
+</ul>
+<p>Refer to <a href="docs/configuration.md">docs/configuration.md</a> for a breakdown of the most common keys.</p>
+<hr>
+<h2>Scripts &amp; Commands</h2>
+<ul>
+<li><code>./build-site.sh [config] [output]</code> – wraps the generator, validates the output, and prints a quick file listing.</li>
+<li><code>./prepare-demo-assets.sh [source-dir]</code> – copies assets into <code>static-sitegen/assets/</code> (defaults to the demo asset directory).</li>
+<li><code>make build-local CONFIG=... OUTPUT=...</code> – convenience wrapper around <code>build-site.sh</code>.</li>
+<li><code>make serve-local</code> – serves the <code>site-output/</code> directory on <code>http://localhost:8080</code>.</li>
+<li><code>make build</code>, <code>make up</code>, <code>make down</code> – Docker workflows if you prefer containerised builds.</li>
+</ul>
+<hr>
+<h2>Customising the Demo</h2>
+<ol>
+<li>Duplicate <code>smoke-test.yaml</code> under a new name and adjust site metadata, navigation, and section copy.</li>
+<li>Add or edit Markdown files in <code>content/blog/</code>, updating front matter fields (<code>title</code>, <code>author</code>, <code>summary</code>, <code>heroImage</code>, etc.).</li>
+<li>Update artwork under <code>examples/demo-site/assets/static/img/</code> or point the YAML configuration at a different asset directory.</li>
+<li>Re-run <code>./build-site.sh your-config.yaml</code> and refresh the served site.</li>
+</ol>
+<p>Template updates live under <code>static-sitegen/templates/</code>. Copy the EJS files elsewhere if you need to version a highly customised theme.</p>
+<hr>
+<h2>Documentation</h2>
+<ul>
+<li><a href="docs/demo-guide.md">docs/demo-guide.md</a> – end-to-end walkthrough for building and serving the demo.</li>
+<li><a href="docs/configuration.md">docs/configuration.md</a> – explanations of the most common YAML keys and how they map to templates.</li>
+<li><a href="FEAT.md">FEAT.md</a> – active development plan for the repo refresh.</li>
+</ul>
+<hr>
+<h2>Contributing</h2>
+<p>Pull requests are welcome! Please keep changes focused, follow the existing JavaScript style (ES modules, 2-space indentation, single quotes), and include updated build output or screenshots when behaviour changes. Run <code>./build-site.sh</code> before submitting to ensure the generator still produces a working demo.</p>
+
+      </div>
+    </article>
+  

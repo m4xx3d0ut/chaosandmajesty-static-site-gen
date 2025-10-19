@@ -1,0 +1,177 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 30m
+  dependsOn:
+    - name: mimir
+      namespace: mimir
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: kube-prom
+
+    grafana:
+      enabled: true
+      defaultDashboardsEnabled: true
+
+      # We provision files, so sidecars are not needed.
+      sidecar:
+        datasources:
+          enabled: false
+        dashboards:
+          enabled: false
+
+      admin:
+        existingSecret: grafana-admin
+        userKey: admin-user
+        passwordKey: admin-password
+
+      defaultDashboardsTimezone: browser
+      service:
+        type: ClusterIP
+      ingress:
+        enabled: false
+
+      # File-based datasource provisioning
+      datasources:
+        datasources.yaml:
+          apiVersion: 1
+          deleteDatasources:
+            - name: Prometheus
+              orgId: 1
+          datasources:
+            - name: Prometheus
+              uid: prometheus
+              type: prometheus
+              isDefault: true
+              access: proxy
+              url: http://kube-prom-prometheus.monitoring.svc.cluster.local:9090
+
+            - name: Mimir
+              uid: mimir
+              type: prometheus
+              access: proxy
+              url: http://mimir-nginx.mimir.svc.cluster.local/prometheus
+              jsonData:
+                httpMethod: POST
+                manageAlerts: true
+
+            - name: Loki
+              uid: loki
+              type: loki
+              access: proxy
+              url: http://loki-gateway.loki.svc.cluster.local
+              jsonData:
+                maxLines: 1000
+                httpHeaderName1: X-Scope-OrgID
+                derivedFields:
+                  - name: trace_id
+                    matcherRegex: '(?:traceID|trace_id)=(\w+)'
+                    datasourceUid: tempo
+                    url: '${__value.raw}'
+              secureJsonData:
+                httpHeaderValue1: core
+
+            - name: Tempo
+              uid: tempo
+              type: tempo
+              access: proxy
+              url: http://tempo.tempo.svc.cluster.local:3200
+              jsonData:
+                tracesToLogs:
+                  datasourceUid: loki
+                  mappedTags:
+                    - service.name
+                  mapTagNamesEnabled: true
+                  spanStartTimeShift: '1h'
+                  spanEndTimeShift: '1h'
+                  filterBySpanID: true
+                  filterByTraceID: true
+                  lokiSearch: true
+                serviceMap:
+                  datasourceUid: prometheus
+                nodeGraph:
+                  enabled: true
+
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+            - name: Kubernetes
+              folder: Kubernetes
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/kubernetes
+            - name: Infra
+              folder: Infra
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/infra
+            - name: Logs
+              folder: Logs
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/logs
+            - name: Traces
+              folder: Traces
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/traces
+
+      extraConfigmapMounts:
+        - name: dashboards-kubernetes
+          configMap: kubernetes-cluster-overview
+          mountPath: /var/lib/grafana/dashboards/kubernetes
+          readOnly: true
+        - name: dashboards-infra
+          configMap: minio-health
+          mountPath: /var/lib/grafana/dashboards/infra
+          readOnly: true
+        - name: dashboards-logs
+          configMap: loki-operations
+          mountPath: /var/lib/grafana/dashboards/logs
+          readOnly: true
+        - name: dashboards-traces
+          configMap: service-red
+          mountPath: /var/lib/grafana/dashboards/traces
+          readOnly: true
+
+    prometheus:
+      prometheusSpec:
+        serviceMonitorSelector: {}
+        serviceMonitorNamespaceSelector: {}
+        podMonitorSelector: {}
+        podMonitorNamespaceSelector: {}
+        probeSelector: {}
+        probeNamespaceSelector: {}
+        retention: 15d
+        enableAdminAPI: false
+        remoteWrite:
+          - url: http://mimir-nginx.mimir.svc.cluster.local/api/v1/push
+            headers:
+              X-Scope-OrgID: 'corelocal'
+
+    kube-state-metrics:
+      enabled: true
+
+    nodeExporter:
+      enabled: true

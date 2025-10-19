@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEFAULT_TARGETS=(content/**/*.md sources/**/*.md)
+
+if [[ $# -gt 0 ]]; then
+  TARGETS=("$@")
+else
+  mapfile -t TARGETS < <(cd "$REPO_ROOT" && git ls-files -- "*.md")
+fi
+
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+  echo "No markdown files specified or tracked."
+  exit 0
+fi
+
+python3 "$REPO_ROOT/scripts/auto_fence.py" "${TARGETS[@]}"
+
+run_markdownlint() {
+  local cmd=()
+  if command -v markdownlint >/dev/null 2>&1; then
+    cmd=(markdownlint)
+  elif command -v npx >/dev/null 2>&1; then
+    cmd=(npx markdownlint)
+  else
+    echo "markdownlint not available; skipping lint step." >&2
+    return 0
+  fi
+
+  if ! "${cmd[@]}" "${TARGETS[@]}"; then
+    echo "markdownlint reported issues (see above)." >&2
+    return 1
+  fi
+}
+
+run_markdownlint || true

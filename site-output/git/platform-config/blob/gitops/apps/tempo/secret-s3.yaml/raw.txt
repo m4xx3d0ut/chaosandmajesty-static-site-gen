@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tempo-s3
+    namespace: tempo
+type: Opaque
+stringData:
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:L2a1SCk8aWYBHw==,iv:KDdxk+LpMGNIATTa5wNRX/7tHg2PBJlYss5kL6tfjsg=,tag:xrnho4W1mkRrw8VsyTA9ww==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:ayLGY9aK135Tr05arcnI,iv:QLsVbLJrKb+7tjSnRQhV2Mlgg7Czv/LYm1Fh2FL6pdI=,tag:RrGTim0iiZIqOETP7sFVSw==,type:str]
+sops:
+    age:
+        - recipient: age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPbUFNdGpjMVhrNlhCUlVD
+            VG1GN0NPWHkwS3drMEROdGlYN2U1ZTNwNXlNClZDc21TcTl4YU12eTNIdU5zTzJ2
+            OUF5REd4ZEdWelpZZ2NhSlMyaG9pRlEKLS0tIG13UGlLQzVlakJwK0U4b0ZjZFpj
+            SHFtdmpyZDVnRGtvSnNRNGovS1BCMWsKPAmgI0WuGvEHJT3uLBKQJ/LGidHrpcqH
+            DYRWuJb76c8GlFDwINoGR647k56eUYNtxL6w+cq7MfRzaoOKv6TEKg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-08T16:27:42Z"
+    mac: ENC[AES256_GCM,data:EqNlD3P2+do7pDPojlxoHkKSdi1Z/hHcml3GbDArBZfLo/6zg+6hcGtWhvXr0X7raXDzvjU/lwNcLACc+b5kTSqjJxilDHNr+weZbPmozhQA4FG+ZeEfQS542D1DXdBEflgBIwj8JiE3mUZ/Spp7cPFrujnDLQT8xAQo/sm7Qbo=,iv:dlL+WTbnXCsuRCnCR5IxVKb3J/MvfuiDcJJ0ecCr26o=,tag:/sc5aQ+2IP+0wJwBJIXvRw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

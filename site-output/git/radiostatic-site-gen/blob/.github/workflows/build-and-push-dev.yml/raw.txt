@@ -1,0 +1,240 @@
+# Dev
+name: Build & Push (dev / site-output)
+
+on:
+  push:
+    branches: [ dev ]
+    # Only run if site-output/ changes
+    paths: [ 'site-output/**' ]
+  # Enable manual triggering
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag, or SHA to build
+        required: false
+        default: dev
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      # ⬅️ push through the host-exposed NodePort so DinD can reach it
+      REGISTRY: reg.microk8s.core.home.arpa:32000
+      IMAGE_NAME: cm
+      TAG_SHA: dev-${{ github.sha }}
+      TAG_MAJOR: latest
+      DEFAULT_BRANCH: dev
+      DEFAULT_SHA: ${{ github.sha }}
+      FALLBACK_REF: ${{ github.ref }}
+      TARGET_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+
+    steps:
+      - name: Install SSH client (if missing)
+        run: |
+          set -e
+          if ! command -v ssh-keyscan >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
+
+      - name: DNS & connectivity checks (in-cluster)
+        env:
+          GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
+          GITEA_SSH_PORT: "2222"
+          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== resolv.conf ==="; cat /etc/resolv.conf || true; echo
+          echo "=== getent hosts (gitea ssh svc) ==="
+          getent hosts "$GITEA_SVC_HOST" || (echo "FATAL: cannot resolve $GITEA_SVC_HOST" && exit 1)
+          echo
+          echo "=== TCP check gitea ssh ==="
+          timeout 5 bash -c ">/dev/tcp/$GITEA_SVC_HOST/$GITEA_SSH_PORT" || (echo "FATAL: cannot reach $GITEA_SVC_HOST:$GITEA_SSH_PORT" && exit 1)
+          echo "OK"; echo
+          echo "=== getent hosts (registry) ==="
+          REGISTRY_HOST="${REGISTRY_HOSTPORT%%:*}"
+          getent hosts "$REGISTRY_HOST" || (echo "FATAL: cannot resolve $REGISTRY_HOST" && exit 1)
+          echo
+          echo "=== TCP check registry ==="
+          REGISTRY_PORT="${REGISTRY_HOSTPORT##*:}"
+          timeout 5 bash -c ">/dev/tcp/$REGISTRY_HOST/$REGISTRY_PORT" || (echo "FATAL: cannot reach $REGISTRY_HOSTPORT" && exit 1)
+          echo "OK"
+
+      - name: Setup SSH material
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf "%s\n" "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo "Host gitea-ssh.git-local.svc.cluster.local"
+            echo "  User git"
+            echo "  IdentityFile ~/.ssh/id_ci"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } >> ~/.ssh/config
+
+      - name: Clone repo (SSH via in-cluster service)
+        run: |
+          set -euo pipefail
+          REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          TARGET_INPUT="${TARGET_REF:-}"
+          DEFAULT_BRANCH="${DEFAULT_BRANCH:-dev}"
+          DEFAULT_SHA="${DEFAULT_SHA:-}"
+          FALLBACK_REF="${FALLBACK_REF:-}"
+
+          if [[ -z "$TARGET_INPUT" ]]; then
+            if [[ -n "$DEFAULT_SHA" ]]; then
+              TARGET="$DEFAULT_SHA"
+            elif [[ -n "$FALLBACK_REF" ]]; then
+              TARGET="$FALLBACK_REF"
+            else
+              TARGET="refs/heads/${DEFAULT_BRANCH}"
+            fi
+          else
+            TARGET="$TARGET_INPUT"
+          fi
+
+          if [[ "$TARGET" != refs/* && ! "$TARGET" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            TARGET="refs/heads/$TARGET"
+          fi
+
+          if [[ "$TARGET" == refs/heads/* ]]; then
+            BRANCH="${TARGET#refs/heads/}"
+            git clone --depth 1 --branch "$BRANCH" "$REPO_SSH" .
+          elif [[ "$TARGET" == refs/tags/* ]]; then
+            TAG="${TARGET#refs/tags/}"
+            git clone --depth 1 "$REPO_SSH" .
+            git fetch --depth 1 origin "refs/tags/$TAG:refs/tags/$TAG" || git fetch origin "refs/tags/$TAG"
+            git checkout "tags/$TAG"
+          elif [[ "$TARGET" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            git clone --depth 1 "$REPO_SSH" .
+            git fetch --depth 1 origin "$TARGET" || git fetch origin "$TARGET" || git fetch origin
+            git checkout --detach "$TARGET"
+          elif [[ -n "$TARGET" ]]; then
+            git clone --depth 1 --branch "$TARGET" "$REPO_SSH" . || {
+              git clone --depth 1 "$REPO_SSH" .
+              git fetch --depth 1 origin "$TARGET" || git fetch origin "$TARGET" || true
+              git checkout --detach "$TARGET" || git checkout "$TARGET" || true
+            }
+          else
+            git clone --depth 1 "$REPO_SSH" .
+            if [[ -n "${GITHUB_SHA:-}" ]]; then
+              git fetch --depth 1 origin "${GITHUB_SHA}" || git fetch origin
+              git checkout --detach "${GITHUB_SHA}"
+            fi
+          fi
+
+          BUILD_SHA="$(git rev-parse HEAD)"
+          echo "BUILD_SHA=${BUILD_SHA}" >> "$GITHUB_ENV"
+          echo "TAG_SHA=dev-${BUILD_SHA}" >> "$GITHUB_ENV"
+
+      - name: Cache stagit fallback tarball
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/stagit
+          if compgen -G 'scripts/stagit/stagit-*.tar.gz' > /dev/null 2>&1; then
+            echo "Stagit tarball already cached; skipping download"
+            exit 0
+          fi
+
+          refs=(main master)
+          mirrors=(
+            "chaosandmajesty-mirrors/stagit"
+            "rski/stagit"
+          )
+
+          for ref in "${refs[@]}"; do
+            for mirror in "${mirrors[@]}"; do
+              url="https://codeload.github.com/${mirror}/stagit/tar.gz/refs/heads/${ref}"
+              tmp="$(mktemp scripts/stagit/stagit-download-XXXXXX.tar.gz)"
+              if curl -fsSL "$url" -o "$tmp"; then
+                dest="scripts/stagit/stagit-${ref}.tar.gz"
+                mv "$tmp" "$dest"
+                ln -sfn "$(basename "$dest")" scripts/stagit/stagit-fallback.tar.gz
+                echo "Cached stagit ${ref} tarball from ${mirror}"
+                exit 0
+              fi
+              rm -f "$tmp"
+            done
+          done
+
+          echo "WARNING: Unable to cache stagit tarball from remote mirrors; using bundled archive if available" >&2
+
+      - name: Install stagit toolchain
+        run: |
+          scripts/install-stagit.sh
+
+      - name: Generate stagit HTML (dev check)
+        env:
+          STAGIT_REPOLIST: ${{ github.workspace }}/config/stagit/manifest.txt
+          STAGIT_REPOBASE: ${{ github.workspace }}/tmp/stagit/repos
+          STAGIT_HTMLBASE: ${{ github.workspace }}/tmp/stagit/html
+          STAGIT_ASSETSDIR: ${{ github.workspace }}/tmp/stagit/html/_assets
+          STAGIT_SHARED_ASSETS: style.css logo.png favicon.png
+          STAGIT_URL_REWRITE: >-
+            git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/,ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
+        run: |
+          set -euo pipefail
+          rm -rf tmp/stagit
+          mkdir -p tmp/stagit/html/_assets
+          if [ -d config/stagit/assets ]; then
+            cp -a config/stagit/assets/. tmp/stagit/html/_assets/
+          fi
+          scripts/update-stagit.sh
+
+      - name: Copy stagit mirror into site output
+        run: |
+          set -euo pipefail
+          if [ ! -d tmp/stagit/html ]; then
+            echo "WARN: stagit HTML directory missing; skipping copy" >&2
+            exit 0
+          fi
+          mkdir -p site-output
+          rm -rf site-output/git
+          cp -a tmp/stagit/html site-output/git
+
+      - name: Upload stagit HTML artifact (dev)
+        uses: actions/upload-artifact@v3
+        with:
+          name: stagit-html-dev
+          path: tmp/stagit/html
+          retention-days: 3
+
+      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.
+      - name: Registry login (optional)
+        if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          config-inline: |
+            [registry."reg.microk8s.core.home.arpa:32000"]
+              http = true
+              insecure = true
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.dev
+          no-cache: true
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
+
+      - name: Output image refs
+        run: |
+          echo "Pushed:"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}"
+          echo "  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}"

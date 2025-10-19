@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RadioStatic Demo – Styling Your Pages</title>
+
+  
+    <!-- RadioStatic head partial -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../assets/static/style/terminal-console.css">
+<script type="text/javascript" src="../assets/static/js/terminal-console.js" defer></script>
+<link rel="manifest" href="../site.webmanifest"/>
+<link rel="icon" href="../assets/static/img/site-logo.svg" type="image/svg+xml">
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+</head>
+<body class="cm-body blog-page">
+  <header>
+    <div class="container header-container">
+      
+      
+      
+        <a href="../index.html" class="logo-link">
+          <img src="../assets/static/img/site-logo.svg" alt="RadioStatic Demo Logo" class="logo">
+        </a>
+      
+      
+      
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="../index.html">Home</a></li>
+            
+              <li><a href="../blog.html">Blog</a></li>
+            
+              <li><a href="../stagit/index.html">Git</a></li>
+            
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <main class="blog-container blog-post-view">
+    <div class="blog-article-shell">
+      <a class="blog-back-link" href="../blog.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Back to RadioStatic Blog
+      </a>
+      
+
+<article class="blog-article-body" data-slug="styling-your-pages">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Styling Your Pages</h1>
+    <p class="blog-article-meta">
+      
+        <span>Mar 28, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>3 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>Your Name</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="../assets/static/img/hero-colors.svg" alt="Styling Your Pages hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <p>The demo theme is intentionally small so you can replace it without digging through hundreds of lines of styling. Here are a few quick wins:</p>
+<ol>
+<li>Duplicate <code>examples/demo-site/assets/modern.css</code> and adjust the color variables at the top.</li>
+<li>Swap the <code>styles</code> array in your YAML file so pages load your stylesheet.</li>
+<li>Update any assets referenced in the Markdown files to match your colors or illustrations.</li>
+</ol>
+<p>For teams that prefer utility classes, you can even pipe the generated HTML into your favorite framework—RadioStatic does not enforce a runtime.</p>
+<p>Need a terminal-style hero? Keep the <code>useTerminalConsole: true</code> flags in the configuration and customize the copy inside the Markdown sections.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="../assets/static/img/avatar-alex.svg" alt="Your Name avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">Your Name</strong>
+        
+          <div class="blog-author-title">Signal Keeper</div>
+        
+        
+          <p class="blog-author-bio">Introduce yourself or your crew with a quick sentence about why you broadcast.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/you" target="_blank" rel="noopener">@yourhandle</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="../blog/launch-checklist.html"
+        data-default-href="../blog/launch-checklist.html"
+        data-default-fragment="../blog/fragments/launch-checklist.html"
+        data-fragment-href="../blog/fragments/launch-checklist.html"
+        data-target-slug="launch-checklist"
+        data-post-slug="launch-checklist"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">Launch Checklist</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="../blog/introducing-the-demo-site.html"
+        data-default-href="../blog/introducing-the-demo-site.html"
+        data-default-fragment="../blog/fragments/introducing-the-demo-site.html"
+        data-fragment-href="../blog/fragments/introducing-the-demo-site.html"
+        data-target-slug="introducing-the-demo-site"
+        data-post-slug="introducing-the-demo-site"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Introducing the Demo Site</span>
+      </a>
+    </nav>
+  
+</article>
+
+    </div>
+  </main>
+
+  <footer>
+    
+      <!-- Terminal footer partial -->
+<div class="terminal-footer">
+  <p>
+    Swap out these placeholder assets with your own broadcast kit before publishing.
+  </p>
+</div>
+
+    
+    <div class="container footer-container">
+      <p class="footer-copy">&copy; 2025 RadioStatic Demo</p>
+    </div>
+  </footer>
+
+  <button type="button" class="blog-back-to-top" aria-label="Back to top">
+    ▲
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

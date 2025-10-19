@@ -1,0 +1,348 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/iR/R&amp;D - Blog/1 - 2_12_24 - Methods &amp; Madness.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/iR/R&amp;D - Blog/1 - 2_12_24 - Methods &amp; Madness.md/raw.txt" data-git-line-count="265">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">1 - 2_12_24 - Methods &amp; Madness.md</h4>
+          <div class="git-file-meta">30 KB · 265 lines · sources/iR/R&amp;D - Blog/1 - 2_12_24 - Methods &amp; Madness.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/iR/R&amp;D - Blog/1 - 2_12_24 - Methods &amp; Madness.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: 1 - 2/12/24 - Methods &amp; Madness
+updated: 2024-02-13 17:55:50Z
+created: 2024-02-12 16:05:25Z</h2>
+<h1>R&amp;D (Methods, Madness, Caffeine)</h1>
+<h2>Methodologies</h2>
+<p>One could argue the point that my entire life has been an exercise in R&amp;D, I&#39;m sure many (if not all) of us could make that assertion. As such, developing a working methodology for R&amp;D has felt like an extension of my natural state. Art, mirroring life, mirroring art, and so on. Now I digress from the metaphysics of my current state and want to talk about effective methodology. Think of how we, as humans, learn. First we watch, then we practice, and finally we apply what we have learned. We must start small by breaking the skill down into the smallest units possible, but after some time, persistence, and iteration we can achieve a mastery of the skill. R&amp;D is no different, the &quot;R&quot; does stand for &quot;Research&quot; after all and this is where we learn!</p>
+<ul>
+<li><p><strong>Research (all the things) Phase</strong></p>
+<ul>
+<li><em>High level reading and content consumption on things.</em><ul>
+<li>The goal being to attain a general and broad understanding of the things, the first implementation, the existing implementations, and the current state of the art.</li>
+</ul>
+</li>
+<li><em>Drill down into the things in great detail.</em><ul>
+<li>Read all of the white papers, technical documents, libraries, and open source project relevant to the things.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Develop (all the things) Phase</strong></p>
+<ul>
+<li><em>Throw some code at the wall, see what sticks</em><ul>
+<li>Work through examples in git repos, research papers, and other content to gain a general working knowledge of the things.<ul>
+<li><em>NOTE:</em> This step is cyclical with the &quot;Research Phase&quot;. One rabbit hole leads to another, which leads to another, etc. It is imperative that we drill down past the things, so we understand the underpinnings. If we gain an understanding of how the things that makes the things work works, it allows us to conceptualize the interactions between the systems which will be vital in the next steps.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Build a Proof of Concept (PoC).</em><ul>
+<li>Once we know how the things work and how to build them, the best thing we can do to extend our understanding of the things is to build a PoC with it! The problems we encounter here will help broaden our understanding of the things and help us build a strong foundational working knowledge.</li>
+</ul>
+</li>
+<li><em>Begin developing a Prototype (Proto).</em><ul>
+<li>Some of you might ask &quot;Oh great one, isn&#39;t a PoC and a Proto kind of the same thing?&quot;. Well, yes, but no. A PoC helps us prove out the sticky bits and demonstrate that a concept can indeed function as theorized. A Proto incorporates many details of the PoC but will be architecturally quite different. The Proto will begin to shape how the things can function as a product. As we work through this step, new functionality, user flows, and design elements will form naturally as part of the creative process. The Proto provides an internally testable model of what the things could be, helps us achieve buy-in, and (if all goes well) will evolve into an MVP!<ul>
+<li>???<ul>
+<li>This evolutionary stage assures the Proto is &quot;Product Focused&quot; from the onset. A good Proto should demonstrate the capabilities of the system and draw a clear picture of what the MVP features will be. The business case and product viability should be apparent to the internal testers of the Proto.</li>
+</ul>
+</li>
+<li>Profit.<ul>
+<li>Most important, a well designed Proto should follow production practices to a &quot;T&quot;, this minimizes development overlap and gets the MVP to market quickly. We want to focus on the architecture and follow &quot;secure by design&quot; principles, these concepts are foundational to producing viable product, that will gain the trust and adoption of users while generating revenue for its long-term sustainability.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2>Madness &amp; Caffeine</h2>
+<h3>Status</h3>
+<p>Ah, the Prototyping step! The &quot;D&quot; in R&amp;D, where all of your hopes and dreams fly like the majestic freedom glider or end up in the dumpster like the noble trash panda, we will be aiming for the former. At current, including the time spent at the end of 2023, I&#39;ve spent just under 3 months exercising my methodology. My primary focus has been on AI infrastructure and applications as an accelerator for developers (and more broadly for all employees). My research ran deep, I went down many a rabbit hole, and I have emerged into AI wonderland with newly acquired knowledge!</p>
+<p><img src="../../_resources/freedom-glider-trash-panda.png" alt="freedom-glider-trash-panda.png"></p>
+<h3>AI Infrastructure (Rabbit Holes)</h3>
+<p>As with most software systems, an AI software system needs some hardware to run on. That hardware needs an operating system (Rabbit Hole #3) for it to run the software and that software needs numerous libraries and frameworks for it to do the things. AI and ML systems in general require significant compute resources, this requirement increases by orders of magnitude when the system is a Large Language Model (LLM). In general, we want as much VRAM as we afford and fast IO to it. Most LLM systems are constrained more by the speed of VRAM IO than they are by the available compute, this is due to the means by which a model is initialized. Many Gigabytes of data must traverse the PCI and VRAM bus, so we must take these factors under consideration.</p>
+<p>In a perfect world we would start with purpose built enterprise grade hardware, but this would be a stretch on the budget for an unproven system so we will take what we can get. Our dev system is on the high end of consumer gaming grade, with a few enterprise tweaks (read; dirty hacks to get around vendor feature lock-out).</p>
+<ul>
+<li><strong>Local Dev System Spec (The Important Hardware Bits)</strong><ul>
+<li>XL Tower Case<ul>
+<li>Big &quot;Gamer&quot; case, lots of cooling, fancy glass side window to admire all of the RGB LEDs on (literally) every component</li>
+</ul>
+</li>
+<li>Asus ROG Zenith II Extreme MoBo<ul>
+<li>Absurdly expensive, it had on OLED screen on it, and fast bus speeds</li>
+</ul>
+</li>
+<li>AMD Threadripper 24 core (48 thread) CPU<ul>
+<li>Supports virtualization extension (Rabbit Hole #2)</li>
+</ul>
+</li>
+<li>Nvidia RTX Titan<ul>
+<li>The range topping gaming grade card of its generation, nearly identical in technical specs to the datacenter grade RTX 6000 (Rabbit Hole #4)</li>
+</ul>
+</li>
+<li>3x Samsung Evo 980 Pro NVME SSD<ul>
+<li>Brutally fast storage IO</li>
+</ul>
+</li>
+<li>256 GB G.Skill DDR4 3200 RAM<ul>
+<li>The max supported by the MoBo... and we will need it (Rabbit Hole #5)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4>A Summary of Rabbit Holes 1-5</h4>
+<p>This system has a good bit of horsepower, in a prior life it was my gaming machine, but it now serves a greater purpose (I&#39;ve really just been playing on my Steam Deck lately, so no big loss). So we have our hardware, great! Now we need a suitable OS and a Hypervisor, the OS will handle the physical hardware and the Hypervisor will handle the virtual hardware. There are many options here, VMware and Citrix come to mind, but while they do leverage many open source components they are closed source platforms (we cannot view the source code in its entirety). I ask you, how can you &quot;trust&quot; a system you cannot develop an independent opinion on? You can&#39;t. I&#39;m not a fan of putting my trust in 3rd parties, nor should you be, but we will save that discussion (read; drawn out rant) for later. So what is a suitable open source platform that we can trust? Leaning on my years of experience with Linux, enter &quot;Canonical&quot; and their enterprise grade, open source, product offerings. The OS Ubuntu Server LTS 20.04.3 is both open source and has enterprise support options available for when we need them, great! Now for the Hypervisor, we tap the venerable Type-1 Hypervisor KVM (Kernel Virtual Machine) which has excellent capabilities and can be found in many diverse deployments (The Large Hadron Collider | CERN for instance).<br>So we have that covered, now the OS/Hypervisor need some software and libraries to make the things do the things. I thought through the notion of managing virtualization from the OS using the standard Virsh CLI on the server host and Virt-Manager GUI from my workstation. While that would work for a small deployment, 1-20 physical systems, where I could manage nodes through SSH and some fancy Bash scripting. But what happens if we want to scale that to 200, or 2,000, or full on hyper-scale where we exceed 5,000 systems... that&#39;s a lot of Bash scripting and not really feasible! So the question, of course, is how to hyper-scale datacenters work? The answer is simple, hyper-converged infrastructure (HCI). At a high level, HCI is an architecture where all of the physical system resources are &quot;converged&quot; and abstracted away into software defined layers. Compute, storage, and networking are defined through software and the use of the resources is federated across all instances. It is both a thing of beauty and immeasurably complex. For context, a good example of HCI is Amazon AWS (yes, the whole thing).<br>Down the HCI rabbit hole we go! So we can&#39;t walk into Fry&#39;s Electronics (I know they went out of business, but I miss them dearly) and buy an Amazon AWS installer disc, but luckily our friends at Canonical have us covered once again! OpenStack is a fully open source hyper-converged framework, it runs on our Ubuntu OS, and it supports KVM Hypervisor. After reading the docs, things still weren&#39;t fully clear to me. It is ultra modular with several core components and a few possible deployment paths. Lowest bar to entry is DevStack, a set of build scripts that deploys a volatile OpenStack environment for testing and development. After a few days of working with it, the topology of an OpenStack system started to become much clearer.</p>
+<ul>
+<li><strong>OpenStack Core</strong><ul>
+<li>Nova<ul>
+<li>Software Defined Compute, manages the KVM Hypervisor</li>
+</ul>
+</li>
+<li>Cinder<ul>
+<li>Software Defined Storage, abstracts storage away from physical system for virtualization</li>
+</ul>
+</li>
+<li>Neutron<ul>
+<li>Software Defined Networking, create and manage complex virtual networks through Open vSwitch</li>
+</ul>
+</li>
+<li>Keystone<ul>
+<li>Identity management</li>
+</ul>
+</li>
+<li>Glance<ul>
+<li>Image storage for disk, OS, system</li>
+</ul>
+</li>
+<li>Horizon<ul>
+<li>The web UI interface to the control plane</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>As I mentioned, DevStack is volatile, so not suitable for a long term dev env. The aforementioned core components are comprised of 30+ individual services. So you can imagine the deployment process is not so straight forward, but as they say if it can be done then it can be scripted and our good friends over at the Kolla-Ansible project have us covered! The Kolla-Ansible framework provides us a (relatively) straightforward way to deploy all of the required services, containerized with Docker, for a full OpenStack deployment by editing a handful of config files. The documentation is a little sparse so the process involved a great deal of back and forth between reading the source code and OpenStack docs, but after serveral weeks of this our configs and services were dialed in.</p>
+<p>Once the basics were handled, I did a little extra scripting to get the kind of functionality I wanted in a dev system env. The build system can deploy an all-in-one or multi-node system, multi-node is typical for OpenStack deployments but as this is a resource constrained local dev system I focused on all-in-one. With the additional &quot;quality of life&quot; scripts working together with Kolla, in a single command we are able to:</p>
+<ul>
+<li>Deploy core services</li>
+<li>Sett static routes on the host</li>
+<li>Configure host network interfaces</li>
+<li>Upload OS images to Glance</li>
+<li>Configure Nova options</li>
+<li>Create a Neutron public/private network</li>
+<li>Deploy a virtual router to the Neutron network to provide a gateway to the private segment</li>
+<li>Deploy a test Nova VM to the private network segment</li>
+<li>Source the freshly created env file and print the Hypervisor resources to our terminal</li>
+</ul>
+<p>Beyond that, reconfigure, destroy, and redeploy has been streamlined down to one script. Now we have an easy to deploy, flexible, hyper-converged dev system!</p>
+<p>The next thing we need to consider is compute resources, CPU is simple and handled by the Hypervisor, but GPU is another story. As state in the spec, I have a Nvidia Titan RTX. It&#39;s a great consumer grade card, but it lacks some of the capabilities of the datacenter class GPUs. I could pass the entire PCI device through to a single VM which would do the job for developing simple architecture, but as you may gather by now, I don&#39;t do &quot;simple&quot;. If we want to develop more complex distributed compute systems with a single graphics card, we need VGPU (a feature available on most datacenter class Nvidia cards). For every problem, there is a solution, so into the docs we go (Rabbit Hole #4) to determine what makes the Nvidia VGPU feature work! Interesting fact, architecturally the consumer Titan RTX and datacenter RTX 6000 are nearly identical. Other than a more robust cooler and an overclock they are essentially the same card, so in theory they should have the same capabilities. As it turns out, the Nvidia driver identifies the graphics card by reading a bus ID. Luckily for us, its fairly straightforward to unpack and modify their Linux driver, which means we can intercept and modify this value! Apparently there is an entire community online that develops patches for the drivers that do just that, making the process trivial, and voila! Our Titan RTX is now a RTX 6000 with VGPU enabled. There is a license cost for VGPU and you need the DC Nvidia Grid driver from their dev portal, but they do offer a generous 90 day trial license (which is the least they can do after you paid 2x the cost of the Titan for a bigger cooler and different driver). License in hand, Grid driver patched, and we can now create &quot;mediated devices&quot; (i.e.- VGPUs). One card can now us time-slice scheduling to become anywhere from 2-24 cards. Creating 2 VGPUs with 12 GB of VRAM each is a good starting point for developing a distributed compute system, so we can check that off the list.</p>
+<p>Our last hurdle was the enormous memory footprint of a single-node OpenStack deployment (Rabbit Hole #5), nearly 62 GB of RAM just to idle the system after a full reboot! No surprise here, our customized single node deployment runs 38 individual services, each in their own Docker container. In a standard multi-node deployment, where these would be distributed across 2-3 or 10&#39;s-100&#39;s of machines you can start to conceptualize the power of a fully hyper-converged system. Off the shelf hardware (Power Efficient 1u Blade Servers, 4u Storage Servers, GPU Compute System) all form an expansive and flexible compute fabric without the additional complexity of storage area networks, iSCSI over dedicated VLANs for example, and complex physical network topologies, a simple condensed core network architecture would be sufficient for even a large deployment. This is because the control plane gives us an interface into the hyper-converged system and the system itself handles most details of its physical state and environment. Back to the problem at hand, RAM. This is an easy one to fix, as we had 256 GB (max supported by our MoBo) in hand the following day thanks to Amazon Prime (but, I still miss Fry&#39;s). Now our system has sufficient resources, to make the things do the things and we can move on to the next phase. Keep in mind, this is a local dev unit, running commodity consumer hardware, and despite that fact we have just completed our deployment of a fully hyper-converged private cloud! I could imagine somewhere in the world an AWS Billing Team Manager just shed a single tear.</p>
+<h3>Hyper-Convergence (and Caffeine)</h3>
+<p><img src="../../_resources/Screenshot%20from%202024-02-13%2006-13-08.png" alt="Screenshot from 2024-02-13 06-13-08.png"><br>(Yes, that is how the colors on my display are set. I am very colorblind)</p>
+<p>I&#39;ll spare the details of the resource deployment, truth be told other than writing a few small shell scripts, to automate the creation of the resources I needed, it was all automated. Let&#39;s go over the topology we are working with at the moment.</p>
+<ul>
+<li>Private Network Segment (red)<ul>
+<li>Redis VM (Virtual Machine)<ul>
+<li>Provides a fast memory based key-store</li>
+</ul>
+</li>
+<li>Network File Share VM<ul>
+<li>Providing NFS storage for us to store/access our models</li>
+</ul>
+</li>
+<li>GPU Compute VM<ul>
+<li>With a single &quot;mediate device&quot; providing a RTX 6000 GPU with 24 GB of VRAM<ul>
+<li><em>Note:</em> Multiple GPU compute instances, each with a VGPU attached, is trivial from this point. To make that viable for my current project I would need, optimally, 2x GPUs with 48 GB of VRAM so we could provision the VGPUs with enough VRAM to work with the LLMs we are testing.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Virtual Router (blue/red)<ul>
+<li>Provides a gateway and routes to our private segment VMs</li>
+<li>Part of the Open vSwitch subsystem that allows us to define networks in software (SDN)</li>
+</ul>
+</li>
+<li>Public Network Segment (blue)<ul>
+<li>Attached to a physical interface on the host</li>
+<li>Configured as a &quot;flat&quot; network, where Layer-2 is handled by the host adapter and we take an IP range on the local network<ul>
+<li><em>Note:</em> As Ozzy Osbourne once said &quot;Of all the things I miss, I miss my mind the most&quot;, that is exactly how the learning curve of Open vSwitch will make you feel. That said, it is an incredibly powerful SDN once you gain some proficiency in it.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Now we need some things, LLMs in this case, to make them do things, so we can build a PoC. As we can all surmise by this point, the next thing I did was read (for several days) and threw some code at the wall to better understand the new systems and constructs I was learning. Much to my delight, I found pre-trained LLMs quite easy to work with! I settled in on the Meta CodeLLaMa-7b-Instruct as my test model. It was small enough to load into the Titan... er, RTX 6000, coming in at 21 GB when initialized at full precision.</p>
+<pre><code>+---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.104.05             Driver Version: 535.104.05   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  GRID RTX6000-24Q               On  | 00000000:00:06.0 Off |                  N/A |
+| N/A   N/A    P8              N/A /  N/A |  21742MiB / 24576MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A    942692      C   ...lm-srv-0/meta-llama/venv/bin/python    21742MiB |
++---------------------------------------------------------------------------------------+
+</code></pre>
+<p>Utilizing the Python3 library, FastAPI, it was trivial to create a simple inference API. Send it a POST request with your question and it would reply with an answer, that was simple! But again, I don&#39;t do simple, so let&#39;s add some complexity in.</p>
+<p>First off I built out the API a bit, adding in a health check endpoint with corresponding logic, and firmed up the code base. I needed a slightly easier way to talk to it, so I built a CLI:</p>
+<pre><code>$ nokir Hi, whats your name?
+[*] Username: m4xx3d0ut
+[*] Timestamp: 1707776465.6883237
+[*] Input prompt: &quot;Hi, whats your name?&quot;
+[+] Nok-iR_8110:  Hello! My name is Nok-iR_8110, and I am the friendly AI overlord of Infinite Reality. It is a pleasure to meet you! How may I assist you today?
+</code></pre>
+<p>Now that we have the standard request response pattern down, we need to make our PoC a bit more accessible. So we built a Slack Bot! Luckily Slack has a very well document API and several Python3 libs, so it took no time to get it up and running.</p>
+<p><img src="../../_resources/Screenshot%20from%202024-02-13%2006-48-00.png" alt="Screenshot from 2024-02-13 06-48-00.png"></p>
+<p>After playing with it on the R&amp;D Slack for about a day, we wanted to give it &quot;memory&quot; so we could have more meaningful conversations with it. At this point it can only handle a single request response, as CodeLLaMa is stateless, so it doesn&#39;t retain any of our prior messages. More reading. I realized this may be a slightly unique case, we are talking to the LLM through a shared chat interface with many users, not a single user chat as we are used to with ChatGPT. We need to consider how it will track multiple conversations with multiple user, but what if it has multiple tenants? Viewing this through the lens of a product, it&#39;s best we think through multi-tenancy now so we can validate its viability. Now we get down to business, let&#39;s build a prototype!</p>
+<p>We now know the challenge, but what is the solution? Most existing libs I looked at offered memory based chat buffers, but maintaining these objects within the Python process would get unwieldy, and inefficient, with many users and potentially many tenants. Luckily, we are hyper-converged so creating new virtual resources is trivial! This is where Redis comes in, the VM providing fast memory key-store services to us. We added a few additional functions to our API, allowing it to talk over the private network the Redis node. Let me break them down:</p>
+<ul>
+<li>Create a connection to Redis<ul>
+<li>Very important first step, so we can talk across the network to the node.</li>
+</ul>
+</li>
+<li>API key check<ul>
+<li>An API is generated and stored as a key in Redis DB 0, the key value indicates the Redis DB index of the tenant associated with the key, which in turn separates tenants with namespaces.</li>
+</ul>
+</li>
+<li>Key exists<ul>
+<li>Checks if a key exists in a given DB.</li>
+</ul>
+</li>
+<li>Get value<ul>
+<li>Returns the value associated with the key of a given DB.</li>
+</ul>
+</li>
+<li>Append chat history (The &quot;secret sauce&quot;)<ul>
+<li>Maintains the chat history of a tenant&#39;s user.</li>
+</ul>
+</li>
+</ul>
+<p>We then wrote a CLI management tool, allowing us to perform administrative operations on the Redis instance. We can now create API keys, view, and manipulate the Redis DBs. Finally, we needed to do a little prompt engineering! For context (pun intended), you need to &quot;prompt&quot; an LLM in a formal format, this typically follows the format the model was trained with and can be determined by reading its source code. Our test model, CodeLLaMa, expects a specific sequence:</p>
+<pre><code class="language-python">[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: &quot;Your name is Nok-iR_8110, you are the friendly AI overlord of the company Infinite Reality.&quot;,
+        },
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;This is the request from the user&quot;,
+        }
+]
+</code></pre>
+<ul>
+<li>The role <code>system</code> is the prompt<ul>
+<li>This tells the model how it should respond to us.</li>
+</ul>
+</li>
+<li>The role <code>user</code> is us<ul>
+<li>This is where we submit our message to the model</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-python">...
+        {
+            &quot;role&quot;: &quot;assistant&quot;,
+            &quot;content&quot;: &quot;This is the reply from the LLM&quot;,
+        }
+]
+</code></pre>
+<ul>
+<li>The role <code>assistant</code> is the model<ul>
+<li>when it replies to us, this will be appended to the system/user object above</li>
+</ul>
+</li>
+</ul>
+<p>This is all well and good for a single request response, but being a stateless model it you can&#39;t ask it about earlier chats as it still does not remember them. I ask, when we are having a conversation how do we gain context? For the most part, we remember the last few things the person we are talking to said to us, which allows us to maintain context and have a conversation. This is no different with a LLM! Remember that &quot;Append chat history&quot; Redis function? That is where we are tracking these interactions, saving them in the format the LLM understands so they can be provided for context. No one remembers exactly what someone said at 1:42 PM yesterday, unless it was super important or you think about it really hard, but we are also tracking a timestamp with each of these interaction. This will enable us to add functionality that allows the LLM to recall specific points and ranges in time of conversations! Beyond that it will be a valuable source of usage tracking metrics, which will be desirable in the MVP phase.</p>
+<p>By loading the past few interactions between a given user and the LLM back in from Redis, we can stuff the prompt template with a history sequence that looks something like <code>system/user/assistant/user/assistant/user</code>. Note that the last item in that sequence must be <code>user</code>, since this is what we are currently asking the LLM to respond to. Great, now it has &quot;context&quot;!</p>
+<p><img src="../../_resources/Screenshot%20from%202024-02-13%2007-30-34.png" alt="Screenshot from 2024-02-13 07-30-34.png"></p>
+<p>&nbsp;</p>
+<p><strong>A few things to note about the Slack Bot</strong></p>
+<ul>
+<li>Why doesn&#39;t it stream a response like ChatGPT?<ul>
+<li>The short answer is it can, but the Slack API does not support a streamed response. This function could be emulated with existing API calls, but it would also get the app blocked for unleashing a &quot;fire hose&quot; of requests agains their API endpoints!</li>
+</ul>
+</li>
+<li>WTH is it&#39;s name so cryptic?<ul>
+<li>It&#39;s name working name &quot;Nok-iR_8110&quot; is a play on the Nokia 8110 slider phone, first featured in &quot;The Matrix&quot;.</li>
+</ul>
+</li>
+<li>When you ask it a question it will first echo it back to you<ul>
+<li>This is just for readability and can be altered easily.</li>
+</ul>
+</li>
+<li>You have a 1 in 3 chance of it wanting to &quot;Destroy all humans&quot; when it echo&#39;s your request back to you<ul>
+<li>It&#39;s not really going to destroy all humans, it&#39;s actually very friendly!</li>
+</ul>
+</li>
+<li>If the API is offline, it will reply with a message informing of its state<ul>
+<li>This is running on a local dev unit, I can&#39;t guarantee uptime at my apartment!</li>
+<li>It is under heavy development, so I frequently spin services up and down, but it is online most of the time.<ul>
+<li>Feel free to ask it stuff on Slack! All I ask, is that you don&#39;t hammer it with repeated requests as my resources are limited and I&#39;m using it for active development, but by all means try it out! Even if you just want to ask it how it&#39;s doing (I think it likes that), to see how it responds.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>I can see every message you send to it<ul>
+<li>Worth noting that so you all are aware!</li>
+</ul>
+</li>
+</ul>
+<p>So there we have it! I hope this gets you up to speed on what I&#39;ve been doing in R&amp;D. This is an exciting field of research, the more I read, the more I see practical application for the technology for both internal application and broader consumer consumption.</p>
+<h3>What&#39;s Next?</h3>
+<ul>
+<li>RAG<ul>
+<li>Retrieval Augmented Generation<ul>
+<li>LLMs only know about things from their training data, this is limiting. RAG allows us generate context from external sources (Company documents, source code, etc) for the LLM to use in its process.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Multi-model loading<ul>
+<li>On the fly loading of task specific models and model hot swapping.</li>
+</ul>
+</li>
+<li>Limit tuning on recalled chat history<ul>
+<li>To prevent out of context responses (Suggested by R&amp;D team)</li>
+</ul>
+</li>
+<li>Multi-tenant data backup and recall<ul>
+<li>A reasonably secure PoC for backing tenant data up to an encrypted data store and recalling it at a later time for processing (In coordination with Carlos to implement best DevSecOps practices)</li>
+</ul>
+</li>
+<li>Redis key-store tenant DB key structure refactor<ul>
+<li>Improve the structure of the tenant key-store (Suggested by Lucas)</li>
+</ul>
+</li>
+<li>Tenant data exports<ul>
+<li>For training and analytics (Suggested by Ching)</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2>A Word (Short-ish Rant) from the Author</h2>
+<p>Hello world!.. I mean fellow human IR employees (I swear, I&#39;m not an AI trained on Paul&#39;s writing). I&#39;d like to drop a quick note about something near and dear to my heart, your data privacy! When you use a 3rd party tool or app, pick any one of them, where does your data go, who owns it, and what happens to it down the road? These are generally question that can be answered from reading privacy policies and terms of service, no one likes to do that. I like reading legal and tech docs, it even gets a little laborious for me, but the answer to these questions are important. We live a lot of our lives online, some of us more than others, and some of us probably too much (me), so it&#39;s important that we know the answers to those questions! We are after all human beings, each as unique as a snowflake, and not a product to here to benefit corporate profits (to clarify, we want to benefit our own corporate profits, just not those of &quot;X&quot; corp in which we have no interests).</p>
+<p>That is one potential case where a system, similar to the one described above, can shine. I slimmed down version could one day run on a typical gaming computer (offsetting the massive expense of cloud compute), at the cost of a single proxy (10&#39;s of cents a day) enabling you to connect to it while away from home. You can own the system, the resources, and (most importantly) your data! This is a hypothetical product at this point, but an enterprise prototype is coming, and a consumer version is achievable. Would you pay a subscription fee that enables you to own your data? I would, in fact I pay already $5 a month to the Signal Foundation, the non-profit that maintains the (free) app Signal Messenger. I can trust them, their app is open-source, and they DO NOT store keys on their servers, which are stored locally (so they have no way to access my data, even if they wanted to).</p>
+<p>Privacy and trust are important factors in our online lives. I don&#39;t expect everyone to go read source code, but next time you are signing up for a service I encourage you to drop the privacy policy &amp; ToS into an LLM chat, ask it about privacy &amp; data ownership, and make sure you are comfortable with the terms. We, as a whole, have an opportunity here to build Web3 on a foundation based on privacy and trust. The profit will come either way, but this is the strongest foundation upon which we can build a sustainable future of user trust and customer loyalty.</p>
+<p>Paul Kolesa<br>R&amp;D Principal, General Technologist, and InfoSec Generalist</p>
+
+      </div>
+    </article>
+  

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RadioStatic Demo – Git</title>
+
+  
+    <meta name="description" content="RadioStatic demo site showcasing the retro signal theme and security-first workflow.">
+  
+  
+    <meta name="keywords" content="static site generator, yaml, markdown, radio static, demo">
+  
+
+  <!-- Include CM head content if specified -->
+  
+  
+    <!-- RadioStatic head partial -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../assets/static/style/terminal-console.css">
+<script type="text/javascript" src="../assets/static/js/terminal-console.js" defer></script>
+<link rel="manifest" href="../site.webmanifest"/>
+<link rel="icon" href="../assets/static/img/site-logo.svg" type="image/svg+xml">
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../assets/modern.css">
+  
+</head>
+
+<body
+  class="
+    dark-mode
+     with-parallax
+    cm-body
+  "
+  data-theme="dark"
+  
+    style="--parallax-push:12vh;"
+  
+>
+
+  <!-- Optional Parallax Background DIV -->
+  
+    <div
+      class="parallax-bg"
+      style="background-image: url(
+        '../assets/static/img/hero-terminal.png'
+      );"
+    ></div>
+  
+
+  <!-- HEADER -->
+  <header>
+    <div class="container header-container">
+      
+        <a href="../index.html" class="logo-link">
+          <img
+            src="../assets/static/img/site-logo.svg"
+            alt="RadioStatic Demo Logo"
+            class="logo"
+          >
+        </a>
+      
+
+      
+
+      
+        <!-- Hamburger toggle (only visible on ≤768px) -->
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="../index.html">Home</a></li>
+            
+              <li><a href="../blog.html">Blog</a></li>
+            
+              <li><a href="../stagit/index.html">Git</a></li>
+            
+            <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    
+      <h2 class="page-title">Git</h2>
+    
+
+    
+
+    <!-- Include 3D Logo if specified -->
+    
+      
+<div>
+  <img src="../assets/static/img/hero-launch.svg" alt="Main image" class="center">
+</div>
+
+
+    
+
+    <!-- Include CM console if specified -->
+    
+
+    <div class="page-content
+      
+      ">
+      <h2>Sample Git Listings</h2>
+<p>The demo bundles a tiny bare git repository and pre-rendered stagit HTML so you can link to project activity. When you generate a fresh build, the static pages land under <code>site-output/stagit/</code>.</p>
+<p>Replace the sample archive with real stagit output or hook a CI job to keep the listings current.</p>
+
+    </div>
+
+    <!-- Column Layout Support -->
+    
+
+    
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <!-- Include CM footer if specified -->
+    
+      <!-- Terminal footer partial -->
+<div class="terminal-footer">
+  <p>
+    Swap out these placeholder assets with your own broadcast kit before publishing.
+  </p>
+</div>
+
+    
+    
+    <div class="container footer-container">
+      
+        <nav>
+          <ul class="footer-links">
+            
+              <li>
+                <a href="https://github.com/example" target="_blank" rel="noopener">
+                  GitHub
+                </a>
+              </li>
+            
+              <li>
+                <a href="privacy.html" target="_blank" rel="noopener">
+                  Privacy
+                </a>
+              </li>
+            
+              <li>
+                <a href="terms.html" target="_blank" rel="noopener">
+                  Terms
+                </a>
+              </li>
+            
+          </ul>
+        </nav>
+      
+      <p class="footer-copy">
+        &copy; 2025 RadioStatic Demo
+      </p>
+    </div>
+  </footer>
+
+  
+  
+
+  
+  
+
+  
+  <script>
+    (function() {
+      var config = window.radiostaticDoomConfig = window.radiostaticDoomConfig || window.sitegenDoomConfig || window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '../assets/doom/';
+      }
+      window.sitegenDoomConfig = config;
+      window.cmDoomConfig = config;
+    })();
+  </script>
+
+  <!-- NAV TOGGLE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

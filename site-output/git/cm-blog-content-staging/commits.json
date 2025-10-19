@@ -1,0 +1,110 @@
+{
+  "repo": {
+    "id": "cm-blog-content-staging",
+    "label": "cm-blog-content-staging",
+    "branch": "dev",
+    "requestedBranch": "dev",
+    "description": "Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content",
+    "owner": "m4xx3d0ut",
+    "httpUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging",
+    "detailUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/log.html",
+    "baseDetailUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/stagit/manifest.txt",
+    "repoPath": "git/cm-blog-content-staging",
+    "stage": "dev",
+    "stageLabel": "DEV"
+  },
+  "clone": {
+    "url": "https://cm.core.home.arpa/git/cm-blog-content-staging.git",
+    "command": "git clone https://cm.core.home.arpa/git/cm-blog-content-staging.git",
+    "branch": "dev"
+  },
+  "commits": [
+    {
+      "sha": "1551b8b501364757cd684b1afaf454899f958a9b",
+      "shortSha": "1551b8b",
+      "subject": "cm: content prep and sync.",
+      "authorName": "Paul Kolesa",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-09T11:00:26-07:00",
+      "authoredEpochMs": 1760032826000,
+      "authoredDisplay": "Oct 9, 2025, 6:00 PM",
+      "relativeTime": "last week",
+      "tags": [],
+      "heads": [
+        "dev"
+      ],
+      "refNames": [
+        "HEAD -> dev",
+        "origin/dev",
+        "origin/HEAD"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/commit/1551b8b501364757cd684b1afaf454899f958a9b.html",
+      "treeUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/tree/dev/1551b8b501364757cd684b1afaf454899f958a9b/"
+    },
+    {
+      "sha": "b98a3b2c2f50898b3628435c244526e8d7a2ab9c",
+      "shortSha": "b98a3b2",
+      "subject": "feat: new ingest scripts and content prep.",
+      "authorName": "Paul Kolesa",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-09T10:51:40-07:00",
+      "authoredEpochMs": 1760032300000,
+      "authoredDisplay": "Oct 9, 2025, 5:51 PM",
+      "relativeTime": "last week",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/commit/b98a3b2c2f50898b3628435c244526e8d7a2ab9c.html",
+      "treeUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/tree/dev/b98a3b2c2f50898b3628435c244526e8d7a2ab9c/"
+    },
+    {
+      "sha": "71e89e7f8426eb835b4b363dad63939b25aa4232",
+      "shortSha": "71e89e7",
+      "subject": "feat: auto fencer.",
+      "authorName": "Paul Kolesa",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-09T08:40:24-07:00",
+      "authoredEpochMs": 1760024424000,
+      "authoredDisplay": "Oct 9, 2025, 3:40 PM",
+      "relativeTime": "last week",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/commit/71e89e7f8426eb835b4b363dad63939b25aa4232.html",
+      "treeUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/tree/dev/71e89e7f8426eb835b4b363dad63939b25aa4232/"
+    },
+    {
+      "sha": "9c2a3317875d8762aeeddb5d0a2cbd32bd6ae3eb",
+      "shortSha": "9c2a331",
+      "subject": "feat: Add TLDR/Working Notes format, import guidance, and sync tooling",
+      "authorName": "Paul Kolesa",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-08T15:05:21-07:00",
+      "authoredEpochMs": 1759961121000,
+      "authoredDisplay": "Oct 8, 2025, 10:05 PM",
+      "relativeTime": "2 weeks ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/commit/9c2a3317875d8762aeeddb5d0a2cbd32bd6ae3eb.html",
+      "treeUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/tree/dev/9c2a3317875d8762aeeddb5d0a2cbd32bd6ae3eb/"
+    },
+    {
+      "sha": "c25231f089a4c43de4289ac0bf783159faeb275f",
+      "shortSha": "c25231f",
+      "subject": "init: blog content repo base.",
+      "authorName": "Paul Kolesa",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-08T08:56:23-07:00",
+      "authoredEpochMs": 1759938983000,
+      "authoredDisplay": "Oct 8, 2025, 3:56 PM",
+      "relativeTime": "2 weeks ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/commit/c25231f089a4c43de4289ac0bf783159faeb275f.html",
+      "treeUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/tree/dev/c25231f089a4c43de4289ac0bf783159faeb275f/"
+    }
+  ]
+}

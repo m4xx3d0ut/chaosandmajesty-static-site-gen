@@ -1,0 +1,56 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/platform-config/blob/AGENTS.md/index.html" data-git-raw-path="git/platform-config/blob/AGENTS.md/raw.txt" data-git-line-count="33">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">AGENTS.md</h4>
+          <div class="git-file-meta">2.7 KB · 33 lines · AGENTS.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/platform-config/blob/AGENTS.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Repository Guidelines</h1>
+<h2>Project Structure &amp; Module Organization</h2>
+<ul>
+<li><code>gitops/</code> contains Kustomize bundles for apps, shared infra, clusters, and guardrails; adjust overlays here before exporting live state.</li>
+<li><code>helm/</code> maintains chart values (<code>helm-gitea/</code>) and runner packaging (<code>helm-actions/</code>); keep overrides in sync with <code>gitops/</code>.</li>
+<li><code>docker/</code> holds CI build contexts (e.g., <code>capacitor-next/</code>); align images with the Helm values that reference them.</li>
+<li><code>tools/</code> offers automation (<code>./tools/export-all.sh</code>, <code>./tools/export-helm.sh</code>) and <code>bootstrap/</code> stores sensitive keys—keep decrypted copies local and out of Git.</li>
+</ul>
+<h2>Build, Test, and Development Commands</h2>
+<ul>
+<li><code>./tools/export-all.sh</code> snapshots Kubernetes objects into the repo; run after cluster updates to refresh manifests.</li>
+<li><code>./tools/export-k8s.sh namespace/name</code> exports a targeted resource tree when iterating on a single workload.</li>
+<li><code>helm lint helm/helm-gitea</code> and <code>helm template helm/helm-gitea</code> validate chart edits before pushing.</li>
+<li><code>kustomize build gitops/apps</code> (or a subdirectory) verifies overlays render cleanly; pipe to <code>kubectl apply --dry-run=server -f -</code> for schema checks.</li>
+</ul>
+<h2>Coding Style &amp; Naming Conventions</h2>
+<ul>
+<li>Prefer YAML with two-space indentation and sorted keys; keep filenames kustomize-friendly (<code>kustomization.yaml</code>, <code>&lt;component&gt;.yaml</code>).</li>
+<li>Shell scripts stay <code>bash</code>-compatible and use lowercase-with-dashes names.</li>
+<li>Enforce SOPS encryption on secrets via <code>sops -e file.yaml</code>; commit only the encrypted result.</li>
+</ul>
+<h2>Testing Guidelines</h2>
+<ul>
+<li>Validate Kustomize bundles via <code>kustomize build</code> + <code>kubectl apply --dry-run=server</code> per environment (<code>gitops/clusters/&lt;cluster&gt;</code>).</li>
+<li>For Helm releases, run <code>helm diff upgrade --install</code> (via plugin) against the target namespace to catch drift before applying.</li>
+<li>Keep encryption intact by running <code>sops -d file.yaml &gt;/dev/null</code> as a quick decryption check when reviewing secrets.</li>
+</ul>
+<h2>Commit &amp; Pull Request Guidelines</h2>
+<ul>
+<li>Follow the conventional-ish prefixes seen in history (<code>feat(component):</code>, <code>fix:</code>, <code>wip:</code>) and keep subject lines under 80 characters.</li>
+<li>Group related manifest, chart, and script changes in a single commit; include before/after context or exported command output in the body when relevant.</li>
+<li>PRs should cite the driving issue, describe rollout steps (e.g., scripts run, helm commands), and attach validation evidence (lint output, dry-run snippets, screenshots for UIs).</li>
+</ul>
+<h2>Security &amp; Configuration Tips</h2>
+<ul>
+<li>Store age keys only in <code>bootstrap/</code>; never embed plaintext credentials in manifests.</li>
+<li>When adding new exports, ensure <code>tools/gitea-enc-secrets-sops.sh</code> covers them so nightlies do not fail due to unencrypted secrets.</li>
+<li>Keep ingress hostnames, ports, and PVC names consistent with <code>helm-gitea-test/</code> templates to avoid breaking SSH and TLS automation.</li>
+</ul>
+
+      </div>
+    </article>
+  

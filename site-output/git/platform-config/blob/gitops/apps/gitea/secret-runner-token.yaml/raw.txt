@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: secret-runner-token
+    namespace: git-local
+type: Opaque
+stringData:
+    values.yaml: ENC[AES256_GCM,data:0GmeeeQXiVAlo/ytN+SVA+jrbfOCpKwHT7+Ecrvt7qTij0dQUczmNe+xK+SuX1W5UjBEcjioJ0e1khHqV0dmx5ZwqhOG/xuaT/hexNc=,iv:nGbtVal2CYxGyWL/BfnYG50VtYegC/+ZyHWa8eMHO6g=,tag:N3qvm36wQ7qlcTJqmFO/wA==,type:str]
+sops:
+    age:
+        - recipient: age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBMSCtOeFRoemNYM3I4Ykts
+            aWlEaGI2ZU5hRkpiSnA2cGsrNnIyMDlEdGlRClM2SzZJRTBackl5TXpOWlZoZG9Q
+            R01kVUhkMExzUjVsZG8ycENib0N1UWcKLS0tIFN2b01MMDhjVnhZMHZydXQxWlNv
+            VFFRcjg2V1VyZlJoK1V3SzQyN3h4amMKWEoK2PJXxz4KnI5pFYxF/nlb9C8z2mxA
+            x8rBCLSYtKj6rb29dyi8YFZX8vx+HteT85RbW3NRuH/hpsH0ekhLAA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-08-31T22:05:52Z"
+    mac: ENC[AES256_GCM,data:uI1nLkq/LzsxF7jEWDT5OfMrwn9OCOxIJV4DVe4ZTYqLTAInEldRuCj8sIXjHQ0PkfJN9rZRvbgaFpU8aUZ+3nw2GuImzpOiJw4rL6RUrzmrqMEMZeND8KUzdVwfUSXl5YDHAZJZxqJ9nMLavo05j/mB0jD1HoVULVbeNlG1RXs=,iv:tk8gk8elKnKbBtZA7LyRs+Zl1D2tV5mR80FGO6SJwi4=,tag:rpzz7bOu1Qr02K0PvoMoHg==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

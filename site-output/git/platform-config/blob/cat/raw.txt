@@ -1,0 +1,85 @@
+diff --git a/gitops/clusters/microk8s-prod/kustomizations/infra-policies.yaml b/gitops/clusters/microk8s-prod/kustomizations/infra-policies.yaml
+new file mode 100644
+index 0000000..c628d88
+--- /dev/null
++++ b/gitops/clusters/microk8s-prod/kustomizations/infra-policies.yaml
+@@ -0,0 +1,18 @@
++apiVersion: kustomize.toolkit.fluxcd.io/v1
++kind: Kustomization
++metadata:
++  name: infra-policies
++  namespace: flux-system
++spec:
++  interval: 10m
++  path: ./gitops/infra-policies
++  prune: true
++  wait: true
++  sourceRef:
++    kind: GitRepository
++    name: platform-config
++    namespace: flux-system
++  # Optional but nice for ordering:
++  dependsOn:
++    - name: infra-core     # if you want this to wait for core infra
++
+diff --git a/gitops/infra-policies/deny-capacitor-ro-writes-binding.yaml b/gitops/infra-policies/deny-capacitor-ro-writes-binding.yaml
+new file mode 100755
+index 0000000..a370b27
+--- /dev/null
++++ b/gitops/infra-policies/deny-capacitor-ro-writes-binding.yaml
+@@ -0,0 +1,11 @@
++apiVersion: admissionregistration.k8s.io/v1
++kind: ValidatingAdmissionPolicyBinding
++metadata:
++  name: deny-capacitor-ro-writes-binding
++spec:
++  policyName: deny-capacitor-ro-writes
++  validationActions: [Deny]
++  matchResources:
++    namespaceSelector: {}   # all namespaces (or restrict to flux-system)
++    operations: ["CREATE","UPDATE","DELETE"]
++
+diff --git a/gitops/infra-policies/deny-capacitor-ro-writes.yaml b/gitops/infra-policies/deny-capacitor-ro-writes.yaml
+new file mode 100755
+index 0000000..dd8656e
+--- /dev/null
++++ b/gitops/infra-policies/deny-capacitor-ro-writes.yaml
+@@ -0,0 +1,26 @@
++apiVersion: admissionregistration.k8s.io/v1
++kind: ValidatingAdmissionPolicy
++metadata:
++  name: deny-capacitor-ro-writes
++spec:
++  failurePolicy: Fail
++  matchConstraints:
++    resourceRules:
++      - apiGroups: ["", "apps", "batch"]
++        apiVersions: ["*"]
++        operations: ["*"]              # we’ll filter to write ops in the Binding
++        resources:
++          - pods
++          - pods/exec
++          - pods/ephemeralcontainers
++          - pods/attach
++          - deployments
++          - replicasets
++          - statefulsets
++          - daemonsets
++          - jobs
++          - cronjobs
++  validations:
++    - expression: request.userInfo.username != "system:serviceaccount:flux-system:capacitor-next-ro"
++      message: "capacitor-next-ro is view-only; write-like operations are blocked by policy."
++
+diff --git a/gitops/infra-policies/kustomization.ymal b/gitops/infra-policies/kustomization.ymal
+new file mode 100644
+index 0000000..0b6ca86
+--- /dev/null
++++ b/gitops/infra-policies/kustomization.ymal
+@@ -0,0 +1,6 @@
++apiVersion: kustomize.config.k8s.io/v1beta1
++kind: Kustomization
++resources:
++  - deny-capacitor-ro-writes.yaml
++  - deny-capacitor-ro-writes-binding.yaml
++

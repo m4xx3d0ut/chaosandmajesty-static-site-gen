@@ -1,0 +1,19 @@
+# docker/capacitor-next/Dockerfile
+# Build a small image that embeds the Capacitor Next binary (next-v0.5.0)
+
+FROM debian:bookworm-slim AS builder
+ARG CAP_VERSION=next-v0.5.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates wget curl bash && rm -rf /var/lib/apt/lists/*
+WORKDIR /work
+# The official installer drops a binary named "next" into the CWD
+RUN curl -fsSL https://gimlet.io/install-capacitor | bash -s -- ${CAP_VERSION}
+
+# ---
+FROM gcr.io/distroless/base-debian12
+COPY --from=builder /usr/local/bin/next /usr/local/bin/next
+USER 65532:65532
+EXPOSE 3333
+ENTRYPOINT ["/usr/local/bin/next"]
+CMD ["--port","3333"]
+

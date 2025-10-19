@@ -1,0 +1,123 @@
+title: RadioStatic Title
+description: Broadcast a secure, retro-themed static site with RadioStatic.
+
+cmTitle: RadioStatic Console
+cmTagline: Tune the dial and explore the built-ins.
+cmFooterText: Replace this message with your own broadcast footer.
+
+parallaxImage: assets/static/img/hero-terminal.png
+parallaxPush: "12vh"
+
+assets: examples/demo-site/assets
+templates: static-sitegen/templates
+
+styles:
+  - assets/modern.css
+
+pages:
+  - title: About
+    slug: about
+    content: |
+      ## About RadioStatic
+
+      RadioStatic reads YAML configuration and Markdown files to generate a secure, fully static website. The retro console hero is optional—switch it off or customise the copy as needed to match your station.
+
+      ### Highlights
+
+      - **YAML-first** configuration
+      - **Markdown** or HTML content blocks
+      - **Signal console** hero with command handling
+
+      Update this page by editing the `pages` array inside your configuration file.
+    cmImage: assets/static/img/hero-cards.svg
+
+blog:
+  enabled: true
+  title: "RadioStatic Blog"
+  description: "Dispatches from the signal keepers."
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    heroTitle: "RadioStatic Blog"
+    heroTagline: "Stories from your contributors"
+    intro: |
+      Add Markdown posts under `content/blog/` and they will appear here after the next build.
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/site-logo.svg"
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+
+  authors:
+    - id: author-one
+      name: "Author One"
+      title: "Signal Designer"
+      avatar: "assets/static/img/avatar-alex.svg"
+      bio: "Designs experiences for docs and demos."
+    - id: author-two
+      name: "Author Two"
+      title: "Platform Engineer"
+      avatar: "assets/static/img/avatar-jamie.svg"
+      bio: "Keeps the broadcast infrastructure humming."
+
+index:
+  title: Home
+  useCmHead: true
+  useCmConsole: true
+  useCmFooter: true
+  hideTitle: true
+  tagline: "Swap this copy with your own story."
+  content: |
+    ## Welcome to RadioStatic
+
+    Use this configuration as a starter template. Duplicate the file, adjust metadata, and run `./build-site.sh your-config.yaml`.
+
+  cta:
+    label: Visit the Blog
+    href: blog.html
+
+sections:
+  - id: features
+    heading: Signal Chain
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/hero-colors.svg"
+    content: |
+      ## Feature Overview
+
+      - **Configurable navigation**
+      - **Reusable sections**
+      - **Blog posts with fragments**
+
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Quick Links
+        - [Blog](../blog.html)
+      rightContent: |
+        ## Make it yours
+        Update YAML keys, swap SVGs, and rebuild.
+
+header:
+  links:
+    - label: Home
+      href: index.html
+    - label: Blog
+      href: blog.html
+
+footer:
+  text: "© 2025 RadioStatic"
+
+logo: assets/static/img/site-logo.svg
+favicon: assets/static/img/site-logo.svg
+
+theme:
+  mode: dark
+  primary_color: "#ff9800"
+  secondary_color: "#9e9e9e"

@@ -1,0 +1,15 @@
+{
+  "name": "RadioStatic Demo",
+  "short_name": "RadioStatic",
+  "theme_color": "#ff9800",
+  "background_color": "#111214",
+  "display": "standalone",
+  "start_url": ".",
+  "icons": [
+    {
+      "src": "assets/static/img/site-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

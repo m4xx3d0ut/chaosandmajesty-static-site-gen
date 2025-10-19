@@ -1,0 +1,158 @@
+title: RadioStatic Demo
+description: A retro signal-inspired demo that shows how RadioStatic helps security-minded makers broadcast their platform.
+
+cmTitle: RadioStatic Signal Console
+cmTagline: Tune the dial, run a build, and keep the signal clean.
+cmFooterText: Swap out these placeholder assets with your own broadcast kit before publishing.
+
+parallaxImage: assets/static/img/hero-terminal.png
+parallaxPush: "12vh"
+
+assets: examples/demo-site/assets
+templates: static-sitegen/templates
+
+styles:
+  - assets/modern.css
+
+extraCopies:
+  - from: examples/demo-site/stagit/html
+    to: stagit
+
+blog:
+  enabled: true
+  title: "RadioStatic Blog"
+  description: "Dispatches for developers and makers dialing in their personal platform."
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    heroTitle: "RadioStatic Blog"
+    heroTagline: "Shortwave notes on security, theming, and automation."
+    intro: |
+      Tune into the engineering desk. These posts walk through securing static builds, wiring content pipelines, and keeping the RadioStatic signal sharp.
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/site-logo.svg"
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+
+  authors:
+    - id: your-name
+      name: "Your Name"
+      title: "Signal Keeper"
+      avatar: "assets/static/img/avatar-alex.svg"
+      bio: "Introduce yourself or your crew with a quick sentence about why you broadcast."
+      social:
+        - label: "@yourhandle"
+          href: "https://example.com/you"
+
+index:
+  title: Home
+  useCmHead: true
+  useCmConsole: true
+  useCmFooter: true
+  use3DLogo: false
+  hideTitle: true
+  contentFont: modern-mono
+  terminalStyle: true
+  tagline: "Secure your signal. Own your platform."
+  footerText: "Swap the copy, keep the clarity, and broadcast with confidence."
+  content: |
+
+    <br>
+
+    ## Broadcast Your Platform With RadioStatic
+
+    RadioStatic reads your configuration, mirrors assets, and renders templates with Markdown-driven content so you can ship a hardened static site.
+
+    - A retro console hero that responds to commands like `help` and `build`.
+    - Security-conscious defaults: static HTML, self-hostable assets, and no runtime dependencies.
+    - A maker-friendly blog that highlights your latest experiments and dispatches.
+
+    Clone the repo, run `./build-site.sh`, and serve the output locally to start your broadcast.
+
+  cta:
+    label: Visit the Blog
+    href: "blog.html"
+
+sections:
+  - id: features
+    heading: Signal Chain
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/hero-cards.svg"
+    content: |
+      ## What Ships in the Demo
+
+      - **Config-driven pages** — update `smoke-test.yaml` or point RadioStatic at a new file.
+      - **Reusable templates** — extend the EJS templates under `static-sitegen/templates/` to match your house style.
+      - **Broadcast-ready blog** — Markdown posts, author bios, hero graphics, and on-page fragments.
+
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Quick Links
+        - [Blog](../blog.html)
+        - [Git](../stagit/index.html)
+      rightContent: |
+        ## Customize Every Frequency
+        Swap fonts, palettes, and metadata from YAML alone. Rebuild anytime to keep your signal crisp.
+
+  - id: stagit
+    heading: Git
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/hero-launch.svg"
+    content: |
+      ## Sample Git Listings
+
+      The demo bundles a tiny bare git repository and pre-rendered stagit HTML so you can link to project activity. When you generate a fresh build, the static pages land under `site-output/stagit/`.
+
+      Replace the sample archive with real stagit output or hook a CI job to keep the listings current.
+
+sitemap:
+  useCmHead: true
+  useCmFooter: true
+  cmImage: "assets/static/img/site-logo.svg"
+  hideTitle: true
+
+header:
+  links:
+    - label: Home
+      href: "index.html"
+    - label: Blog
+      href: "blog.html"
+    - label: Git
+      href: "stagit/index.html"
+
+footer:
+  text: "© 2025 RadioStatic Demo."
+  links:
+    - label: GitHub
+      href: "https://github.com/example"
+    - label: Privacy
+      href: "privacy.html"
+    - label: Terms
+      href: "terms.html"
+
+domain: example.com
+page_title: RadioStatic Demo
+logo: assets/static/img/site-logo.svg
+favicon: assets/static/img/site-logo.svg
+
+theme:
+  mode: dark
+  primary_color: "#ff9800"
+  secondary_color: "#9e9e9e"
+
+analytics_id: UA-000000-0
+social_preview_image: assets/social-preview.svg
+
+meta:
+  description: RadioStatic demo site showcasing the retro signal theme and security-first workflow.
+  keywords: static site generator, yaml, markdown, radio static, demo

@@ -1,0 +1,11 @@
+# Long-lived token Secret bound to the SA.
+# K8s will populate .data.token and .data['ca.crt'] automatically.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-ci-kubectl-token
+  namespace: ci
+  annotations:
+    kubernetes.io/service-account.name: gitea-ci-kubectl
+type: kubernetes.io/service-account-token
+

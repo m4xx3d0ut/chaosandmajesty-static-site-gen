@@ -250,7 +250,7 @@
       return;
     }
 
-    var TAB_ORDER = ['readme', 'log', 'files', 'refs'];
+    var TAB_ORDER = ['log', 'readme', 'files', 'refs'];
     var TAB_LABELS = {
       log: 'Log',
       files: 'Files',
@@ -1169,7 +1169,7 @@
       if (requestedTab) {
         targetTab = requestedTab;
       } else if (!isSameEntry) {
-        targetTab = 'readme';
+        targetTab = 'log';
       } else {
         targetTab = activeTab;
       }
