@@ -1,0 +1,136 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">post.ejs</h4>
+        <div class="git-file-meta">
+          <span>4.5 KB</span>
+          <span>static-sitegen/templates/blog/post.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;&lt;%= site.title %&gt; – &lt;%= page.post?.title || page.title %&gt;&lt;/title&gt;
+
+  &lt;% if (page.useCmHead || site.useCmHead) { %&gt;
+    &lt;%- include(&#039;../partials/cm-head.ejs&#039;) %&gt;
+  &lt;% } else if (site.styles &amp;&amp; site.styles.length &gt; 0) { %&gt;
+    &lt;% site.styles.forEach(function(style) { %&gt;
+      &lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= style %&gt;&quot;&gt;
+    &lt;% }); %&gt;
+  &lt;% } %&gt;
+
+  &lt;% const rawRootBase = page.rootBase || page.blog?.rootBase || (site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039; ? site.baseUrl : &#039;&#039;); %&gt;
+  &lt;% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, &#039;&#039;) : &#039;&#039;; %&gt;
+  &lt;% const hasAbsoluteBase = !!normalizedRootBase; %&gt;
+  &lt;% const baseDepth = (typeof page.baseDepth === &#039;number&#039;) ? page.baseDepth : 0; %&gt;
+  &lt;% const depthPrefix = hasAbsoluteBase ? &#039;&#039; : (baseDepth &gt; 0 ? &#039;../&#039;.repeat(baseDepth) : &#039;&#039;); %&gt;
+  &lt;% const isExternal = (href) =&gt; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || &#039;&#039;); %&gt;
+  &lt;% const resolvePath = (value) =&gt; {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || &#039;/&#039;) : &#039;./&#039;);
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, &#039;&#039;);
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || &#039;/&#039;);
+       }
+       return depthPrefix + cleaned;
+     }; %&gt;
+  &lt;% const buildInternalHref = (href) =&gt; {
+       if (!href) return &#039;#&#039;;
+       if (isExternal(href)) return href;
+       if (href.startsWith(&#039;#&#039;)) {
+         const target = href.slice(1);
+         if (!target) {
+           return resolvePath(&#039;&#039;);
+         }
+         return resolvePath(`sections/${target}.html`);
+       }
+       return resolvePath(href);
+     }; %&gt;
+  &lt;% const buildAssetHref = (asset) =&gt; {
+       if (!asset) return &#039;&#039;;
+       if (isExternal(asset)) return asset;
+       return resolvePath(asset);
+     }; %&gt;
+  &lt;% const backHref = buildInternalHref(page.blog?.indexHref || &#039;blog.html&#039;); %&gt;
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      &lt;% const logoPath = site.logo || &#039;assets/static/img/not-dead.webp&#039;; %&gt;
+      &lt;% const resolvedLogo = buildAssetHref(logoPath); %&gt;
+      &lt;% if (resolvedLogo) { %&gt;
+        &lt;a href=&quot;&lt;%= buildInternalHref(&#039;index.html&#039;) %&gt;&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;&lt;%= resolvedLogo %&gt;&quot; alt=&quot;&lt;%= site.title %&gt; Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      &lt;% } else { %&gt;
+        &lt;h1 class=&quot;logo-text&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;
+      &lt;% } %&gt;
+      &lt;% var navLinks = (site.header &amp;&amp; site.header.links) ? site.header.links : []; %&gt;
+      &lt;% if (navLinks.length &gt; 0) { %&gt;
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            &lt;% navLinks.forEach(function(link) { %&gt;
+              &lt;li&gt;&lt;a href=&quot;&lt;%= buildInternalHref(link.href) %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;
+            &lt;% }); %&gt;
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      &lt;% } %&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;&lt;%= backHref %&gt;&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to &lt;%= page.blog?.title || &#039;Blog&#039; %&gt;
+      &lt;/a&gt;
+      &lt;%- include(&#039;partials/article.ejs&#039;, { post: page.post, buildAssetHref, buildInternalHref }) %&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;% if (page.useCmFooter || site.useCmFooter) { %&gt;
+      &lt;%- include(&#039;../partials/cm-footer.ejs&#039;) %&gt;
+    &lt;% } %&gt;
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

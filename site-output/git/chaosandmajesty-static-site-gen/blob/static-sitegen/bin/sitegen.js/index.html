@@ -1,0 +1,49 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">sitegen.js</h4>
+        <div class="git-file-meta">
+          <span>1.0 KB</span>
+          <span>static-sitegen/bin/sitegen.js</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>#!/usr/bin/env node
+import fs from &#039;fs/promises&#039;;
+import path from &#039;path&#039;;
+import { fileURLToPath } from &#039;url&#039;;
+import { program } from &#039;commander&#039;;
+import { generateSite } from &#039;../lib/generateSite.js&#039;; 
+import { loadConfig } from &#039;../lib/loadConfig.js&#039;; 
+
+const __filename = fileURLToPath(import.meta.url); 
+const __dirname = path.dirname(__filename); 
+
+program
+  .name(&#039;sitegen&#039;)
+  .requiredOption(&#039;-c, --config &lt;path&gt;&#039;, &#039;path to YAML config file&#039;)
+  .option(&#039;-o, --output &lt;directory&gt;&#039;, &#039;output directory&#039;, &#039;./dist&#039;)
+  .option(&#039;-v, --verbose&#039;, &#039;enable verbose output&#039;)
+  .parse(process.argv);
+
+const options = program.opts();
+
+try {
+  const configPath = path.resolve(process.cwd(), options.config);
+  const config = await loadConfig(configPath);
+  
+  const outputDir = path.resolve(process.cwd(), options.output);
+  
+  const result = await generateSite(config, outputDir, options.verbose);
+  
+  if (options.verbose) {
+    console.log(`Site generated successfully in ${outputDir}`);
+  }
+} catch (error) {
+  console.error(`Error: ${error.message}`);
+  process.exit(1);
+}
+</code></pre>
+      </div>
+    </article>
+  

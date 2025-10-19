@@ -1,0 +1,31 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">Dockerfile.dev</h4>
+        <div class="git-file-meta">
+          <span>511 B</span>
+          <span>Dockerfile.dev</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code># syntax=docker/dockerfile:1.6
+
+# Production stage - expects pre-built site-output
+FROM nginxinc/nginx-unprivileged:alpine AS production
+
+# Copy pre-built site from local development
+COPY --chown=nginx:nginx site-output/ /usr/share/nginx/html/
+
+# Copy dev-focused nginx config (HTTP-only for lab cluster)
+COPY --chown=nginx:nginx nginx/default.dev.conf /etc/nginx/conf.d/default.conf
+
+# Ensure the runtime user stays numeric for runAsNonRoot checks
+USER 101:101
+
+EXPOSE 8080
+
+CMD [&quot;nginx&quot;, &quot;-g&quot;, &quot;daemon off;&quot;]
+</code></pre>
+      </div>
+    </article>
+  

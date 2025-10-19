@@ -1,0 +1,199 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">prod-first-run.md</h4>
+        <div class="git-file-meta">
+          <span>8.9 KB</span>
+          <span>docs/prod-first-run.md</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <h1>Prod Deployment – Initial VPS Bring-Up</h1>
+<p>This runbook walks through preparing the Linode VPS (<code>chaosandmajesty.com</code>) for the
+containerised Chaos &amp; Majesty site, performing the first Ansible-driven release,
+and validating the Gitea workflow.</p>
+<blockquote>
+<p><strong>Scope:</strong> host runs Docker, deploys https via the containerised Nginx, keeps the
+existing <code>/var/www/html/dav</code> WebDAV share, and reuses the Let&#39;s Encrypt material
+already managed on the VPS.</p>
+</blockquote>
+<h2>1. Prerequisites</h2>
+<ul>
+<li>Docker Engine + Compose plugin installed on the VPS (<code>docker --version</code>,
+<code>docker compose version</code>).</li>
+<li><code>deploy</code> user created, part of the <code>docker</code> group, with your CI/public key in
+<code>~deploy/.ssh/authorized_keys</code> (already completed).</li>
+<li>Existing certificates under <code>/etc/letsencrypt/</code> (Certbot-managed).</li>
+<li>Gitea runner with Docker access (self-hosted) – required for the workflow.</li>
+<li>Secrets staged in the repository settings (see §4).</li>
+</ul>
+<h2>2. One-Time VPS Preparation</h2>
+<p>Login as root (or a sudoer) and run:</p>
+<pre><code class="language-bash"># ensure runtime directories exist
+install -d -o deploy -g deploy -m 755 /opt/chaosandmajesty
+install -d -o root -g root -m 755 /var/www/letsencrypt
+install -d -o root -g root -m 755 /var/www/letsencrypt/.well-known/acme-challenge
+install -d -o root -g root -m 775 /var/www/html/dav
+install -d -o deploy -g deploy -m 700 ~deploy/.ssh
+cat &lt;&lt;&#39;PUBKEY&#39; &gt;&gt; ~deploy/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGbN0ZidnAYvD7hMBZV/sdvFg9S1iHK/ExBgCHCClMgw gitea-ci-deploy (prod)
+PUBKEY
+chmod 600 ~deploy/.ssh/authorized_keys
+
+# confirm Docker permissions for deploy user (newgrp required for current session)
+id deploy
+</code></pre>
+<p>Append the CI user&#39;s public key to <code>~deploy/.ssh/authorized_keys</code> if you
+haven&#39;t already (replace <code>&lt;deploy-public-key&gt;</code> in the snippet above), then
+<code>chmod 600</code> the file.</p>
+<blockquote>
+<p>Renewal tip: keep your existing Certbot cron/systemd timer. If it uses the
+webroot plugin, point it at <code>/var/www/letsencrypt</code> so challenges land in the
+mounted directory (<code>certbot renew --webroot -w /var/www/letsencrypt</code>).</p>
+</blockquote>
+<h3>SSH Known Hosts</h3>
+<p>From the CI runner (or your workstation), prime the known_hosts entry so
+Ansible/SSH skip the prompt:</p>
+<pre><code class="language-bash">ssh-keyscan -H chaosandmajesty.com &gt;&gt; ~/.ssh/known_hosts
+</code></pre>
+<p>Paste this output into the <code>KNOWN_HOSTS</code> secret if you prefer the workflow to
+skip dynamic key scanning.</p>
+<h2>3. Dry-Run the Playbook Locally (optional but recommended)</h2>
+<p>From this repository on your workstation:</p>
+<pre><code class="language-bash">ansible-galaxy collection install -r ansible/requirements.yml
+export ANSIBLE_HOST_KEY_CHECKING=false  # or manage known_hosts as above
+ansible-playbook -i ansible/inventory/hosts.ini ansible/deploy.yml \
+  -e &quot;registry_username=${REGISTRY_USERNAME}&quot; \
+  -e &quot;registry_password=${REGISTRY_PASSWORD}&quot; \
+  --check
+</code></pre>
+<p>Use <code>--check</code> for a read-only preview; drop it for the actual deployment once the
+workflow succeeds.</p>
+<h2>4. Configure Gitea Secrets</h2>
+<p>Populate these secrets in <strong>Repository → Settings → Secrets → Actions</strong> before
+pushing to <code>prod</code>. Create or update each entry individually so you can test the
+workflow as you go.</p>
+<h3>Pick a public registry</h3>
+<p>The prod workflow runs on a VPS that cannot reach your lab-only registry
+(<code>reg.microk8s.core.home.arpa:32000</code>). Push your production image to a public
+registry instead. Any of the following work well:</p>
+<ul>
+<li><strong>GitHub Container Registry (GHCR)</strong> – Anonymous pulls allowed, currently no
+storage or bandwidth fees for public images. Uses <code>ghcr.io/&lt;owner&gt;/&lt;image&gt;</code>.
+Docs: <a href="https://docs.github.com/packages/working-with-a-github-packages-registry/working-with-the-container-registry">https://docs.github.com/packages/working-with-a-github-packages-registry/working-with-the-container-registry</a></li>
+<li><strong>Docker Hub</strong> – Widely supported; anonymous pulls are rate limited for free
+plans. Docs: <a href="https://docs.docker.com/docker-hub/usage/pulls/">https://docs.docker.com/docker-hub/usage/pulls/</a></li>
+<li><strong>GitLab Container Registry</strong> – Good fit if you already have GitLab tooling
+in place. Docs: <a href="https://docs.gitlab.com/user/packages/container_registry/">https://docs.gitlab.com/user/packages/container_registry/</a></li>
+<li><strong>Quay.io</strong> – Mature hosted registry with strong org features. Docs:
+<a href="https://www.redhat.com/en/technologies/cloud-computing/quay">https://www.redhat.com/en/technologies/cloud-computing/quay</a></li>
+<li><strong>Amazon ECR Public</strong> – CDN-backed distribution and generous public tiers for
+high-traffic images. Docs: <a href="https://aws.amazon.com/ecr/public/">https://aws.amazon.com/ecr/public/</a></li>
+</ul>
+<p>For this project, GHCR is usually the smoothest option: your runner already has
+internet access, the CI only pushes on release, and the VPS pulls occasionally,
+so the anonymous pull policy is more than enough.</p>
+<h3>Secret checklist</h3>
+<ol>
+<li><strong><code>REGISTRY_HOST</code></strong> – Hostname of your container registry. For GitHub
+Container Registry use <code>ghcr.io</code>; for Gitea Container Registry use the
+domain of your instance (e.g. <code>gitea.chaosandmajesty.com</code>). This must be
+reachable from the public VPS — unlike the dev workflow’s
+<code>reg.microk8s.core.home.arpa:32000</code> NodePort, which lives only on the lab
+network.</li>
+<li><strong><code>REGISTRY_NAMESPACE</code></strong> – Namespace/owner portion of the image path. For
+GHCR this matches your GitHub user/org (e.g. <code>chaosandmajesty</code>). Leave blank
+only if the registry expects images at the root.</li>
+<li><strong><code>IMAGE_NAME</code></strong> – Repository name portion of the image path (for example
+<code>cm-site</code>). The workflow tags every prod deploy with <code>prod</code> and
+<code>prod-&lt;sha&gt;</code>.</li>
+<li><strong><code>REGISTRY_USERNAME</code> / <code>REGISTRY_PASSWORD</code></strong> – Credentials with push
+permission to the registry. For GHCR create a fine-grained PAT with <code>read</code>
+and <code>write:packages</code> scopes. For self-hosted registries, use a robot/service
+account. Paste the username as-is; paste the token/password exactly, without
+extra whitespace.</li>
+<li><strong><code>VPS_HOST</code></strong> – Public hostname or IP for the VPS. Use
+<code>chaosandmajesty.com</code> unless you are targeting a different environment.</li>
+<li><strong><code>VPS_USER</code></strong> – SSH username the playbook uses. This repository assumes the
+<code>deploy</code> user exists and has passwordless sudo for the managed services.</li>
+<li><strong><code>SSH_PRIVATE_KEY</code></strong> – Private key that matches the public key installed on
+the <code>deploy</code> account. Copy the key contents (including the <code>-----BEGIN</code> and
+<code>-----END</code> lines) directly into the secret. Ensure the key is not protected
+by a passphrase; the workflow cannot prompt for one.</li>
+<li><strong><code>KNOWN_HOSTS</code></strong> <em>(optional)</em> – Pre-seeded line from <code>ssh-keyscan -H chaosandmajesty.com</code>. Run the command locally and paste the output to avoid
+first-connection prompts. If omitted, the workflow will scan the host at
+runtime.</li>
+</ol>
+<p>After saving each secret, use the <strong>Test secret</strong> button (if available in your
+Gitea version) or re-run the <code>prod</code> workflow to confirm the value is
+accessible.</p>
+<h3>Example: wiring GHCR</h3>
+<ol>
+<li>Create a GitHub Personal Access Token with <code>write:packages</code> and
+<code>read:packages</code> scopes (classic PAT) or a fine-grained token scoped to your
+container packages.</li>
+<li>Populate the secrets above with:<ul>
+<li><code>REGISTRY_HOST=ghcr.io</code></li>
+<li><code>REGISTRY_NAMESPACE=&lt;your GitHub username or org&gt;</code></li>
+<li><code>IMAGE_NAME=cm-site</code> (or your preferred image name)</li>
+<li><code>REGISTRY_USERNAME=&lt;same GitHub account&gt;</code></li>
+<li><code>REGISTRY_PASSWORD=&lt;the PAT&gt;</code></li>
+</ul>
+</li>
+<li>Push to <code>prod</code>; the workflow logs in to GHCR, builds, and tags:<ul>
+<li><code>${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:prod</code></li>
+<li><code>${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:prod-&lt;short-sha&gt;</code></li>
+</ul>
+</li>
+</ol>
+<p>Skip GHCR only if you need extremely high anonymous throughput with regional
+mirrors—in that case consider Amazon ECR Public and adjust the secrets to match
+its host, namespace, and credentials.</p>
+<h2>5. First Managed Deployment</h2>
+<ol>
+<li><p>Commit the latest CI/CD and Ansible changes to <code>prod</code> (merge from <code>main</code>).</p>
+</li>
+<li><p>Push to <code>prod</code>; the workflow <code>.github/workflows/prod-deploy.yml</code> triggers.</p>
+</li>
+<li><p>Monitor the job in Gitea – it should:</p>
+<ul>
+<li>install dependencies &amp; run <code>./build-site.sh</code></li>
+<li>build &amp; push <code>prod</code> and <code>prod-&lt;sha&gt;</code> tags</li>
+<li>stop the host <code>nginx</code> service via Ansible</li>
+<li>render <code>/opt/chaosandmajesty/docker-compose.yml</code></li>
+<li>start the container exposing 80/443 and mount <code>/var/www/html/dav</code>,
+<code>/etc/letsencrypt</code>, <code>/var/www/letsencrypt</code></li>
+<li>probe <code>http://127.0.0.1:80/health</code></li>
+</ul>
+</li>
+<li><p>Validate on the VPS:</p>
+</li>
+</ol>
+<pre><code class="language-bash">sudo systemctl status nginx  # should be inactive
+sudo docker ps               # cm_site container up
+sudo docker logs cm-prod     # optional – confirm no TLS errors
+curl -kI https://chaosandmajesty.com/health
+</code></pre>
+<ol start="5">
+<li>Validate WebDAV: ensure <code>/var/www/html/dav</code> contents are still present and
+reachable from your Joplin client.</li>
+<li>If you relied on non-www subdomains previously handled by the host nginx,
+extend <code>nginx/default.conf</code> and redeploy to add the necessary proxy blocks.</li>
+</ol>
+<h2>6. Troubleshooting &amp; Rollback</h2>
+<ul>
+<li>To revert quickly, re-enable the system nginx service:
+<code>sudo systemctl enable --now nginx</code>.</li>
+<li>Redeploy the previous container tag:
+<code>docker compose -f /opt/chaosandmajesty/docker-compose.yml up -d</code> after editing
+<code>.current-image</code> with the prior tag (or run the playbook with <code>image_tag=prod-&lt;sha&gt;</code>).</li>
+<li>Health check failures usually indicate certificate mount/permissions or WebDAV
+temp directory issues – inspect <code>docker logs cm-prod</code> and
+<code>/opt/chaosandmajesty/docker-compose.yml</code>.</li>
+</ul>
+<p>With the first deployment complete, future pushes to <code>prod</code> should cycle through
+image build, push, and automated rollout without manual intervention.</p>
+
+      </div>
+    </article>
+  

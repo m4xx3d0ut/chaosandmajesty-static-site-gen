@@ -1,0 +1,124 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">aws-media-cost-math.html</h4>
+        <div class="git-file-meta">
+          <span>3.3 KB</span>
+          <span>site-output/blog/fragments/aws-media-cost-math.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;aws-media-cost-math&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;AWS Media Cost Math&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Feb 6, 2025&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;5 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;Back of the Envelope AWS Media Cost Math&lt;/h2&gt;
+&lt;p&gt;30 fps input
+3 live hours&lt;/p&gt;
+&lt;p&gt;MC Flows 2 - $0.16 each/hr = $0.96 +
+    Input Bitrate = 10 Mbps
+    &lt;code&gt;(10 Mbps / 8 = 1.25 MBps / 1024 = 0.00122 GBbps * 3600 = 4.4 GB per hour * 3) * 2&lt;/code&gt; = 26.4 GB
+    Total data transfer cost from MediaConnect to another AWS service in US East (N. Virginia) Region
+    26.4 * $0.01 = $0.26 +&lt;/p&gt;
+&lt;p&gt;ML Channels 1 = 14.4 Mb/s
+    Input HD $0.36 * 3 = $1.08 +
+    Output 	&amp;lt;=30fps $1.07 a/hr * 3 = $3.21 +&lt;/p&gt;
+&lt;p&gt;MP Channel 1
+    ingest $0.03 per GB
+        14.4 / 1024 * 60 * 60 = (50.625 / 8) * 0.03 = $0.18984375 * 3 = $0.56953125
+    live origin $0.05 per GB
+    99% cache hit out 410.0625&lt;/p&gt;
+&lt;p&gt;viewers 13824
+hours viewed 0.3&lt;/p&gt;
+&lt;p&gt;13824 * 0.03 = 414.72 hrs
+(3 / 1024) * 60 * 60 / 8 = 1.318359375
+414.72 * 1.318359375 = 546.75 * 0.01 = 5.4675 GB after cache * $0.05 = $0.273375&lt;/p&gt;
+&lt;p&gt;2500 viewers
+1.35 hours watched&lt;/p&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/0-m4xx3d0ut.html&quot;
+        data-default-href=&quot;blog/0-m4xx3d0ut.html&quot;
+        data-default-fragment=&quot;blog/fragments/0-m4xx3d0ut.html&quot;
+        data-fragment-href=&quot;blog/fragments/0-m4xx3d0ut.html&quot;
+        data-target-slug=&quot;0-m4xx3d0ut&quot;
+        data-post-slug=&quot;0-m4xx3d0ut&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;A Few Words&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/nova-vm-nvidia-vgpu.html&quot;
+        data-default-href=&quot;blog/nova-vm-nvidia-vgpu.html&quot;
+        data-default-fragment=&quot;blog/fragments/nova-vm-nvidia-vgpu.html&quot;
+        data-fragment-href=&quot;blog/fragments/nova-vm-nvidia-vgpu.html&quot;
+        data-target-slug=&quot;nova-vm-nvidia-vgpu&quot;
+        data-post-slug=&quot;nova-vm-nvidia-vgpu&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Nova VM Nvidia vGPU&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

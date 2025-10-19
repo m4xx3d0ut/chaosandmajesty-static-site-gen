@@ -1,0 +1,122 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">build-and-push-dev.yml</h4>
+        <div class="git-file-meta">
+          <span>4.0 KB</span>
+          <span>.github/workflows/build-and-push-dev.yml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>name: Build &amp; Push (dev / site-output)
+
+on:
+  push:
+    branches: [ dev ]
+    # Only run if site-output/ changes
+    paths: [ &#039;site-output/**&#039; ]
+  # Enable manual triggering
+  workflow_dispatch: {}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      # ⬅️ push through the host-exposed NodePort so DinD can reach it
+      REGISTRY: reg.microk8s.core.home.arpa:32000
+      IMAGE_NAME: cm
+      TAG_SHA: dev-${{ github.sha }}
+      TAG_MAJOR: latest
+
+    steps:
+      - name: Install SSH client (if missing)
+        run: |
+          set -e
+          if ! command -v ssh-keyscan &gt;/dev/null 2&gt;&amp;1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
+
+      - name: DNS &amp; connectivity checks (in-cluster)
+        env:
+          GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
+          GITEA_SSH_PORT: &quot;2222&quot;
+          REGISTRY_HOSTPORT: reg.microk8s.core.home.arpa:32000
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo &quot;=== resolv.conf ===&quot;; cat /etc/resolv.conf || true; echo
+          echo &quot;=== getent hosts (gitea ssh svc) ===&quot;
+          getent hosts &quot;$GITEA_SVC_HOST&quot; || (echo &quot;FATAL: cannot resolve $GITEA_SVC_HOST&quot; &amp;&amp; exit 1)
+          echo
+          echo &quot;=== TCP check gitea ssh ===&quot;
+          timeout 5 bash -c &quot;&gt;/dev/tcp/$GITEA_SVC_HOST/$GITEA_SSH_PORT&quot; || (echo &quot;FATAL: cannot reach $GITEA_SVC_HOST:$GITEA_SSH_PORT&quot; &amp;&amp; exit 1)
+          echo &quot;OK&quot;; echo
+          echo &quot;=== getent hosts (registry) ===&quot;
+          REGISTRY_HOST=&quot;${REGISTRY_HOSTPORT%%:*}&quot;
+          getent hosts &quot;$REGISTRY_HOST&quot; || (echo &quot;FATAL: cannot resolve $REGISTRY_HOST&quot; &amp;&amp; exit 1)
+          echo
+          echo &quot;=== TCP check registry ===&quot;
+          REGISTRY_PORT=&quot;${REGISTRY_HOSTPORT##*:}&quot;
+          timeout 5 bash -c &quot;&gt;/dev/tcp/$REGISTRY_HOST/$REGISTRY_PORT&quot; || (echo &quot;FATAL: cannot reach $REGISTRY_HOSTPORT&quot; &amp;&amp; exit 1)
+          echo &quot;OK&quot;
+
+      - name: Setup SSH material
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf &quot;%s\n&quot; &quot;${{ secrets.CI_DEPLOY_KEY }}&quot; &gt; ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local &gt; ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo &quot;Host gitea-ssh.git-local.svc.cluster.local&quot;
+            echo &quot;  User git&quot;
+            echo &quot;  IdentityFile ~/.ssh/id_ci&quot;
+            echo &quot;  IdentitiesOnly yes&quot;
+            echo &quot;  StrictHostKeyChecking yes&quot;
+          } &gt;&gt; ~/.ssh/config
+
+      - name: Clone repo (SSH via in-cluster service)
+        run: |
+          REPO_SSH=&quot;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git&quot;
+          git clone --depth 1 --branch dev &quot;$REPO_SSH&quot; .
+
+      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.
+      - name: Registry login (optional)
+        if: ${{ secrets.REGISTRY_USERNAME != &#039;&#039; &amp;&amp; secrets.REGISTRY_PASSWORD != &#039;&#039; }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          config-inline: |
+            [registry.&quot;reg.microk8s.core.home.arpa:32000&quot;]
+              http = true
+              insecure = true
+
+      - name: Build &amp; push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.dev
+          no-cache: true
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}
+
+      - name: Output image refs
+        run: |
+          echo &quot;Pushed:&quot;
+          echo &quot;  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}&quot;
+          echo &quot;  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}&quot;
+</code></pre>
+      </div>
+    </article>
+  

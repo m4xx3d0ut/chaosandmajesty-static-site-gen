@@ -1,0 +1,198 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">prepare-cm-files.sh</h4>
+        <div class="git-file-meta">
+          <span>7.7 KB</span>
+          <span>prepare-cm-files.sh</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>#!/bin/bash
+# prepare-cm-files.sh
+# One-time setup: copies static and template files from a source directory to static-sitegen/ for development.
+# Usage: ./prepare-cm-files.sh [source-dir]
+# Default source-dir is &#039;cm-source&#039;
+# DO NOT RUN before every build; this is for initial setup or re-sync only!
+
+set -e
+
+SOURCE_DIR=&quot;${1:-cm-source}&quot;
+
+if [ ! -d &quot;$SOURCE_DIR&quot; ]; then
+    echo &quot;Error: Source directory &#039;$SOURCE_DIR&#039; does not exist&quot;
+    echo &quot;Usage: $0 [source-directory]&quot;
+    exit 1
+fi
+
+echo &quot;Preparing static-sitegen working directories from &#039;$SOURCE_DIR&#039;...&quot;
+
+# Create necessary directories if they don&#039;t exist
+mkdir -p static-sitegen/assets/static/js
+mkdir -p static-sitegen/assets/static/style
+mkdir -p static-sitegen/assets/static/img
+mkdir -p static-sitegen/templates/partials
+
+# Copy static files from source into static-sitegen/assets for development
+if [ -d &quot;$SOURCE_DIR/static/js&quot; ]; then
+    echo &quot;Copying JS files from $SOURCE_DIR/static/js/...&quot;
+    cp -v &quot;$SOURCE_DIR/static/js&quot;/*.js static-sitegen/assets/static/js/ 2&gt;/dev/null || echo &quot;No JS files found in $SOURCE_DIR/static/js/&quot;
+fi
+
+if [ -d &quot;$SOURCE_DIR/static/style&quot; ]; then
+    echo &quot;Copying CSS files from $SOURCE_DIR/static/style/...&quot;
+    cp -v &quot;$SOURCE_DIR/static/style&quot;/*.css static-sitegen/assets/static/style/ 2&gt;/dev/null || echo &quot;No CSS files found in $SOURCE_DIR/static/style/&quot;
+    
+    # Create symlink for cm.css if it exists
+    if [ -f &quot;static-sitegen/assets/static/style/cm.css&quot; ]; then
+        rm -f static-sitegen/assets/cm.css
+        ln -sf static/style/cm.css static-sitegen/assets/cm.css
+    fi
+fi
+
+if [ -d &quot;$SOURCE_DIR/static/img&quot; ]; then
+    echo &quot;Copying image files from $SOURCE_DIR/static/img/...&quot;
+    cp -v &quot;$SOURCE_DIR/static/img&quot;/* static-sitegen/assets/static/img/ 2&gt;/dev/null || echo &quot;No image files found in $SOURCE_DIR/static/img/&quot;
+fi
+
+# Copy root files if they exist
+echo &quot;Copying root files from $SOURCE_DIR/...&quot;
+for file in robots.txt site.webmanifest; do
+    if [ -f &quot;$SOURCE_DIR/$file&quot; ]; then
+        cp -v &quot;$SOURCE_DIR/$file&quot; static-sitegen/assets/
+        echo &quot;Copied $file&quot;
+    else
+        echo &quot;Skipping $file (not found in $SOURCE_DIR)&quot;
+    fi
+done
+
+# Copy any additional files from project root that should be in the build
+echo &quot;Copying additional files from project root...&quot;
+for file in bunny-punx.svg paperman.svg cmLogo.js paperman.js; do
+    if [ -f &quot;$file&quot; ]; then
+        # Determine destination based on file type
+        case &quot;$file&quot; in
+            *.svg)
+                cp -v &quot;$file&quot; static-sitegen/assets/static/img/
+                echo &quot;Copied $file to static/img/&quot;
+                ;;
+            *.js)
+                cp -v &quot;$file&quot; static-sitegen/assets/static/js/
+                echo &quot;Copied $file to static/js/&quot;
+                ;;
+        esac
+    fi
+done
+
+# Create/overwrite template partials (unchanged)
+echo &quot;Creating template partials...&quot;
+
+cat &gt; static-sitegen/templates/partials/cm-head.ejs &lt;&lt; &#039;EOL&#039;
+&lt;!-- head partial (auto-generated) --&gt;
+&lt;%
+  const cmHeadIsExternal = (href) =&gt; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || &#039;&#039;);
+  const cmHeadRawRootBase =
+    (typeof headRootBase !== &#039;undefined&#039; &amp;&amp; headRootBase) ||
+    (typeof page !== &#039;undefined&#039; &amp;&amp; (page.rootBase || (page.blog &amp;&amp; page.blog.rootBase))) ||
+    (typeof site !== &#039;undefined&#039; &amp;&amp; site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039; ? site.baseUrl : &#039;&#039;);
+  const cmHeadNormalizedRoot = cmHeadRawRootBase ? cmHeadRawRootBase.replace(/\/+$/, &#039;&#039;) : &#039;&#039;;
+  const cmHeadHasAbsoluteBase = !!cmHeadNormalizedRoot;
+  const cmHeadDepthValue =
+    (typeof headBaseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(headBaseDepth))
+      ? headBaseDepth
+      : (typeof baseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(baseDepth))
+        ? baseDepth
+        : (typeof page !== &#039;undefined&#039; &amp;&amp; typeof page.baseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(page.baseDepth))
+          ? page.baseDepth
+          : (typeof isSection !== &#039;undefined&#039; &amp;&amp; isSection ? 1 : 0);
+  const cmHeadDepthPrefix = cmHeadHasAbsoluteBase
+    ? &#039;&#039;
+    : (cmHeadDepthValue &gt; 0 ? &#039;../&#039;.repeat(cmHeadDepthValue) : &#039;&#039;);
+  const cmHeadResolve = (value) =&gt; {
+    if (!value) {
+      return cmHeadHasAbsoluteBase
+        ? (cmHeadNormalizedRoot || &#039;/&#039;)
+        : (cmHeadDepthPrefix || &#039;./&#039;);
+    }
+    if (cmHeadIsExternal(value)) {
+      return value;
+    }
+    if (/^(?:\.\/|\.\.\/)/.test(value)) {
+      return value;
+    }
+    const cleaned = value.replace(/^\/+/, &#039;&#039;);
+    if (cmHeadHasAbsoluteBase) {
+      return cleaned
+        ? `${cmHeadNormalizedRoot}/${cleaned}`
+        : (cmHeadNormalizedRoot || &#039;/&#039;);
+    }
+    return cmHeadDepthPrefix + cleaned;
+  };
+%&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;&lt;%= cmHeadResolve(&#039;assets/static/style/cm.css&#039;) %&gt;&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;&lt;%= cmHeadResolve(&#039;assets/static/js/cm.js&#039;) %&gt;&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;&lt;%= cmHeadResolve(&#039;site.webmanifest&#039;) %&gt;&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;&lt;%= cmHeadResolve(&#039;assets/static/img/favicon.ico&#039;) %&gt;&quot;&gt;
+EOL
+
+cat &gt; static-sitegen/templates/partials/cm-console.ejs &lt;&lt; &#039;EOL&#039;
+&lt;!-- console partial (auto-generated) --&gt;
+&lt;div class=&quot;console-center&quot;&gt;
+  &lt;div id=&quot;tagline&quot;&gt;
+    &lt;h1&gt;&lt;%= page.cmTitle || site.cmTitle || site.title %&gt;&lt;/h1&gt;
+    &lt;p&gt;&lt;%= page.cmTagline || site.cmTagline || site.description %&gt;&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;% if (page.use3DLogo || site.use3DLogo) { %&gt;
+    &lt;div id=&quot;cm-logo-container&quot; class=&quot;center&quot; style=&quot;width:100%; height:300px; position:relative; z-index:1;&quot;&gt;&lt;/div&gt;
+    &lt;!-- Use the same CDN sources as in the test page --&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/SVGLoader.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+      window.cmLogoSvgPath = &#039;&lt;%= isSection ? &quot;../assets&quot; : &quot;assets&quot; %&gt;/static/img/bunny-punx.svg&#039;;
+    &lt;/script&gt;
+    &lt;script src=&quot;&lt;%= isSection ? &#039;../assets/static/js/cmLogo.js&#039; : &#039;assets/static/js/cmLogo.js&#039; %&gt;&quot;&gt;&lt;/script&gt;
+  &lt;% } else if (page.cmImage || site.cmImage) { %&gt;
+    &lt;div&gt;
+      &lt;img src=&quot;&lt;%= isSection ? &#039;../&#039; + (page.cmImage || site.cmImage) : (page.cmImage || site.cmImage) %&gt;&quot;
+           alt=&quot;&lt;%= page.cmImageAlt || site.cmImageAlt || &#039;Main image&#039; %&gt;&quot; class=&quot;center&quot;&gt;
+    &lt;/div&gt;
+  &lt;% } %&gt;
+
+  &lt;div class=&quot;console-stack&quot;&gt;
+    &lt;div id=&quot;console&quot;&gt;
+      &lt;div class=&quot;screen hscroll&quot; id=&quot;tOut&quot;&gt;$&lt;/div&gt;
+      &lt;input class=&quot;term&quot; type=&quot;text&quot; id=&quot;uIn&quot; placeholder=&quot;Enter a command or ?&quot;&gt;
+    &lt;/div&gt;
+    &lt;button type=&quot;button&quot; id=&quot;cm-terminal-reset&quot; class=&quot;console-reset&quot; aria-label=&quot;Reset terminal&quot;&gt;Reset terminal&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+EOL
+
+cat &gt; static-sitegen/templates/partials/cm-footer.ejs &lt;&lt; &#039;EOL&#039;
+&lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      &lt;%= page.cmFooterText || site.cmFooterText || &#039;Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.&#039; %&gt;
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+EOL
+
+echo &quot;Done! Files copied from &#039;$SOURCE_DIR&#039; to static-sitegen/&quot;
+echo &quot;Ready to build with static-sitegen/bin/sitegen.js&quot;
+</code></pre>
+      </div>
+    </article>
+  

@@ -23,6 +23,12 @@
     normalized.owner = normalized.owner || '';
     normalized.description = normalized.description || '';
     normalized.repoPath = normalized.repoPath || normalized.relativePath || '';
+    normalized.fragmentPath = normalized.fragmentPath || normalized.fragment || '';
+    normalized.commitsJsonPath = normalized.commitsJsonPath || normalized.commitsJson || '';
+    normalized.filesFragmentPath = normalized.filesFragmentPath || normalized.filesFragment || '';
+    normalized.refsFragmentPath = normalized.refsFragmentPath || normalized.refsFragment || '';
+    normalized.readmeFragmentPath = normalized.readmeFragmentPath || normalized.readmeFragment || '';
+    normalized.cloneCommand = normalized.cloneCommand || '';
     normalized.searchText = (normalized.searchText || [
       normalized.label,
       normalized.stage,
@@ -67,6 +73,11 @@
 
   const safeDefaultRepoUrl = (defaultEntry && defaultEntry.detailUrl) || defaultUrlRaw || (repoEntries[0] ? repoEntries[0].detailUrl : '');
   const safeDefaultRepoLabel = (defaultEntry && defaultEntry.label) || defaultLabelRaw || (repoEntries[0] ? repoEntries[0].label : 'selected repository');
+  const safeDefaultRepoFragment = (defaultEntry && defaultEntry.fragmentPath) || '';
+  const safeDefaultRepoCommits = (defaultEntry && defaultEntry.commitsJsonPath) || '';
+  const safeDefaultRepoFiles = (defaultEntry && defaultEntry.filesFragmentPath) || '';
+  const safeDefaultRepoRefs = (defaultEntry && defaultEntry.refsFragmentPath) || '';
+  const safeDefaultRepoReadme = (defaultEntry && defaultEntry.readmeFragmentPath) || '';
 
   const safeLeftPaneTitle = leftPaneTitle || 'Repositories';
   const safeLeftPaneDescription = leftPaneDescription || 'Browse repositories hosted on Core.';
@@ -112,12 +123,18 @@
               <button
                 type="button"
                 class="git-repo-button"
+                data-git-id="<%= repo.id %>"
                 data-git-url="<%= repo.detailUrl %>"
                 data-git-label="<%= repo.label %>"
                 data-git-search="<%= repo.searchText %>"
                 data-git-stage="<%= repo.stage %>"
                 data-git-owner="<%= repo.owner %>"
                 data-git-path="<%= repo.repoPath %>"
+                data-git-fragment="<%= repo.fragmentPath || '' %>"
+                data-git-commits="<%= repo.commitsJsonPath || '' %>"
+                data-git-files="<%= repo.filesFragmentPath || '' %>"
+                data-git-refs="<%= repo.refsFragmentPath || '' %>"
+                data-git-readme="<%= repo.readmeFragmentPath || '' %>"
               >
                 <span class="git-repo-button-title"><%= repo.label %></span>
                 <div class="git-repo-button-meta">
@@ -165,6 +182,11 @@
             id="git-refresh-default"
             data-git-default-url="<%= safeDefaultRepoUrl %>"
             data-git-default-name="<%= safeDefaultRepoLabel %>"
+            data-git-default-fragment="<%= safeDefaultRepoFragment %>"
+            data-git-default-commits="<%= safeDefaultRepoCommits %>"
+            data-git-default-files="<%= safeDefaultRepoFiles %>"
+            data-git-default-refs="<%= safeDefaultRepoRefs %>"
+            data-git-default-readme="<%= safeDefaultRepoReadme %>"
             <%= disableRefresh ? ' disabled' : '' %>
           >
             Refresh default
@@ -178,29 +200,37 @@
             <div class="git-loading" id="git-detail-indicator" role="status" aria-live="polite">
               Loading <%= safeDefaultRepoLabel %>…
             </div>
+            <nav class="git-panel-tabs" id="git-panel-tabs" aria-label="Repository views">
+              <button type="button" class="git-tab-button is-active" data-git-tab="log">Log</button>
+              <button type="button" class="git-tab-button" data-git-tab="files">Files</button>
+              <button type="button" class="git-tab-button" data-git-tab="refs">Refs</button>
+              <button type="button" class="git-tab-button" data-git-tab="readme">README</button>
+            </nav>
             <div
-              class="git-frame-wrap"
-              id="git-frame-wrap"
-              data-default-height="clamp(32rem, calc(100vh + 8rem), 88rem)"
+              class="git-panel-container"
+              id="git-panel-container"
+              data-default-fragment="<%= safeDefaultRepoFragment %>"
+              data-default-url="<%= safeDefaultRepoUrl %>"
+              data-default-name="<%= safeDefaultRepoLabel %>"
+              data-default-commits="<%= safeDefaultRepoCommits %>"
+              data-default-files="<%= safeDefaultRepoFiles %>"
+              data-default-refs="<%= safeDefaultRepoRefs %>"
+              data-default-readme="<%= safeDefaultRepoReadme %>"
             >
-              <div
-                class="git-frame-scaler"
-                id="git-frame-scaler"
-              >
-                <iframe
-                  id="git-repo-frame"
-                  class="git-frame"
-                  title="Repository activity viewer"
-                  data-default-url="<%= safeDefaultRepoUrl %>"
-                  data-default-name="<%= safeDefaultRepoLabel %>"
-                  data-default-height="clamp(32rem, calc(100vh + 8rem), 88rem)"
-                  loading="lazy"
-                ></iframe>
+              <div class="git-panel-slot" id="git-panel-slot">
+                <p class="git-panel-placeholder">Select a repository to load activity.</p>
               </div>
-              <noscript>
-                <p>Enable JavaScript to view repository activity.</p>
-              </noscript>
             </div>
+            <noscript>
+              <p>
+                Enable JavaScript to view repository activity inline. You can open the full log at
+                <% if (safeDefaultRepoUrl) { %>
+                  <a href="<%= safeDefaultRepoUrl %>" target="_blank" rel="noopener"><%= safeDefaultRepoUrl %></a>.
+                <% } else { %>
+                  the repository’s source.
+                <% } %>
+              </p>
+            </noscript>
           <% } else { %>
             <div class="git-empty-state" id="git-empty-state">
               <p>No repositories were bundled into this build. Update <code>config/stagit/manifest.txt</code> or the Git page configuration to populate the catalog.</p>
@@ -218,14 +248,28 @@
       return;
     }
 
+    var TAB_ORDER = ['log', 'files', 'readme', 'refs'];
+    var TAB_LABELS = {
+      log: 'Log',
+      files: 'Files',
+      refs: 'Refs',
+      readme: 'README'
+    };
+
     var repoButtons = Array.prototype.slice.call(document.querySelectorAll('.git-repo-button'));
     var repoItems = repoButtons.map(function(button) {
       var detailUrl = button.getAttribute('data-git-url') || '';
       var label = button.getAttribute('data-git-label') || detailUrl;
       var searchText = button.getAttribute('data-git-search') || (label + ' ' + detailUrl);
       return {
+        id: button.getAttribute('data-git-id') || '',
         button: button,
         detailUrl: detailUrl,
+        fragmentPath: button.getAttribute('data-git-fragment') || '',
+        filesFragment: button.getAttribute('data-git-files') || '',
+        refsFragment: button.getAttribute('data-git-refs') || '',
+        readmeFragment: button.getAttribute('data-git-readme') || '',
+        commitsJsonPath: button.getAttribute('data-git-commits') || '',
         label: label,
         searchText: searchText.toLowerCase()
       };
@@ -234,241 +278,103 @@
     var repoListEl = document.getElementById('git-repo-list');
     var emptyStateEl = document.getElementById('git-empty');
     var searchInput = document.getElementById('git-search-input');
-    var frameWrap = document.getElementById('git-frame-wrap');
-    var frameScaler = document.getElementById('git-frame-scaler');
-    var activeLabel = document.getElementById('git-active-repo-label');
-    var detailFrame = document.getElementById('git-repo-frame');
+    var panelContainer = document.getElementById('git-panel-container');
+    var panelSlot = document.getElementById('git-panel-slot');
     var detailIndicator = document.getElementById('git-detail-indicator');
+    var activeLabel = document.getElementById('git-active-repo-label');
     var refreshBtn = document.getElementById('git-refresh-default');
+
+    var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.git-tab-button'));
+    var tabMap = {};
+    tabButtons.forEach(function(button) {
+      var tab = button.getAttribute('data-git-tab');
+      if (!tab) {
+        return;
+      }
+      tabMap[tab] = button;
+    });
+
+    var activeEntry = null;
     var activeButton = null;
-    var spinnerTimeoutId = null;
-    var frameWrapMinHeight = null;
-    var frameInitialHeight = null;
-    var frameDefaultHeight = null;
-    var frameObserver = null;
-    var postMessageOriginAllowlist = null;
-    var frameScaleValue = 1;
-    var resizeScaleRafId = null;
+    var activeTab = 'log';
+    var pendingController = null;
+    var pendingFileController = null;
+    var activeFileButton = null;
 
-    function resolveComputedDimension(element, propertyNames) {
-      if (!element || !window.getComputedStyle) {
+    function escapeHtml(value) {
+      if (value == null) {
         return '';
       }
-      var styles = window.getComputedStyle(element);
-      if (!styles) {
-        return '';
+      return value
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function resolveRelative(pathValue) {
+      if (!pathValue) return '';
+      if (/^(?:[a-z]+:)?\/\//i.test(pathValue)) {
+        return pathValue;
       }
-      for (var i = 0; i < propertyNames.length; i += 1) {
-        var value = styles.getPropertyValue(propertyNames[i]);
-        if (value && value !== 'auto' && value !== '0px') {
-          return value.trim();
-        }
+      if (pathValue.startsWith('/')) {
+        return pathValue;
       }
-      return '';
-    }
-
-    if (frameWrap) {
-      frameWrapMinHeight = resolveComputedDimension(frameWrap, ['min-height', 'height']);
-      frameDefaultHeight = frameWrap.getAttribute('data-default-height') || frameWrapMinHeight || '';
-    }
-    if (detailFrame) {
-      frameInitialHeight = resolveComputedDimension(detailFrame, ['height', 'min-height']);
-      if (!frameDefaultHeight) {
-        frameDefaultHeight = detailFrame.getAttribute('data-default-height') || frameInitialHeight || '';
+      if (pathValue.startsWith('./') || pathValue.startsWith('../')) {
+        return pathValue;
       }
-      detailFrame.style.height = '100%';
-      detailFrame.style.minHeight = '100%';
+      return './' + pathValue;
     }
 
-    if (!frameDefaultHeight) {
-      frameDefaultHeight = 'clamp(32rem, calc(100vh + 8rem), 88rem)';
+    function showIndicator(message) {
+      if (!detailIndicator) return;
+      detailIndicator.hidden = false;
+      detailIndicator.removeAttribute('aria-hidden');
+      detailIndicator.classList.remove('is-hidden');
+      detailIndicator.textContent = message || 'Loading…';
     }
 
-    if (frameWrap && frameScaler) {
-      syncFrameScale(true);
+    function hideIndicator() {
+      if (!detailIndicator) return;
+      detailIndicator.hidden = true;
+      detailIndicator.setAttribute('aria-hidden', 'true');
+      detailIndicator.classList.add('is-hidden');
     }
 
-    function applyFrameHeight(heightValue) {
-      if (!heightValue) {
+    function renderPanelMessage(kind, htmlMessage) {
+      return '<div class="git-panel-message git-panel-message--' + kind + '">' + htmlMessage + '</div>';
+    }
+
+    function setPanelContent(html, tab) {
+      if (!panelSlot) {
         return;
       }
-      if (frameWrap) {
-        frameWrap.style.setProperty('--git-frame-base-height', heightValue);
-        frameWrap.style.height = heightValue;
-        frameWrap.style.minHeight = heightValue;
-      }
-      if (frameScaler) {
-        frameScaler.style.setProperty('--git-frame-base-height', heightValue);
-      }
-      if (detailFrame) {
-        detailFrame.style.setProperty('--git-frame-base-height', heightValue);
-        detailFrame.style.height = '100%';
-        detailFrame.style.minHeight = '100%';
-      }
-      applyFrameScale(frameScaleValue);
+      panelSlot.innerHTML = html;
+      enhancePanel(tab);
+      enableCloneCopy(panelSlot);
     }
 
-    function determineFrameScale() {
-      if (typeof window === 'undefined') {
-        return 1;
+    function setPanelError(entry, tab, error) {
+      var message = error && error.message ? error.message : 'Unable to load this view.';
+      var linkHtml = '';
+      if (entry && entry.detailUrl && tab === 'log') {
+        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
       }
-      var width = window.innerWidth || (document && document.documentElement && document.documentElement.clientWidth) || 0;
-      if (!width) {
-        return 1;
-      }
-      if (width <= 420) {
-        return 0.8;
-      }
-      if (width <= 540) {
-        return 0.84;
-      }
-      if (width <= 640) {
-        return 0.86;
-      }
-      if (width <= 900) {
-        return 0.92;
-      }
-      if (width <= 1200) {
-        return 0.96;
-      }
-      return 1;
+      setPanelContent(renderPanelMessage('error', escapeHtml(message) + linkHtml), tab);
     }
 
-    function applyFrameScale(scaleValue) {
-      if (!frameWrap || !frameScaler) {
-        return;
+    function setPanelUnavailable(entry, tab) {
+      var label = TAB_LABELS[tab] || 'view';
+      var linkHtml = '';
+      if (entry && entry.detailUrl && tab === 'log') {
+        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
+      } else if (entry && entry.detailUrl) {
+        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">View on origin</a>.';
       }
-      var normalized = typeof scaleValue === 'number' && !isNaN(scaleValue) ? scaleValue : 1;
-      if (normalized < 0.6) {
-        normalized = 0.6;
-      } else if (normalized > 1.05) {
-        normalized = 1.05;
-      }
-      frameWrap.style.setProperty('--git-frame-scale', normalized);
-      frameScaler.style.setProperty('--git-frame-scale', normalized);
-    }
-
-    function syncFrameScale(force) {
-      if (!frameWrap || !frameScaler) {
-        frameScaleValue = 1;
-        return;
-      }
-      var nextScale = determineFrameScale();
-      if (!force && Math.abs(nextScale - frameScaleValue) < 0.01) {
-        return;
-      }
-      frameScaleValue = nextScale;
-      applyFrameScale(frameScaleValue);
-    }
-
-    function queueScaleSync() {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      if (!window.requestAnimationFrame) {
-        syncFrameScale(false);
-        return;
-      }
-      if (resizeScaleRafId) {
-        window.cancelAnimationFrame(resizeScaleRafId);
-      }
-      resizeScaleRafId = window.requestAnimationFrame(function() {
-        resizeScaleRafId = null;
-        syncFrameScale(false);
-      });
-    }
-
-    function cleanupFrameObserver() {
-      if (frameObserver) {
-        try {
-          frameObserver.disconnect();
-        } catch (error) {
-          // ignore cleanup issues
-        }
-      }
-      frameObserver = null;
-    }
-
-    function setupFrameObserver() {
-      if (!detailFrame || !('ResizeObserver' in window)) {
-        cleanupFrameObserver();
-        return;
-      }
-      try {
-        var doc = detailFrame.contentDocument;
-        if (!doc) {
-          cleanupFrameObserver();
-          return;
-        }
-        var target = doc.body || doc.documentElement;
-        if (!target) {
-          cleanupFrameObserver();
-          return;
-        }
-        cleanupFrameObserver();
-        frameObserver = new ResizeObserver(function() {
-          syncFrameHeight();
-        });
-        frameObserver.observe(target);
-      } catch (error) {
-        cleanupFrameObserver();
-      }
-    }
-
-    function normalizeMessageEvent(event) {
-      if (!event) {
-        return null;
-      }
-      var data = event.data;
-      if (typeof data === 'string') {
-        try {
-          data = JSON.parse(data);
-        } catch (error) {
-          return null;
-        }
-      }
-      if (!data || typeof data !== 'object') {
-        return null;
-      }
-      return data;
-    }
-
-    function isAllowedMessageOrigin(origin) {
-      if (!origin) {
-        return false;
-      }
-      if (!postMessageOriginAllowlist) {
-        postMessageOriginAllowlist = [];
-        if (frameWrap) {
-          var allowAttr = frameWrap.getAttribute('data-allow-origins');
-          if (allowAttr) {
-            allowAttr.split(',').forEach(function(entry) {
-              var token = (entry || '').trim();
-              if (token) {
-                postMessageOriginAllowlist.push(token);
-              }
-            });
-          }
-        }
-        if (detailFrame) {
-          var defaultUrl = detailFrame.getAttribute('data-default-url');
-          if (defaultUrl) {
-            try {
-              var parsed = new URL(defaultUrl);
-              var originValue = parsed.origin;
-              if (originValue) {
-                postMessageOriginAllowlist.push(originValue);
-              }
-            } catch (error) {
-              // ignore parse failures
-            }
-          }
-        }
-      }
-      if (postMessageOriginAllowlist.length === 0) {
-        return true;
-      }
-      return postMessageOriginAllowlist.indexOf(origin) !== -1;
+      var message = 'No ' + escapeHtml(label) + ' is available for this repository.' + linkHtml;
+      setPanelContent(renderPanelMessage('empty', message), tab);
     }
 
     function setActiveButton(button) {
@@ -481,15 +387,75 @@
       }
     }
 
-    function getParentListItem(button) {
-      return button ? button.closest('.git-repo-list-item') : null;
+    function enableCloneCopy(root) {
+      if (!root || typeof window === 'undefined') {
+        return;
+      }
+      var buttons = Array.prototype.slice.call(root.querySelectorAll('.git-clone-copy'));
+      buttons.forEach(function(button) {
+        if (button.getAttribute('data-copy-bound') === 'true') {
+          return;
+        }
+        button.setAttribute('data-copy-bound', 'true');
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var commandElement = null;
+          if (button.getAttribute('data-copy-source') === 'previous') {
+            var previous = button.previousElementSibling;
+            if (previous && previous.classList.contains('git-clone-command')) {
+              commandElement = previous;
+            }
+          }
+          if (!commandElement) {
+            var cloneRoot = button.closest('.git-panel-clone');
+            if (cloneRoot) {
+              commandElement = cloneRoot.querySelector('.git-clone-command');
+            }
+          }
+          var commandText = commandElement ? commandElement.textContent.trim() : '';
+          if (!commandText) {
+            return;
+          }
+          var fallback = function() {
+            var textarea = document.createElement('textarea');
+            textarea.value = commandText;
+            textarea.setAttribute('aria-hidden', 'true');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+              document.execCommand('copy');
+              button.classList.add('is-copied');
+            } catch (copyError) {
+              console.warn('Copy failed', copyError);
+            }
+            document.body.removeChild(textarea);
+            window.setTimeout(function() {
+              button.classList.remove('is-copied');
+            }, 1600);
+          };
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(commandText).then(function() {
+              button.classList.add('is-copied');
+              window.setTimeout(function() {
+                button.classList.remove('is-copied');
+              }, 1600);
+            }).catch(function() {
+              fallback();
+            });
+          } else {
+            fallback();
+          }
+        });
+      });
     }
 
     function filterList(query) {
       var needle = (query || '').trim().toLowerCase();
       var matches = 0;
       repoItems.forEach(function(entry) {
-        var li = getParentListItem(entry.button);
+        var li = entry.button.closest('.git-repo-list-item');
         if (!li) {
           return;
         }
@@ -499,224 +465,291 @@
           matches += 1;
         }
       });
-      if (emptyStateEl && repoItems.length > 0) {
+      if (emptyStateEl) {
         emptyStateEl.hidden = matches > 0;
       }
     }
 
-    function showIndicator() {
-      if (!detailIndicator) {
-        return;
-      }
-      detailIndicator.hidden = false;
-      detailIndicator.removeAttribute('aria-hidden');
-      detailIndicator.style.display = '';
-      detailIndicator.classList.remove('is-hidden');
-      prepareFrameForLoad();
-      applyFrameHeight(frameDefaultHeight);
-      if (spinnerTimeoutId) {
-        window.clearTimeout(spinnerTimeoutId);
-      }
-      spinnerTimeoutId = window.setTimeout(function() {
-        hideIndicator();
-      }, 7000);
-    }
-
-    function hideIndicator() {
-      if (!detailIndicator) {
-        return;
-      }
-      detailIndicator.hidden = true;
-      detailIndicator.setAttribute('aria-hidden', 'true');
-      detailIndicator.style.display = 'none';
-      detailIndicator.classList.add('is-hidden');
-      if (spinnerTimeoutId) {
-        window.clearTimeout(spinnerTimeoutId);
-        spinnerTimeoutId = null;
-      }
-    }
-
-    function prepareFrameForLoad() {
-      if (!detailFrame) {
-        return;
-      }
-      detailFrame.style.visibility = 'hidden';
-      applyFrameHeight(frameDefaultHeight);
-    }
-
-    function revealFrame() {
-      if (!detailFrame) {
-        return;
-      }
-      detailFrame.style.visibility = 'visible';
-    }
-
-    function syncFrameHeight() {
-      if (!detailFrame) {
-        return;
-      }
-      var fallbackHeight = frameDefaultHeight || frameInitialHeight || frameWrapMinHeight || '';
-      var measuredHeight = null;
-
-      try {
-        var doc = detailFrame.contentDocument;
-        if (doc) {
-          var docElement = doc.documentElement;
-          var body = doc.body;
-          var docElementHeight = docElement ? Math.max(docElement.scrollHeight || 0, docElement.offsetHeight || 0) : 0;
-          var bodyHeight = body ? Math.max(body.scrollHeight || 0, body.offsetHeight || 0) : 0;
-          measuredHeight = Math.max(docElementHeight, bodyHeight);
-        }
-      } catch (error) {
-        measuredHeight = null;
-      }
-
-      if (!measuredHeight) {
-        try {
-          if (detailFrame && detailFrame.contentWindow) {
-            detailFrame.contentWindow.postMessage({
-              type: 'cmGit:height:request'
-            }, '*');
-          }
-        } catch (error) {
-          // unable to post message to child
+    function findEntry(predicate) {
+      for (var i = 0; i < repoItems.length; i += 1) {
+        if (predicate(repoItems[i])) {
+          return repoItems[i];
         }
       }
-
-      if (measuredHeight && measuredHeight > 0) {
-        var paddingOffset = 24;
-        applyFrameHeight((measuredHeight + paddingOffset) + 'px');
-      } else if (fallbackHeight) {
-        applyFrameHeight(fallbackHeight);
-      } else {
-        applyFrameHeight('calc(100vh + 16rem)');
-      }
-    }
-
-    function activateEntry(entry, options) {
-      if (!entry || !entry.detailUrl || !detailFrame) {
-        return;
-      }
-      var label = entry.label || entry.detailUrl;
-      if (activeLabel) {
-        activeLabel.textContent = label;
-      }
-      showIndicator();
-      var forceReload = options && options.forceReload;
-      var url = entry.detailUrl;
-      if (forceReload) {
-        var separator = url.indexOf('?') === -1 ? '?' : '&';
-        url = url + separator + 'ts=' + Date.now();
-      }
-      detailFrame.setAttribute('data-active-url', entry.detailUrl);
-      detailFrame.src = url;
-      setActiveButton(entry.button);
-      try {
-        var targetOrigin = '*';
-        if (entry.detailUrl) {
-          targetOrigin = new URL(entry.detailUrl, window.location.href).origin || '*';
-        }
-        window.postMessage({
-          type: 'cmGit:parent:activate',
-          detailUrl: entry.detailUrl,
-          label: label
-        }, targetOrigin);
-      } catch (error) {
-        // non-fatal messaging error
-      }
+      return null;
     }
 
     function findEntryByUrl(url) {
       if (!url) return null;
-      return repoItems.find(function(entry) {
+      return findEntry(function(entry) {
         return entry.detailUrl === url;
-      }) || null;
+      });
     }
 
     function findEntryByLabel(label) {
       if (!label) return null;
-      var normalized = label.toLowerCase();
-      return repoItems.find(function(entry) {
-        return (entry.label || '').toLowerCase() === normalized;
-      }) || null;
-    }
-
-    if (detailFrame) {
-      detailFrame.addEventListener('load', function() {
-        hideIndicator();
-        revealFrame();
-        setupFrameObserver();
-        syncFrameHeight();
-        if (window.requestAnimationFrame) {
-          window.requestAnimationFrame(function() {
-            syncFrameHeight();
-          });
-        }
-        window.setTimeout(function() {
-          syncFrameHeight();
-        }, 650);
-        window.setTimeout(function() {
-          syncFrameHeight();
-        }, 2000);
-        try {
-          if (detailFrame.contentWindow) {
-            detailFrame.contentWindow.postMessage({
-              type: 'cmGit:height:request'
-            }, '*');
-          }
-        } catch (error) {
-          // message request optional
-        }
-      });
-      detailFrame.addEventListener('error', function() {
-        hideIndicator();
-        revealFrame();
-        cleanupFrameObserver();
-        applyFrameHeight(frameDefaultHeight);
+      var target = label.toLowerCase();
+      return findEntry(function(entry) {
+        return (entry.label || '').toLowerCase() === target;
       });
     }
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', function() {
-        if (!frameWrap || !frameScaler) {
+    function findEntryByFragment(fragment) {
+      if (!fragment) return null;
+      return findEntry(function(entry) {
+        return entry.fragmentPath === fragment;
+      });
+    }
+
+    function getFragmentForTab(entry, tab) {
+      if (!entry) return '';
+      if (tab === 'log') {
+        return entry.fragmentPath || '';
+      }
+      if (tab === 'files') {
+        return entry.filesFragment || '';
+      }
+      if (tab === 'refs') {
+        return entry.refsFragment || '';
+      }
+      if (tab === 'readme') {
+        return entry.readmeFragment || '';
+      }
+      return '';
+    }
+
+    function updateTabAvailability(entry) {
+      TAB_ORDER.forEach(function(tab) {
+        var button = tabMap[tab];
+        if (!button) {
           return;
         }
-        queueScaleSync();
+        var fragment = getFragmentForTab(entry, tab);
+        var isAvailable = !!fragment;
+        button.disabled = !isAvailable;
+        button.classList.toggle('is-disabled', !isAvailable);
       });
     }
 
-    window.addEventListener('message', function(event) {
-      var payload = normalizeMessageEvent(event);
-      if (!payload || !payload.type) {
+    function setActiveTab(tab) {
+      Object.keys(tabMap).forEach(function(key) {
+        var button = tabMap[key];
+        if (!button) return;
+        button.classList.toggle('is-active', key === tab);
+      });
+    }
+
+    function abortPendingFileRequest() {
+      if (pendingFileController && typeof pendingFileController.abort === 'function') {
+        pendingFileController.abort();
+      }
+      pendingFileController = null;
+    }
+
+    function abortPendingRequest() {
+      if (pendingController && typeof pendingController.abort === 'function') {
+        pendingController.abort();
+      }
+      pendingController = null;
+      abortPendingFileRequest();
+    }
+
+    function enhancePanel(tab) {
+      if (tab === 'files') {
+        initFilesPanel();
+      } else {
+        activeFileButton = null;
+      }
+    }
+
+    function setActiveFileButton(button) {
+      if (activeFileButton && activeFileButton !== button) {
+        activeFileButton.classList.remove('is-active');
+      }
+      activeFileButton = button || null;
+      if (activeFileButton) {
+        activeFileButton.classList.add('is-active');
+      }
+    }
+
+    function loadBlobPreview(blobPath, sourceButton) {
+      if (!panelSlot) {
         return;
       }
-      if (!isAllowedMessageOrigin(event.origin)) {
+      var preview = panelSlot.querySelector('[data-git-file-preview]');
+      if (!preview) {
         return;
       }
-      if (payload.type === 'cmGit:height:update') {
-        var heightValue = payload.height;
-        if (typeof heightValue === 'number' && heightValue > 0) {
-          applyFrameHeight(heightValue + 'px');
-        } else if (typeof heightValue === 'string' && heightValue.trim().length > 0) {
-          applyFrameHeight(heightValue.trim());
+      abortPendingFileRequest();
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      if (controller) {
+        pendingFileController = controller;
+      }
+      preview.innerHTML = '<div class="git-panel-message git-panel-message--loading">Loading file…</div>';
+      var requestUrl = resolveRelative(blobPath);
+      fetch(requestUrl, controller ? { signal: controller.signal } : {})
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          return response.text();
+        })
+        .then(function(html) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          preview.innerHTML = html;
+          enableCloneCopy(preview);
+        })
+        .catch(function(error) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          preview.innerHTML = renderPanelMessage('error', escapeHtml(error.message || 'Unable to load file preview.'));
+        })
+        .finally(function() {
+          if (pendingFileController === controller) {
+            pendingFileController = null;
+          }
+        });
+      setActiveFileButton(sourceButton);
+    }
+
+    function initFilesPanel() {
+      if (!panelSlot) {
+        return;
+      }
+      var treeButtons = Array.prototype.slice.call(panelSlot.querySelectorAll('.git-tree-entry'));
+      if (treeButtons.length === 0) {
+        return;
+      }
+      treeButtons.forEach(function(button) {
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var blobPath = button.getAttribute('data-git-blob') || '';
+          if (!blobPath) {
+            return;
+          }
+          loadBlobPreview(blobPath, button);
+        });
+      });
+      var preview = panelSlot.querySelector('[data-git-file-preview]');
+      if (preview) {
+        preview.setAttribute('tabindex', '-1');
+      }
+    }
+
+    function loadPanel(entry, tab, options) {
+      if (!entry) {
+        return;
+      }
+      var fragment = getFragmentForTab(entry, tab);
+      if (!fragment) {
+        hideIndicator();
+        setPanelUnavailable(entry, tab);
+        setActiveTab(tab);
+        activeTab = tab;
+        return;
+      }
+      abortPendingRequest();
+      activeTab = tab;
+      setActiveTab(tab);
+      var label = entry.label || entry.detailUrl || 'Repository';
+      showIndicator('Loading ' + label + ' · ' + (TAB_LABELS[tab] || 'view') + '…');
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      if (controller) {
+        pendingController = controller;
+      }
+      var requestUrl = resolveRelative(fragment);
+      if (options && options.forceReload) {
+        var separator = requestUrl.indexOf('?') === -1 ? '?' : '&';
+        requestUrl = requestUrl + separator + 'ts=' + Date.now();
+      }
+      fetch(requestUrl, controller ? { signal: controller.signal } : {})
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          return response.text();
+        })
+        .then(function(html) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          hideIndicator();
+          setPanelContent(html, tab);
+        })
+        .catch(function(error) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          hideIndicator();
+          setPanelError(entry, tab, error);
+        })
+        .finally(function() {
+          if (pendingController === controller) {
+            pendingController = null;
+          }
+        });
+    }
+
+    function resolveInitialTab(entry, desired) {
+      var preferred = desired && TAB_ORDER.indexOf(desired) !== -1 ? desired : 'log';
+      if (getFragmentForTab(entry, preferred)) {
+        return preferred;
+      }
+      for (var i = 0; i < TAB_ORDER.length; i += 1) {
+        var candidate = TAB_ORDER[i];
+        if (getFragmentForTab(entry, candidate)) {
+          return candidate;
         }
+      }
+      return 'log';
+    }
+
+    function activateEntry(entry, options) {
+      if (!entry) {
         return;
       }
-      if (payload.type === 'cmGit:height:declare') {
-        var declared = payload.value;
-        if (typeof declared === 'number' && declared > 0) {
-          applyFrameHeight(declared + 'px');
-        }
+      var forceReload = options && options.forceReload;
+      var requestedTab = options && options.tab;
+      if (activeEntry === entry && !forceReload && (!requestedTab || requestedTab === activeTab)) {
+        return;
       }
-    });
+      activeEntry = entry;
+      setActiveButton(entry.button);
+      if (activeLabel) {
+        activeLabel.textContent = entry.label || entry.detailUrl || 'selected repository';
+      }
+      updateTabAvailability(entry);
+      var nextTab = resolveInitialTab(entry, requestedTab || activeTab);
+      loadPanel(entry, nextTab, { forceReload: forceReload });
+    }
 
     repoButtons.forEach(function(button) {
       button.addEventListener('click', function(event) {
         event.preventDefault();
-        var entry = repoItems.find(function(item) {
-          return item.button === button;
+        var entry = findEntry(function(candidate) {
+          return candidate.button === button;
         });
-        activateEntry(entry, { forceReload: false });
+        activateEntry(entry, { tab: 'log' });
+      });
+    });
+
+    tabButtons.forEach(function(button) {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        var tab = button.getAttribute('data-git-tab');
+        if (!tab || button.disabled) {
+          return;
+        }
+        if (!activeEntry) {
+          return;
+        }
+        if (tab === activeTab && !button.classList.contains('is-disabled')) {
+          return;
+        }
+        loadPanel(activeEntry, tab, { forceReload: false });
       });
     });
 
@@ -726,24 +759,39 @@
       });
     }
 
-    if (refreshBtn && !refreshBtn.disabled) {
+    if (refreshBtn) {
       refreshBtn.addEventListener('click', function(event) {
         event.preventDefault();
-        var defaultUrl = refreshBtn.getAttribute('data-git-default-url') || '';
-        var defaultName = refreshBtn.getAttribute('data-git-default-name') || '';
-        var entry = findEntryByUrl(defaultUrl) || findEntryByLabel(defaultName) || repoItems[0] || null;
-        if (entry) {
-          activateEntry(entry, { forceReload: true });
+        var targetEntry = activeEntry;
+        if (!targetEntry) {
+          var defaultFragment = refreshBtn.getAttribute('data-git-default-fragment') || '';
+          var defaultUrl = refreshBtn.getAttribute('data-git-default-url') || '';
+          var defaultName = refreshBtn.getAttribute('data-git-default-name') || '';
+          targetEntry =
+            findEntryByFragment(defaultFragment) ||
+            findEntryByUrl(defaultUrl) ||
+            findEntryByLabel(defaultName) ||
+            null;
+        }
+        if (targetEntry) {
+          activateEntry(targetEntry, { tab: activeTab, forceReload: true });
         }
       });
     }
 
-    if (repoItems.length > 0) {
-      filterList('');
-      var defaultUrl = detailFrame ? detailFrame.getAttribute('data-default-url') : '';
-      var defaultName = detailFrame ? detailFrame.getAttribute('data-default-name') : '';
-      var initialEntry = findEntryByUrl(defaultUrl) || findEntryByLabel(defaultName) || repoItems[0];
-      activateEntry(initialEntry, { forceReload: false });
+    filterList('');
+    var initialFragment = panelContainer ? panelContainer.getAttribute('data-default-fragment') : '';
+    var initialUrl = panelContainer ? panelContainer.getAttribute('data-default-url') : '';
+    var initialName = panelContainer ? panelContainer.getAttribute('data-default-name') : '';
+    var initialEntry =
+      findEntryByFragment(initialFragment) ||
+      findEntryByUrl(initialUrl) ||
+      findEntryByLabel(initialName) ||
+      repoItems[0] ||
+      null;
+
+    if (initialEntry) {
+      activateEntry(initialEntry, { tab: 'log' });
     } else {
       hideIndicator();
     }

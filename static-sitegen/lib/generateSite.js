@@ -3,6 +3,7 @@ import path from 'path';
 import { marked } from 'marked';
 import * as ejs from 'ejs';
 import yaml from 'js-yaml';
+import { ensureGitRepoArtifacts } from './gitArtifacts.js';
 
 // Default template for when no template is found
 const DEFAULT_TEMPLATE = `
@@ -177,6 +178,7 @@ function buildGitRepoSearchText(record) {
   if (!record) return '';
   return [
     record.label,
+    record.branch,
     record.stage,
     record.owner,
     record.description,
@@ -225,12 +227,14 @@ function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) 
   }
 
   const repoPath = normalized.repoPath || normalized.relativePath || deriveGitRepoPath(httpUrl || detailUrl || '');
-  const stage = normalized.stage || normalized.env || '';
+  const branch = normalized.branch || normalized.defaultBranch || normalized.stage || normalized.env || '';
+  const stage = normalized.stage || normalized.env || branch || '';
   const stageLabel = normalized.stageLabel || (stage ? stage.toUpperCase() : '');
   const owner = normalized.owner || normalized.maintainer || '';
   const description = normalized.description || normalized.summary || '';
   const searchText = (normalized.searchText || buildGitRepoSearchText({
     label,
+    branch,
     stage,
     owner,
     description,
@@ -247,6 +251,7 @@ function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) 
   return {
     id,
     label,
+    branch,
     stage,
     stageLabel,
     owner,
@@ -296,10 +301,11 @@ function parseGitManifestContent(content, detailSuffix, manifestSource, verbose 
       }
       continue;
     }
-    const [sshUrl, stage, name, owner, description, httpUrl] = parts.map(part => part.trim());
+    const [sshUrl, branchField, name, owner, description, httpUrl] = parts.map(part => part.trim());
     const repoRecord = normalizeGitRepoRecord({
       label: name,
-      stage,
+      stage: branchField,
+      branch: branchField,
       owner,
       description,
       httpUrl,
@@ -325,6 +331,45 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
     : (typeof siteGitConfig.repoDetailSuffix === 'string' && siteGitConfig.repoDetailSuffix.trim().length > 0)
       ? siteGitConfig.repoDetailSuffix.trim()
       : DEFAULT_GIT_DETAIL_SUFFIX;
+
+  const localOverridesRaw = {
+    ...(siteGitConfig.localRepoOverrides || {}),
+    ...(gitConfig.localRepoOverrides || {})
+  };
+
+  const localRepoOverrides = {};
+  for (const [rawKey, value] of Object.entries(localOverridesRaw)) {
+    if (!rawKey || value === undefined || value === null) {
+      continue;
+    }
+    const key = rawKey.toString().toLowerCase();
+    let pathOverride = null;
+    let branchOverride = null;
+    let depthOverride = null;
+
+    if (typeof value === 'string') {
+      pathOverride = path.resolve(process.cwd(), value);
+    } else if (typeof value === 'object') {
+      if (value.path) {
+        pathOverride = path.resolve(process.cwd(), value.path);
+      }
+      if (typeof value.branch === 'string' && value.branch.trim().length > 0) {
+        branchOverride = value.branch.trim();
+      } else if (typeof value.defaultBranch === 'string' && value.defaultBranch.trim().length > 0) {
+        branchOverride = value.defaultBranch.trim();
+      }
+      if (typeof value.depth === 'number' && Number.isFinite(value.depth) && value.depth > 0) {
+        depthOverride = Math.floor(value.depth);
+      }
+    }
+
+    localRepoOverrides[key] = {
+      path: pathOverride,
+      branch: branchOverride,
+      depth: depthOverride
+    };
+  }
+  gitConfig.localRepoOverrides = localRepoOverrides;
 
   const manifestCandidates = [];
   if (gitConfig.manifest) {
@@ -372,10 +417,56 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
 
   let combinedRepos = dedupeGitRepos([...manifestRepos, ...manualRepos]);
 
-  combinedRepos = combinedRepos.map(repo => ({
-    ...repo,
-    searchText: repo.searchText || buildGitRepoSearchText(repo)
-  }));
+  combinedRepos = combinedRepos.map(repo => {
+    const nextRepo = { ...repo };
+    nextRepo.searchText = nextRepo.searchText || buildGitRepoSearchText(nextRepo);
+
+    const overrideCandidates = [
+      nextRepo.id,
+      nextRepo.label,
+      nextRepo.repoPath,
+      nextRepo.detailUrl,
+      nextRepo.httpUrl,
+      nextRepo.sshUrl
+    ];
+
+    let matchedOverride = null;
+    for (const candidate of overrideCandidates) {
+      if (!candidate) {
+        continue;
+      }
+      const key = candidate.toString().toLowerCase();
+      if (localRepoOverrides[key]) {
+        matchedOverride = localRepoOverrides[key];
+        break;
+      }
+    }
+
+    if (!matchedOverride && nextRepo.manifestSource) {
+      const manifestKey = `${nextRepo.manifestSource}:${nextRepo.label || nextRepo.id || ''}`.toLowerCase();
+      if (localRepoOverrides[manifestKey]) {
+        matchedOverride = localRepoOverrides[manifestKey];
+      }
+    }
+
+    if (matchedOverride) {
+      if (matchedOverride.path) {
+        nextRepo.localPath = matchedOverride.path;
+      }
+      if (!nextRepo.branch && matchedOverride.branch) {
+        nextRepo.branch = matchedOverride.branch;
+      }
+      if (matchedOverride.branch) {
+        nextRepo.overrideBranch = matchedOverride.branch;
+      }
+      if (matchedOverride.depth) {
+        nextRepo.overrideDepth = matchedOverride.depth;
+      }
+      nextRepo.localOverride = matchedOverride;
+    }
+
+    return nextRepo;
+  });
 
   combinedRepos.sort((a, b) => {
     const stageA = (a.stageLabel || '').toLowerCase();
@@ -855,6 +946,12 @@ export async function generateSite(config, outputDir, verbose = false) {
         }
       });
     }
+
+    const templatesDirAbsolute = path.resolve(
+      process.cwd(),
+      updatedConfig.templates || 'templates'
+    );
+    const gitArtifactsContext = { generated: new Set() };
     
     let indexPageConfigData;
     if (updatedConfig.index) {
@@ -999,6 +1096,17 @@ export async function generateSite(config, outputDir, verbose = false) {
 
         if (pageCopy.git) {
           await hydrateGitPageConfig(pageCopy, updatedConfig, verbose);
+          if (pageCopy.git && Array.isArray(pageCopy.git.resolvedRepos) && pageCopy.git.resolvedRepos.length > 0) {
+            await ensureGitRepoArtifacts({
+              repos: pageCopy.git.resolvedRepos,
+              siteConfig: updatedConfig,
+              pageConfig: pageCopy,
+              outputDir,
+              templatesDir: templatesDirAbsolute,
+              verbose,
+              context: gitArtifactsContext
+            });
+          }
         }
         
         // Process markdown content if it exists

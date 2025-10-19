@@ -31,6 +31,8 @@ pages:
       leftPaneDescription: "Select a repository from the Core Git catalog."
       rightPaneTitle: "Repository Activity"
       rightPaneDescription: "We embed the upstream HTML so you can skim commits, branches, and files in place."
+      localRepoOverrides:
+        chaosandmajesty-static-site-gen: .
 
   # - title: About
   #   slug: about

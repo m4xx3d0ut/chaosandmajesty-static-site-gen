@@ -1,0 +1,100 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">config.js</h4>
+        <div class="git-file-meta">
+          <span>2.1 KB</span>
+          <span>static-sitegen/lib/config.js</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>import { promises as fs } from &#039;fs&#039;;
+import path from &#039;path&#039;;
+import yaml from &#039;js-yaml&#039;;
+
+/**
+ * Default configuration values
+ */
+const defaultConfig = {
+  input: &#039;./content&#039;,
+  output: &#039;./dist&#039;,
+  templates: &#039;./templates&#039;,
+  assets: &#039;./assets&#039;,
+  data: &#039;./data&#039;,
+  title: &#039;Static Site&#039;,
+  description: &#039;A static site generated with sitegen&#039;,
+  styles: [&#039;assets/modern.css&#039;],
+  baseUrl: &#039;/&#039;,
+  pages: [],
+  header: { links: [] }
+};
+
+/**
+ * Normalize all paths in the configuration
+ */
+function normalizePaths(config) {
+  const normalized = { ...config };
+  
+  [&#039;input&#039;, &#039;output&#039;, &#039;templates&#039;, &#039;assets&#039;, &#039;data&#039;].forEach(key =&gt; {
+    if (normalized[key]) {
+      normalized[key] = path.normalize(normalized[key]);
+    }
+  });
+  
+  if (normalized.customPaths) {
+    normalized.customPaths = Object.entries(normalized.customPaths).reduce((acc, [key, value]) =&gt; {
+      acc[key] = path.normalize(value);
+      return acc;
+    }, {});
+  }
+  
+  return normalized;
+}
+
+/**
+ * Validate configuration object
+ */
+function validateConfig(config) {
+  const errors = [];
+  
+  if (!config.title) {
+    errors.push(&#039;Missing required field: title&#039;);
+  }
+  
+  if (config.pages &amp;&amp; !Array.isArray(config.pages)) {
+    errors.push(&#039;pages must be an array&#039;);
+  }
+  
+  if (config.sections &amp;&amp; !Array.isArray(config.sections)) {
+    errors.push(&#039;sections must be an array&#039;);
+  }
+  
+  if (errors.length &gt; 0) {
+    throw new Error(`Configuration validation failed:\n${errors.join(&#039;\n&#039;)}`);
+  }
+  
+  return config;
+}
+
+/**
+ * Load and normalize configuration from a YAML file
+ * @param {string} configPath - Path to the configuration file
+ * @returns {Object} Normalized configuration object
+ */
+export async function loadConfig(configPath) {
+  try {
+    const configFile = await fs.readFile(configPath, &#039;utf8&#039;);
+    const config = yaml.load(configFile) || {};
+
+    const mergedConfig = { ...defaultConfig, ...config };
+    const normalizedConfig = normalizePaths(mergedConfig);
+    
+    return validateConfig(normalizedConfig);
+  } catch (error) {
+    throw new Error(`Failed to load config from ${configPath}: ${error.message}`);
+  }
+}
+</code></pre>
+      </div>
+    </article>
+  

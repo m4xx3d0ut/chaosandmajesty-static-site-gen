@@ -1,0 +1,160 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">nethunter-notes.html</h4>
+        <div class="git-file-meta">
+          <span>5.0 KB</span>
+          <span>site-output/blog/fragments/nethunter-notes.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;nethunter-notes&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;Nethunter Notes&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Dec 22, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;1 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;su --mount-master&lt;/code&gt; to bind the external SD card into &lt;code&gt;/data/local/nhsystem&lt;/code&gt; so NetHunter has room for its root filesystem.&lt;/li&gt;
+&lt;li&gt;Automate the bind mount with Magisk or Termux boot scripts so the chroot is ready after every reboot.&lt;/li&gt;
+&lt;li&gt;Point Metasploit at a Termux-hosted PostgreSQL instance to dodge shared-memory issues inside the NetHunter chroot.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Shield Tablet K1 Mounts&lt;/h3&gt;
+&lt;p&gt;Bind-mount the SD card into the NetHunter rootfs:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;su --mount-master -c &amp;quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Magisk boot script (&lt;code&gt;/data/adb/service.d/nhbind.sh&lt;/code&gt;) to recreate the bind mount and log to logcat:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;#!/system/bin/sh
+{
+  # Bind mount ext sdcard nhsys to internal nhsystem
+  su --mount-master -c &amp;quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&amp;quot;
+} | tee /dev/tty | while read line; do
+  log -p v -t &amp;quot;$0&amp;quot; &amp;quot;$line&amp;quot;
+done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Termux boot script (&lt;code&gt;~/.termux/boot/nhbind&lt;/code&gt;):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;#!/data/data/com.termux/files/usr/bin/sh
+su --mount-master -c &amp;quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;APK Automation&lt;/h3&gt;
+&lt;p&gt;Install every APK in the current directory:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;for i in *; do
+  echo &amp;quot;$i&amp;quot;
+  adb install -r &amp;quot;$i&amp;quot;
+done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;List third-party packages:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;adb shell pm list packages -f -3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Kernel Reference&lt;/h3&gt;
+&lt;p&gt;LineageOS defconfig path for OnePlus One:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;kernel/oppo/msm8974/arch/arm/configs/lineageos_bacon_defconfig
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Metasploit + Termux PostgreSQL&lt;/h3&gt;
+&lt;p&gt;Run PostgreSQL in Termux to back Metasploit:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;pkg update &amp;amp;&amp;amp; pkg install openssl-tool postgresql
+mkdir /path/to/db
+pg_ctl initdb -D /path/to/db
+pg_ctl -D /path/to/db start
+pg_ctl -D /path/to/db stop
+createuser --superuser --pwprompt msf
+# Suggested password: generate your own secret instead of reusing samples.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Inside &lt;code&gt;psql&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;psql postgres
+CREATE DATABASE msf;
+\l
+\q
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Connect from Kali:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;msfconsole
+db_connect msf:&amp;lt;password&amp;gt;@127.0.0.1/msf
+db_status
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/assembling-the-pieces.html&quot;
+        data-default-href=&quot;blog/assembling-the-pieces.html&quot;
+        data-default-fragment=&quot;blog/fragments/assembling-the-pieces.html&quot;
+        data-fragment-href=&quot;blog/fragments/assembling-the-pieces.html&quot;
+        data-target-slug=&quot;assembling-the-pieces&quot;
+        data-post-slug=&quot;assembling-the-pieces&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 24 — Assembling the Pieces&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/ad-lateral-movement.html&quot;
+        data-default-href=&quot;blog/ad-lateral-movement.html&quot;
+        data-default-fragment=&quot;blog/fragments/ad-lateral-movement.html&quot;
+        data-fragment-href=&quot;blog/fragments/ad-lateral-movement.html&quot;
+        data-target-slug=&quot;ad-lateral-movement&quot;
+        data-post-slug=&quot;ad-lateral-movement&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 23 — Lateral Movement and Persistence in AD&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

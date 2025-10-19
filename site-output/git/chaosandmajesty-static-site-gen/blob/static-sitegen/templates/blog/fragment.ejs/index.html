@@ -1,0 +1,54 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">fragment.ejs</h4>
+        <div class="git-file-meta">
+          <span>1.4 KB</span>
+          <span>static-sitegen/templates/blog/fragment.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;%
+  const rawRootBase = page.rootBase || (site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039; ? site.baseUrl : &#039;&#039;);
+  const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, &#039;&#039;) : &#039;&#039;;
+  const hasAbsoluteBase = !!normalizedRootBase;
+  const baseDepth = (typeof page.baseDepth === &#039;number&#039;) ? page.baseDepth : 0;
+  const depthPrefix = hasAbsoluteBase ? &#039;&#039; : (baseDepth &gt; 0 ? &#039;../&#039;.repeat(baseDepth) : &#039;&#039;);
+  const isExternal = (href) =&gt; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || &#039;&#039;);
+  const resolvePath = (value) =&gt; {
+    if (!value) {
+      return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || &#039;/&#039;) : &#039;./&#039;);
+    }
+    if (/^(\.\/|\.\.\/)/.test(value)) {
+      return value;
+    }
+    const cleaned = value.replace(/^\/+/, &#039;&#039;);
+    if (hasAbsoluteBase) {
+      return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || &#039;/&#039;);
+    }
+    return depthPrefix + cleaned;
+  };
+  const buildAssetHref = (asset) =&gt; {
+    if (!asset) return &#039;&#039;;
+    if (isExternal(asset)) return asset;
+    return resolvePath(asset);
+  };
+  const buildInternalHref = (href) =&gt; {
+    if (!href) return &#039;#&#039;;
+    if (isExternal(href)) return href;
+    if (href.startsWith(&#039;#&#039;)) {
+      const target = href.slice(1);
+      if (!target) {
+        return resolvePath(&#039;&#039;);
+      }
+      return resolvePath(`sections/${target}.html`);
+    }
+    return resolvePath(href);
+  };
+%&gt;
+
+&lt;%- include(&#039;partials/article.ejs&#039;, { post: page.post, buildAssetHref, buildInternalHref }) %&gt;
+</code></pre>
+      </div>
+    </article>
+  

@@ -1,0 +1,69 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">cm-head.ejs</h4>
+        <div class="git-file-meta">
+          <span>2.8 KB</span>
+          <span>static-sitegen/templates/partials/cm-head.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!-- head partial (auto-generated) --&gt;
+&lt;%
+  const cmHeadIsExternal = (href) =&gt; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || &#039;&#039;);
+  const cmHeadRawRootBase =
+    (typeof headRootBase !== &#039;undefined&#039; &amp;&amp; headRootBase) ||
+    (typeof page !== &#039;undefined&#039; &amp;&amp; (page.rootBase || (page.blog &amp;&amp; page.blog.rootBase))) ||
+    (typeof site !== &#039;undefined&#039; &amp;&amp; site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039; ? site.baseUrl : &#039;&#039;);
+  const cmHeadNormalizedRoot = cmHeadRawRootBase ? cmHeadRawRootBase.replace(/\/+$/, &#039;&#039;) : &#039;&#039;;
+  const cmHeadHasAbsoluteBase = !!cmHeadNormalizedRoot;
+  const cmHeadDepthValue =
+    (typeof headBaseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(headBaseDepth))
+      ? headBaseDepth
+      : (typeof baseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(baseDepth))
+        ? baseDepth
+        : (typeof page !== &#039;undefined&#039; &amp;&amp; typeof page.baseDepth === &#039;number&#039; &amp;&amp; !Number.isNaN(page.baseDepth))
+          ? page.baseDepth
+          : (typeof isSection !== &#039;undefined&#039; &amp;&amp; isSection ? 1 : 0);
+  const cmHeadDepthPrefix = cmHeadHasAbsoluteBase
+    ? &#039;&#039;
+    : (cmHeadDepthValue &gt; 0 ? &#039;../&#039;.repeat(cmHeadDepthValue) : &#039;&#039;);
+  const cmHeadResolve = (value) =&gt; {
+    if (!value) {
+      return cmHeadHasAbsoluteBase
+        ? (cmHeadNormalizedRoot || &#039;/&#039;)
+        : (cmHeadDepthPrefix || &#039;./&#039;);
+    }
+    if (cmHeadIsExternal(value)) {
+      return value;
+    }
+    if (/^(?:\.\/|\.\.\/)/.test(value)) {
+      return value;
+    }
+    const cleaned = value.replace(/^\/+/, &#039;&#039;);
+    if (cmHeadHasAbsoluteBase) {
+      return cleaned
+        ? `${cmHeadNormalizedRoot}/${cleaned}`
+        : (cmHeadNormalizedRoot || &#039;/&#039;);
+    }
+    return cmHeadDepthPrefix + cleaned;
+  };
+%&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;&lt;%= cmHeadResolve(&#039;assets/static/style/cm.css&#039;) %&gt;&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;&lt;%= cmHeadResolve(&#039;assets/static/js/cm.js&#039;) %&gt;&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;&lt;%= cmHeadResolve(&#039;site.webmanifest&#039;) %&gt;&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;&lt;%= cmHeadResolve(&#039;assets/static/img/favicon.ico&#039;) %&gt;&quot;&gt;
+</code></pre>
+      </div>
+    </article>
+  

@@ -1,0 +1,280 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">base.ejs</h4>
+        <div class="git-file-meta">
+          <span>9.1 KB</span>
+          <span>static-sitegen/templates/base.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+
+  &lt;title&gt;&lt;%= site.title %&gt; – &lt;%= page.title %&gt;&lt;/title&gt;
+
+  &lt;% if (site.meta &amp;&amp; site.meta.description) { %&gt;
+    &lt;meta name=&quot;description&quot; content=&quot;&lt;%= site.meta.description %&gt;&quot;&gt;
+  &lt;% } %&gt;
+  &lt;% if (site.meta &amp;&amp; site.meta.keywords) { %&gt;
+    &lt;meta name=&quot;keywords&quot; content=&quot;&lt;%= site.meta.keywords %&gt;&quot;&gt;
+  &lt;% } %&gt;
+
+  &lt;!-- Include CM head content if specified --&gt;
+  &lt;% if (page.useCmHead || site.useCmHead) { %&gt;
+    &lt;%- include(&#039;partials/cm-head.ejs&#039;) %&gt;
+  &lt;% } %&gt;
+
+  &lt;!-- Stylesheets: use CM styles if CM is enabled, otherwise use provided styles --&gt;
+  &lt;% if (page.useCmHead || site.useCmHead) { %&gt;
+    &lt;!-- CM styles are already included in cm-head.ejs --&gt;
+  &lt;% } else if (site.styles &amp;&amp; site.styles.length &gt; 0) { %&gt;
+    &lt;% site.styles.forEach(function(style) { %&gt;
+      &lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= style %&gt;&quot;&gt;
+    &lt;% }); %&gt;
+  &lt;% } else { %&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= isSection ? &#039;../assets/modern.css&#039; : &#039;assets/modern.css&#039; %&gt;&quot;&gt;
+  &lt;% } %&gt;
+&lt;/head&gt;
+
+&lt;body
+  class=&quot;
+    &lt;%= (site.theme &amp;&amp; site.theme.mode === &#039;dark&#039;) ? &#039;dark-mode&#039; : &#039;light-mode&#039; %&gt;
+    &lt;%= site.parallaxImage ? &#039; with-parallax&#039; : &#039;&#039; %&gt;
+    &lt;%= (page.useCmConsole || site.useCmConsole || page.useCmHead || site.useCmHead || page.useCmFooter || site.useCmFooter) ? &#039;cm-body&#039; : &#039;&#039; %&gt;
+  &quot;
+  data-theme=&quot;&lt;%= (site.theme &amp;&amp; site.theme.mode === &#039;dark&#039;) ? &#039;dark&#039; : &#039;light&#039; %&gt;&quot;
+  &lt;% if (site.parallaxPush) { %&gt;
+    style=&quot;--parallax-push:&lt;%= site.parallaxPush %&gt;;&quot;
+  &lt;% } %&gt;
+&gt;
+
+  &lt;!-- Optional Parallax Background DIV --&gt;
+  &lt;% if (site.parallaxImage) { %&gt;
+    &lt;div
+      class=&quot;parallax-bg&quot;
+      style=&quot;background-image: url(
+        &#039;&lt;%= isSection ? &#039;../&#039; + site.parallaxImage : site.parallaxImage %&gt;&#039;
+      );&quot;
+    &gt;&lt;/div&gt;
+  &lt;% } %&gt;
+
+  &lt;!-- HEADER --&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      &lt;% if (site.logo) { %&gt;
+        &lt;a href=&quot;&lt;%= isSection ? &#039;../index.html&#039; : &#039;index.html&#039; %&gt;&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img
+            src=&quot;&lt;%= isSection ? &#039;../&#039; + site.logo : site.logo %&gt;&quot;
+            alt=&quot;&lt;%= site.title %&gt; Logo&quot;
+            class=&quot;logo&quot;
+          &gt;
+        &lt;/a&gt;
+      &lt;% } else { %&gt;
+        &lt;h1 class=&quot;logo-text&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;
+      &lt;% } %&gt;
+
+      &lt;% 
+        // Compute navLinks for header; skip if absent or empty
+        var navLinks = (site.header &amp;&amp; site.header.links &amp;&amp; site.header.links.length &gt; 0)
+          ? site.header.links.filter(function(link) { return !!link &amp;&amp; !!link.label &amp;&amp; !!link.href; })
+          : [];
+      %&gt;
+
+      &lt;% if (navLinks.length &gt; 0) { %&gt;
+        &lt;!-- Hamburger toggle (only visible on ≤768px) --&gt;
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            &lt;% navLinks.forEach(function(link) { 
+                 let href = link.href;
+                 if (link.href.startsWith(&#039;#&#039;)) {
+                   href = isSection
+                     ? &#039;../sections/&#039; + link.href.substring(1) + &#039;.html&#039;
+                     : &#039;sections/&#039; + link.href.substring(1) + &#039;.html&#039;;
+                 } else if (link.href === &#039;/&#039; || link.href === &#039;index.html&#039;) {
+                   href = isSection ? &#039;../index.html&#039; : &#039;index.html&#039;;
+                 } else if (!link.href.match(/^https?:\/\//)) {
+                   href = isSection ? &#039;../&#039; + link.href : link.href;
+                 }
+            %&gt;
+              &lt;li&gt;&lt;a href=&quot;&lt;%= href %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;
+            &lt;% }); %&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; class=&quot;theme-toggle&quot; aria-label=&quot;Toggle 1337 Mode&quot; title=&quot;1337 Mode&quot;&gt;1337&lt;/button&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      &lt;% } %&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;!-- MAIN CONTENT --&gt;
+  &lt;main class=&quot;container&quot;&gt;
+    &lt;% if (!page.hideTitle) { %&gt;
+      &lt;h2 class=&quot;page-title&quot;&gt;&lt;%= page.title %&gt;&lt;/h2&gt;
+    &lt;% } %&gt;
+
+    &lt;% if (page.image) { %&gt;
+      &lt;div class=&quot;page-image&lt;%= page.fullWidthImage ? &#039; full-viewport&#039; : &#039;&#039; %&gt;&quot;&gt;
+        &lt;img src=&quot;&lt;%= isSection ? &#039;../&#039; + page.image : page.image %&gt;&quot; alt=&quot;&lt;%= page.title %&gt; image&quot;&gt;
+      &lt;/div&gt;
+    &lt;% } %&gt;
+
+    &lt;!-- Include 3D Logo if specified --&gt;
+    &lt;% if ((page.use3DLogo || site.use3DLogo) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;
+      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;
+    &lt;% } else if ((page.cmImage || site.cmImage) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;
+      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;
+    &lt;% } %&gt;
+
+    &lt;!-- Include CM console if specified --&gt;
+    &lt;% if (page.useCmConsole || site.useCmConsole) { %&gt;
+      &lt;%- include(&#039;partials/cm-console.ejs&#039;) %&gt;
+    &lt;% } %&gt;
+
+    &lt;div class=&quot;page-content
+      &lt;%= page.contentFont === &#039;terminal&#039; ? &#039;content-font-terminal&#039; : 
+         page.contentFont === &#039;modern-mono&#039; ? &#039;content-font-modern-mono&#039; : 
+         page.contentFont === &#039;system-mono&#039; ? &#039;content-font-system-mono&#039; : &#039;&#039; %&gt;
+      &lt;%= page.terminalStyle ? &#039;terminal-style&#039; : &#039;&#039; %&gt;&quot;&gt;
+      &lt;%- content %&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Column Layout Support --&gt;
+    &lt;% if (page.columnLayout &amp;&amp; page.columnLayout.enabled) { %&gt;
+      &lt;div class=&quot;two-column-layout &lt;%= page.columnLayout.ratio.replace(&#039;/&#039;, &#039;-&#039;) %&gt;&quot;&gt;
+        &lt;div class=&quot;left-column&quot;&gt;
+          &lt;%- page.columnLayout.processedLeftContent || page.columnLayout.leftContent || &#039;&#039; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;right-column&quot;&gt;
+          &lt;%- page.columnLayout.processedRightContent || page.columnLayout.rightContent || &#039;&#039; %&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;% } %&gt;
+
+    &lt;% if (page.cta) { %&gt;
+      &lt;div class=&quot;cta-wrapper&quot;&gt;
+        &lt;a class=&quot;cta-btn&quot; href=&quot;&lt;%= page.cta.href %&gt;&quot;&gt;
+          &lt;%= page.cta.label %&gt;
+        &lt;/a&gt;
+      &lt;/div&gt;
+    &lt;% } %&gt;
+  &lt;/main&gt;
+
+  &lt;!-- FOOTER --&gt;
+  &lt;footer&gt;
+    &lt;!-- Include CM footer if specified --&gt;
+    &lt;% if (page.useCmFooter || site.useCmFooter) { %&gt;
+      &lt;%- include(&#039;partials/cm-footer.ejs&#039;) %&gt;
+    &lt;% } %&gt;
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;% if (site.footer &amp;&amp; site.footer.links &amp;&amp; site.footer.links.length &gt; 0) { %&gt;
+        &lt;nav&gt;
+          &lt;ul class=&quot;footer-links&quot;&gt;
+            &lt;% site.footer.links.forEach(function(link) { %&gt;
+              &lt;li&gt;
+                &lt;a href=&quot;&lt;%= link.href %&gt;&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;
+                  &lt;%= link.label %&gt;
+                &lt;/a&gt;
+              &lt;/li&gt;
+            &lt;% }); %&gt;
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      &lt;% } %&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;
+        &amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title || &#039;Static Site&#039; %&gt;
+      &lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;% 
+    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;
+    const hasLatestArticleMap = latestArticleMap &amp;&amp; Object.keys(latestArticleMap).length &gt; 0;
+  %&gt;
+  &lt;% if (hasLatestArticleMap) { %&gt;
+  &lt;script&gt;
+    (function(seed) {
+      var existing = window.cmLatestArticles || {};
+      if (seed &amp;&amp; typeof seed === &#039;object&#039;) {
+        for (var key in seed) {
+          if (Object.prototype.hasOwnProperty.call(seed, key)) {
+            existing[key] = seed[key];
+          }
+        }
+      }
+      window.cmLatestArticles = existing;
+    })(&lt;%- JSON.stringify(latestArticleMap) %&gt;);
+  &lt;/script&gt;
+  &lt;% } %&gt;
+
+  &lt;% 
+    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;
+    const hasDispatchData = dispatchData &amp;&amp; dispatchData.length &gt; 0;
+  %&gt;
+  &lt;% if (hasDispatchData) { %&gt;
+  &lt;script&gt;
+    (function(seed) {
+      var existing = Array.isArray(window.cmConsoleDispatches) ? window.cmConsoleDispatches.slice() : [];
+      var seen = new Set();
+      existing.forEach(function(entry) {
+        if (entry &amp;&amp; entry.slug) {
+          seen.add(entry.slug);
+        }
+      });
+      if (Array.isArray(seed)) {
+        seed.forEach(function(entry) {
+          if (!entry || (entry.slug &amp;&amp; seen.has(entry.slug))) {
+            return;
+          }
+          existing.push(entry);
+          if (entry.slug) {
+            seen.add(entry.slug);
+          }
+        });
+      }
+      window.cmConsoleDispatches = existing;
+    })(&lt;%- JSON.stringify(dispatchData) %&gt;);
+  &lt;/script&gt;
+  &lt;% } %&gt;
+
+  &lt;% 
+    const doomBaseDepthValue = (typeof page.baseDepth === &#039;number&#039; &amp;&amp; page.baseDepth &gt; 0) ? &#039;../&#039;.repeat(page.baseDepth) : &#039;&#039;;
+    const rootBaseValue = (typeof page.rootBase === &#039;string&#039; &amp;&amp; page.rootBase.length &gt; 0)
+      ? page.rootBase.replace(/\/+$/, &#039;&#039;)
+      : ((site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039;) ? site.baseUrl.replace(/\/+$/, &#039;&#039;) : &#039;&#039;);
+    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;
+  %&gt;
+  &lt;script&gt;
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = &#039;&lt;%= doomAssetBase %&gt;&#039;;
+      }
+    })();
+  &lt;/script&gt;
+
+  &lt;!-- NAV TOGGLE SCRIPT --&gt;
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

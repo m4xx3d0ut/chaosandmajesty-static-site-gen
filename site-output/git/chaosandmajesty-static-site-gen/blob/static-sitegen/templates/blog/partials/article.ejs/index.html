@@ -1,0 +1,123 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">article.ejs</h4>
+        <div class="git-file-meta">
+          <span>4.8 KB</span>
+          <span>static-sitegen/templates/blog/partials/article.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;%
+  const resolveAsset = (typeof buildAssetHref === &#039;function&#039;)
+    ? buildAssetHref
+    : function(asset) { return asset; };
+  const resolveInternal = (typeof buildInternalHref === &#039;function&#039;)
+    ? buildInternalHref
+    : function(href) { return href; };
+  const adjacent = post.adjacent || {};
+  const navPrev = adjacent.previous || null;
+  const navNext = adjacent.next || null;
+  const navFlagFromPost = (post &amp;&amp; typeof post.showArticleNav === &#039;boolean&#039;) ? post.showArticleNav : null;
+  const explicitNavFlag = typeof showArticleNav === &#039;boolean&#039; ? showArticleNav : navFlagFromPost;
+  const shouldRenderNav = explicitNavFlag !== null ? explicitNavFlag : !post.isHidden;
+  const prevHrefValue = navPrev ? (navPrev.relativeHref || navPrev.publicHref || &#039;&#039;) : &#039;&#039;;
+  const nextHrefValue = navNext ? (navNext.relativeHref || navNext.publicHref || &#039;&#039;) : &#039;&#039;;
+  const prevHref = prevHrefValue ? resolveInternal(prevHrefValue) : &#039;#&#039;;
+  const nextHref = nextHrefValue ? resolveInternal(nextHrefValue) : &#039;#&#039;;
+  const prevFragmentValue = navPrev ? (navPrev.fragmentPath || navPrev.fragmentHref || &#039;&#039;) : &#039;&#039;;
+  const nextFragmentValue = navNext ? (navNext.fragmentPath || navNext.fragmentHref || &#039;&#039;) : &#039;&#039;;
+  const prevFragmentHref = prevFragmentValue ? resolveInternal(prevFragmentValue) : &#039;&#039;;
+  const nextFragmentHref = nextFragmentValue ? resolveInternal(nextFragmentValue) : &#039;&#039;;
+%&gt;
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;&lt;%= post.slug %&gt;&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;&lt;%= post.title %&gt;&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      &lt;% if (post.displayPublishedAt) { %&gt;
+        &lt;span&gt;&lt;%= post.displayPublishedAt %&gt;&lt;/span&gt;
+      &lt;% } %&gt;
+      &lt;% if (post.readingMinutes) { %&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;&lt;%= post.readingMinutes %&gt; min read&lt;/span&gt;
+      &lt;% } %&gt;
+      &lt;% if (post.author) { %&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;&lt;%= post.author.name %&gt;&lt;/span&gt;
+      &lt;% } %&gt;
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  &lt;% if (post.heroImagePath) { %&gt;
+    &lt;figure class=&quot;blog-hero&quot;&gt;
+      &lt;img src=&quot;&lt;%= resolveAsset(post.heroImagePath) %&gt;&quot; alt=&quot;&lt;%= post.title %&gt; hero image&quot;&gt;
+    &lt;/figure&gt;
+  &lt;% } %&gt;
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;%- post.html %&gt;
+  &lt;/div&gt;
+
+  &lt;% if (post.author) { %&gt;
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      &lt;% if (post.author.avatarPath) { %&gt;
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;&lt;%= resolveAsset(post.author.avatarPath) %&gt;&quot; alt=&quot;&lt;%= post.author.name %&gt; avatar&quot;&gt;
+      &lt;% } %&gt;
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;&lt;%= post.author.name %&gt;&lt;/strong&gt;
+        &lt;% if (post.author.title) { %&gt;
+          &lt;div class=&quot;blog-author-title&quot;&gt;&lt;%= post.author.title %&gt;&lt;/div&gt;
+        &lt;% } %&gt;
+        &lt;% if (post.author.bio) { %&gt;
+          &lt;p class=&quot;blog-author-bio&quot;&gt;&lt;%= post.author.bio %&gt;&lt;/p&gt;
+        &lt;% } %&gt;
+        &lt;% if (post.author.social &amp;&amp; post.author.social.length) { %&gt;
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            &lt;% post.author.social.forEach(function(link) { %&gt;
+              &lt;li&gt;&lt;a href=&quot;&lt;%= link.href %&gt;&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;
+            &lt;% }); %&gt;
+          &lt;/ul&gt;
+        &lt;% } %&gt;
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  &lt;% } %&gt;
+
+  &lt;% if (shouldRenderNav) { %&gt;
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&lt;%= navPrev ? &#039;&#039; : &#039; is-disabled&#039; %&gt;&quot;
+        data-blog-nav=&quot;previous&quot;
+        &lt;%= navPrev ? &#039;&#039; : &#039;aria-disabled=&quot;true&quot; tabindex=&quot;-1&quot;&#039; %&gt;
+        href=&quot;&lt;%= navPrev ? prevHref : &#039;#&#039; %&gt;&quot;
+        data-default-href=&quot;&lt;%= navPrev ? prevHref : &#039;&#039; %&gt;&quot;
+        data-default-fragment=&quot;&lt;%= navPrev ? prevFragmentHref : &#039;&#039; %&gt;&quot;
+        data-fragment-href=&quot;&lt;%= navPrev ? prevFragmentHref : &#039;&#039; %&gt;&quot;
+        data-target-slug=&quot;&lt;%= navPrev ? navPrev.slug : &#039;&#039; %&gt;&quot;
+        data-post-slug=&quot;&lt;%= navPrev ? navPrev.slug : &#039;&#039; %&gt;&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;&lt;%= navPrev ? navPrev.title : &#039;No newer posts&#039; %&gt;&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&lt;%= navNext ? &#039;&#039; : &#039; is-disabled&#039; %&gt;&quot;
+        data-blog-nav=&quot;next&quot;
+        &lt;%= navNext ? &#039;&#039; : &#039;aria-disabled=&quot;true&quot; tabindex=&quot;-1&quot;&#039; %&gt;
+        href=&quot;&lt;%= navNext ? nextHref : &#039;#&#039; %&gt;&quot;
+        data-default-href=&quot;&lt;%= navNext ? nextHref : &#039;&#039; %&gt;&quot;
+        data-default-fragment=&quot;&lt;%= navNext ? nextFragmentHref : &#039;&#039; %&gt;&quot;
+        data-fragment-href=&quot;&lt;%= navNext ? nextFragmentHref : &#039;&#039; %&gt;&quot;
+        data-target-slug=&quot;&lt;%= navNext ? navNext.slug : &#039;&#039; %&gt;&quot;
+        data-post-slug=&quot;&lt;%= navNext ? navNext.slug : &#039;&#039; %&gt;&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;&lt;%= navNext ? navNext.title : &#039;No older posts&#039; %&gt;&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;% } %&gt;
+&lt;/article&gt;
+</code></pre>
+      </div>
+    </article>
+  

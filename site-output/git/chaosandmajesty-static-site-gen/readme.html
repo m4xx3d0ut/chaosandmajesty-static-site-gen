@@ -1,0 +1,375 @@
+
+    <article class="git-panel git-readme-panel" data-git-panel-section="readme">
+      <header class="git-readme-header">
+        <h4 class="git-readme-title">README.md</h4>
+        <p class="git-readme-meta">chaosandmajesty-static-site-gen · prod</p>
+      </header>
+      <div class="git-readme-body"><h1>Chaos &amp; Majesty Static SiteGen</h1>
+<p>A Node.js static website generator that builds complete static &quot;Chaos &amp; Majesty&quot; site from YAML configuration with specialized support for terminal-style interfaces and interactive console themes.</p>
+<hr>
+<h2>🚀 Quick Start</h2>
+<pre><code class="language-bash"># 1. Prepare your static assets (one-time setup)
+./prepare-cm-files.sh [source-directory]
+
+# 2. Build your site
+./build-site.sh
+
+# 3. Deploy from site-output/
+</code></pre>
+<p>Your site is ready at <code>site-output/</code> with all assets, HTML files, and proper structure.</p>
+<hr>
+<h2>🎯 What Makes This Different</h2>
+<p>Unlike generic static site generators, this system is purpose-built for:</p>
+<ul>
+<li><strong>Terminal/Console Themed Sites</strong> - Built-in support for retro terminal aesthetics</li>
+<li><strong>Interactive Console Elements</strong> - Real terminal-like input/output interfaces  </li>
+<li><strong>3D Logo Integration</strong> - Three.js powered 3D SVG logo rendering</li>
+<li><strong>Specialized Asset Pipeline</strong> - Handles complex asset relationships and dependencies</li>
+<li><strong>Production-Ready Builds</strong> - Comprehensive validation and error handling</li>
+</ul>
+<hr>
+<h2>📁 Project Structure</h2>
+<pre><code>├── build-site.sh              # Main build script
+├── prepare-cm-files.sh        # Asset preparation (one-time)
+├── smoke-test.yaml            # Site configuration
+├── content/                   # Markdown content files
+├── data/                      # YAML data files
+├── static-sitegen/            # Generator engine
+│   ├── bin/sitegen.js         # CLI tool
+│   ├── lib/                   # Core modules (ES6)
+│   ├── templates/             # EJS templates
+│   └── assets/                # Development assets
+└── site-output/               # Generated site (deploy this)
+</code></pre>
+<hr>
+<h2>🔧 Core Features</h2>
+<h3><strong>YAML-Driven Configuration</strong></h3>
+<p>Define your entire site structure, theme, navigation, and content from a single YAML file.</p>
+<h3><strong>Terminal Console Interface</strong></h3>
+<p>Built-in support for interactive terminal-style interfaces with:</p>
+<ul>
+<li>Real-time command input/output</li>
+<li>Customizable terminal themes</li>
+<li>Shell-like interaction patterns</li>
+</ul>
+<h3><strong>3D Logo Rendering</strong></h3>
+<p>Integrated Three.js support for 3D SVG logo rendering:</p>
+<ul>
+<li>Automatic SVG loading and processing</li>
+<li>Configurable 3D transformations</li>
+<li>Fallback to static images</li>
+</ul>
+<h3><strong>Advanced Asset Management</strong></h3>
+<ul>
+<li>Intelligent asset copying and organization</li>
+<li>Consistent path resolution for root and section pages</li>
+<li>Support for complex asset dependencies</li>
+<li>Automatic CSS/JS minification ready</li>
+</ul>
+<h3><strong>Robust Build System</strong></h3>
+<ul>
+<li>ES6 module architecture throughout</li>
+<li>Comprehensive error handling and validation</li>
+<li>Build verification with proper exit codes</li>
+<li>Development and production modes</li>
+</ul>
+<h3><strong>Flexible Content System</strong></h3>
+<ul>
+<li><strong>Pages</strong>: Standalone HTML files (<code>contact.html</code>, <code>about.html</code>)</li>
+<li><strong>Sections</strong>: Referenceable content blocks with anchor links</li>
+<li><strong>Markdown Support</strong>: Automatic conversion to HTML</li>
+<li><strong>Mixed Content</strong>: Combine Markdown and raw HTML</li>
+</ul>
+<hr>
+<h2>📝 YAML Configuration</h2>
+<h3>Basic Example (<code>smoke-test.yaml</code>):</h3>
+<pre><code class="language-yaml">title: &quot;Chaos &amp; Majesty&quot;
+description: &quot;Terminal interface for the digital underground&quot;
+baseUrl: &quot;/&quot;
+
+# Terminal theme configuration
+cmTitle: &quot;CHAOS &amp; MAJESTY&quot;
+cmTagline: &quot;Welcome to the machine&quot;
+cmFooterText: &quot;Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.&quot;
+use3DLogo: true
+
+# Asset configuration
+assets: &quot;./assets&quot;
+styles:
+  - &quot;assets/static/style/cm.css&quot;
+
+# Navigation
+header:
+  links:
+    - label: &quot;Home&quot;
+      href: &quot;/&quot;
+    - label: &quot;Blog&quot; 
+      href: &quot;blog.html&quot;
+    - label: &quot;About&quot;
+      href: &quot;#about&quot;
+
+# Content pages
+pages:
+  - title: &quot;Blog&quot;
+    slug: &quot;blog&quot;
+    content: |
+      # Latest Posts
+      Check back for updates from the digital underground.
+
+# Content sections  
+sections:
+  - id: &quot;about&quot;
+    heading: &quot;About the System&quot;
+    content: |
+      ## Digital Archaeology
+      Exploring the intersection of chaos and majesty in cyberspace.
+    cta:
+      label: &quot;Enter System&quot;
+      href: &quot;#console&quot;
+
+footer:
+  text: &quot;© 2025 Chaos &amp; Majesty&quot;
+</code></pre>
+<hr>
+<h2>🛠️ Build Process</h2>
+<h3>1. <strong>Asset Preparation</strong> (One-time setup)</h3>
+<pre><code class="language-bash"># Copy assets from source directory to build environment
+./prepare-cm-files.sh cm-source
+
+# Or from a different source
+./prepare-cm-files.sh ../backup/static-files
+</code></pre>
+<p>This copies:</p>
+<ul>
+<li>Static assets (<code>js/</code>, <code>css/</code>, <code>img/</code>)</li>
+<li>Root files (<code>robots.txt</code>, <code>site.webmanifest</code>)</li>
+<li>Template partials (auto-generated)</li>
+</ul>
+<h3>2. <strong>Site Generation</strong></h3>
+<pre><code class="language-bash"># Full build with validation
+./build-site.sh
+
+# Manual build (advanced)
+cd static-sitegen
+node bin/sitegen.js --config ../smoke-test.yaml --output ../site-output --verbose
+</code></pre>
+<h3>3. <strong>Build Validation</strong></h3>
+<p>The build system automatically validates:</p>
+<ul>
+<li>✅ All required files generated</li>
+<li>✅ Assets copied to correct locations  </li>
+<li>✅ HTML files have proper structure</li>
+<li>✅ Asset paths resolve correctly</li>
+<li>✅ No broken internal links</li>
+</ul>
+<hr>
+<h2>🎨 Customization</h2>
+<h3><strong>Templates</strong> (<code>static-sitegen/templates/</code>)</h3>
+<ul>
+<li><code>layout.ejs</code> - Base HTML structure</li>
+<li><code>partials/cm-head.ejs</code> - HTML head with assets</li>
+<li><code>partials/cm-console.ejs</code> - Terminal interface</li>
+<li><code>partials/cm-footer.ejs</code> - Footer content</li>
+</ul>
+<h3><strong>Styling</strong> (<code>static-sitegen/assets/static/style/</code>)</h3>
+<ul>
+<li><code>cm.css</code> - Main terminal theme stylesheet</li>
+<li>Supports CSS custom properties for theming</li>
+<li>Mobile-responsive design included</li>
+</ul>
+<h3><strong>JavaScript</strong> (<code>static-sitegen/assets/static/js/</code>)</h3>
+<ul>
+<li><code>cm.js</code> - Terminal interface logic</li>
+<li><code>cmLogo.js</code> - 3D logo rendering (Three.js)</li>
+<li>Modular, extensible architecture</li>
+</ul>
+<hr>
+<h2>📋 Schema Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>Site title (HTML <code>&lt;title&gt;</code> and header)</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Meta description for SEO</td>
+</tr>
+<tr>
+<td><code>cmTitle</code></td>
+<td>string</td>
+<td>Terminal console title</td>
+</tr>
+<tr>
+<td><code>cmTagline</code></td>
+<td>string</td>
+<td>Console tagline/subtitle</td>
+</tr>
+<tr>
+<td><code>use3DLogo</code></td>
+<td>boolean</td>
+<td>Enable 3D SVG logo rendering</td>
+</tr>
+<tr>
+<td><code>assets</code></td>
+<td>string</td>
+<td>Path to assets directory</td>
+</tr>
+<tr>
+<td><code>styles</code></td>
+<td>array</td>
+<td>CSS files to include</td>
+</tr>
+<tr>
+<td><code>header.links</code></td>
+<td>array</td>
+<td>Navigation menu items</td>
+</tr>
+<tr>
+<td><code>pages</code></td>
+<td>array</td>
+<td>Standalone pages</td>
+</tr>
+<tr>
+<td><code>sections</code></td>
+<td>array</td>
+<td>Content sections with anchors</td>
+</tr>
+<tr>
+<td><code>footer</code></td>
+<td>object</td>
+<td>Footer configuration</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>🔍 Advanced Features</h2>
+<h3><strong>Section Navigation</strong></h3>
+<p>Sections generate both:</p>
+<ul>
+<li>Anchor links on main page (<code>#section-id</code>)</li>
+<li>Individual HTML files (<code>sections/section-id.html</code>)</li>
+</ul>
+<h3><strong>Asset Path Resolution</strong></h3>
+<p>Automatic path handling for:</p>
+<ul>
+<li>Root pages: <code>assets/static/style/cm.css</code></li>
+<li>Section pages: <code>../assets/static/style/cm.css</code></li>
+</ul>
+<h3><strong>3D Logo System</strong></h3>
+<pre><code class="language-yaml">use3DLogo: true  # Enables Three.js 3D rendering
+cmImage: &quot;assets/static/img/logo.png&quot;  # Fallback image
+</code></pre>
+<h3><strong>Terminal Console</strong></h3>
+<p>Interactive terminal interface with:</p>
+<ul>
+<li>Command input/output simulation</li>
+<li>Customizable prompt and responses</li>
+<li>Retro terminal styling</li>
+</ul>
+<hr>
+<h2>🚀 Deployment</h2>
+<p>The generated <code>site-output/</code> directory contains:</p>
+<pre><code>site-output/
+├── index.html              # Main page
+├── blog.html              # Generated pages  
+├── sections/              # Section pages
+│   └── about.html
+├── assets/               # All static assets
+│   ├── static/
+│   │   ├── style/cm.css
+│   │   ├── js/cm.js
+│   │   └── img/
+│   ├── robots.txt
+│   └── site.webmanifest
+└── sitemap.html          # Site navigation
+</code></pre>
+<p>Deploy this directory to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).</p>
+<hr>
+<h2>🧪 Development</h2>
+<h3><strong>Local Development</strong></h3>
+<pre><code class="language-bash"># Watch for changes (if implemented)
+npm run dev
+
+# Manual rebuild
+./build-site.sh
+
+# Serve locally
+cd site-output &amp;&amp; python -m http.server 8000
+</code></pre>
+<h3><strong>Testing</strong></h3>
+<pre><code class="language-bash"># Validate build output
+./build-site.sh  # Includes validation
+
+# Check asset paths
+find site-output -name &quot;*.html&quot; -exec grep -l &quot;assets/&quot; {} \;
+</code></pre>
+<hr>
+<h2>🔧 CLI Options</h2>
+<pre><code class="language-bash"># Basic usage
+sitegen --config config.yaml --output dist/
+
+# With options
+sitegen --config smoke-test.yaml --output site-output --verbose
+
+# Help
+sitegen --help
+</code></pre>
+<p><strong>Options:</strong></p>
+<ul>
+<li><code>--config</code> (<code>-c</code>): YAML configuration file</li>
+<li><code>--output</code> (<code>-o</code>): Output directory (default: <code>./dist</code>)</li>
+<li><code>--verbose</code> (<code>-v</code>): Enable detailed logging</li>
+</ul>
+<hr>
+<h2>🎯 Use Cases</h2>
+<p>Perfect for:</p>
+<ul>
+<li><strong>Developer portfolios</strong> with terminal aesthetics</li>
+<li><strong>Tech blogs</strong> with retro computing themes  </li>
+<li><strong>Project documentation</strong> with interactive elements</li>
+<li><strong>Digital art galleries</strong> with 3D logo integration</li>
+<li><strong>Corporate sites</strong> needing terminal-style interfaces</li>
+</ul>
+<hr>
+<h2>🔄 Migration from Other Generators</h2>
+<p>Coming from Jekyll/Hugo/Gatsby? Key differences:</p>
+<ul>
+<li><strong>Single YAML config</strong> instead of multiple config files</li>
+<li><strong>Built-in terminal theme</strong> instead of generic templates</li>
+<li><strong>Integrated 3D rendering</strong> instead of plugin dependencies</li>
+<li><strong>Asset pipeline</strong> handles complex dependencies automatically</li>
+</ul>
+<hr>
+<h2>📚 Examples</h2>
+<p>See working examples:</p>
+<ul>
+<li><code>smoke-test.yaml</code> - Full-featured terminal site</li>
+<li><code>content/</code> - Markdown content examples</li>
+<li><code>data/</code> - YAML data file examples</li>
+</ul>
+<hr>
+<h2>🤝 Contributing</h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
+<li>Test your changes (<code>./build-site.sh</code>)</li>
+<li>Commit changes (<code>git commit -m &#39;Add amazing feature&#39;</code>)</li>
+<li>Push to branch (<code>git push origin feature/amazing-feature</code>)</li>
+<li>Open Pull Request</li>
+</ol>
+<hr>
+<h2>📄 License</h2>
+<p>MIT © 2025 - Build amazing terminal-themed static sites with ease.</p>
+<hr>
+<p><em>Ready to build something chaotic and majestic? Start with <code>./prepare-cm-files.sh</code> and <code>./build-site.sh</code>!</em></p>
+</div>
+    </article>
+  

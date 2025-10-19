@@ -1,0 +1,167 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">shell-tricks.html</h4>
+        <div class="git-file-meta">
+          <span>5.5 KB</span>
+          <span>site-output/blog/fragments/shell-tricks.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;shell-tricks&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;Shell Tricks&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Jul 21, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;2 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;tee&lt;/code&gt; to capture stdout to both the terminal and a log, and lean on &lt;code&gt;jq&lt;/code&gt; for rapid pretty-printing or minifying JSON.&lt;/li&gt;
+&lt;li&gt;Remember the regex basics for &lt;code&gt;grep&lt;/code&gt;, including escaping braces and switching to &lt;code&gt;-E&lt;/code&gt; for extended features.&lt;/li&gt;
+&lt;li&gt;Combine &lt;code&gt;grep -rl&lt;/code&gt; with &lt;code&gt;xargs&lt;/code&gt; and &lt;code&gt;sed -i&lt;/code&gt; for project-wide search-and-replace, and use parameter expansion (&lt;code&gt;${path##*/}&lt;/code&gt;) to grab filenames within loops.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;STDOUT Redirection&lt;/h3&gt;
+&lt;p&gt;Write STDOUT to console and file:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;command | tee command.log
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;JSON Helpers&lt;/h3&gt;
+&lt;p&gt;Pretty-print JSON:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;jq . sample.json &amp;gt; pretty.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Minify JSON:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;jq -c &amp;lt; pretty.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;JSON Diffing&lt;/h3&gt;
+&lt;p&gt;Diff an application bundle after pretty-printing:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;cat min/skybox-default-streams.json.live.min | jq . &amp;gt; test.json
+
+diff -y -d test.json pp-skybox-default-streams.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;&lt;code&gt;grep&lt;/code&gt; Patterns and Wildcards&lt;/h3&gt;
+&lt;p&gt;Match &lt;code&gt;OS{...}&lt;/code&gt; blocks with basic regex:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;grep &amp;#39;OS\{.*\}&amp;#39; your_file.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Switch to extended regex if you want the shorthand without escaping braces:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;grep -E &amp;#39;OS{.*}&amp;#39; your_file.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Path and Loop Utilities&lt;/h3&gt;
+&lt;p&gt;Grab the last path element with parameter expansion:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;path=&amp;quot;/path/to/your/directory/file.txt&amp;quot;
+last_element=&amp;quot;${path##*/}&amp;quot;
+echo &amp;quot;Last element: $last_element&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Iterate through files in the current directory:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;for file in &amp;quot;$(pwd)&amp;quot;/*; do
+  [ -f &amp;quot;$file&amp;quot; ] &amp;amp;&amp;amp; echo &amp;quot;Processing file: $file&amp;quot;
+done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Template script to walk a directory:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;#!/bin/bash
+
+# Directory to iterate
+directory=&amp;quot;/path/to/your/directory&amp;quot;
+
+for file in &amp;quot;$directory&amp;quot;/*; do
+  if [ -f &amp;quot;$file&amp;quot; ]; then
+    echo &amp;quot;Processing file: $file&amp;quot;
+    # Add work here
+  fi
+done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Recursive Find &amp;amp; Replace&lt;/h3&gt;
+&lt;p&gt;Search recursively, emit matching filenames, and replace text in place:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;grep -rli &amp;#39;old-word&amp;#39; . | xargs -I@ sed -i &amp;#39;s/old-word/new-word/g&amp;#39; @
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;grep&lt;/code&gt; flags:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-r&lt;/code&gt; — recurse directories&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-l&lt;/code&gt; — print matching filenames&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-i&lt;/code&gt; — ignore case&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;xargs -I@ ... @&lt;/code&gt; injects each filename into the &lt;code&gt;sed&lt;/code&gt; command. The &lt;code&gt;sed -i&lt;/code&gt; flag edits files in place, and the trailing &lt;code&gt;g&lt;/code&gt; applies the substitution globally per line.&lt;/p&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/information-gathering.html&quot;
+        data-default-href=&quot;blog/information-gathering.html&quot;
+        data-default-fragment=&quot;blog/fragments/information-gathering.html&quot;
+        data-fragment-href=&quot;blog/fragments/information-gathering.html&quot;
+        data-target-slug=&quot;information-gathering&quot;
+        data-post-slug=&quot;information-gathering&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 6 — Information Gathering Playbook&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/pwk-foundations.html&quot;
+        data-default-href=&quot;blog/pwk-foundations.html&quot;
+        data-default-fragment=&quot;blog/fragments/pwk-foundations.html&quot;
+        data-fragment-href=&quot;blog/fragments/pwk-foundations.html&quot;
+        data-target-slug=&quot;pwk-foundations&quot;
+        data-post-slug=&quot;pwk-foundations&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Foundations — Mindsets Before Metasploit&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

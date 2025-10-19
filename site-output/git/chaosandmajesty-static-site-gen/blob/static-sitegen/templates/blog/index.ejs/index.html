@@ -1,0 +1,636 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">index.ejs</h4>
+        <div class="git-file-meta">
+          <span>23 KB</span>
+          <span>static-sitegen/templates/blog/index.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;&lt;%= site.title %&gt; – &lt;%= page.title %&gt;&lt;/title&gt;
+
+  &lt;%- include(&#039;../partials/cm-head.ejs&#039;) %&gt;
+
+  &lt;% const rawRootBase = page.rootBase || (site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039; ? site.baseUrl : &#039;&#039;); %&gt;
+  &lt;% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, &#039;&#039;) : &#039;&#039;; %&gt;
+  &lt;% const hasAbsoluteBase = !!normalizedRootBase; %&gt;
+  &lt;% const baseDepth = (typeof page.baseDepth === &#039;number&#039;) ? page.baseDepth : 0; %&gt;
+  &lt;% const depthPrefix = hasAbsoluteBase ? &#039;&#039; : (baseDepth &gt; 0 ? &#039;../&#039;.repeat(baseDepth) : &#039;&#039;); %&gt;
+  &lt;% const isExternal = (href) =&gt; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || &#039;&#039;); %&gt;
+  &lt;% const resolvePath = (value) =&gt; {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || &#039;/&#039;) : &#039;./&#039;);
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, &#039;&#039;);
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || &#039;/&#039;);
+       }
+       return depthPrefix + cleaned;
+     }; %&gt;
+  &lt;% const buildInternalHref = (href) =&gt; {
+       if (!href) return &#039;#&#039;;
+       if (isExternal(href)) return href;
+       if (href.startsWith(&#039;#&#039;)) {
+         const target = href.slice(1);
+         if (!target) {
+           return resolvePath(&#039;&#039;);
+         }
+         return resolvePath(`sections/${target}.html`);
+       }
+       return resolvePath(href);
+     }; %&gt;
+  &lt;% const buildAssetHref = (asset) =&gt; {
+       if (!asset) return &#039;&#039;;
+       if (isExternal(asset)) return asset;
+       return resolvePath(asset);
+     }; %&gt;
+  &lt;% const highlightFirstPost = page.initialPost &amp;&amp; !page.isDefaultInitialPost &amp;&amp; !page.isHiddenInitialPost; %&gt;
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      &lt;% const logoPath = site.logo || &#039;assets/static/img/not-dead.webp&#039;; %&gt;
+      &lt;% const resolvedLogo = buildAssetHref(logoPath); %&gt;
+      &lt;% if (resolvedLogo) { %&gt;
+        &lt;a href=&quot;&lt;%= buildInternalHref(&#039;index.html&#039;) %&gt;&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;&lt;%= resolvedLogo %&gt;&quot; alt=&quot;&lt;%= site.title %&gt; Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      &lt;% } else { %&gt;
+        &lt;h1 class=&quot;logo-text&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;
+      &lt;% } %&gt;
+      &lt;% var navLinks = (site.header &amp;&amp; site.header.links) ? site.header.links : []; %&gt;
+      &lt;% if (navLinks.length &gt; 0) { %&gt;
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            &lt;% navLinks.forEach(function(link) { %&gt;
+              &lt;li&gt;&lt;a href=&quot;&lt;%= buildInternalHref(link.href) %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;
+            &lt;% }); %&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; class=&quot;theme-toggle&quot; aria-label=&quot;Toggle 1337 Mode&quot; title=&quot;1337 Mode&quot;&gt;1337&lt;/button&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      &lt;% } %&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container&quot;&gt;
+    &lt;section class=&quot;blog-hero-slab&quot;&gt;
+      &lt;h2 class=&quot;blog-hero-title&quot;&gt;&lt;%= page.hero?.title || page.title %&gt;&lt;/h2&gt;
+      &lt;% if (page.hero &amp;&amp; page.hero.tagline) { %&gt;
+        &lt;p class=&quot;blog-hero-tagline&quot;&gt;&lt;%= page.hero.tagline %&gt;&lt;/p&gt;
+      &lt;% } %&gt;
+      &lt;% if (page.hero &amp;&amp; page.hero.intro) { %&gt;
+        &lt;p class=&quot;blog-hero-intro&quot;&gt;&lt;%= page.hero.intro %&gt;&lt;/p&gt;
+      &lt;% } %&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;blog-layout&quot;&gt;
+      &lt;aside class=&quot;blog-sidebar&quot; aria-label=&quot;Blog post list&quot; data-page-size=&quot;&lt;%= page.sidebarPageSize || 6 %&gt;&quot;&gt;
+        &lt;h3 class=&quot;blog-sidebar-title&quot;&gt;Posts&lt;/h3&gt;
+        &lt;% if (page.authorFilter &amp;&amp; page.authors &amp;&amp; page.authors.length &gt; 0) { %&gt;
+          &lt;div class=&quot;blog-author-filter&quot; role=&quot;group&quot; aria-label=&quot;Filter posts by author&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;author-filter-btn is-active&quot; data-author-filter=&quot;all&quot;&gt;All&lt;/button&gt;
+            &lt;% page.authors.forEach(function(author) { %&gt;
+              &lt;button type=&quot;button&quot; class=&quot;author-filter-btn&quot; data-author-filter=&quot;&lt;%= author.id %&gt;&quot;&gt;&lt;%= author.name %&gt;&lt;/button&gt;
+            &lt;% }); %&gt;
+          &lt;/div&gt;
+        &lt;% } %&gt;
+        &lt;div class=&quot;blog-sidebar-search&quot;&gt;
+          &lt;label class=&quot;visually-hidden&quot; for=&quot;blog-search-input&quot;&gt;Search posts&lt;/label&gt;
+          &lt;input
+            id=&quot;blog-search-input&quot;
+            type=&quot;search&quot;
+            class=&quot;post-search-input&quot;
+            placeholder=&quot;Search posts...&quot;
+            autocomplete=&quot;off&quot;
+            spellcheck=&quot;false&quot;
+          &gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;blog-sidebar-pagination is-hidden&quot; aria-label=&quot;Post pagination controls&quot;&gt;
+          &lt;button type=&quot;button&quot; class=&quot;sidebar-nav-btn&quot; data-sidebar-prev&gt;Prev&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;sidebar-nav-btn&quot; data-sidebar-next&gt;Next&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;ul class=&quot;blog-post-list&quot;&gt;
+          &lt;% page.posts.forEach(function(post, index) { %&gt;
+            &lt;li data-post-item data-author=&quot;&lt;%= post.author ? post.author.id : &#039;unknown&#039; %&gt;&quot; data-title=&quot;&lt;%= post.title.toLowerCase() %&gt;&quot; data-summary=&quot;&lt;%= (post.summary || &#039;&#039;).toLowerCase() %&gt;&quot;&gt;
+              &lt;%
+                const postHref = buildInternalHref(post.relativeHref || post.publicHref);
+                const fragmentHref = buildInternalHref(post.fragmentPath || post.fragmentHref);
+              %&gt;
+              &lt;a
+                class=&quot;blog-post-link&lt;%= highlightFirstPost &amp;&amp; index === 0 ? &#039; is-active&#039; : &#039;&#039; %&gt;&quot;
+                href=&quot;&lt;%= postHref %&gt;&quot;
+                data-post-slug=&quot;&lt;%= post.slug %&gt;&quot;
+                hx-get=&quot;&lt;%= fragmentHref %&gt;&quot;
+                hx-trigger=&quot;click&quot;
+                hx-target=&quot;#blog-article&quot;
+                hx-swap=&quot;innerHTML&quot;
+                hx-push-url=&quot;?post=&lt;%= post.slug %&gt;&quot;
+                hx-indicator=&quot;#blog-loading&quot;
+              &gt;
+                &lt;h3&gt;&lt;%= post.title %&gt;&lt;/h3&gt;
+                &lt;div class=&quot;blog-post-meta&quot;&gt;
+                  &lt;% if (post.displayPublishedAt) { %&gt;
+                    &lt;span&gt;&lt;%= post.displayPublishedAt %&gt;&lt;/span&gt;
+                  &lt;% } %&gt;
+                  &lt;% if (post.readingMinutes) { %&gt;
+                    &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+                    &lt;span&gt;&lt;%= post.readingMinutes %&gt; min read&lt;/span&gt;
+                  &lt;% } %&gt;
+                  &lt;% if (post.author) { %&gt;
+                    &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+                    &lt;span&gt;&lt;%= post.author.name %&gt;&lt;/span&gt;
+                  &lt;% } %&gt;
+                &lt;/div&gt;
+                &lt;% if (post.summary) { %&gt;
+                  &lt;p&gt;&lt;%= post.summary %&gt;&lt;/p&gt;
+                &lt;% } %&gt;
+              &lt;/a&gt;
+            &lt;/li&gt;
+          &lt;% }); %&gt;
+          &lt;% if (page.hiddenPosts &amp;&amp; page.hiddenPosts.length &gt; 0) { %&gt;
+            &lt;% page.hiddenPosts.forEach(function(post) { %&gt;
+              &lt;li
+                data-post-item
+                data-hidden=&quot;true&quot;
+                data-author=&quot;&lt;%= post.author ? post.author.id : &#039;unknown&#039; %&gt;&quot;
+                data-title=&quot;&lt;%= post.title ? post.title.toLowerCase() : &#039;&#039; %&gt;&quot;
+                data-summary=&quot;&lt;%= (post.summary || &#039;&#039;).toLowerCase() %&gt;&quot;
+              &gt;
+                &lt;%
+                  const hiddenPostHref = buildInternalHref(post.relativeHref || post.publicHref);
+                  const hiddenFragmentHref = buildInternalHref(post.fragmentPath || post.fragmentHref);
+                %&gt;
+                &lt;a
+                  class=&quot;blog-post-link&quot;
+                  href=&quot;&lt;%= hiddenPostHref %&gt;&quot;
+                  data-post-slug=&quot;&lt;%= post.slug %&gt;&quot;
+                  hx-get=&quot;&lt;%= hiddenFragmentHref %&gt;&quot;
+                  hx-trigger=&quot;click&quot;
+                  hx-target=&quot;#blog-article&quot;
+                  hx-swap=&quot;innerHTML&quot;
+                  hx-push-url=&quot;?post=&lt;%= post.slug %&gt;&quot;
+                  hx-indicator=&quot;#blog-loading&quot;
+                &gt;
+                  &lt;h3&gt;&lt;%= post.title %&gt;&lt;/h3&gt;
+                  &lt;div class=&quot;blog-post-meta&quot;&gt;
+                    &lt;% if (post.displayPublishedAt) { %&gt;
+                      &lt;span&gt;&lt;%= post.displayPublishedAt %&gt;&lt;/span&gt;
+                    &lt;% } %&gt;
+                    &lt;% if (post.readingMinutes) { %&gt;
+                      &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+                      &lt;span&gt;&lt;%= post.readingMinutes %&gt; min read&lt;/span&gt;
+                    &lt;% } %&gt;
+                    &lt;% if (post.author) { %&gt;
+                      &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+                      &lt;span&gt;&lt;%= post.author.name %&gt;&lt;/span&gt;
+                    &lt;% } %&gt;
+                  &lt;/div&gt;
+                  &lt;% if (post.summary) { %&gt;
+                    &lt;p&gt;&lt;%= post.summary %&gt;&lt;/p&gt;
+                  &lt;% } %&gt;
+                &lt;/a&gt;
+              &lt;/li&gt;
+            &lt;% }); %&gt;
+          &lt;% } %&gt;
+        &lt;/ul&gt;
+        &lt;div class=&quot;blog-sidebar-pagination is-hidden&quot; aria-label=&quot;Post pagination controls&quot;&gt;
+          &lt;button type=&quot;button&quot; class=&quot;sidebar-nav-btn&quot; data-sidebar-prev&gt;Prev&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;sidebar-nav-btn&quot; data-sidebar-next&gt;Next&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/aside&gt;
+
+      &lt;div class=&quot;blog-article-shell&quot;&gt;
+        &lt;div id=&quot;blog-article&quot; aria-live=&quot;polite&quot; aria-busy=&quot;false&quot; hx-history-elt&gt;
+          &lt;% if (page.initialPost) { %&gt;
+            &lt;%- include(&#039;partials/article.ejs&#039;, {
+              post: page.initialPost,
+              buildAssetHref,
+              buildInternalHref,
+              showArticleNav: !(page.isDefaultInitialPost || page.isHiddenInitialPost)
+            }) %&gt;
+            &lt;script&gt;
+              document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+                var articleNode = document.querySelector(&#039;#blog-article [data-slug]&#039;);
+                if (articleNode &amp;&amp; articleNode.getAttribute(&#039;data-slug&#039;)) {
+                  var activeLink = document.querySelector(&#039;[data-post-slug=&quot;&#039; + articleNode.getAttribute(&#039;data-slug&#039;) + &#039;&quot;]&#039;);
+                  if (activeLink) {
+                    activeLink.classList.add(&#039;is-active&#039;);
+                  }
+                }
+              });
+            &lt;/script&gt;
+          &lt;% } else if (page.emptyStateHtml) { %&gt;
+            &lt;div class=&quot;blog-empty-state&quot;&gt;&lt;%- page.emptyStateHtml %&gt;&lt;/div&gt;
+          &lt;% } else { %&gt;
+            &lt;p&gt;Select a post to read.&lt;/p&gt;
+          &lt;% } %&gt;
+        &lt;/div&gt;
+        &lt;div id=&quot;blog-loading&quot; class=&quot;htmx-indicator&quot; role=&quot;status&quot; aria-live=&quot;assertive&quot;&gt;Loading…&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+    &lt;noscript&gt;
+      &lt;p&gt;HTMX powers instant loading here. With JavaScript disabled you can still read via the direct links above.&lt;/p&gt;
+    &lt;/noscript&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;% if (page.useCmFooter || site.useCmFooter) { %&gt;
+      &lt;%- include(&#039;../partials/cm-footer.ejs&#039;) %&gt;
+    &lt;% } %&gt;
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+
+    var filteredListItems = [];
+    var currentSlug = null;
+
+    function syncActiveLink(slug) {
+      currentSlug = slug || null;
+      document.querySelectorAll(&#039;.blog-post-link&#039;).forEach(function(link) {
+        if (slug &amp;&amp; link.dataset.postSlug === slug) {
+          link.classList.add(&#039;is-active&#039;);
+        } else {
+          link.classList.remove(&#039;is-active&#039;);
+        }
+      });
+      updateArticleNav();
+    }
+
+    function scrollArticleToTop() {
+      var shell = document.querySelector(&#039;.blog-article-shell&#039;);
+      if (shell &amp;&amp; shell.scrollIntoView) {
+        try {
+          shell.scrollIntoView({ behavior: &#039;smooth&#039;, block: &#039;start&#039; });
+          return;
+        } catch (error) {
+          // continue to fallback if smooth scrolling is unsupported
+        }
+        shell.scrollIntoView(true);
+        return;
+      }
+      if (typeof window !== &#039;undefined&#039;) {
+        try {
+          window.scrollTo({ top: 0, behavior: &#039;smooth&#039; });
+        } catch (error) {
+          window.scrollTo(0, 0);
+        }
+      }
+    }
+
+    var sidebar = document.querySelector(&#039;.blog-sidebar&#039;);
+    var filterButtons = Array.from(document.querySelectorAll(&#039;.author-filter-btn&#039;));
+    var searchInput = document.querySelector(&#039;.post-search-input&#039;);
+    var postItems = Array.from(document.querySelectorAll(&#039;[data-post-item]&#039;));
+    var paginations = Array.from(document.querySelectorAll(&#039;.blog-sidebar-pagination&#039;));
+    var prevButtons = [];
+    var nextButtons = [];
+    paginations.forEach(function(pagination) {
+      var prev = pagination.querySelector(&#039;[data-sidebar-prev]&#039;);
+      var next = pagination.querySelector(&#039;[data-sidebar-next]&#039;);
+      if (prev) {
+        prevButtons.push(prev);
+      }
+      if (next) {
+        nextButtons.push(next);
+      }
+    });
+    var pageSize = sidebar ? parseInt(sidebar.dataset.pageSize || &#039;6&#039;, 10) || 6 : 6;
+    var currentAuthor = &#039;all&#039;;
+    var currentSearch = &#039;&#039;;
+    var currentPage = 0;
+
+    function normaliseText(value) {
+      return (value || &#039;&#039;).toString().toLowerCase();
+    }
+
+    function itemMatchesFilters(item) {
+      var isHidden = item.dataset.hidden === &#039;true&#039;;
+      var title = item.dataset.title || normaliseText(item.querySelector(&#039;h3&#039;) &amp;&amp; item.querySelector(&#039;h3&#039;).textContent);
+      var summary = item.dataset.summary || normaliseText(item.querySelector(&#039;p&#039;) &amp;&amp; item.querySelector(&#039;p&#039;).textContent);
+      var searchMatch = !currentSearch || title.indexOf(currentSearch) !== -1 || summary.indexOf(currentSearch) !== -1;
+
+      if (isHidden) {
+        return currentSearch &amp;&amp; searchMatch;
+      }
+
+      if (!searchMatch) {
+        return false;
+      }
+
+      var authorMatch = currentAuthor === &#039;all&#039; || item.dataset.author === currentAuthor;
+      return authorMatch;
+    }
+
+    function updatePaginationControls(totalPages, visibleCount) {
+      if (!paginations.length) return;
+      paginations.forEach(function(pagination) {
+        if (visibleCount &lt;= pageSize) {
+          pagination.classList.add(&#039;is-hidden&#039;);
+        } else {
+          pagination.classList.remove(&#039;is-hidden&#039;);
+        }
+        var prevBtn = pagination.querySelector(&#039;[data-sidebar-prev]&#039;);
+        var nextBtn = pagination.querySelector(&#039;[data-sidebar-next]&#039;);
+        if (prevBtn) {
+          prevBtn.disabled = currentPage &lt;= 0;
+        }
+        if (nextBtn) {
+          nextBtn.disabled = currentPage &gt;= totalPages - 1;
+        }
+      });
+    }
+
+    function buildNavNeighborFromItem(item) {
+      if (!item) return null;
+      var link = item.querySelector(&#039;.blog-post-link&#039;);
+      if (!link) return null;
+      var titleNode = link.querySelector(&#039;h3&#039;);
+      var titleText = &#039;&#039;;
+      if (titleNode &amp;&amp; titleNode.textContent) {
+        titleText = titleNode.textContent.trim();
+      } else if (link.textContent) {
+        titleText = link.textContent.trim();
+      }
+      return {
+        slug: link.dataset.postSlug || &#039;&#039;,
+        title: titleText,
+        href: link.getAttribute(&#039;href&#039;) || &#039;#&#039;,
+        fragmentHref: link.getAttribute(&#039;hx-get&#039;) || link.dataset.fragmentHref || &#039;&#039;
+      };
+    }
+
+    function setNavLink(link, neighbor, direction) {
+      if (!link) return;
+      var fallbackTitle = direction === &#039;previous&#039; ? &#039;No newer posts&#039; : &#039;No older posts&#039;;
+      var titleEl = link.querySelector(&#039;.blog-article-nav-title&#039;);
+
+      if (!neighbor || !neighbor.slug) {
+        link.classList.add(&#039;is-disabled&#039;);
+        link.setAttribute(&#039;aria-disabled&#039;, &#039;true&#039;);
+        link.setAttribute(&#039;tabindex&#039;, &#039;-1&#039;);
+        [&#039;hx-get&#039;, &#039;hx-target&#039;, &#039;hx-swap&#039;, &#039;hx-push-url&#039;, &#039;hx-indicator&#039;].forEach(function(attr) {
+          link.removeAttribute(attr);
+        });
+        link.dataset.targetSlug = &#039;&#039;;
+        link.dataset.postSlug = &#039;&#039;;
+        link.dataset.fragmentHref = &#039;&#039;;
+        link.setAttribute(&#039;data-fragment-href&#039;, &#039;&#039;);
+        link.setAttribute(&#039;href&#039;, &#039;#&#039;);
+        if (titleEl) {
+          titleEl.textContent = fallbackTitle;
+        }
+        return;
+      }
+
+      link.classList.remove(&#039;is-disabled&#039;);
+      link.removeAttribute(&#039;aria-disabled&#039;);
+      link.removeAttribute(&#039;tabindex&#039;);
+      link.dataset.targetSlug = neighbor.slug;
+      link.dataset.postSlug = neighbor.slug;
+      link.dataset.fragmentHref = neighbor.fragmentHref || &#039;&#039;;
+      link.setAttribute(&#039;data-fragment-href&#039;, neighbor.fragmentHref || &#039;&#039;);
+      link.setAttribute(&#039;href&#039;, neighbor.href || &#039;#&#039;);
+      if (neighbor.fragmentHref) {
+        link.setAttribute(&#039;hx-get&#039;, neighbor.fragmentHref);
+      } else {
+        link.removeAttribute(&#039;hx-get&#039;);
+      }
+      link.setAttribute(&#039;hx-target&#039;, &#039;#blog-article&#039;);
+      link.setAttribute(&#039;hx-swap&#039;, &#039;innerHTML&#039;);
+      link.setAttribute(&#039;hx-push-url&#039;, &#039;?post=&#039; + neighbor.slug);
+      link.setAttribute(&#039;hx-indicator&#039;, &#039;#blog-loading&#039;);
+      if (titleEl) {
+        titleEl.textContent = neighbor.title || fallbackTitle;
+      }
+    }
+
+    function updateArticleNav() {
+      var articleContainer = document.getElementById(&#039;blog-article&#039;);
+      if (!articleContainer) {
+        return;
+      }
+
+      var articleNode = articleContainer.querySelector(&#039;[data-slug]&#039;);
+      if (articleNode &amp;&amp; !currentSlug) {
+        currentSlug = articleNode.getAttribute(&#039;data-slug&#039;);
+      }
+      if (!articleNode) {
+        currentSlug = null;
+      }
+
+      var prevLink = articleContainer.querySelector(&#039;[data-blog-nav=&quot;previous&quot;]&#039;);
+      var nextLink = articleContainer.querySelector(&#039;[data-blog-nav=&quot;next&quot;]&#039;);
+      if (!prevLink &amp;&amp; !nextLink) {
+        return;
+      }
+
+      var hasActiveFilter = currentAuthor !== &#039;all&#039; || Boolean(currentSearch);
+      var candidateItems = filteredListItems.length || hasActiveFilter ? filteredListItems : postItems;
+      if (!currentSlug) {
+        setNavLink(prevLink, null, &#039;previous&#039;);
+        setNavLink(nextLink, null, &#039;next&#039;);
+        return;
+      }
+
+      var currentIndex = -1;
+      for (var i = 0; i &lt; candidateItems.length; i += 1) {
+        var item = candidateItems[i];
+        if (!item) continue;
+        var link = item.querySelector(&#039;.blog-post-link&#039;);
+        if (link &amp;&amp; link.dataset.postSlug === currentSlug) {
+          currentIndex = i;
+          break;
+        }
+      }
+
+      if (currentIndex === -1) {
+        setNavLink(prevLink, null, &#039;previous&#039;);
+        setNavLink(nextLink, null, &#039;next&#039;);
+        return;
+      }
+
+      var prevNeighbor = null;
+      for (var j = currentIndex - 1; j &gt;= 0; j -= 1) {
+        prevNeighbor = buildNavNeighborFromItem(candidateItems[j]);
+        if (prevNeighbor) break;
+      }
+
+      var nextNeighbor = null;
+      for (var k = currentIndex + 1; k &lt; candidateItems.length; k += 1) {
+        nextNeighbor = buildNavNeighborFromItem(candidateItems[k]);
+        if (nextNeighbor) break;
+      }
+
+      setNavLink(prevLink, prevNeighbor, &#039;previous&#039;);
+      setNavLink(nextLink, nextNeighbor, &#039;next&#039;);
+    }
+
+    function applyFilters() {
+      var filteredItems = [];
+      postItems.forEach(function(item) {
+        var matches = itemMatchesFilters(item);
+        var isHidden = item.dataset.hidden === &#039;true&#039;;
+        item.classList.toggle(&#039;is-hidden-filter&#039;, !matches);
+        item.classList.toggle(&#039;is-search-visible&#039;, matches &amp;&amp; isHidden);
+        item.classList.remove(&#039;is-hidden-page&#039;);
+        if (matches) {
+          filteredItems.push(item);
+        }
+      });
+
+      filteredListItems = filteredItems.slice();
+
+      var totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+      if (currentPage &gt;= totalPages) {
+        currentPage = totalPages - 1;
+      }
+      var start = currentPage * pageSize;
+      var end = start + pageSize;
+
+      filteredItems.forEach(function(item, idx) {
+        var inRange = idx &gt;= start &amp;&amp; idx &lt; end;
+        item.classList.toggle(&#039;is-hidden-page&#039;, !inRange);
+      });
+
+      updatePaginationControls(totalPages, filteredItems.length);
+      updateArticleNav();
+    }
+
+    if (filterButtons.length) {
+      filterButtons.forEach(function(btn) {
+        btn.addEventListener(&#039;click&#039;, function() {
+          var authorId = btn.dataset.authorFilter;
+          currentAuthor = authorId || &#039;all&#039;;
+          currentPage = 0;
+          filterButtons.forEach(function(b) {
+            b.classList.toggle(&#039;is-active&#039;, b === btn);
+          });
+          applyFilters();
+        });
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener(&#039;input&#039;, function(event) {
+        currentSearch = normaliseText(event.target.value).trim();
+        currentPage = 0;
+        applyFilters();
+      });
+    }
+
+    if (prevButtons.length) {
+      prevButtons.forEach(function(btn) {
+        btn.addEventListener(&#039;click&#039;, function() {
+          if (currentPage &gt; 0) {
+            currentPage -= 1;
+            applyFilters();
+          }
+        });
+      });
+    }
+
+    if (nextButtons.length) {
+      nextButtons.forEach(function(btn) {
+        btn.addEventListener(&#039;click&#039;, function() {
+          currentPage += 1;
+          applyFilters();
+        });
+      });
+    }
+
+    applyFilters();
+
+    var params = new URLSearchParams(window.location.search || &#039;&#039;);
+    var initialSlug = params.get(&#039;post&#039;);
+    var articleEl = document.getElementById(&#039;blog-article&#039;);
+
+    if (initialSlug &amp;&amp; window.htmx &amp;&amp; articleEl) {
+      var initialLink = document.querySelector(&#039;[data-post-slug=&quot;&#039; + initialSlug + &#039;&quot;]&#039;);
+      if (initialLink &amp;&amp; initialLink.getAttribute(&#039;hx-get&#039;)) {
+        syncActiveLink(initialSlug);
+        htmx.ajax(&#039;GET&#039;, initialLink.getAttribute(&#039;hx-get&#039;), {
+          target: &#039;#blog-article&#039;,
+          swap: &#039;innerHTML&#039;,
+          history: false
+        });
+      }
+    } else {
+      var initialArticle = articleEl &amp;&amp; articleEl.querySelector(&#039;[data-slug]&#039;);
+      if (initialArticle) {
+        syncActiveLink(initialArticle.getAttribute(&#039;data-slug&#039;));
+      }
+    }
+
+    document.addEventListener(&#039;htmx:beforeRequest&#039;, function(event) {
+      var trigger = event.detail &amp;&amp; event.detail.elt;
+      if (!trigger || !trigger.matches || (!trigger.matches(&#039;.blog-post-link&#039;) &amp;&amp; !trigger.matches(&#039;.blog-article-nav-link&#039;))) {
+        return;
+      }
+      syncActiveLink(trigger.dataset.postSlug);
+      var article = document.getElementById(&#039;blog-article&#039;);
+      if (article) {
+        article.setAttribute(&#039;aria-busy&#039;, &#039;true&#039;);
+      }
+    });
+
+    document.addEventListener(&#039;htmx:afterSwap&#039;, function(event) {
+      if (event.target &amp;&amp; event.target.id === &#039;blog-article&#039;) {
+        var articleNode = event.target.querySelector(&#039;[data-slug]&#039;);
+        if (articleNode) {
+          syncActiveLink(articleNode.getAttribute(&#039;data-slug&#039;));
+        }
+        event.target.setAttribute(&#039;aria-busy&#039;, &#039;false&#039;);
+        scrollArticleToTop();
+      }
+    });
+
+    document.addEventListener(&#039;htmx:historyRestore&#039;, function() {
+      var articleNode = document.querySelector(&#039;#blog-article [data-slug]&#039;);
+      if (articleNode) {
+        syncActiveLink(articleNode.getAttribute(&#039;data-slug&#039;));
+      } else {
+        syncActiveLink(null);
+      }
+      var article = document.getElementById(&#039;blog-article&#039;);
+      if (article) {
+        article.setAttribute(&#039;aria-busy&#039;, &#039;false&#039;);
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

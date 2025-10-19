@@ -1,0 +1,245 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">prod-deploy.yml</h4>
+        <div class="git-file-meta">
+          <span>8.0 KB</span>
+          <span>.github/workflows/prod-deploy.yml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>name: prod build and deploy
+
+on:
+  push:
+    branches: [ prod ]
+    # Only run if site-output/ changes
+    paths: [ &#039;site-output/**&#039; ]
+  # Enable manual triggering
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+  REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  IMAGE_TAG: prod
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref == &#039;refs/heads/prod&#039; || github.event_name == &#039;workflow_dispatch&#039;
+    outputs:
+      registry_host: ${{ steps.normalize-registry.outputs.host }}
+    steps:
+      - name: Install SSH client (if missing)
+        run: |
+          set -e
+          if ! command -v ssh-keyscan &gt;/dev/null 2&gt;&amp;1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
+
+      - name: Prepare SSH for Gitea
+        env:
+          CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z &quot;${CI_DEPLOY_KEY:-}&quot; ]; then
+            echo &quot;CI_DEPLOY_KEY secret is required for prod checkout&quot; &gt;&amp;2
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          printf &quot;%s\n&quot; &quot;${CI_DEPLOY_KEY}&quot; &gt; ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local &gt; ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo &quot;Host gitea-ssh.git-local.svc.cluster.local&quot;
+            echo &quot;  User git&quot;
+            echo &quot;  IdentityFile ~/.ssh/id_ci&quot;
+            echo &quot;  IdentitiesOnly yes&quot;
+            echo &quot;  StrictHostKeyChecking yes&quot;
+          } &gt;&gt; ~/.ssh/config
+
+      - name: Checkout repository (SSH)
+        env:
+          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          TARGET_REF=&quot;${GITHUB_REF:-}&quot;
+          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then
+            git clone --depth 1 --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .
+          else
+            git clone --depth 1 &quot;$REPO_SSH&quot; .
+          fi
+          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then
+            git fetch --depth 1 origin &quot;${GITHUB_SHA}&quot;
+            git checkout --detach &quot;${GITHUB_SHA}&quot;
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Smoke build static bundle
+        run: ./build-site.sh
+
+      - name: Normalize registry host
+        id: normalize-registry
+        run: |
+          HOST=&quot;${REGISTRY_HOST:-}&quot;
+          if [ -z &quot;$HOST&quot; ]; then
+            HOST=&quot;ghcr.io&quot;
+          fi
+          if [ &quot;$HOST&quot; = &quot;reg.microk8s.core.home.arpa:32000&quot; ]; then
+            echo &quot;::warning::REGISTRY_HOST secret points to the lab-only MicroK8s registry. Overriding to ghcr.io for prod deploys.&quot;
+            HOST=&quot;ghcr.io&quot;
+          fi
+          echo &quot;Using registry host: $HOST&quot;
+          echo &quot;REGISTRY_HOST=$HOST&quot; &gt;&gt; &quot;$GITHUB_ENV&quot;
+          echo &quot;host=$HOST&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+
+      - name: Compute image metadata
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          if [ -n &quot;${REGISTRY_NAMESPACE}&quot; ]; then
+            REGISTRY_PATH=&quot;${REGISTRY_HOST}/${REGISTRY_NAMESPACE}&quot;
+          else
+            REGISTRY_PATH=&quot;${REGISTRY_HOST}&quot;
+          fi
+          echo &quot;short=${SHORT_SHA}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+          echo &quot;registry_path=${REGISTRY_PATH}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+          echo &quot;image_ref=${REGISTRY_PATH}/${IMAGE_NAME}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_HOST }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Configure Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          no-cache: true
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
+            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == &#039;refs/heads/prod&#039; || github.event_name == &#039;workflow_dispatch&#039;
+    needs: build
+    env:
+      REGISTRY_HOST: ${{ needs.build.outputs.registry_host }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+    steps:
+      - name: Install SSH client (if missing)
+        run: |
+          set -e
+          if ! command -v ssh-keyscan &gt;/dev/null 2&gt;&amp;1; then
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends openssh-client
+          fi
+
+      - name: Prepare SSH for Gitea
+        env:
+          CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z &quot;${CI_DEPLOY_KEY:-}&quot; ]; then
+            echo &quot;CI_DEPLOY_KEY secret is required for prod checkout&quot; &gt;&amp;2
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          printf &quot;%s\n&quot; &quot;${CI_DEPLOY_KEY}&quot; &gt; ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local &gt; ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo &quot;Host gitea-ssh.git-local.svc.cluster.local&quot;
+            echo &quot;  User git&quot;
+            echo &quot;  IdentityFile ~/.ssh/id_ci&quot;
+            echo &quot;  IdentitiesOnly yes&quot;
+            echo &quot;  StrictHostKeyChecking yes&quot;
+          } &gt;&gt; ~/.ssh/config
+
+      - name: Checkout repository (SSH)
+        env:
+          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          TARGET_REF=&quot;${GITHUB_REF:-}&quot;
+          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then
+            git clone --depth 1 --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .
+          else
+            git clone --depth 1 &quot;$REPO_SSH&quot; .
+          fi
+          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then
+            git fetch --depth 1 origin &quot;${GITHUB_SHA}&quot;
+            git checkout --detach &quot;${GITHUB_SHA}&quot;
+          fi
+
+      - name: Install Ansible
+        run: |
+          set -euo pipefail
+          python3 -m venv ~/.ansible-venv
+          echo &quot;$HOME/.ansible-venv/bin&quot; &gt;&gt; &quot;$GITHUB_PATH&quot;
+          source ~/.ansible-venv/bin/activate
+          export PIP_NO_CACHE_DIR=1
+          TRUSTED_HOST_ARGS=&quot;--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org&quot;
+          python -m pip install --upgrade pip ${TRUSTED_HOST_ARGS}
+          pip install ${TRUSTED_HOST_ARGS} &quot;ansible&gt;=9.1&quot; &quot;docker&quot; &quot;jmespath&quot;
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          KEY_PATH=&quot;$HOME/.ssh/gitea-ci-prod&quot;
+          printf &quot;%s&quot; &quot;$SSH_PRIVATE_KEY&quot; &gt; &quot;$KEY_PATH&quot;
+          chmod 600 &quot;$KEY_PATH&quot;
+          if [ -n &quot;$KNOWN_HOSTS&quot; ]; then
+            printf &quot;%s\n&quot; &quot;$KNOWN_HOSTS&quot; &gt; ~/.ssh/known_hosts
+          else
+            ssh-keyscan -H &quot;$VPS_HOST&quot; &gt;&gt; ~/.ssh/known_hosts
+          fi
+
+      - name: Deploy with Ansible
+        working-directory: ansible
+        env:
+          ANSIBLE_FORCE_COLOR: &#039;1&#039;
+        run: |
+          ansible-playbook -i inventory/hosts.ini deploy.yml \
+            -e &quot;ansible_host=${VPS_HOST}&quot; \
+            -e &quot;ansible_user=${VPS_USER}&quot; \
+            -e &quot;image_registry=${REGISTRY_HOST}&quot; \
+            -e &quot;image_namespace=${REGISTRY_NAMESPACE}&quot; \
+            -e &quot;image_name=${IMAGE_NAME}&quot; \
+            -e &quot;image_tag=${IMAGE_TAG}&quot; \
+            -e &quot;registry_username=${REGISTRY_USERNAME}&quot; \
+            -e &quot;registry_password=${REGISTRY_PASSWORD}&quot;
+</code></pre>
+      </div>
+    </article>
+  

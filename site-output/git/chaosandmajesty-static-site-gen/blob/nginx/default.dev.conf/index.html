@@ -1,0 +1,35 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">default.dev.conf</h4>
+        <div class="git-file-meta">
+          <span>495 B</span>
+          <span>nginx/default.dev.conf</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>server {
+    listen 8080;
+    server_name chaosandmajesty.com www.chaosandmajesty.com;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1d;
+        add_header Cache-Control &quot;public&quot;;
+    }
+
+    location = /health {
+        access_log off;
+        return 200 &quot;healthy\n&quot;;
+        add_header Content-Type text/plain;
+    }
+}
+</code></pre>
+      </div>
+    </article>
+  

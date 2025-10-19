@@ -1,0 +1,18 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">hosts.ini</h4>
+        <div class="git-file-meta">
+          <span>270 B</span>
+          <span>ansible/inventory/hosts.ini</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code># Inventory for Chaos &amp; Majesty production environment
+# Override ansible_host via --inventory if you prefer not to commit the VPS address.
+[vps]
+prod ansible_host=chaosandmajesty.com ansible_user=deploy ansible_port=22 ansible_ssh_private_key_file=~/.ssh/gitea-ci-prod
+</code></pre>
+      </div>
+    </article>
+  

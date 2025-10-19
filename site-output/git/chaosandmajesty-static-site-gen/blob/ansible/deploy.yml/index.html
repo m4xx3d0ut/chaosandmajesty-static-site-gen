@@ -1,0 +1,32 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">deploy.yml</h4>
+        <div class="git-file-meta">
+          <span>547 B</span>
+          <span>ansible/deploy.yml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>---
+- name: Deploy Chaos &amp; Majesty site
+  hosts: vps
+  become: true
+  gather_facts: true
+  vars:
+    image_repository: &quot;{{ image_registry ~ ((&#039;/&#039; ~ image_namespace) if (image_namespace | length) &gt; 0 else &#039;&#039;) }}&quot;
+    image_ref: &quot;{{ image_repository }}/{{ image_name }}:{{ image_tag }}&quot;
+  pre_tasks:
+    - name: Check Docker Engine availability
+      command: docker --version
+      changed_when: false
+
+    - name: Check Docker Compose v2 availability
+      command: docker compose version
+      changed_when: false
+  roles:
+    - role: app_deploy
+</code></pre>
+      </div>
+    </article>
+  

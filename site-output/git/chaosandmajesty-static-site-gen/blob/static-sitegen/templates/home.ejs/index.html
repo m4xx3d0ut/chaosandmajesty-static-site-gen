@@ -1,0 +1,54 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">home.ejs</h4>
+        <div class="git-file-meta">
+          <span>1.1 KB</span>
+          <span>static-sitegen/templates/home.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;%- include(&#039;base.ejs&#039;, { 
+  site: site, 
+  page: page,
+  content: content,
+  isSection: isSection
+}) %&gt;
+
+&lt;% if (page.useCmConsole) { %&gt;
+&lt;script&gt;
+  // Terminal-style console script
+  document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+    const content = document.querySelector(&#039;.page-content&#039;);
+    if (content &amp;&amp; &lt;%= !!page.terminalStyle %&gt;) {
+      content.classList.add(&#039;terminal-style&#039;);
+      
+      // Add blinking cursor
+      const cursor = document.createElement(&#039;span&#039;);
+      cursor.className = &#039;terminal-cursor&#039;;
+      cursor.innerHTML = &#039;█&#039;;
+      content.appendChild(cursor);
+      
+      // Add scanline effect
+      const scanline = document.createElement(&#039;div&#039;);
+      scanline.className = &#039;scanline&#039;;
+      content.appendChild(scanline);
+    }
+    
+    // Apply terminal font if specified
+    if (&#039;&lt;%= page.contentFont %&gt;&#039;) {
+      content.classList.add(&#039;font-&lt;%= page.contentFont %&gt;&#039;);
+    }
+  });
+&lt;/script&gt;
+&lt;% } %&gt;
+
+&lt;% if (page.latestPostsByAuthor) { %&gt;
+&lt;script&gt;
+  window.cmLatestArticles = &lt;%- JSON.stringify(page.latestPostsByAuthor) %&gt;;
+&lt;/script&gt;
+&lt;% } %&gt;
+</code></pre>
+      </div>
+    </article>
+  

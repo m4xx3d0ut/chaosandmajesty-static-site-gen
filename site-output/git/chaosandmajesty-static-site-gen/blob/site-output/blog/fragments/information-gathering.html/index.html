@@ -1,0 +1,1562 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">information-gathering.html</h4>
+        <div class="git-file-meta">
+          <span>81 KB</span>
+          <span>site-output/blog/fragments/information-gathering.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;information-gathering&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 6 — Information Gathering Playbook&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Jul 27, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;59 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;Recon sets the tempo for every engagement. This second pass keeps the methodology tight but adds the gritty detail from the lab notebook so you can copy/paste a full workflow the moment scope is approved.&lt;/p&gt;
+&lt;h3&gt;Kick-Off Checklist&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirm scope, out-of-bounds hosts, and rate limits; log the ticket number in your notes.&lt;/li&gt;
+&lt;li&gt;Stand up a &lt;code&gt;screen&lt;/code&gt; or &lt;code&gt;tmux&lt;/code&gt; session with panes for passive OSINT, active probes, and a Markdown scratchpad.&lt;/li&gt;
+&lt;li&gt;Create a loot directory (&lt;code&gt;mkdir -p engagements/acme/recon&lt;/code&gt;) and initialize a timeline file to capture timestamps.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Passive Discovery (Stay Quiet First)&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;WHOIS &amp;amp; Registrars&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;Identify registrars, name servers, and contact emails.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;whois megacorpone.com&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;whois megacorpone.com -h 192.168.50.251&lt;/code&gt; (pointing at the course WHOIS mirror)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Certificate Transparency &amp;amp; DNS history&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;crt.sh/?q=%25megacorpone.com&lt;/code&gt; and Netcraft’s historic DNS view to spot forgotten subdomains.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Search-engine Recon&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;Build a reusable query list: &lt;code&gt;site:megacorpone.com filetype:pdf&lt;/code&gt;, &lt;code&gt;&amp;quot;megacorp&amp;quot; &amp;quot;vpn&amp;quot;&lt;/code&gt;, &lt;code&gt;site:github.com megacorp api_key&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Public telemetry&lt;/strong&gt;&lt;ul&gt;
+&lt;li&gt;Shodan quick hits: &lt;code&gt;shodan host &amp;lt;public-ip&amp;gt;&lt;/code&gt; and &lt;code&gt;shodan search &amp;quot;ssl:&amp;quot;megacorp&amp;quot;&amp;quot;&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Screenshot results and stash in &lt;code&gt;recon/passive/&lt;/code&gt; for the report appendix.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Active Enumeration (Permission Granted)&lt;/h3&gt;
+&lt;h4&gt;DNS &amp;amp; Email&lt;/h4&gt;
+&lt;pre&gt;&lt;code&gt;# Authoritative name servers &amp;amp; zone hints
+host -t NS megacorpone.com
+host -l megacorpone.com ns1.megacorpone.com
+
+# Windows-friendly queries
+nslookup mail.megacorptwo.com
+nslookup -type=TXT info.megacorptwo.com 192.168.50.151
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Document failed zone transfers—clients appreciate proof that controls worked.&lt;/p&gt;
+&lt;h4&gt;Network Scanning&lt;/h4&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;nmap -Pn -sS -sV -O --min-rate 2000 -oA recon/nmap-initial 192.168.119.0/24
+nmap --script &amp;quot;(default or vuln) and not brute&amp;quot; -p 80,443,445,3389 -oA recon/nmap-focused 192.168.119.0/24
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Capture screenshots of &lt;code&gt;zenmap&lt;/code&gt; topology or &lt;code&gt;nmap&lt;/code&gt; grepable output to drop straight into the report.&lt;/p&gt;
+&lt;h4&gt;Service-Specific Recon&lt;/h4&gt;
+&lt;pre&gt;&lt;code&gt;# SMB enumeration
+smbclient -L \\192.168.119.23\ -N
+crackmapexec smb 192.168.119.0/24 --shares -u &amp;#39;&amp;#39; -p &amp;#39;&amp;#39;
+
+# SNMP walk (document community string immediately)
+snmpwalk -v2c -c public 192.168.119.42 1.3.6.1.2.1.1
+
+# SMTP VRFY sweep
+smtp-user-enum -M VRFY -U users.txt -t mail.megacorpone.com
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Log adjustments (throttling, retries) so the operations team understands the traffic pattern you generated.&lt;/p&gt;
+&lt;h3&gt;Notes and Reporting Artifacts&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Maintain a CSV of discovered hosts with fields for IP, hostname, service, credential status, and notes.&lt;/li&gt;
+&lt;li&gt;Paste full command outputs into per-host files—future you will need them for exploitation and the appendix.&lt;/li&gt;
+&lt;li&gt;Capture &lt;code&gt;pcap&lt;/code&gt; snippets (&lt;code&gt;tcpdump -i tun0 host &amp;lt;target&amp;gt; -w recon/&amp;lt;host&amp;gt;.pcap&lt;/code&gt;) when testing delicate protocols.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Recon is never “done”. Loop these steps as new information emerges, feed findings into exploit planning, and keep your documentation sharp enough to ship directly in the final report.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h4&gt;6 Information Gathering&lt;/h4&gt;
+&lt;p&gt;Learn how to methodically map such an attack surface using both passive and active means, and understand how to leverage this information during the entire penetration test lifecycle.&lt;/p&gt;
+&lt;h5&gt;6.1 The Penetration Testing Lifecycle&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand the stages of a Penetration Test.&lt;/li&gt;
+&lt;li&gt;Learn the role of Information Gathering inside each stage.&lt;/li&gt;
+&lt;li&gt;Understand the differences between Active and Passive Information Gathering.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To keep a company&amp;#39;s security posture as tightly controlled as possible, we should conduct penetration testing on a regular cadence and after every time there&amp;#39;s a significant shift in the target&amp;#39;s IT architecture.&lt;/p&gt;
+&lt;p&gt;A typical penetration test comprises the following stages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Defining the Scope.&lt;/li&gt;
+&lt;li&gt;Information Gathering.&lt;/li&gt;
+&lt;li&gt;Vulnerability Detection.&lt;/li&gt;
+&lt;li&gt;Initial Foothold.&lt;/li&gt;
+&lt;li&gt;Privilege Escalation.&lt;/li&gt;
+&lt;li&gt;Lateral Movement.&lt;/li&gt;
+&lt;li&gt;Reporting/Analysis.&lt;/li&gt;
+&lt;li&gt;Lessons Learned/Remediation.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The scope of a penetration test engagement defines which IP ranges, hosts, and applications should be test subjects during the engagement, as compared to out-of-scope items that should not be tested.&lt;/p&gt;
+&lt;p&gt;To begin information gathering, we typically perform reconnaissance to retrieve details about the target organization&amp;#39;s infrastructure, assets, and personnel. This can be done either passively or actively. While the former technique aims to retrieve the target&amp;#39;s information with almost no direct interaction, the latter probes the infrastructure directly. Active information gathering reveals a bigger footprint, so it is often preferred to avoid exposure by gathering information passively.&lt;/p&gt;
+&lt;h5&gt;6.2 Passive Information Gathering&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand the two different Passive Information Gathering approaches.&lt;/li&gt;
+&lt;li&gt;Learn about Open Source Intelligence (OSINT)&lt;/li&gt;
+&lt;li&gt;Understand Web Server and DNS passive information gathering.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Open-source_intelligence&quot;&gt;Open-source Intelligence (OSINT)&lt;/a&gt; the process of collecting openly-available information about a target, generally without any direct interaction with that target.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Strict interpretation&lt;/strong&gt; we never communicate with the target directly. For example, we could rely on third parties for information, but we wouldn&amp;#39;t access any of the target&amp;#39;s systems or servers. Using this approach maintains a high level of secrecy about our actions and intentions, but can also be cumbersome and may limit our results.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Loose&lt;/strong&gt; interpretation, we might interact with the target, but only as a normal internet user would. For example, if the target&amp;#39;s website allows us to register for an account, we could do that. However, we would not test the website for vulnerabilities during this phase.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Cyclical process rather than linear.&lt;/li&gt;
+&lt;li&gt;&amp;quot;next step&amp;quot; depends on &amp;quot;previous step&amp;quot;.&lt;/li&gt;
+&lt;li&gt;Obtain info that clarifies/expands &lt;a href=&quot;https://en.wikipedia.org/wiki/Attack_surface&quot;&gt;attack surface&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Help conduct phishing campaign.&lt;/li&gt;
+&lt;li&gt;Supplements other steps, i.e. password guessing which can lead to account compromise.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Real World Example:&lt;/strong&gt;
+Several years ago, the team at OffSec was tasked with performing a penetration test for a small company. This company had virtually no internet presence and very few externally-exposed services, all of which proved to be secure. There was practically no attack surface to be found. After a focused passive information gathering campaign that leveraged various Google search operators, connected bits of information &amp;quot;piped&amp;quot; into other online tools, and a bit of creative and logical thinking, we found a forum post made by one of the target&amp;#39;s employees in a stamp-collecting forum:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Hi!
+I&amp;#39;m looking for rare stamps from the 1950&amp;#39;s - for sale or trade.
+Please contact me at david@company-address.com
+Cell: 999-999-9999
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We used this information to launch a semi-sophisticated client-side attack. We quickly registered a stamps-related domain name and designed a landing page that displayed various rare stamps from the 1950&amp;#39;s, which we found using Google Images. The domain name and design of the site definitely increased the perceived reliability of our stamp trading website.&lt;/p&gt;
+&lt;p&gt;Next, we embedded some nasty client-side attack exploit code in the site&amp;#39;s web pages, and called &amp;quot;David&amp;quot; during the workday. During the call, we posed as a stamp collector that had inherited their Grandfather&amp;#39;s huge stamp collection.&lt;/p&gt;
+&lt;p&gt;David was overjoyed to receive our call and visited the malicious website to review the &amp;quot;stamp collection&amp;quot; without hesitation. While browsing the site, the exploit code executed on his local machine and sent us a reverse shell.&lt;/p&gt;
+&lt;p&gt;This is a good example of how some innocuous passively-gathered information, such as an employee engaging in personal business with his corporate email, can lead to a foothold during a penetration test. Sometimes the smallest details can be the most important.&lt;/p&gt;
+&lt;p&gt;While &amp;quot;David&amp;quot; wasn&amp;#39;t following best practices, it was the company&amp;#39;s policy and lack of a security awareness program that set the stage for this breach. Because of this, we avoid casting blame on an individual in a written report. Our goal as penetration testers is to improve the security of our client&amp;#39;s resources, not to target a single employee. Simply removing &amp;quot;David&amp;quot; wouldn&amp;#39;t have solved the problem.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; We will use &lt;a href=&quot;https://www.megacorpone.com/&quot;&gt;MegaCorp One&lt;/a&gt;, a fictional company created by OffSec, as the subject of our campaign.&lt;/p&gt;
+&lt;h6&gt;Whois Enumeration&lt;/h6&gt;
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/WHOIS&quot;&gt;Whois&lt;/a&gt; is a TCP service, tool, and type of database that can provide information about a domain name, such as the &lt;a href=&quot;https://en.wikipedia.org/wiki/Name_server&quot;&gt;name server&lt;/a&gt; and &lt;a href=&quot;https://en.wikipedia.org/wiki/Domain_name_registrar&quot;&gt;registrar&lt;/a&gt;. This information is often public, since registrars charge a fee for private registration.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example (output edited):&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ whois megacorpone.com
+   Domain Name: MEGACORPONE.COM
+   Registry Domain ID: 1775445745_DOMAIN_COM-VRSN
+   Registrar WHOIS Server: whois.gandi.net    # &amp;lt;--- INT
+   Registrar URL: http://www.gandi.net
+   Updated Date: 2023-06-13T18:08:24Z
+   Creation Date: 2013-01-22T23:01:00Z
+   Registry Expiry Date: 2024-01-22T23:01:00Z
+...
+The Registry database contains ONLY .COM, .NET, .EDU domains and
+Registrars.
+Domain Name: megacorpone.com
+Registry Domain ID: 1775445745_DOMAIN_COM-VRSN
+Registrar WHOIS Server: whois.gandi.net
+Registrar URL: http://www.gandi.net
+Updated Date: 2023-06-13T18:08:24Z
+Creation Date: 2013-01-22T22:01:00Z
+Registrar Registration Expiration Date: 2024-01-22T23:01:00Z
+...
+Registry Registrant ID: 
+Registrant Name: Alan Grofield    # &amp;lt;--- INT
+Registrant Organization: MegaCorpOne
+Registrant Street: 2 Old Mill St
+Registrant City: Rachel
+Registrant State/Province: Nevada
+Registrant Postal Code: 89001
+Registrant Country: US
+Registrant Phone: +1.9038836342
+...
+Registry Tech ID: 
+Tech Name: Alan Grofield    # &amp;lt;--- INT
+Tech Organization: MegaCorpOne
+Tech Street: 2 Old Mill St
+Tech City: Rachel
+Tech State/Province: Nevada
+Tech Postal Code: 89001
+Tech Country: US
+Tech Phone: +1.9038836342
+Tech Phone Ext:
+Tech Fax: 
+Tech Fax Ext:
+Tech Email: 3310f82fb4a8f79ee9a6bfe8d672d87e-1696395@contact.gandi.net
+...
+Name Server: NS1.MEGACORPONE.COM    # &amp;lt;--- INT
+Name Server: NS2.MEGACORPONE.COM    # &amp;lt;--- INT
+Name Server: NS3.MEGACORPONE.COM    # &amp;lt;--- INT
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Domain registered by &amp;quot;Alan Grofield&amp;quot;.&lt;/li&gt;
+&lt;li&gt;According to the Megacorp One Contact page, Alan is the &amp;quot;IT and Security Director&amp;quot;.&lt;/li&gt;
+&lt;li&gt;Name: Alan Grofield.&lt;/li&gt;
+&lt;li&gt;Title: IT and Security Director.&lt;/li&gt;
+&lt;li&gt;Email: &lt;a href=&quot;mailto:agrofield@megacorpone.com&quot;&gt;agrofield@megacorpone.com&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;NameServers.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Assuming we have IP address we can perform reverse lookup:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ whois 38.100.193.70
+...
+NetRange:       38.0.0.0 - 38.255.255.255
+CIDR:           38.0.0.0/8
+NetName:        COGENT-A
+...
+OrgName:        PSINet, Inc.
+OrgId:          PSI
+Address:        2450 N Street NW
+City:           Washington
+StateProv:      DC
+PostalCode:     20037
+Country:        US
+RegDate:        
+Updated:        2015-06-04
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Returns info about who is hosting the IP address.&lt;/li&gt;
+&lt;li&gt;Can become useful.&lt;/li&gt;
+&lt;li&gt;Add to test notes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;####### VMs&lt;/p&gt;
+&lt;p&gt;Pass the domain name, megacorpone.com, into whois, &lt;strong&gt;providing the IP address of our Ubuntu WHOIS server as an argument of the host (-h) parameter&lt;/strong&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;whois megacorpone.com -h 192.168.50.251
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Google Hacking&lt;/h6&gt;
+&lt;p&gt;The term &amp;quot;Google Hacking&amp;quot; was popularized by Johnny Long in 2001.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Google_hacking&quot;&gt;Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.amazon.com/Google-Hacking-Penetration-Testers-Johnny/dp/0128029641/ref=dp_ob_image_bk&quot;&gt;Google Hacking for Penetration Testers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;How search engines, like Google, can be used to uncover crit info, vulns, and misconfigured websites.&lt;/li&gt;
+&lt;li&gt;Utilizes clever search string and &lt;a href=&quot;https://support.google.com/websearch/answer/2466433?hl=en&quot;&gt;operators&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Most of which work with a variety of search engines.&lt;/li&gt;
+&lt;li&gt;Iterative process.&lt;/li&gt;
+&lt;li&gt;Begin with broad search.&lt;/li&gt;
+&lt;li&gt;Narrow using operators to sift out irrelevant results.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Common Operators&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;The &lt;strong&gt;site&lt;/strong&gt; operator limits searches to a single domain.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Used to gather a rough idea of org web presence.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Example: &lt;code&gt;site:megacorpone.com&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Additional operators used to narrow results.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Locate txt files.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Example: &lt;code&gt;filetype:txt&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt; &lt;code&gt;site:megacorpone.com filetype:txt&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Returns interesting result, &lt;code&gt;robots.txt&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;User-agent: *
+Allow: /
+Allow: /nanites.php
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The robots.txt file instructs web crawlers, such as Google&amp;#39;s search engine crawler, to allow or disallow specific resources. In this case, it revealed a specific PHP page (/nanities.php) that was otherwise hidden from the regular search, despite being listed allowed by the policy.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;The &lt;strong&gt;ext&lt;/strong&gt; operator.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Examples: &lt;code&gt;ext:php&lt;/code&gt;, &lt;code&gt;ext:xml&lt;/code&gt;, &lt;code&gt;ext:py&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Will find indexed PHP Pages, XML, and Python pages, respectively.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Operators can be modified with &lt;strong&gt;-&lt;/strong&gt; to exclude results.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Example &lt;code&gt;site:megacorpone.com -filetype:html&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Excludes HTML pages from results! &lt;strong&gt;Very interesting!&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;May return web directory indices.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;The &lt;strong&gt;intitle&lt;/strong&gt; operator.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Find pages that return a string in title.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Example: &lt;code&gt;intitle:&amp;quot;index of&amp;quot; &amp;quot;parent directory&amp;quot;&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Find pages that contain &amp;quot;index of&amp;quot; in title and &amp;quot;parent directory&amp;quot; in page.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;The output refers to &lt;a href=&quot;https://cwe.mitre.org/data/definitions/548.html&quot;&gt;directory listing&lt;/a&gt; pages.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;List the file contents of the directories without index pages.
+- Misconfigurations like this can reveal interesting files and sensitive information.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;####### IMPORTANT RESOURCES
+&lt;strong&gt;Many advanced examples&lt;/strong&gt; can be found at &lt;a href=&quot;https://www.exploit-db.com/google-hacking-database&quot;&gt;Google Hacking Database (GHDB)&lt;/a&gt; and &lt;a href=&quot;https://dorksearch.com/&quot;&gt;DorkSearch&lt;/a&gt; portal, which provides a pre-built subset of queries and a builder tool to facilitate the search.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Social media dorking.&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;example:&lt;/strong&gt; &lt;code&gt;site:http://twitter.com intext:&amp;quot;megacorpone.com&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Netcraft&lt;/h6&gt;
+&lt;p&gt;&lt;strong&gt;IMPORTANT FOR DOMAIN OSINT&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.netcraft.com/&quot;&gt;Netcraft&lt;/a&gt; is an internet service company, based in England, offering a free web portal that performs various information gathering functions such as discovering which technologies are running on a given website and finding which other hosts share the same IP netblock.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://searchdns.netcraft.com&quot;&gt;Netcraft DNS search page&lt;/a&gt;&lt;/p&gt;
+&lt;h6&gt;Open-Source Code&lt;/h6&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/&quot;&gt;GitHub&lt;/a&gt;
+&lt;a href=&quot;https://gist.github.com/&quot;&gt;GitHub Gist&lt;/a&gt;
+&lt;a href=&quot;https://about.gitlab.com/&quot;&gt;GitLab&lt;/a&gt;
+&lt;a href=&quot;https://sourceforge.net/&quot;&gt;SourceForge&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Code found online can outline languages and frameworks used by orgs.&lt;/li&gt;
+&lt;li&gt;Devs may mistakenly commit sensitive info.&lt;/li&gt;
+&lt;li&gt;The search tools for some of these platforms will support the Google search operators that we discussed earlier in this Module.&lt;/li&gt;
+&lt;li&gt;We can use GitHub to search a user&amp;#39;s or organization&amp;#39;s repos.&lt;/li&gt;
+&lt;li&gt;We need an account if we want to search across all public repos.&lt;/li&gt;
+&lt;li&gt;Manual approach best for &lt;strong&gt;small repos&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Automated tools&lt;/strong&gt;.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/michenriksen/gitrob&quot;&gt;gitrob&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/zricethezav/gitleaks&quot;&gt;gitleaks&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Most of these tools require an access token.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Search &lt;code&gt;owner:megacorpone filename:users&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Returns result &lt;code&gt;xampp.users&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Contains username and password hash &lt;code&gt;trivera:$apr1$A0vSKwao$GV3sgGAj53j.c3GkS4oUC0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.apachefriends.org/index.html&quot;&gt;XAMPP&lt;/a&gt;&lt;/p&gt;
+&lt;h6&gt;Shodan&lt;/h6&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.shodan.io/&quot;&gt;Shodan&lt;/a&gt; is a search engine that crawls devices connected to the internet, including the servers that run websites, but also devices like routers and IoT devices.&lt;/p&gt;
+&lt;p&gt;Google and other search engines search for web server content, while Shodan searches for internet-connected devices, interacts with them, and displays information about them&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Before using Shodan we must register a free account, which provides limited access.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Shodan to search for &lt;code&gt;hostname:megacorpone.com&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;IPs.&lt;/li&gt;
+&lt;li&gt;Services.&lt;/li&gt;
+&lt;li&gt;Banner information.&lt;/li&gt;
+&lt;li&gt;Left Pane, Top Ports.&lt;/li&gt;
+&lt;li&gt;4 SSH servers running.&lt;/li&gt;
+&lt;li&gt;View host summary, SSH version.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Security Headers and SSL/TLS&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;Several other specialty websites that we can use to gather information about a website or domain&amp;#39;s security posture.&lt;/li&gt;
+&lt;li&gt;Some blur the line between passive and active information gathering.
+ - &lt;strong&gt;key point&lt;/strong&gt; for our purposes is that a &lt;strong&gt;third-party is initiating any scans or checks&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://securityheaders.com/&quot;&gt;Security Headers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Search &lt;code&gt;www.megacorpone.com&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Missing several defensive headers.&lt;/li&gt;
+&lt;li&gt;Content-Security-Policy.&lt;/li&gt;
+&lt;li&gt;An effective measure to protect your site from XSS attacks. By whitelisting sources of approved content, you can prevent the browser from loading malicious assets.&lt;/li&gt;
+&lt;li&gt;X-Frame-Options.&lt;/li&gt;
+&lt;li&gt;Tells the browser whether you want to allow your site to be framed or not. By preventing a browser from framing your site you can defend against attacks like clickjacking. Recommended value &amp;quot;X-Frame-Options: SAMEORIGIN&amp;quot;.&lt;/li&gt;
+&lt;li&gt;X-Content-Type-Options.&lt;/li&gt;
+&lt;li&gt;Stops a browser from trying to MIME-sniff the content type and forces it to stick with the declared content-type. .
+   - The only valid value for this header is &lt;code&gt;X-Content-Type-Options: nosniff&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Referrer-Policy.&lt;/li&gt;
+&lt;li&gt;Is a new header that allows a site to control how much information the browser includes with navigations away from a document and should be set by all sites.&lt;/li&gt;
+&lt;li&gt;Permissions-Policy.&lt;/li&gt;
+&lt;li&gt;Is a new header that allows a site to control which features and APIs can be used in the browser.&lt;/li&gt;
+&lt;li&gt;Missing headers are not necessarily vulnerabilities in and of themselves, but they could indicate web developers or server admins that are not familiar with &lt;a href=&quot;https://csrc.nist.gov/publications/detail/sp/800-123/final&quot;&gt;server hardening&lt;/a&gt;
+ - Server hardening is the overall process of securing a server via configuration. This includes processes such as disabling unneeded services, removing unused services or user accounts, rotating default passwords, setting appropriate server headers, and so forth. We don&amp;#39;t need to know all the ins and outs of configuring every type of server, but understanding the concepts and what to search for can help us determine how best to approach a potential target.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.ssllabs.com/ssltest/&quot;&gt;SSL Server Test&lt;/a&gt; from Qualys SSL Labs.&lt;/li&gt;
+&lt;li&gt;Shows that the server supports TLS versions such as 1.0 and 1.1.&lt;/li&gt;
+&lt;li&gt;Deemed legacy as they implement insecure cipher suites.&lt;/li&gt;
+&lt;li&gt;This ultimately suggests that our target is not applying current best practices for SSL/TLS hardening.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://msrc-blog.microsoft.com/2013/11/12/security-advisory-2868725-recommendation-to-disable-rc4/&quot;&gt;Disabling the TLS_DHE_RSA_WITH_AES_256_CBC_SHA&lt;/a&gt; suite has been recommended for several years.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;6.3 Active Information Gathering&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Learn to perform Netcat and Nmap port scanning.&lt;/li&gt;
+&lt;li&gt;Conduct DNS, SMB, SMTP, and SNMP Enumeration.&lt;/li&gt;
+&lt;li&gt;Understand Living off the Land techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We&amp;#39;ll mainly showcase active information gathering techniques that we can execute using pre-installed tools on our local Kali machine. However, in some cases during a penetration test, we won&amp;#39;t have the luxury of running our favorite Kali Linux tool. In an assumed breach scenario such as this, we are typically given a Windows-based workstation by the client and must use what&amp;#39;s available on Windows.&lt;/p&gt;
+&lt;p&gt;When &lt;strong&gt;Living off the Land&lt;/strong&gt;, we can leverage several pre-installed and trusted Windows binaries to perform post-compromise analysis. These binaries are shortened as LOLBins or, more recently, &lt;a href=&quot;https://lolbas-project.github.io/&quot;&gt;LOLBAS&lt;/a&gt; to include Binaries, Scripts and Libraries.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Strictly speaking, LOLBAS binaries are typically used in a way other than by design. In this case, we&amp;#39;ll relax the definition to include using standard Windows binaries &amp;quot;as they are&amp;quot; to perform information gathering.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;DNS Enumeration&lt;/h6&gt;
+&lt;p&gt;The &lt;a href=&quot;https://en.wikipedia.org/wiki/Domain_Name_System&quot;&gt;Domain Name System (DNS)&lt;/a&gt; is a distributed database responsible for translating user-friendly domain names into IP addresses.&lt;/p&gt;
+&lt;p&gt;Common types of DNS records include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;NS: Nameserver records contain the name of the authoritative servers hosting the DNS records for a domain.&lt;/li&gt;
+&lt;li&gt;A: Also known as a host record, the &amp;quot;a record&amp;quot; contains the IPv4 address of a hostname (such as &lt;a href=&quot;http://www.megacorpone.com&quot;&gt;www.megacorpone.com&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;AAAA: Also known as a quad A host record, the &amp;quot;aaaa record&amp;quot; contains the IPv6 address of a hostname (such as &lt;a href=&quot;http://www.megacorpone.com&quot;&gt;www.megacorpone.com&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;MX: Mail Exchange records contain the names of the servers responsible for handling email for the domain. A domain can contain multiple MX records.&lt;/li&gt;
+&lt;li&gt;PTR: Pointer Records are used in reverse lookup zones and can find the records associated with an IP address.&lt;/li&gt;
+&lt;li&gt;CNAME: Canonical Name Records are used to create aliases for other host records.&lt;/li&gt;
+&lt;li&gt;TXT: Text records can contain any arbitrary data and be used for various purposes, such as domain ownership verification.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Examples:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Using &lt;code&gt;host&lt;/code&gt; command to find IP address of target&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ host www.megacorpone.com
+www.megacorpone.com has address 149.56.244.87
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Default, the host command searches for an A record.  To query other fields, such as MX or TXT records, specify the record type in our query using the -t option. &lt;strong&gt;NOTE:&lt;/strong&gt; Lowest priority best.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ host -t mx megacorpone.com
+megacorpone.com mail is handled by 10 fb.mail.gandi.net.
+megacorpone.com mail is handled by 20 spool.mail.gandi.net.
+megacorpone.com mail is handled by 50 mail.megacorpone.com.
+megacorpone.com mail is handled by 60 mail2.megacorpone.com.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;TXT records&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ host -t txt megacorpone.com
+megacorpone.com descriptive text &amp;quot;Try Harder&amp;quot;
+megacorpone.com descriptive text &amp;quot;google-site-verification=U7B_b0HNeBtY4qYGQZNsEYXfCJ32hMNV3GtC0wWq5pA&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;determine if megacorpone.com has a server with the hostname &amp;quot;idontexist&amp;quot;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ host idontexist.megacorpone.com
+Host idontexist.megacorpone.com not found: 3(NXDOMAIN)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Indicates a public DNS record does not exist for that hostname. Since we now understand how to search for valid hostnames, we can automate our efforts.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;DNS brute-forcing techniques&lt;/strong&gt;
+Automate the forward DNS-lookup of common hostnames using the host command in a Bash one-liner.  Build a list of possible hostnames.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ cat list.txt
+www
+ftp
+mail
+owa
+proxy
+router
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Bash one-liner to attempt to resolve each hostname.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ for ip in $(cat list.txt); do host $ip.megacorpone.com; done
+www.megacorpone.com has address 149.56.244.87
+Host ftp.megacorpone.com not found: 3(NXDOMAIN)
+mail.megacorpone.com has address 51.222.169.212
+Host owa.megacorpone.com not found: 3(NXDOMAIN)
+Host proxy.megacorpone.com not found: 3(NXDOMAIN)
+router.megacorpone.com has address 51.222.169.214
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Much more comprehensive wordlists are available as part of the &lt;a href=&quot;https://github.com/danielmiessler/SecLists&quot;&gt;SecLists project&lt;/a&gt;. These wordlists can be installed to the /usr/share/seclists directory using the sudo apt install seclists command.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Reverse Lookup&lt;/strong&gt;
+DNS-forward brute force enumeration revealed a set of scattered IP addresses in the same approximate range (51.222.169.X). If the DNS administrator of megacorpone.com configured PTR4 records for the domain, we could scan the approximate range with reverse lookups to request the hostname for each IP.&lt;/p&gt;
+&lt;p&gt;Loop to scan IP addresses 51.222.169.200 through 51.222.169.254. We will filter out invalid results (using grep -v) by showing only entries that do not contain &amp;quot;not found&amp;quot;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ for ip in $(seq 200 254); do host 51.222.169.$ip; done | grep -v &amp;quot;not found&amp;quot;
+...
+208.169.222.51.in-addr.arpa domain name pointer admin.megacorpone.com.
+209.169.222.51.in-addr.arpa domain name pointer beta.megacorpone.com.
+210.169.222.51.in-addr.arpa domain name pointer fs1.megacorpone.com.
+211.169.222.51.in-addr.arpa domain name pointer intranet.megacorpone.com.
+212.169.222.51.in-addr.arpa domain name pointer mail.megacorpone.com.
+213.169.222.51.in-addr.arpa domain name pointer mail2.megacorpone.com.
+214.169.222.51.in-addr.arpa domain name pointer router.megacorpone.com.
+215.169.222.51.in-addr.arpa domain name pointer siem.megacorpone.com.
+216.169.222.51.in-addr.arpa domain name pointer snmp.megacorpone.com.
+217.169.222.51.in-addr.arpa domain name pointer syslog.megacorpone.com.
+218.169.222.51.in-addr.arpa domain name pointer support.megacorpone.com.
+219.169.222.51.in-addr.arpa domain name pointer test.megacorpone.com.
+220.169.222.51.in-addr.arpa domain name pointer vpn.megacorpone.com.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Resolves a number of IP addresses to valid hosts using reverse DNS lookups. If we were performing an assessment, we could further extrapolate these results, and might scan for &amp;quot;mail2&amp;quot;, &amp;quot;router&amp;quot;, etc., and reverse-lookup positive results. These types of scans are often cyclical; we expand our search based on any information we receive at every round.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;DNS Enumeration Tools&lt;/strong&gt;
+Several tools in Kali Linux that can automate DNS enumeration. Two notable examples are DNSRecon and DNSenum; let&amp;#39;s explore their capabilities.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/darkoperator/dnsrecon&quot;&gt;DNSRecon&lt;/a&gt; is an advanced DNS enumeration script written in Python. Let&amp;#39;s run dnsrecon against megacorpone.com, using the -d option to specify a domain name and -t to specify the type of enumeration to perform (in this case, a standard scan).&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ dnsrecon -d megacorpone.com -t std
+[*] std: Performing General Enumeration against: megacorpone.com...
+[-] DNSSEC is not configured for megacorpone.com
+[*] 	 SOA ns1.megacorpone.com 51.79.37.18
+[*] 	 NS ns1.megacorpone.com 51.79.37.18
+[*] 	 NS ns3.megacorpone.com 66.70.207.180
+[*] 	 NS ns2.megacorpone.com 51.222.39.63
+[*] 	 MX mail.megacorpone.com 51.222.169.212
+[*] 	 MX spool.mail.gandi.net 217.70.178.1
+[*] 	 MX fb.mail.gandi.net 217.70.178.217
+[*] 	 MX fb.mail.gandi.net 217.70.178.216
+[*] 	 MX fb.mail.gandi.net 217.70.178.215
+[*] 	 MX mail2.megacorpone.com 51.222.169.213
+[*] 	 TXT megacorpone.com Try Harder
+[*] 	 TXT megacorpone.com google-site-verification=U7B_b0HNeBtY4qYGQZNsEYXfCJ32hMNV3GtC0wWq5pA
+[*] Enumerating SRV Records
+[+] 0 Records Found
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Wordlist brute force attempt, we will use the -d option to specify a domain name, -D to specify a file name containing potential subdomain strings, and -t to specify the type of enumeration to perform, in this case brt for brute force.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ dnsrecon -d megacorpone.com -D ~/list.txt -t brt
+[*] Using the dictionary file: /home/kali/list.txt (provided by user)
+[*] brt: Performing host and subdomain brute force against megacorpone.com...
+[+] 	 A www.megacorpone.com 149.56.244.87
+[+] 	 A mail.megacorpone.com 51.222.169.212
+[+] 	 A router.megacorpone.com 51.222.169.214
+[+] 3 Records Found
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;DNSEnum is another popular DNS enumeration tool that can be used to further automate DNS enumeration of the megacorpone.com domain. We can pass the tool a few options, but for the sake of this example we&amp;#39;ll only pass the target domain parameter:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ dnsenum megacorpone.com
+...
+dnsenum VERSION:1.2.6
+
+-----   megacorpone.com   -----
+
+...
+
+Brute forcing with /usr/share/dnsenum/dns.txt:
+_______________________________________________
+
+admin.megacorpone.com.                   5        IN    A        51.222.169.208
+beta.megacorpone.com.                    5        IN    A        51.222.169.209
+fs1.megacorpone.com.                     5        IN    A        51.222.169.210
+intranet.megacorpone.com.                5        IN    A        51.222.169.211
+mail.megacorpone.com.                    5        IN    A        51.222.169.212
+mail2.megacorpone.com.                   5        IN    A        51.222.169.213
+ns1.megacorpone.com.                     5        IN    A        51.79.37.18
+ns2.megacorpone.com.                     5        IN    A        51.222.39.63
+ns3.megacorpone.com.                     5        IN    A        66.70.207.180
+router.megacorpone.com.                  5        IN    A        51.222.169.214
+siem.megacorpone.com.                    5        IN    A        51.222.169.215
+snmp.megacorpone.com.                    5        IN    A        51.222.169.216
+syslog.megacorpone.com.                  5        IN    A        51.222.169.217
+test.megacorpone.com.                    5        IN    A        51.222.169.219
+vpn.megacorpone.com.                     5        IN    A        51.222.169.220
+www.megacorpone.com.                     5        IN    A        149.56.244.87
+www2.megacorpone.com.                    5        IN    A        149.56.244.87
+
+
+megacorpone.com class C netranges:
+___________________________________
+
+ 51.79.37.0/24
+ 51.222.39.0/24
+ 51.222.169.0/24
+ 66.70.207.0/24
+ 149.56.244.0/24
+
+
+Performing reverse lookup on 1280 ip addresses:
+________________________________________________
+
+18.37.79.51.in-addr.arpa.                86400    IN    PTR      ns1.megacorpone.com.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;LOLBAS&lt;/strong&gt;
+Not in the LOLBAS listing, nslookup is another great utility for Windows DNS enumeration and still used during &amp;#39;Living off the Land&amp;#39; scenarios.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\student&amp;gt;nslookup mail.megacorptwo.com
+DNS request timed out.
+    timeout was 2 seconds.
+Server:  UnKnown
+Address:  192.168.50.151
+
+Name:    mail.megacorptwo.com
+Address:  192.168.50.154
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Query a given DNS about a TXT record that belongs to a specific host.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\student&amp;gt;nslookup -type=TXT info.megacorptwo.com 192.168.50.151
+Server:  UnKnown
+Address:  192.168.50.151
+
+info.megacorptwo.com    text =
+
+        &amp;quot;greetings from the TXT record body&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In this example, we are specifically querying the 192.168.50.151 DNS server for any TXT record related to the &lt;code&gt;info.megacorptwo.com&lt;/code&gt; host.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;nslookup&lt;/code&gt; utility is as versatile as the Linux host command and the queries can also be further automated through PowerShell or Batch scripting.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Lab VM&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Connect to Windows VM 
+&lt;strong&gt;IMPORTANT:&lt;/strong&gt; Make sure you have the correct IP for the question!!!&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ xfreerdp /u:student /p:lab /v:192.168.212.152:3389
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;IMPORTANT:&lt;/strong&gt; Watch the way questions are worded regarding sub-domains&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\student&amp;gt;nslookup -type=TXT info.megacorptwo.com 192.168.212.151                                    DNS request timed out.                                                                                         timeout was 2 seconds.                                                                                 Server:  UnKnown                                                                                           Address:  192.168.212.151                                                                                                                                                                                            info.megacorptwo.com    text =                                                                                                                                                                                        				&amp;quot;greetings from the TXT record body&amp;quot; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;TCP/UDP Port Scanning Theory&lt;/h6&gt;
+&lt;p&gt;The process of inspecting TCP or UDP ports on a remote machine with the intention of detecting what services are running on the target and what potential attack vectors may exist.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Please note that port scanning is not representative of traditional user activity and could be considered illegal in some jurisdictions. Therefore, it should not be performed outside the labs without direct, written permission from the target network owner.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Implications of port scanning.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Large amount of traffic.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Intrusive nature.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Running them blindly can have adverse effects on systems/network.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Overloading switch/servers/links.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Trigger IDS/IPS.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Proper Port Scanning Methodology&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Do not run full scan against network.&lt;/li&gt;
+&lt;li&gt;Scan for ports 80, 443.&lt;/li&gt;
+&lt;li&gt;Return web servers.&lt;/li&gt;
+&lt;li&gt;Run full port scan against web servers.&lt;/li&gt;
+&lt;li&gt;Dynamic and iterative process.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;TCP Scanning Techniques&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Simplest form, the CONNECT scan.&lt;ul&gt;
+&lt;li&gt;Takes advantage of &lt;a href=&quot;http://support.microsoft.com/kb/172983&quot;&gt;3-way TCP handshake&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Host sends TCP SYN packet to server on dest port.&lt;/li&gt;
+&lt;li&gt;If dest port is open, the server responds with SYN-ACK packet.&lt;/li&gt;
+&lt;li&gt;Closed ports actively reject the connection attempt via a RST-ACK packet.&lt;/li&gt;
+&lt;li&gt;Client responds with ACK to complete handshake.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;If the 3-way handshake completes successfully the port is considered open.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Demonstrate by running a &lt;strong&gt;TCP Netcat port scan&lt;/strong&gt; on ports 3388-3390. We&amp;#39;ll use the -w option to specify the connection timeout in seconds, as well as -z to specify zero-I/O mode, which is used for scanning and sends no data.  Netcat closes successful connection by sending a FIN-ACK packet&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nc -nvv -w 1 -z 192.168.50.152 3388-3390
+(UNKNOWN) [192.168.50.152] 3390 (?) : Connection refused
+(UNKNOWN) [192.168.50.152] 3389 (ms-wbt-server) open
+(UNKNOWN) [192.168.50.152] 3388 (?) : Connection refused
+ sent 0, rcvd 0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;UDP Scanning&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;UDP is stateless and does not involve a three-way handshake, the mechanism behind UDP port scanning is different from TCP.&lt;/li&gt;
+&lt;li&gt;Simple UDP scan.&lt;/li&gt;
+&lt;li&gt;Send empty UDP packet to port.&lt;/li&gt;
+&lt;li&gt;If port is open, packet will be passed to application layer.&lt;/li&gt;
+&lt;li&gt;Response depends on on the application is programmed.&lt;/li&gt;
+&lt;li&gt;If port is closed, target should respond with ICMP Port unreachable.&lt;/li&gt;
+&lt;li&gt;Sent by UDP/IP stack of target system.&lt;/li&gt;
+&lt;li&gt;Most scanners rely on ICMP Port unreachable to infer status of target port.&lt;/li&gt;
+&lt;li&gt;Often unreliable, firewalls/routers may drop ICMP packets.&lt;/li&gt;
+&lt;li&gt;This can lead to false positives.&lt;/li&gt;
+&lt;li&gt;Using protocol specific UDP port scanners yield better results.&lt;/li&gt;
+&lt;li&gt;UDP scans generate less traffic than TCP scans.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;UDP Netcat port scan against ports 120-123 on a different target. We&amp;#39;ll use the only nc option we have not covered yet, -u, which indicates a UDP scan.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nc -nv -u -z -w 1 192.168.50.149 120-123
+(UNKNOWN) [192.168.50.149] 123 (ntp) open
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Lab VM&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;TCP scan 1-10000&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ $ nc -nvv -w 1 -z 192.168.212.151 1-10000 &amp;gt; nc-tcp-scan-1-10000.log 2&amp;gt;&amp;amp;1
+$ cat scan.log | grep &amp;quot;open&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;UDP scan 100-200&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Returned many false positives
+
+$ nc -nv -u -z -w 1 192.168.212.151 100-200
+
+
+# Hit on port 161 SNMP UDP
+
+$ sudo nmap -sU -v felix -p 100-200 192.168.212.151
+[sudo] password for kali: 
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-07-31 16:02 EDT
+Failed to resolve &amp;quot;felix&amp;quot;.
+Initiating Ping Scan at 16:02
+Scanning 192.168.212.151 [4 ports]
+Completed Ping Scan at 16:02, 0.11s elapsed (1 total hosts)
+Initiating Parallel DNS resolution of 1 host. at 16:02
+Completed Parallel DNS resolution of 1 host. at 16:02, 0.00s elapsed
+Initiating UDP Scan at 16:02
+Scanning 192.168.212.151 [101 ports]
+Discovered open port 161/udp on 192.168.212.151
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Port Scanning with NMAP&lt;/h6&gt;
+&lt;p&gt;&lt;a href=&quot;http://nmap.org/&quot;&gt;Nmap&lt;/a&gt; (written by Gordon Lyon, aka Fyodor) is one of the most popular, versatile, and robust port scanners available. It has been actively developed for over two decades and offers numerous features beyond port scanning.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Scans requiring &lt;code&gt;sudo&lt;/code&gt; provide access to Raw Sockets.&lt;ul&gt;
+&lt;li&gt;Raw sockets allow for surgical manipulation of TCP and UDP packets.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Without &lt;code&gt;sudo&lt;/code&gt; limited to &lt;a href=&quot;https://en.wikipedia.org/wiki/Berkeley_sockets#Socket_API_functions&quot;&gt;Berkley socket API&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Default Nmap TCP scan will scan the 1000 most popular ports on a given machine. Before we start running scans blindly, let&amp;#39;s examine the amount of traffic sent by this type of scan. We&amp;#39;ll scan one of the lab machines while monitoring the amount of traffic sent to the target host using iptables.&lt;/p&gt;
+&lt;p&gt;Use the -I option to insert a new rule into a given chain, which in this case includes both the INPUT (Inbound) and OUTPUT (Outbound) chains, followed by the rule number. We can use -s to specify a source IP address, -d to specify a destination IP address, and -j to ACCEPT the traffic. Finally, we&amp;#39;ll use the -Z option to zero the packet and byte counters in all chains.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo iptables -I INPUT 1 -s 192.168.50.149 -j ACCEPT
+
+kali@kali:~$ sudo iptables -I OUTPUT 1 -d 192.168.50.149 -j ACCEPT
+
+kali@kali:~$ sudo iptables -Z
+
+kali@kali:~$ nmap 192.168.50.149
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 05:12 EST
+Nmap scan report for 192.168.50.149
+Host is up (0.10s latency).
+Not shown: 989 closed tcp ports (conn-refused)
+PORT     STATE SERVICE
+53/tcp   open  domain
+88/tcp   open  kerberos-sec
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+389/tcp  open  ldap
+445/tcp  open  microsoft-ds
+464/tcp  open  kpasswd5
+593/tcp  open  http-rpc-epmap
+636/tcp  open  ldapssl
+3268/tcp open  globalcatLDAP
+3269/tcp open  globalcatLDAPssl
+
+Nmap done: 1 IP address (1 host up) scanned in 10.95 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Review some iptables statistics to get a clearer idea of how much traffic our scan generated. We can use the -v option to add some verbosity to our output, -n to enable numeric output, and -L to list the rules present in all chains.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo iptables -vn -L
+Chain INPUT (policy ACCEPT 1270 packets, 115K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 1196 47972 ACCEPT     all  --  *      *       192.168.50.149      0.0.0.0/0
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+
+Chain OUTPUT (policy ACCEPT 1264 packets, 143K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 1218 72640 ACCEPT     all  --  *      *       0.0.0.0/0            192.168.50.149
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The default 1000-port scan generated around 72 KB of traffic.&lt;/p&gt;
+&lt;p&gt;Use iptables -Z to zero the packet and byte counters in all chains again and run another nmap scan, this time using -p to specify all TCP ports.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo iptables -Z
+
+kali@kali:~$ nmap -p 1-65535 192.168.50.149
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 05:23 EST
+Nmap scan report for 192.168.50.149
+Host is up (0.11s latency).
+Not shown: 65510 closed tcp ports (conn-refused)
+PORT      STATE SERVICE
+53/tcp    open  domain
+88/tcp    open  kerberos-sec
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+389/tcp   open  ldap
+445/tcp   open  microsoft-ds
+464/tcp   open  kpasswd5
+593/tcp   open  http-rpc-epmap
+636/tcp   open  ldapssl
+3268/tcp  open  globalcatLDAP
+3269/tcp  open  globalcatLDAPssl
+5985/tcp  open  wsman
+9389/tcp  open  adws
+47001/tcp open  winrm
+49664/tcp open  unknown
+...
+
+Nmap done: 1 IP address (1 host up) scanned in 2141.22 seconds
+
+kali@kali:~$ sudo iptables -vn -L
+Chain INPUT (policy ACCEPT 67996 packets, 6253K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+68724 2749K ACCEPT     all  --  *      *       192.168.50.149      0.0.0.0/0
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+
+Chain OUTPUT (policy ACCEPT 67923 packets, 7606K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+68807 4127K ACCEPT     all  --  *      *       0.0.0.0/0            192.168.50.149
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The local port scan explicitly probing all 65535 ports generated about 4 MB of traffic - a significantly higher amount.&lt;/p&gt;
+&lt;p&gt;Our results imply that a full Nmap scan of a class C network (254 hosts) would result in sending over 1000 MB of traffic to the network. Ideally, a full TCP and UDP port scan of every single target machine would provide the most accurate information about exposed network services. However, we clearly need to balance any traffic restrictions (such as a slow uplink) with discovering additional open ports and services via a more exhaustive scan. This is especially true for larger networks, such as a class A or B network assessment.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;There are modern port scanners like &lt;a href=&quot;https://tools.kali.org/information-gathering/masscan&quot;&gt;MASSCAN&lt;/a&gt; and &lt;a href=&quot;https://rustscan.github.io/RustScan/&quot;&gt;RustScan&lt;/a&gt; that, although faster than Nmap, generate a substantial amount of concurrent traffic. Nmap, on the other hand, imposes some traffic rate limiting that results in less bandwidth congestion and more covert behavior.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Stealth SYN scan.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Option &lt;code&gt;-sS&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Default method when no scan option is specified.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Requires raw socket privs.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;SYN scanning is a TCP port scanning method that involves sending SYN packets to various ports on a target machine without completing a TCP handshake.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If TCP port is open, a SYN-ACK will be send back, and the scanner does not send the final ACK.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;The three-way handshake is never completed, the information is not passed to the application layer and as a result, will not appear in any application logs.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; Please note that term &amp;quot;stealth&amp;quot; refers to the fact that, in the past, firewalls would fail to log incomplete TCP connections. This is no longer the case with modern firewalls and although the stealth moniker has stuck around, it could be misleading.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nmap -sS 192.168.50.149
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 06:31 EST
+Nmap scan report for 192.168.50.149
+Host is up (0.11s latency).
+Not shown: 989 closed tcp ports (reset)
+PORT     STATE SERVICE
+53/tcp   open  domain
+88/tcp   open  kerberos-sec
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+389/tcp  open  ldap
+445/tcp  open  microsoft-ds
+464/tcp  open  kpasswd5
+593/tcp  open  http-rpc-epmap
+636/tcp  open  ldapssl
+3268/tcp open  globalcatLDAP
+3269/tcp open  globalcatLDAPssl
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;TCP connect scan.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;-sT&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Default when no raw socket priv is available.&lt;/li&gt;
+&lt;li&gt;Nmap TCP connect scan makes use of the Berkeley sockets API9 to perform the three-way handshake, it does not require elevated privileges.&lt;/li&gt;
+&lt;li&gt;Has to wait for the connection to complete before the API will return the status of the connection, a TCP connect scan takes much longer to complete than a SYN scan.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;USEFUL when&lt;/strong&gt; scanning via certain types of proxies.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -sT 192.168.50.149
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 06:44 EST
+Nmap scan report for 192.168.50.149
+Host is up (0.11s latency).
+Not shown: 989 closed tcp ports (conn-refused)
+PORT     STATE SERVICE
+53/tcp   open  domain
+88/tcp   open  kerberos-sec
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+389/tcp  open  ldap
+445/tcp  open  microsoft-ds
+464/tcp  open  kpasswd5
+593/tcp  open  http-rpc-epmap
+636/tcp  open  ldapssl
+3268/tcp open  globalcatLDAP
+3269/tcp open  globalcatLDAPssl
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The output shows that the connect scan resulted in a few open services that are only active on the Windows-based host, especially Domain Controllers, as we&amp;#39;ll cover shortly. One major takeaway, even from this simple scan, is that we can already infer the underlying OS and role of the target host.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;UDP scan.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;-sU&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Nmap will use a combination of two different methods to determine if a port is open or closed.&lt;/li&gt;
+&lt;li&gt;For most ports, it will use the standard &amp;quot;ICMP port unreachable&amp;quot; method described earlier by sending an empty packet to a given port. .
+- For common ports, such as port 161, which is used by SNMP, it will send a protocol-specific SNMP packet in an attempt to get a response from an application bound to that port.
+- &lt;code&gt;sudo&lt;/code&gt; required to access raw sockets.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nmap -sU 192.168.50.149
+Starting Nmap 7.70 ( https://nmap.org ) at 2019-03-04 11:46 EST
+Nmap scan report for 192.168.131.149
+Host is up (0.11s latency).
+Not shown: 977 closed udp ports (port-unreach)
+PORT      STATE         SERVICE
+123/udp   open          ntp
+389/udp   open          ldap
+...
+Nmap done: 1 IP address (1 host up) scanned in 22.49 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;UDP and TCP SYN scan.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;-sU -sS&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nmap -sU -sS 192.168.50.149
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-09 08:16 EST
+Nmap scan report for 192.168.50.149
+Host is up (0.10s latency).
+Not shown: 989 closed tcp ports (reset), 977 closed udp ports (port-unreach)
+PORT      STATE         SERVICE
+53/tcp    open          domain
+88/tcp    open          kerberos-sec
+135/tcp   open          msrpc
+139/tcp   open          netbios-ssn
+389/tcp   open          ldap
+445/tcp   open          microsoft-ds
+464/tcp   open          kpasswd5
+593/tcp   open          http-rpc-epmap
+636/tcp   open          ldapssl
+3268/tcp  open          globalcatLDAP
+3269/tcp  open          globalcatLDAPssl
+53/udp    open          domain
+123/udp   open          ntp
+389/udp   open          ldap
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Network Sweeping Techniques&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;For when dealing with a large number of hosts.&lt;/li&gt;
+&lt;li&gt;Use nmap with &lt;code&gt;-sn&lt;/code&gt; option.&lt;/li&gt;
+&lt;li&gt;Host discovery option uses multiple methods to verify if host is up.&lt;/li&gt;
+&lt;li&gt;ICMP echo.&lt;/li&gt;
+&lt;li&gt;TCP SYN to port 443.&lt;/li&gt;
+&lt;li&gt;TCP ACK to port 80.&lt;/li&gt;
+&lt;li&gt;ICMP timestamp request.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -sn 192.168.50.1-253
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:19 EST
+Nmap scan report for 192.168.50.6
+Host is up (0.12s latency).
+Nmap scan report for 192.168.50.8
+Host is up (0.12s latency).
+...
+Nmap done: 254 IP addresses (13 hosts up) scanned in 3.74 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Nmap&amp;#39;s &amp;quot;greppable&amp;quot; output parameter.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;-oG&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Save these results in a more manageable format.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -v -sn 192.168.50.1-253 -oG ping-sweep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:21 EST
+Initiating Ping Scan at 03:21
+...
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 254 IP addresses (13 hosts up) scanned in 3.74 seconds
+...
+
+kali@kali:~$ grep Up ping-sweep.txt | cut -d &amp;quot; &amp;quot; -f 2
+192.168.50.6
+192.168.50.8
+192.168.50.9
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;sweep for specific TCP or UDP ports across the network.&lt;/li&gt;
+&lt;li&gt;probing for common services and ports in an attempt to locate systems that may be useful or have known vulnerabilities.&lt;/li&gt;
+&lt;li&gt;This scan tends to be more accurate than a ping sweep.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -p 80 192.168.50.1-253 -oG web-sweep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 03:50 EST
+Nmap scan report for 192.168.50.6
+Host is up (0.11s latency).
+
+PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap scan report for 192.168.50.8
+Host is up (0.11s latency).
+
+PORT   STATE  SERVICE
+80/tcp closed http
+...
+
+kali@kali:~$ grep open web-sweep.txt | cut -d&amp;quot; &amp;quot; -f2
+192.168.50.6
+192.168.50.20
+192.168.50.21
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;To save time and network resources.&lt;/li&gt;
+&lt;li&gt;Scan multiple IPs, probing for a short list of common ports.&lt;/li&gt;
+&lt;li&gt;Example, let&amp;#39;s conduct a TCP connect scan for the top 20 TCP ports with the &lt;code&gt;--top-ports&lt;/code&gt; option and enable OS version detection, script scanning, and traceroute with &lt;code&gt;-A&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -sT -A --top-ports=20 192.168.50.1-253 -oG top-port-sweep.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 04:04 EST
+Nmap scan report for 192.168.50.6
+Host is up (0.12s latency).
+
+PORT     STATE  SERVICE       VERSION
+21/tcp   closed ftp
+22/tcp   open   ssh           OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   3072 56:57:11:b5:dc:f1:13:d3:50:88:b8:ab:a9:83:e2:29 (RSA)
+|   256 4f:1d:f2:55:cb:40:e0:76:b4:36:90:19:a2:ba:f0:44 (ECDSA)
+|_  256 67:46:b3:97:26:a9:e3:a8:4d:eb:20:b3:9b:8d:7a:32 (ED25519)
+23/tcp   closed telnet
+25/tcp   closed smtp
+53/tcp   closed domain
+80/tcp   open   http          Apache httpd 2.4.41 ((Ubuntu))
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+|_http-title: Under Construction
+110/tcp  closed pop3
+111/tcp  closed rpcbind
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &lt;a href=&quot;https://nmap.org/book/nmap-services.html&quot;&gt;top 20 nmap ports&lt;/a&gt; are determined using the /usr/share/nmap/nmap-services file, which uses a simple format of three whitespace-separated columns. The first is the name of the service, the second contains the port number and protocol, and the third is the &amp;quot;port frequency&amp;quot;. Everything after the third column is ignored, but is typically used for comments as shown by the use of the pound sign (#). The port frequency is based on how often the port was found open during periodic research scans of the internet.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ cat /usr/share/nmap/nmap-services 
+...
+finger    79/udp    0.000956
+http    80/sctp    0.000000    # www-http | www | World Wide Web HTTP
+http    80/tcp    0.484143    # World Wide Web HTTP
+http    80/udp    0.035767    # World Wide Web HTTP
+hosts2-ns    81/tcp    0.012056    # HOSTS2 Name Server
+hosts2-ns    81/udp    0.001005    # HOSTS2 Name Server
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;OS Fingerprinting.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;-O&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Attempts to guess target system OS by inspecting returned packets.&lt;/li&gt;
+&lt;li&gt;Works because operating systems often use slightly different implementations of the TCP/IP stack .&lt;/li&gt;
+&lt;li&gt;Such as varying default TTL values and TCP window sizes.&lt;/li&gt;
+&lt;li&gt;These slight variances create a fingerprint that Nmap can often identify.&lt;/li&gt;
+&lt;li&gt;If we want to get a rough idea of the target OS, we include the &lt;code&gt;--osscan-guess&lt;/code&gt; option.&lt;/li&gt;
+&lt;li&gt;Forces Nmap print the guessed result even if is not fully accurate.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nmap -O 192.168.50.14 --osscan-guess
+...
+Running (JUST GUESSING): Microsoft Windows 2008|2012|2016|7|Vista (88%)
+OS CPE: cpe:/o:microsoft:windows_server_2008::sp1 cpe:/o:microsoft:windows_server_2008:r2 cpe:/o:microsoft:windows_server_2012:r2 cpe:/o:microsoft:windows_server_2016 cpe:/o:microsoft:windows_7 cpe:/o:microsoft:windows_vista::sp1:home_premium
+Aggressive OS guesses: Microsoft Windows Server 2008 SP1 or Windows Server 2008 R2 (88%), Microsoft Windows Server 2012 or Windows Server 2012 R2 (88%), Microsoft Windows Server 2012 R2 (88%), Microsoft Windows Server 2012 (87%), Microsoft Windows Server 2016 (87%), Microsoft Windows 7 (86%), Microsoft Windows Vista Home Premium SP1 (85%), Microsoft Windows 7 Professional (85%)
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note that OS Fingerprinting is not always 100% accurate, often due to network devices like firewalls or proxies that rewrite packet headers in between the communication.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Once we have recognized the underlying operating system.&lt;/li&gt;
+&lt;li&gt;Can go further and identify services running on specific ports by inspecting service banners with &lt;code&gt;-A&lt;/code&gt; parameter.&lt;/li&gt;
+&lt;li&gt;Also runs various OS and service enumeration scripts against the target.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -sT -A 192.168.50.14
+Nmap scan report for 192.168.50.14
+Host is up (0.12s latency).
+Not shown: 996 closed tcp ports (conn-refused)
+PORT    STATE SERVICE       VERSION
+21/tcp  open  ftp?
+| fingerprint-strings:
+|   DNSStatusRequestTCP, DNSVersionBindReqTCP, GenericLines, NULL, RPCCheck, SSLSessionReq, TLSSessionReq, TerminalServerCookie:
+|     220-FileZilla Server 1.2.0
+|     Please visit https://filezilla-project.org/
+|   GetRequest:
+|     220-FileZilla Server 1.2.0
+|     Please visit https://filezilla-project.org/
+|     What are you trying to do? Go away.
+|   HTTPOptions, RTSPRequest:
+|     220-FileZilla Server 1.2.0
+|     Please visit https://filezilla-project.org/
+|     Wrong command.
+|   Help:
+|     220-FileZilla Server 1.2.0
+|     Please visit https://filezilla-project.org/
+|     214-The following commands are recognized.
+|     USER TYPE SYST SIZE RNTO RNFR RMD REST QUIT
+|     HELP XMKD MLST MKD EPSV XCWD NOOP AUTH OPTS DELE
+|     CDUP APPE STOR ALLO RETR PWD FEAT CLNT MFMT
+|     MODE XRMD PROT ADAT ABOR XPWD MDTM LIST MLSD PBSZ
+|     NLST EPRT PASS STRU PASV STAT PORT
+|_    Help ok.
+| ftp-syst:
+|_  SYST: UNIX emulated by FileZilla.
+| ssl-cert: Subject: commonName=filezilla-server self signed certificate
+| Not valid before: 2022-01-06T15:37:24
+|_Not valid after:  2023-01-07T15:42:24
+|_ssl-date: TLS randomness does not represent time
+135/tcp open  msrpc         Microsoft Windows RPC
+139/tcp open  netbios-ssn   Microsoft Windows netbios-ssn
+445/tcp open  microsoft-ds?
+Nmap done: 1 IP address (1 host up) scanned in 55.67 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In the above example we used the &lt;code&gt;-A&lt;/code&gt; parameter to run a service scan with extra options. If we want to run a plain service nmap scan we can do it by providing only the &lt;code&gt;-sV&lt;/code&gt; parameter.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Banner grabbing significantly impacts the amount of traffic used as well as the speed of our scan.&lt;ul&gt;
+&lt;li&gt;We should always be mindful of the options we use with nmap and how they affect our scans.&lt;/li&gt;
+&lt;li&gt;Banners can be modified by system administrators and intentionally set to fake service names to mislead potential attackers.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Nmap Scripting Engine (NSE)&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Used to launch user created scripts.&lt;/li&gt;
+&lt;li&gt;Automate various scanning tasks.&lt;/li&gt;
+&lt;li&gt;DNS enumeration.&lt;/li&gt;
+&lt;li&gt;Brute force attacks.&lt;/li&gt;
+&lt;li&gt;Vulnerability identification.&lt;/li&gt;
+&lt;li&gt;NSE scripts located in &lt;code&gt;/usr/share/nmap/scripts&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Explore the various NSE scripts, as many of them are helpful and time-saving!!!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt; &lt;code&gt;http-header&lt;/code&gt; script, connects to HTTP service on target to determine supported headers&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap --script http-headers 192.168.50.6
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 13:53 EST
+Nmap scan report for 192.168.50.6
+Host is up (0.14s latency).
+Not shown: 998 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+| http-headers:
+|   Date: Thu, 10 Mar 2022 18:53:29 GMT
+|   Server: Apache/2.4.41 (Ubuntu)
+|   Last-Modified: Thu, 10 Mar 2022 18:51:54 GMT
+|   ETag: &amp;quot;d1-5d9e1b5371420&amp;quot;
+|   Accept-Ranges: bytes
+|   Content-Length: 209
+|   Vary: Accept-Encoding
+|   Connection: close
+|   Content-Type: text/html
+|
+|_  (Request type: HEAD)
+
+Nmap done: 1 IP address (1 host up) scanned in 5.11 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;View more info about a script.&lt;/li&gt;
+&lt;li&gt;Option &lt;code&gt;--script-help&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap --script-help http-headers
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-10 13:54 EST
+
+http-headers
+Categories: discovery safe
+https://nmap.org/nsedoc/scripts/http-headers.html
+  Performs a HEAD request for the root folder (&amp;quot;/&amp;quot;) of a web server and displays the HTTP headers returned.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When internet access is not available, much of this information can also be found in the NSE script file itself.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Living Off the Land - Windows Techniques&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection?view=windowsserver2022-ps&quot;&gt;Test-NetConnection&lt;/a&gt; function checks if an IP responds to ICMP and whether a specified TCP port on the target host is open.&lt;/li&gt;
+&lt;li&gt;From the Windows 11 client, we can verify if the SMB port 445 is open on a domain controller as follows.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\student&amp;gt; Test-NetConnection -Port 445 192.168.50.151
+
+ComputerName     : 192.168.50.151
+RemoteAddress    : 192.168.50.151
+RemotePort       : 445
+InterfaceAlias   : Ethernet0
+SourceAddress    : 192.168.50.152
+TcpTestSucceeded : True
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The returned value in the &lt;code&gt;TcpTestSucceeded&lt;/code&gt; parameter indicates that port 445 is open.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Script the whole process in order to scan the first 1024 ports on the Domain Controller with the PowerShell one-liner shown below.&lt;/li&gt;
+&lt;li&gt;Need to instantiate a TcpClient Socket object as Test-NetConnection send additional traffic that is non needed for our purposes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\student&amp;gt; 1..1024 | % {echo ((New-Object Net.Sockets.TcpClient).Connect(&amp;quot;192.168.50.151&amp;quot;, $_)) &amp;quot;TCP port $_ is open&amp;quot;} 2&amp;gt;$null
+TCP port 88 is open
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We start by piping the first 1024 integer into a for-loop which assigns the incremental integer value to the $_ variable. .&lt;/li&gt;
+&lt;li&gt;Then, we create a Net.Sockets.TcpClient object and perform a TCP connection against the target IP on that specific port.&lt;/li&gt;
+&lt;li&gt;If the connection is successful, it prompts a log message that includes the open TCP port.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Labs - Walk Through Exercises&lt;/strong&gt;
+&lt;strong&gt;NOTE:&lt;/strong&gt; If you are fairly certain you commands are correct, but cannot find a clear answer, &lt;code&gt;Revert&lt;/code&gt; the lab VM state!!!&lt;/p&gt;
+&lt;h6&gt;SMB Enumeration&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;The security track record of the &lt;a href=&quot;https://en.wikipedia.org/wiki/Server_Message_Block&quot;&gt;Server Message Block (SMB)&lt;/a&gt; protocol has been poor for many years due to its complex implementation and open nature. .&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;pre&gt;&lt;code&gt;From unauthenticated SMB null sessions in Windows 2000 and XP, to a plethora of SMB bugs and vulnerabilities over the years, SMB has had its [fair share of action](http://markgamache.blogspot.ca/2013/01/ntlm-challenge-response-is-100-broken.html).
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;pre&gt;&lt;code&gt;SMB protocol has also been updated and improved in parallel with Windows releases.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/NetBIOS&quot;&gt;NetBIOS&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Listens on TCP port 139 and several UDP ports.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Note that SMB (TCP port 445) and NetBIOS are two separate protocols.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;NetBIOS is an independant session layer proto and service.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Allows computers on a local network to comm with each other.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Modern SMB can work without NetBIOS.
+ - &lt;a href=&quot;https://en.wikipedia.org/wiki/NetBIOS_over_TCP/IP&quot;&gt;NetBIOS over TCP (NBT)&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Often enabled together and can be enumerated together.
+&lt;strong&gt;Nmap Example:&lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -v -p 139,445 -oG smb.txt 192.168.50.1-254
+
+kali@kali:~$ cat smb.txt
+# Nmap 7.92 scan initiated Thu Mar 17 06:03:12 2022 as: nmap -v -p 139,445 -oG smb.txt 192.168.50.1-254
+# Ports scanned: TCP(2;139,445) UDP(0;) SCTP(0;) PROTOCOLS(0;)
+Host: 192.168.50.1 ()	Status: Down
+...
+Host: 192.168.50.21 ()	Status: Up
+Host: 192.168.50.21 ()	Ports: 139/closed/tcp//netbios-ssn///, 445/closed/tcp//microsoft-ds///
+...
+Host: 192.168.50.217 ()	Status: Up
+Host: 192.168.50.217 ()	Ports: 139/closed/tcp//netbios-ssn///, 445/closed/tcp//microsoft-ds///
+# Nmap done at Thu Mar 17 06:03:18 2022 -- 254 IP addresses (15 hosts up) scanned in 6.17 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Specialized NetBIOS Tools&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Tool &lt;code&gt;nbtscan&lt;/code&gt; .&lt;/li&gt;
+&lt;li&gt;Query the NetBIOS name service for valid NetBIOS names.&lt;/li&gt;
+&lt;li&gt;Specifying the originating UDP port as 137 with the -r option.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nbtscan -r 192.168.50.0/24
+Doing NBT name scan for addresses from 192.168.50.0/24
+
+IP address       NetBIOS Name     Server    User             MAC address
+------------------------------------------------------------------------------
+192.168.50.124   SAMBA            &amp;lt;server&amp;gt;  SAMBA            00:00:00:00:00:00
+192.168.50.134   SAMBAWEB         &amp;lt;server&amp;gt;  SAMBAWEB         00:00:00:00:00:00
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Scan revealed two NetBIOS names belonging to two hosts. .&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;This kind of information can be used to further improve the context of the scanned hosts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;NetBIOS names are often very descriptive about the role of the host within the organization.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Can feed our information-gathering cycle by leading to further disclosures.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Tool &lt;code&gt;nmap&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;NSE scripts.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ ls -1 /usr/share/nmap/scripts/smb*
+/usr/share/nmap/scripts/smb2-capabilities.nse
+/usr/share/nmap/scripts/smb2-security-mode.nse
+/usr/share/nmap/scripts/smb2-time.nse
+/usr/share/nmap/scripts/smb2-vuln-uptime.nse
+/usr/share/nmap/scripts/smb-brute.nse
+/usr/share/nmap/scripts/smb-double-pulsar-backdoor.nse
+/usr/share/nmap/scripts/smb-enum-domains.nse
+/usr/share/nmap/scripts/smb-enum-groups.nse
+/usr/share/nmap/scripts/smb-enum-processes.nse
+/usr/share/nmap/scripts/smb-enum-sessions.nse
+/usr/share/nmap/scripts/smb-enum-shares.nse
+/usr/share/nmap/scripts/smb-enum-users.nse
+/usr/share/nmap/scripts/smb-os-discovery.nse
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The SMB discovery script works only if SMBv1 is enabled on the target.&lt;/li&gt;
+&lt;li&gt;Not the default case on modern versions of Windows.&lt;/li&gt;
+&lt;li&gt;Legacy systems are still running SMBv1.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Example:&lt;/strong&gt; &lt;code&gt;smb-os-discovery&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nmap -v -p 139,445 --script smb-os-discovery 192.168.50.152
+...
+PORT    STATE SERVICE      REASON
+139/tcp open  netbios-ssn  syn-ack
+445/tcp open  microsoft-ds syn-ack
+
+Host script results:
+| smb-os-discovery:
+|   OS: Windows 10 Pro 22000 (Windows 10 Pro 6.3)
+|   OS CPE: cpe:/o:microsoft:windows_10::-
+|   Computer name: client01
+|   NetBIOS computer name: CLIENT01\x00
+|   Domain name: megacorptwo.com
+|   Forest name: megacorptwo.com
+|   FQDN: client01.megacorptwo.com
+|_  System time: 2022-03-17T11:54:20-07:00
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This particular script identified a potential match for the host operating system.&lt;/li&gt;
+&lt;li&gt;We know it&amp;#39;s inaccurate as the target host is running Windows 11 instead of the reported Windows 10.&lt;ul&gt;
+&lt;li&gt;Nmap service and OS enumeration output should be taken with grain of salt, as none of the algorithms are perfect.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Unlike Nmap&amp;#39;s OS fingerprinting options we explored earlier, OS enumeration via NSE scripting provides extra information.&lt;/li&gt;
+&lt;li&gt;Such as the domain and other details related to Active Directory Domain Services.&lt;ul&gt;
+&lt;li&gt;This approach will also likely go unnoticed, as it produces less traffic that can also blend into normal enterprise network activity.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Living Off the Land - Enumerating SMB Shares&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Enumerating SMB shares within Windows environments is &lt;code&gt;net view&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;It lists domains, resources, and computers belonging to a given host.&lt;/li&gt;
+&lt;li&gt;Providing the &lt;code&gt;/all&lt;/code&gt; keyword, we can list the administrative shares ending with the dollar sign.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\student&amp;gt;net view \\dc01 /all
+Shared resources at \\dc01
+
+Share name  Type  Used as  Comment
+
+-------------------------------------------------------------------------------
+ADMIN$      Disk           Remote Admin
+C$          Disk           Default share
+IPC$        IPC            Remote IPC
+NETLOGON    Disk           Logon server share
+SYSVOL      Disk           Logon server share
+The command completed successfully.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Scanning with tools that don&amp;#39;t have built in automation!!!&lt;/strong&gt;
+Scan entire subnet with &lt;code&gt;enum4linux&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;for LINE in `seq 1 255`; do enum4linux -a 10.x.x.$LINE; done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;SMTP Enumeration&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol&quot;&gt;Simple Mail Transport Protocol (SMTP)&lt;/a&gt; supports several interesting commands.&lt;/li&gt;
+&lt;li&gt;VRFY and EXPN.&lt;/li&gt;
+&lt;li&gt;VRFY request asks the server to verify an email address.&lt;/li&gt;
+&lt;li&gt;EXPN asks the server for the membership of a mailing list.&lt;/li&gt;
+&lt;li&gt;These can often be abused to verify existing users on a mail server.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Example Verify Users with Python:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#!/usr/bin/python
+
+import socket
+import sys
+
+if len(sys.argv) != 3:
+        print(&amp;quot;Usage: vrfy.py &amp;lt;username&amp;gt; &amp;lt;target_ip&amp;gt;&amp;quot;)
+        sys.exit(0)
+
+# Create a Socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect to the Server
+ip = sys.argv[2]
+connect = s.connect((ip,25))
+
+# Receive the banner
+banner = s.recv(1024)
+
+print(banner)
+
+# VRFY a user
+user = (sys.argv[1]).encode()
+s.send(b&amp;#39;VRFY &amp;#39; + user + b&amp;#39;\r\n&amp;#39;)
+result = s.recv(1024)
+
+print(result)
+
+# Close the socket
+s.close()
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt; run the script by providing the username to be tested as a first argument and the target IP as a second argument&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt; kali@kali:~/Desktop$ python3 smtp.py root 192.168.50.8
+b&amp;#39;220 mail ESMTP Postfix (Ubuntu)\r\n&amp;#39;
+b&amp;#39;252 2.0.0 root\r\n&amp;#39;
+
+
+kali@kali:~/Desktop$ python3 smtp.py johndoe 192.168.50.8
+b&amp;#39;220 mail ESMTP Postfix (Ubuntu)\r\n&amp;#39;
+b&amp;#39;550 5.1.1 &amp;lt;johndoe&amp;gt;: Recipient address rejected: User unknown in local recipient table\r\n&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt; &lt;strong&gt;Living Off the Land - Windows SMTP Enumeration&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt; PS C:\Users\student&amp;gt; Test-NetConnection -Port 25 192.168.50.8
+
+ComputerName     : 192.168.50.8
+RemoteAddress    : 192.168.50.8
+RemotePort       : 25
+InterfaceAlias   : Ethernet0
+SourceAddress    : 192.168.50.152
+TcpTestSucceeded : True
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Test-NetConnection we are prevented from fully interacting with the SMTP service.&lt;/li&gt;
+&lt;li&gt;If not already enabled, we can install the Microsoft version of the Telnet client.&lt;/li&gt;
+&lt;li&gt;Installing Telnet requires administrative privileges.&lt;/li&gt;
+&lt;li&gt;Could present challenges if we are running as a low-privilege user.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;We could grab the Telnet binary located on another development machine&lt;/strong&gt; of ours at c:\windows\system32\telnet.exe and transfer it to the Windows machine we are testing from.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Windows\system32&amp;gt;telnet 192.168.50.8 25
+220 mail ESMTP Postfix (Ubuntu)
+VRFY goofy
+550 5.1.1 &amp;lt;goofy&amp;gt;: Recipient address rejected: User unknown in local recipient table
+VRFY root
+252 2.0.0 root
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;SNMP Enumeration&lt;/h6&gt;
+&lt;p&gt;&lt;strong&gt;Treasure Trove of Easy Data&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Simple Network Management Protocol (SNMP) is not well-understood by many network administrators.&lt;/li&gt;
+&lt;li&gt;Results in SNMP misconfigurations.&lt;/li&gt;
+&lt;li&gt;Result in significant information leaks.&lt;/li&gt;
+&lt;li&gt;SNMP is based on UDP.&lt;/li&gt;
+&lt;li&gt;Stateless proto.&lt;/li&gt;
+&lt;li&gt;Susceptible to IP spoofing and replay attacks.&lt;/li&gt;
+&lt;li&gt;Proto 1, 2, 2c offer no traffic encryption.&lt;/li&gt;
+&lt;li&gt;SNMP info can be easily intercepted over a local network.&lt;/li&gt;
+&lt;li&gt;Weak auth schemes.&lt;/li&gt;
+&lt;li&gt;Commonly left configured with default public and private community strings.
+- Until recently, SNMPv3, which provides authentication and encryption, has been shipped to support only DES-56, proven to be a weak encryption scheme that can be easily brute-forced. A more recent SNMPv3 implementation supports the AES-256 encryption scheme.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Main Feature:&lt;/strong&gt; SNMP MIB Tree.&lt;/li&gt;
+&lt;li&gt;SNMP Management Information Base (MIB) is a database containing information usually related to network management.&lt;/li&gt;
+&lt;li&gt;Tree structure.&lt;/li&gt;
+&lt;li&gt;Branches represent different organizations or network functions.&lt;/li&gt;
+&lt;li&gt;Leaves (final endpoints) correspond to specific variable values.
+- Accessible and can be probed by external user.
+- &lt;a href=&quot;https://www.ibm.com/support/knowledgecenter/ssw_aix_71/commprogramming/mib.html&quot;&gt;IBM Knowledge Center on MIB Tree&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;IMPORTANT REFERENCE FOR WIN SNMP OID&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Windows SNMP MIB Value Example&lt;/th&gt;
+&lt;th&gt;Table 1&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.25.1.6.0&lt;/td&gt;
+&lt;td&gt;System Processes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.25.4.2.1.2&lt;/td&gt;
+&lt;td&gt;Running Programs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.25.4.2.1.4&lt;/td&gt;
+&lt;td&gt;Processes Path&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.25.2.3.1.4&lt;/td&gt;
+&lt;td&gt;Storage Units&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.25.6.3.1.2&lt;/td&gt;
+&lt;td&gt;Software Name&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.4.1.77.1.2.25&lt;/td&gt;
+&lt;td&gt;User Accounts&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1.3.6.1.2.1.6.13.1.3&lt;/td&gt;
+&lt;td&gt;TCP Local Ports&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Scanning for SNMP&lt;/strong&gt;
+Use &lt;code&gt;nmap&lt;/code&gt; with &lt;code&gt;-sU&lt;/code&gt; option for UDP and &lt;code&gt;--open&lt;/code&gt; option to limit output.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ sudo nmap -sU --open -p 161 192.168.50.1-254 -oG open-snmp.txt
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-14 06:02 EDT
+Nmap scan report for 192.168.50.151
+Host is up (0.10s latency).
+
+PORT    STATE SERVICE
+161/udp open  snmp
+
+Nmap done: 1 IP address (1 host up) scanned in 0.49 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Tool &lt;code&gt;onesixtyone&lt;/code&gt; will brute force a list of IPs with a text file of community strings, &lt;a href=&quot;http://www.phreedom.org/software/onesixtyone/&quot;&gt;onesixtyone&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ echo public &amp;gt; community
+kali@kali:~$ echo private &amp;gt;&amp;gt; community
+kali@kali:~$ echo manager &amp;gt;&amp;gt; community
+
+kali@kali:~$ for ip in $(seq 1 254); do echo 192.168.50.$ip; done &amp;gt; ips
+
+kali@kali:~$ onesixtyone -c community -i ips
+Scanning 254 hosts, 3 communities
+192.168.50.151 [public] Hardware: Intel64 Family 6 Model 79 Stepping 1 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 17763 Multiprocessor Free)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Once SNMP services have been located, query for interesting data.&lt;/li&gt;
+&lt;li&gt;Probe and query SNMP values using a tool such as &lt;code&gt;snmpwalk&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Provided we know the SNMP read-only community string, in most cases is &amp;quot;public&amp;quot;.&lt;/li&gt;
+&lt;li&gt;Using some of the MIB values provided in Table 1 attempt to enumerate their corresponding values.&lt;/li&gt;
+&lt;li&gt;Command enumerates the entire MIB tree using the &lt;code&gt;-c&lt;/code&gt; option to specify the community string, and &lt;code&gt;-v&lt;/code&gt; to specify the SNMP version number as well as the &lt;code&gt;-t 10&lt;/code&gt; option to increase the timeout period to 10 seconds.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ snmpwalk -c public -v1 -t 10 192.168.50.151
+iso.3.6.1.2.1.1.1.0 = STRING: &amp;quot;Hardware: Intel64 Family 6 Model 79 Stepping 1 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 17763 Multiprocessor Free)&amp;quot;
+iso.3.6.1.2.1.1.2.0 = OID: iso.3.6.1.4.1.311.1.1.3.1.3
+iso.3.6.1.2.1.1.3.0 = Timeticks: (78235) 0:13:02.35
+iso.3.6.1.2.1.1.4.0 = STRING: &amp;quot;admin@megacorptwo.com&amp;quot;
+iso.3.6.1.2.1.1.5.0 = STRING: &amp;quot;dc01.megacorptwo.com&amp;quot;
+iso.3.6.1.2.1.1.6.0 = &amp;quot;&amp;quot;
+iso.3.6.1.2.1.1.7.0 = INTEGER: 79
+iso.3.6.1.2.1.2.1.0 = INTEGER: 24
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Revealed another way, we can use the output above to obtain target email addresses. This information can be used to craft a social engineering attack against the newly-discovered contacts.&lt;/p&gt;
+&lt;p&gt;Use the snmpwalk command, which can parse a specific branch of the MIB Tree called &lt;a href=&quot;https://en.wikipedia.org/wiki/Object_identifier&quot;&gt;OID&lt;/a&gt;, the following example enumerates the Windows users on the dc01 machine (&lt;strong&gt;See Table 1 for branch&lt;/strong&gt;):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.4.1.77.1.2.25
+iso.3.6.1.4.1.77.1.2.25.1.1.5.71.117.101.115.116 = STRING: &amp;quot;Guest&amp;quot;
+iso.3.6.1.4.1.77.1.2.25.1.1.6.107.114.98.116.103.116 = STRING: &amp;quot;krbtgt&amp;quot;
+iso.3.6.1.4.1.77.1.2.25.1.1.7.115.116.117.100.101.110.116 = STRING: &amp;quot;student&amp;quot;
+iso.3.6.1.4.1.77.1.2.25.1.1.13.65.100.109.105.110.105.115.116.114.97.116.111.114 = STRING: &amp;quot;Administrator&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;enumerate all the currently running processes:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.25.4.2.1.2
+iso.3.6.1.2.1.25.4.2.1.2.1 = STRING: &amp;quot;System Idle Process&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.4 = STRING: &amp;quot;System&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.88 = STRING: &amp;quot;Registry&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.260 = STRING: &amp;quot;smss.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.316 = STRING: &amp;quot;svchost.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.372 = STRING: &amp;quot;csrss.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.472 = STRING: &amp;quot;svchost.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.476 = STRING: &amp;quot;wininit.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.484 = STRING: &amp;quot;csrss.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.540 = STRING: &amp;quot;winlogon.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.616 = STRING: &amp;quot;services.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.632 = STRING: &amp;quot;lsass.exe&amp;quot;
+iso.3.6.1.2.1.25.4.2.1.2.680 = STRING: &amp;quot;svchost.exe&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The command returned an array of strings, each one containing the name of the running process. This information could be valuable as it might reveal vulnerable applications, or even indicate which kind of anti-virus is running on the target.&lt;/p&gt;
+&lt;p&gt;Another SNMP enumeration technique is to &lt;strong&gt;list all the current TCP listening ports&lt;/strong&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.6.13.1.3
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.88.0.0.0.0.0 = INTEGER: 88
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.135.0.0.0.0.0 = INTEGER: 135
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.389.0.0.0.0.0 = INTEGER: 389
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.445.0.0.0.0.0 = INTEGER: 445
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.464.0.0.0.0.0 = INTEGER: 464
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.593.0.0.0.0.0 = INTEGER: 593
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.636.0.0.0.0.0 = INTEGER: 636
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.3268.0.0.0.0.0 = INTEGER: 3268
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.3269.0.0.0.0.0 = INTEGER: 3269
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.5357.0.0.0.0.0 = INTEGER: 5357
+iso.3.6.1.2.1.6.13.1.3.0.0.0.0.5985.0.0.0.0.0 = INTEGER: 5985
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The integer value from the output above represents the current listening TCP ports on the target&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;IMPORTANT: Decoding Hex&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ snmpwalk -c public -v1 -t 10 192.168.212.151 | tee snmpwalkOa.log
+
+...
+iso.3.6.1.2.1.2.2.1.2.1 = Hex-STRING: 53 6F 66 74 77 61 72 65 20 4C 6F 6F 70 62 61 63 
+6B 20 49 6E 74 65 72 66 61 63 65 20 31 00 
+iso.3.6.1.2.1.2.2.1.2.2 = Hex-STRING: 4D 69 63 72 6F 73 6F 66 74 20 36 74 6F 34 20 41 
+64 61 70 74 65 72 00 
+iso.3.6.1.2.1.2.2.1.2.3 = Hex-STRING: 57 41 4E 20 4D 69 6E 69 70 6F 72 74 20 28 50 50 
+54 50 29 00 
+iso.3.6.1.2.1.2.2.1.2.4 = Hex-STRING: 57 41 4E 20 4D 69 6E 69 70 6F 72 74 20 28 47 52 
+45 29 00 
+iso.3.6.1.2.1.2.2.1.2.5 = Hex-STRING: 4D 69 63 72 6F 73 6F 66 74 20 49 50 2D 48 54 54 
+50 53 20 50 6C 61 74 66 6F 72 6D 20 41 64 61 70 
+74 65 72 00 
+iso.3.6.1.2.1.2.2.1.2.6 = Hex-STRING: 76 6D 78 6E 65 74 33 20 45 74 68 65 72 6E 65 74 
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;with &lt;code&gt;-Oa&lt;/code&gt; option to decode Hex:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ snmpwalk -c public -v1 -Oa -t 10 192.168.212.151 | tee snmpwalkOa.log
+
+...
+iso.3.6.1.2.1.2.2.1.2.1 = STRING: &amp;quot;Software Loopback Interface 1.&amp;quot;
+iso.3.6.1.2.1.2.2.1.2.2 = STRING: &amp;quot;Microsoft 6to4 Adapter.&amp;quot;
+iso.3.6.1.2.1.2.2.1.2.3 = STRING: &amp;quot;WAN Miniport (PPTP).&amp;quot;
+iso.3.6.1.2.1.2.2.1.2.4 = STRING: &amp;quot;WAN Miniport (GRE).&amp;quot;
+iso.3.6.1.2.1.2.2.1.2.5 = STRING: &amp;quot;Microsoft IP-HTTPS Platform Adapter.&amp;quot;
+iso.3.6.1.2.1.2.2.1.2.6 = STRING: &amp;quot;vmxnet3 Ethernet Adapter.&amp;quot;
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/vulnerability-scanning.html&quot;
+        data-default-href=&quot;blog/vulnerability-scanning.html&quot;
+        data-default-fragment=&quot;blog/fragments/vulnerability-scanning.html&quot;
+        data-fragment-href=&quot;blog/fragments/vulnerability-scanning.html&quot;
+        data-target-slug=&quot;vulnerability-scanning&quot;
+        data-post-slug=&quot;vulnerability-scanning&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 7 — Vulnerability Scanning Without Noise&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/shell-tricks.html&quot;
+        data-default-href=&quot;blog/shell-tricks.html&quot;
+        data-default-fragment=&quot;blog/fragments/shell-tricks.html&quot;
+        data-fragment-href=&quot;blog/fragments/shell-tricks.html&quot;
+        data-target-slug=&quot;shell-tricks&quot;
+        data-post-slug=&quot;shell-tricks&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Shell Tricks&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

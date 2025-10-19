@@ -1,0 +1,55 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">build-site.sh</h4>
+        <div class="git-file-meta">
+          <span>1.1 KB</span>
+          <span>build-site.sh</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>#!/bin/sh
+
+set -e  # Exit on any error
+
+echo &quot;Building site with sitegen...&quot;
+
+if [ &quot;${ENABLE_DOOM_BUILD:-0}&quot; != &quot;0&quot; ]; then
+    if [ -x &quot;scripts/build-doom.sh&quot; ]; then
+        echo &quot;Preparing DOOM wasm assets (ENABLE_DOOM_BUILD enabled)...&quot;
+        if ! ./scripts/build-doom.sh; then
+            echo &quot;Warning: DOOM assets could not be prepared. Continuing build without them.&quot; &gt;&amp;2
+        fi
+    else
+        echo &quot;Warning: scripts/build-doom.sh missing; skipping DOOM asset build.&quot; &gt;&amp;2
+    fi
+fi
+
+# Check if config file exists
+if [ ! -f &quot;smoke-test.yaml&quot; ]; then
+    echo &quot;Error: smoke-test.yaml not found&quot;
+    exit 1
+fi
+
+# Run the site generator
+./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o site-output -v
+
+# Validate critical files exist
+echo &quot;Validating build output...&quot;
+if [ ! -f &quot;site-output/index.html&quot; ]; then
+    echo &quot;Error: index.html not generated&quot;
+    exit 1
+fi
+
+if [ ! -d &quot;site-output/assets&quot; ]; then
+    echo &quot;Error: assets directory not copied&quot;
+    exit 1
+fi
+
+echo &quot;Site build completed successfully!&quot;
+echo &quot;Generated files:&quot;
+find site-output -type f | head -10
+</code></pre>
+      </div>
+    </article>
+  

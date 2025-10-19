@@ -1,0 +1,670 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">microk8s-notes.html</h4>
+        <div class="git-file-meta">
+          <span>27 KB</span>
+          <span>site-output/blog/fragments/microk8s-notes.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;microk8s-notes&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;MicroK8s Deployment Notes&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Jan 28, 2025&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;13 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Scaffold charts with &lt;code&gt;helm create&lt;/code&gt;, keep configuration in &lt;code&gt;values.yaml&lt;/code&gt;, and rely on MetalLB plus the ingress addon to expose services.&lt;/li&gt;
+&lt;li&gt;Push images to a local registry (&lt;code&gt;localhost:32000&lt;/code&gt; or a bespoke registry) and update chart image references accordingly.&lt;/li&gt;
+&lt;li&gt;Debug registry exposure, MetalLB IP pools, and Helm templating with &lt;code&gt;kubectl edit&lt;/code&gt;, address pools, and ConfigMap/ConfigMap-from-env workflows.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h2&gt;YouTube Integ API Helm Chart Creation&lt;/h2&gt;
+&lt;h4&gt;&lt;strong&gt;1. Prepare the Helm Chart&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Create a Helm Chart:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;helm create youtube-integ-chart
+cd youtube-integ-chart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Organize Your Chart Structure:&lt;/strong&gt;
+Your chart will look like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;youtube-integ-chart/
+├── Chart.yaml
+├── values.yaml
+└── templates/
+    ├── deployment.yaml
+    ├── service.yaml
+    └── ingress.yaml  # Optional, for external access via domain
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Customize &lt;code&gt;values.yaml&lt;/code&gt;:&lt;/strong&gt;
+Open &lt;code&gt;values.yaml&lt;/code&gt; and define your Docker image and service details:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;image:
+  repository: your-dockerhub-username/youtube-integ
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8000
+  targetPort: 8000
+
+replicaCount: 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Edit &lt;code&gt;templates/deployment.yaml&lt;/code&gt;:&lt;/strong&gt;
+Configure the deployment to run your API container:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: youtube-integ
+        image: &amp;quot;{{ .Values.image.repository }}:{{ .Values.image.tag }}&amp;quot;
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Edit &lt;code&gt;templates/service.yaml&lt;/code&gt;:&lt;/strong&gt;
+Expose the service on port 8000:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
+    nodePort: 30000  # External port on Node
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Optional: Add an Ingress (for domain-based access):&lt;/strong&gt;
+If you want to use an ingress, create &lt;code&gt;templates/ingress.yaml&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: youtube-integ.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: {{ .Values.service.port }}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then enable MicroK8s ingress:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s enable ingress
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;2. Build and Push the Docker Image&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Build the Docker image for your API:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker build -t your-dockerhub-username/youtube-integ ./microservices/youtube_integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Push the image to Docker Hub:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker push your-dockerhub-username/youtube-integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;3. Deploy the Helm Chart&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Package and deploy your chart:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;helm install youtube-integ ./youtube-integ-chart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Verify the deployment:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl get pods
+microk8s kubectl get services
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Access the service:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;If using a NodePort service, access it at &lt;code&gt;http://&amp;lt;Node-IP&amp;gt;:30000&lt;/code&gt;. Get the Node IP:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl get nodes -o wide
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If using an Ingress, add &lt;code&gt;youtube-integ.local&lt;/code&gt; to your &lt;code&gt;/etc/hosts&lt;/code&gt; file and access it at &lt;code&gt;http://youtube-integ.local&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;4. Test Your API&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Test the API externally to confirm it&amp;#39;s working:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;curl http://&amp;lt;Node-IP&amp;gt;:30000/your-api-endpoint
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;Values.yaml&lt;/h2&gt;
+&lt;p&gt;Yes, when using &lt;code&gt;helm create&lt;/code&gt;, &lt;strong&gt;all configurable values in &lt;code&gt;templates/*.yaml&lt;/code&gt; should ideally be pulled from &lt;code&gt;values.yaml&lt;/code&gt;&lt;/strong&gt; instead of hardcoding them directly in the template files. This makes your Helm chart more flexible, reusable, and easy to manage. &lt;/p&gt;
+&lt;p&gt;By default, &lt;code&gt;helm create&lt;/code&gt; generates a structure where most of the values are already parameterized and fetched from &lt;code&gt;values.yaml&lt;/code&gt;. However, there might still be placeholders or hardcoded values that you should customize for your use case.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Benefits of Using &lt;code&gt;values.yaml&lt;/code&gt;&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Centralized Configuration:&lt;/strong&gt; All user-configurable settings are stored in one place, making the chart easier to maintain and understand.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Reusable Charts:&lt;/strong&gt; You can reuse the same chart for multiple deployments by simply providing different &lt;code&gt;values.yaml&lt;/code&gt; files or using &lt;code&gt;--set&lt;/code&gt; for overrides.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Separation of Code and Configuration:&lt;/strong&gt; Reduces the risk of accidentally overwriting template logic when updating configurations.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Overrides for Environments:&lt;/strong&gt; You can define separate &lt;code&gt;values.yaml&lt;/code&gt; files for staging, production, etc., without changing the templates.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;How to Parameterize Values&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;In the &lt;code&gt;templates/*.yaml&lt;/code&gt; files, replace hardcoded values with placeholders that reference &lt;code&gt;values.yaml&lt;/code&gt;. For example:&lt;/p&gt;
+&lt;h5&gt;&lt;strong&gt;Before: Hardcoded Values&lt;/strong&gt;&lt;/h5&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: my-app
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;&lt;strong&gt;After: Use Values from &lt;code&gt;values.yaml&lt;/code&gt;&lt;/strong&gt;&lt;/h5&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.service.name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+  selector:
+    app: {{ .Values.app.name }}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And in &lt;code&gt;values.yaml&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;app:
+  name: my-app
+
+service:
+  name: my-service
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;How to Use &lt;code&gt;values.yaml&lt;/code&gt; Effectively&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Keep Defaults in &lt;code&gt;values.yaml&lt;/code&gt;:&lt;/strong&gt;
+Store default configurations for your chart in &lt;code&gt;values.yaml&lt;/code&gt; so users don’t have to supply everything manually.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Use Placeholders in &lt;code&gt;templates/*.yaml&lt;/code&gt;:&lt;/strong&gt;
+Use the &lt;code&gt;{{ .Values.&amp;lt;key&amp;gt; }}&lt;/code&gt; syntax to reference values from &lt;code&gt;values.yaml&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Use Default Fallbacks (Optional):&lt;/strong&gt;
+If a value is optional, you can provide a default using the &lt;code&gt;default&lt;/code&gt; function:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;type: {{ .Values.service.type | default &amp;quot;ClusterIP&amp;quot; }}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Avoid Hardcoding Values in Templates:&lt;/strong&gt;
+Instead of embedding fixed values like names, ports, or replicas directly in &lt;code&gt;templates/*.yaml&lt;/code&gt;, make them configurable.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Deploying with Custom Values&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Users can override values at deployment time using either:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;A custom &lt;code&gt;values.yaml&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;helm install my-app ./my-chart -f custom-values.yaml
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Inline &lt;code&gt;--set&lt;/code&gt; flags:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;helm install my-app ./my-chart --set service.type=LoadBalancer
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Recommendation for Charts&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Ensure that &lt;strong&gt;all configurable fields&lt;/strong&gt; (e.g., service type, port numbers, image repository, resource limits) are parameterized in &lt;code&gt;values.yaml&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Use Helm’s built-in functions (e.g., &lt;code&gt;default&lt;/code&gt;, &lt;code&gt;toYaml&lt;/code&gt;) to handle optional or complex configurations.&lt;/li&gt;
+&lt;li&gt;Keep &lt;code&gt;values.yaml&lt;/code&gt; well-documented with comments to explain each key.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;By following these practices, your Helm charts will be more robust, reusable, and easier to maintain. Let me know if you&amp;#39;d like help improving a specific chart!&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Local Docker Image Registry&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://microk8s.io/docs/registry-private&quot;&gt;https://microk8s.io/docs/registry-private&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;To push your Docker image to a &lt;strong&gt;local repository&lt;/strong&gt; instead of Docker Hub, you can set up and use a private Docker registry or a container registry provided by MicroK8s. Here&amp;#39;s how to do it:&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Option 1: Use the MicroK8s Built-in Docker Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;MicroK8s comes with an optional built-in container registry that you can enable:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Enable the Registry:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s enable registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This sets up a local Docker registry at &lt;code&gt;localhost:32000&lt;/code&gt; (default port).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Tag Your Docker Image:&lt;/strong&gt;
+Tag your Docker image to point to the MicroK8s registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker tag your-dockerhub-username/youtube-integ localhost:32000/youtube-integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Push the Image to the Registry:&lt;/strong&gt;
+Push the image to the local registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker push localhost:32000/youtube-integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Use the Image in Kubernetes:&lt;/strong&gt;
+In your Helm chart&amp;#39;s &lt;code&gt;values.yaml&lt;/code&gt;, update the image repository to:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;image:
+  repository: localhost:32000/youtube-integ
+  tag: latest
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Kubernetes will pull the image from the local registry when deploying.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Option 2: Set Up a Standalone Local Docker Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If you want a standalone registry (not tied to MicroK8s), follow these steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Run a Local Docker Registry:&lt;/strong&gt;
+Launch a local registry container:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker run -d -p 5000:5000 --name local-registry registry:2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This runs a private registry accessible at &lt;code&gt;localhost:5000&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Tag Your Docker Image:&lt;/strong&gt;
+Tag your image to point to the local registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker tag your-dockerhub-username/youtube-integ localhost:5000/youtube-integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Push the Image to the Registry:&lt;/strong&gt;
+Push the image to the local registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker push localhost:5000/youtube-integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Configure MicroK8s to Use the Local Registry:&lt;/strong&gt;
+If MicroK8s runs in a VM (e.g., Multipass), you need to expose the registry to MicroK8s:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Edit Docker&amp;#39;s daemon configuration (on the machine running MicroK8s):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
+  &amp;quot;insecure-registries&amp;quot;: [&amp;quot;localhost:5000&amp;quot;]
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Restart the Docker daemon:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo systemctl restart docker
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Update Your Helm Chart:&lt;/strong&gt;
+Update the &lt;code&gt;values.yaml&lt;/code&gt; file to point to your local registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;image:
+  repository: localhost:5000/youtube-integ
+  tag: latest
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Deploy Your Chart:&lt;/strong&gt;
+Helm will now pull the image from the local registry.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Option 3: Use Kind (&lt;code&gt;kind&lt;/code&gt;) to Push Images for Local Kubernetes Testing&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If you’re using &lt;strong&gt;Kind&lt;/strong&gt; (Kubernetes-in-Docker), load the Docker image directly into the cluster:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Build the image:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker build -t youtube-integ ./microservices/youtube_integ
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Load the image into the cluster:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s ctr image import youtube-integ.tar
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Deploy the Helm chart, referencing the local image:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;image:
+  repository: youtube-integ
+  tag: latest
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2&gt;Configure the Local Registry&lt;/h2&gt;
+&lt;p&gt;In MicroK8s version 1.32.1, the built-in registry is deployed as a service within the Kubernetes cluster and is exposed as a NodePort service on port &lt;code&gt;32000&lt;/code&gt; of the localhost. This means it&amp;#39;s accessible via &lt;code&gt;localhost:32000&lt;/code&gt; on the host machine. (&lt;a href=&quot;https://microk8s.io/docs/registry-built-in?utm_source=chatgpt.com&quot;&gt;microk8s.io&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;To make the registry accessible on all network interfaces (i.e., binding to &lt;code&gt;0.0.0.0&lt;/code&gt;), you can modify the service&amp;#39;s configuration to expose it externally. Here&amp;#39;s how:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Edit the Registry Service:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The registry is managed as a Kubernetes service named &lt;code&gt;registry&lt;/code&gt;. You can edit this service to change its configuration:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl edit service registry -n container-registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Modify the Service Type:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In the editor that opens, you&amp;#39;ll see the service definition in YAML format. Locate the &lt;code&gt;spec&lt;/code&gt; section and change the &lt;code&gt;type&lt;/code&gt; from &lt;code&gt;NodePort&lt;/code&gt; to &lt;code&gt;LoadBalancer&lt;/code&gt;. This will provision an external IP address for the service, making it accessible from outside the cluster.&lt;/p&gt;
+&lt;p&gt;Before:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;spec:
+  type: NodePort
+  ports:
+    - port: 32000
+      targetPort: 5000
+      nodePort: 32000
+  selector:
+    app: registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;spec:
+  type: LoadBalancer
+  ports:
+    - port: 32000
+      targetPort: 5000
+  selector:
+    app: registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Save and exit the editor.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Verify the External IP:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;After modifying the service, check its status to find the external IP address assigned:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl get service registry -n container-registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The output will show an &lt;code&gt;EXTERNAL-IP&lt;/code&gt; once it&amp;#39;s assigned. This may take a few moments.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Access the Registry:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Once the external IP is available, you can push images to the registry using this IP address:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker tag your-image &amp;lt;external-ip&amp;gt;:32000/your-image
+docker push &amp;lt;external-ip&amp;gt;:32000/your-image
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;Considerations:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Security:&lt;/strong&gt; Exposing the registry externally can pose security risks. Ensure that appropriate firewall rules and access controls are in place. For production environments, consider securing the registry with TLS and authentication.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Networking:&lt;/strong&gt; If your environment doesn&amp;#39;t support automatic provisioning of external IPs (common in bare-metal setups), you might need to configure a MetalLB load balancer or adjust your network settings accordingly.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;By following these steps, you can configure the MicroK8s built-in registry to be accessible from external machines, effectively binding it to &lt;code&gt;0.0.0.0&lt;/code&gt;. &lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;MetaLLB Load Balancer&lt;/h2&gt;
+&lt;h4&gt;&lt;strong&gt;Steps to Debug and Fix&lt;/strong&gt;&lt;/h4&gt;
+&lt;h5&gt;&lt;strong&gt;1. Ensure MetalLB Is Configured (For Bare-Metal)&lt;/strong&gt;&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;If your cluster is not on a cloud provider, you need to install and configure MetalLB to assign an external IP to the &lt;code&gt;LoadBalancer&lt;/code&gt; service.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;   &lt;strong&gt;Enable MetalLB in MicroK8s:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s enable metallb
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;   &lt;strong&gt;Provide an IP Range:&lt;/strong&gt;
+   During the setup, you’ll be prompted to input an IP range (e.g., &lt;code&gt;192.168.1.240-192.168.1.250&lt;/code&gt;) that MetalLB will use to assign external IPs. Choose a range that’s within your local network.&lt;/p&gt;
+&lt;p&gt;   &lt;strong&gt;Check MetalLB Is Working:&lt;/strong&gt;
+   After enabling MetalLB, check if the registry service has an external IP assigned:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl get service registry -n container-registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;&lt;strong&gt;2. Check Firewall Rules&lt;/strong&gt;&lt;/h5&gt;
+&lt;p&gt;   Ensure that port &lt;code&gt;32000&lt;/code&gt; is open on your node(s) for both incoming and outgoing traffic.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;On Linux, you can open the port with:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo ufw allow 32000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Confirm the port is open:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo ufw status
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;&lt;strong&gt;3. Verify Service Configuration&lt;/strong&gt;&lt;/h5&gt;
+&lt;p&gt;   Reapply the updated service configuration to ensure all changes take effect:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl apply -f &amp;lt;your-service-config.yaml&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;&lt;strong&gt;4. Check Logs and Events&lt;/strong&gt;&lt;/h5&gt;
+&lt;p&gt;   Inspect the logs and events for any issues related to the service:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl describe service registry -n container-registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Expected Outcome&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;After enabling MetalLB and ensuring your firewall is configured, the &lt;code&gt;status.loadBalancer&lt;/code&gt; field should populate with an external IP. You can then push Docker images to the registry using that IP.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Build &amp;amp; Tag the Image&lt;/h2&gt;
+&lt;p&gt;To tag your Docker image for use with your local MicroK8s registry, you need to include the registry address (which defaults to &lt;code&gt;localhost:32000&lt;/code&gt;) in the image name. Here&amp;#39;s how you should modify your &lt;code&gt;docker build&lt;/code&gt; command:&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Build and Tag the Image&lt;/strong&gt;&lt;/h4&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker build -t localhost:32000/youtube_integ:latest -f ./microservices/youtube_integ/Dockerfile .
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;&lt;strong&gt;Explanation&lt;/strong&gt;&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;localhost:32000&lt;/code&gt;&lt;/strong&gt;: This points to the MicroK8s local container registry.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;youtube_integ&lt;/code&gt;&lt;/strong&gt;: The name of your image.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;:latest&lt;/code&gt;&lt;/strong&gt;: The tag for the image (optional but commonly used).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4&gt;&lt;strong&gt;Push the Image to the Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;After building the image, you need to push it to the MicroK8s registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;docker push localhost:32000/youtube_integ:latest
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;Additional Notes&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;If the MicroK8s registry is configured with a different address (e.g., external IP or custom port), replace &lt;code&gt;localhost:32000&lt;/code&gt; with the appropriate value.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Ensure that the local registry is enabled:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s enable registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;If you encounter issues with Docker authentication, ensure Docker is configured to use an insecure registry for &lt;code&gt;localhost:32000&lt;/code&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Edit the Docker daemon configuration file (&lt;code&gt;/etc/docker/daemon.json&lt;/code&gt;):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
+  &amp;quot;insecure-registries&amp;quot;: [&amp;quot;localhost:32000&amp;quot;]
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Restart Docker:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo systemctl restart docker
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Once the image is pushed, you can deploy it to your MicroK8s Kubernetes cluster using a &lt;code&gt;Helm&lt;/code&gt; chart or &lt;code&gt;kubectl&lt;/code&gt; manifest.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Local Registry Ops&lt;/h2&gt;
+&lt;p&gt;To manage and view the images in your local &lt;strong&gt;MicroK8s registry&lt;/strong&gt;, here’s how you can list the stored images and delete any you no longer need:&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;1. View Images in the Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The MicroK8s registry stores images as files within the container running the registry. By default, the registry uses a &lt;strong&gt;filesystem backend&lt;/strong&gt;, and images can be listed using &lt;code&gt;microk8s ctr&lt;/code&gt;.&lt;/p&gt;
+&lt;h5&gt;&lt;strong&gt;List Images&lt;/strong&gt;&lt;/h5&gt;
+&lt;p&gt;Run the following command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s ctr images list
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This will display all images in the registry and their tags.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;2. Delete Images from the Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;You can delete images by using the &lt;code&gt;microk8s ctr images remove&lt;/code&gt; command.&lt;/p&gt;
+&lt;h5&gt;&lt;strong&gt;Command to Remove an Image&lt;/strong&gt;&lt;/h5&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s ctr images remove &amp;lt;image-name&amp;gt;:&amp;lt;tag&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s ctr images remove localhost:32000/youtube_integ:latest
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This removes the specified image from the registry.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;3. Force Cleanup of Dangling Layers&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If you’ve deleted images but still see storage being used, it may be due to orphaned layers or cache files. Clean up unused layers with:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s ctr content gc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;4. (Optional) Interact Directly with the Registry&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If needed, you can access the MicroK8s registry directly to inspect or clean up manually:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Access the Registry Pod&lt;/strong&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl -n container-registry get pods
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Look for the registry pod (usually named &lt;code&gt;registry-xxxxx&lt;/code&gt;).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Enter the Pod&lt;/strong&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;microk8s kubectl -n container-registry exec -it registry-xxxxx -- sh
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Inspect Stored Images&lt;/strong&gt;:
+The images are usually stored in &lt;code&gt;/var/lib/registry&lt;/code&gt;. You can navigate and delete files manually if necessary:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ls /var/lib/registry/docker/registry/v2/repositories
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;5. Clean All Registry Data (Optional)&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If you want to reset the entire registry (delete all images), simply delete the registry storage volume:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo rm -rf /var/snap/microk8s/common/var/lib/registry
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This action will completely remove all images stored in the registry. Use it with caution!&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;To create a &lt;strong&gt;ConfigMap&lt;/strong&gt; in MicroK8s from an &lt;code&gt;.env&lt;/code&gt; file, follow these steps:&lt;/p&gt;
+&lt;h4&gt;1. Prepare the &lt;code&gt;.env&lt;/code&gt; file&lt;/h4&gt;
+&lt;p&gt;Ensure your &lt;code&gt;.env&lt;/code&gt; file is formatted as key-value pairs:  &lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;## my-config.env
+DB_HOST=db.example.com
+DB_USER=admin
+DB_PASS=securepassword
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;2. Create the ConfigMap&lt;/h4&gt;
+&lt;p&gt;Use the following command to create a ConfigMap from the file:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl create configmap my-config --from-env-file=my-config.env
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This creates a ConfigMap named &lt;code&gt;my-config&lt;/code&gt; with the key-value pairs from &lt;code&gt;my-config.env&lt;/code&gt;.&lt;/p&gt;
+&lt;h4&gt;3. Verify the ConfigMap&lt;/h4&gt;
+&lt;p&gt;Check if the ConfigMap was created successfully:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get configmap my-config -o yaml
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;4. Use the ConfigMap in a Pod&lt;/h4&gt;
+&lt;p&gt;Reference the ConfigMap in a Pod by mounting it as environment variables:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
+spec:
+  containers:
+    - name: my-container
+      image: my-app:latest
+      envFrom:
+        - configMapRef:
+            name: my-config
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Alternative: Using a Helm Chart&lt;/h4&gt;
+&lt;p&gt;If you’re using Helm, define the ConfigMap in your &lt;strong&gt;values.yaml&lt;/strong&gt; and template it in your Helm chart:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;config:
+  DB_HOST: &amp;quot;db.example.com&amp;quot;
+  DB_USER: &amp;quot;admin&amp;quot;
+  DB_PASS: &amp;quot;securepassword&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, use a &lt;strong&gt;ConfigMap template&lt;/strong&gt; in your chart:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: &amp;quot;{{ $value }}&amp;quot;
+  {{- end }}
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/microk8s-helm-deploy.html&quot;
+        data-default-href=&quot;blog/microk8s-helm-deploy.html&quot;
+        data-default-fragment=&quot;blog/fragments/microk8s-helm-deploy.html&quot;
+        data-fragment-href=&quot;blog/fragments/microk8s-helm-deploy.html&quot;
+        data-target-slug=&quot;microk8s-helm-deploy&quot;
+        data-post-slug=&quot;microk8s-helm-deploy&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Deploying a Custom Helm Chart on MicroK8s&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/lua-scripting.html&quot;
+        data-default-href=&quot;blog/lua-scripting.html&quot;
+        data-default-fragment=&quot;blog/fragments/lua-scripting.html&quot;
+        data-fragment-href=&quot;blog/fragments/lua-scripting.html&quot;
+        data-target-slug=&quot;lua-scripting&quot;
+        data-post-slug=&quot;lua-scripting&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Lua Scripting&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

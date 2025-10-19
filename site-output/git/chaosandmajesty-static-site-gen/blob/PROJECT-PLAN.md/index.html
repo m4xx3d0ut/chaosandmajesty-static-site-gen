@@ -1,0 +1,106 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">PROJECT-PLAN.md</h4>
+        <div class="git-file-meta">
+          <span>4.0 KB</span>
+          <span>PROJECT-PLAN.md</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <h1>HTMX Blog Rendering Project Plan</h1>
+<h2>Objectives</h2>
+<ul>
+<li>Deliver an interactive blog experience using HTMX while preserving the fully static build pipeline.</li>
+<li>Keep the existing YAML-driven content model and Node-based generator as the source of truth.</li>
+<li>Maintain progressive enhancement: all content should remain reachable through standard links without HTMX.</li>
+</ul>
+<h2>Current State</h2>
+<ul>
+<li><code>smoke-test.yaml</code> defines a single <code>blog</code> page stub that today renders static markdown into <code>site-output/blog.html</code>.</li>
+<li>Templates in <code>static-sitegen/templates/</code> do not currently emit HTMX attributes or partial fragments.</li>
+<li>FEAT.md outlines best practices for an HTMX-first architecture that we can adapt to a static-generation workflow (fetching pre-rendered HTML instead of server-side fragments).</li>
+</ul>
+<h2>Step-by-Step Plan</h2>
+<ol>
+<li><p><strong>Scope &amp; Content Audit</strong></p>
+<ul>
+<li>Review the existing blog page configuration inside <code>smoke-test.yaml</code> and any related markdown assets.</li>
+<li>Confirm requirements for metadata (author, publish date, tags) and desired UX (inline article view, modal, dedicated page).</li>
+<li>Capture open questions (pagination, tagging, comments) before implementation.</li>
+</ul>
+</li>
+<li><p><strong>Define Blog Content Model</strong></p>
+<ul>
+<li>Decide on source-of-truth files (<code>content/blog/&lt;slug&gt;.md</code> plus front-matter or YAML entries).</li>
+<li>Extend the configuration schema (<code>static-sitegen/lib/config.js</code> if needed) to load blog metadata and associate markdown bodies.</li>
+<li>Document the model in FEAT.md or a new <code>docs/blog-model.md</code>.</li>
+</ul>
+</li>
+<li><p><strong>Template &amp; Generator Enhancements</strong></p>
+<ul>
+<li>Introduce dedicated EJS templates: <code>templates/blog/index.ejs</code>, <code>templates/blog/post.ejs</code>, and <code>templates/blog/partials/post-body.ejs</code>.</li>
+<li>Update <code>generateSite.js</code> to:<ul>
+<li>Build a blog index page with post listings.</li>
+<li>Emit standalone static post pages (<code>blog/&lt;slug&gt;.html</code>) for non-JS fallback.</li>
+<li>Emit HTMX-friendly fragments (e.g., <code>blog/fragments/&lt;slug&gt;.html</code>) that contain only the article body.</li>
+</ul>
+</li>
+<li>Ensure sitemap generation links to the canonical post pages.</li>
+</ul>
+</li>
+<li><p><strong>Embed HTMX Library &amp; Wiring</strong></p>
+<ul>
+<li>Add the HTMX script to the shared head partial (<code>templates/partials/cm-head.ejs</code>) with integrity hashing and local fallback.</li>
+<li>Confirm the script load respects existing console-themed layout.</li>
+</ul>
+</li>
+<li><p><strong>Interactive Blog Index UX</strong></p>
+<ul>
+<li>Update the blog index template to:<ul>
+<li>Render the first article body server-side for immediate content.</li>
+<li>Use <code>hx-get</code> to fetch fragment URLs, targeting a content container (<code>#blog-article</code>).</li>
+<li>Apply <code>hx-push-url=&quot;true&quot;</code> so URL updates reflect the selected post.</li>
+</ul>
+</li>
+<li>Provide loading indicator handling (<code>hx-indicator</code>) matching site styling.</li>
+</ul>
+</li>
+<li><p><strong>Progressive Enhancement &amp; Fallbacks</strong></p>
+<ul>
+<li>Ensure each post title remains a normal <code>&lt;a href=&quot;blog/&lt;slug&gt;.html&quot;&gt;</code> link so navigation works without HTMX.</li>
+<li>Add a <code>noscript</code> notice if desired, but keep the experience functional when HTMX is absent.</li>
+</ul>
+</li>
+<li><p><strong>Build &amp; Local Testing Pipeline</strong></p>
+<ul>
+<li>Extend <code>build-site.sh</code> smoke checks to verify new fragment files exist.</li>
+<li>Create targeted QA instructions (e.g., <code>make serve-local</code> then navigate between posts; confirm history/back button behavior).</li>
+<li>Plan exploratory testing for mobile and console-themed layout regressions.</li>
+</ul>
+</li>
+<li><p><strong>Documentation &amp; Examples</strong></p>
+<ul>
+<li>Update README quick-start with new directories (<code>content/blog/</code>, <code>blog/fragments/</code>).</li>
+<li>Expand FEAT.md (or a new doc) with HTMX fragment usage patterns specific to our static build.</li>
+<li>Provide a sample blog post illustrating front-matter and markdown conventions.</li>
+</ul>
+</li>
+<li><p><strong>Future Enhancements (Optional Roadmap)</strong></p>
+<ul>
+<li>Add pagination and tag filtering with <code>hx-select</code>/<code>hx-vals</code> support.</li>
+<li>Consider lightweight search (pre-built JSON + HTMX requests) or comment integrations.</li>
+<li>Evaluate hydration-free analytics or telemetry for blog interactions.</li>
+</ul>
+</li>
+</ol>
+<h2>Open Questions</h2>
+<ul>
+<li>Do we need author bios or listing pages at launch?</li>
+<li>Are we targeting deployment on a CDN that supports custom headers required by HTMX history cache (e.g., caching fragment responses)?</li>
+<li>Should we introduce tests under a new <code>tests/</code> directory or rely on manual QA for the first iteration?</li>
+</ul>
+
+      </div>
+    </article>
+  

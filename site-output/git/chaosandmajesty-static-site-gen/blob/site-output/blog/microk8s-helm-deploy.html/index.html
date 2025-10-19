@@ -1,0 +1,470 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">microk8s-helm-deploy.html</h4>
+        <div class="git-file-meta">
+          <span>16 KB</span>
+          <span>site-output/blog/microk8s-helm-deploy.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – Deploying a Custom Helm Chart on MicroK8s&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;microk8s-helm-deploy&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;Deploying a Custom Helm Chart on MicroK8s&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Jan 31, 2025&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;5 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Enable the &lt;code&gt;helm3&lt;/code&gt;, &lt;code&gt;metallb&lt;/code&gt;, &lt;code&gt;ingress&lt;/code&gt;, and &lt;code&gt;dns&lt;/code&gt; addons, and point your chart’s image repository at a local registry address.&lt;/li&gt;
+&lt;li&gt;Parameterize &lt;code&gt;values.yaml&lt;/code&gt; for service type, ingress hosts, and image metadata so you can redeploy with simple overrides.&lt;/li&gt;
+&lt;li&gt;Package the chart, install it with &lt;code&gt;microk8s helm3 install&lt;/code&gt;, then validate pods, services, ingress, and MetalLB IP assignment before curling the app.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h2&gt;&lt;strong&gt;Deploying a Custom Helm Chart in MicroK8s with MetalLB and Ingress&lt;/strong&gt;&lt;/h2&gt;
+&lt;h3&gt;&lt;strong&gt;Custom Helm Chart&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Ensure you have the following setup:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;MicroK8s installed with &lt;code&gt;helm3&lt;/code&gt;, &lt;code&gt;ingress&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;, and &lt;code&gt;metallb&lt;/code&gt; enabled.&lt;/li&gt;
+&lt;li&gt;A local container registry accessible from MicroK8s.&lt;/li&gt;
+&lt;li&gt;MetalLB configured to allocate an IP range.&lt;/li&gt;
+&lt;li&gt;A working &lt;code&gt;kubectl&lt;/code&gt; context for MicroK8s (&lt;code&gt;microk8s.kubectl&lt;/code&gt; or alias to &lt;code&gt;kubectl&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 1: Create a Helm Chart&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Run the following command to scaffold a new Helm chart:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s helm3 create mychart
+cd mychart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This creates a &lt;code&gt;mychart/&lt;/code&gt; directory with the default Helm chart structure.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 2: Customize &lt;code&gt;values.yaml&lt;/code&gt;&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Edit &lt;code&gt;values.yaml&lt;/code&gt; to define the service, container image, and Ingress settings.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Modify the Image Settings&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Ensure the container image references your local registry:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;image:
+  repository: my-registry.local:32000/myapp
+  tag: latest
+  pullPolicy: IfNotPresent
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Replace &lt;code&gt;my-registry.local:32000&lt;/code&gt; with your registry&amp;#39;s address.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Define a Service&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;By default, the chart defines a ClusterIP service. Change it to a &lt;code&gt;LoadBalancer&lt;/code&gt; type if using MetalLB:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Ensure your app listens on port &lt;code&gt;8080&lt;/code&gt;.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Enable Ingress&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Modify &lt;code&gt;values.yaml&lt;/code&gt; to define an Ingress resource:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: myapp.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Ensure your &lt;code&gt;/etc/hosts&lt;/code&gt; maps &lt;code&gt;myapp.local&lt;/code&gt; to the MetalLB-assigned IP.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 3: Update &lt;code&gt;templates/ingress.yaml&lt;/code&gt;&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Modify &lt;code&gt;templates/ingress.yaml&lt;/code&gt; to match &lt;code&gt;values.yaml&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: {{ .Values.ingress.hosts[0].host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.hosts[0].paths[0].path }}
+        pathType: {{ .Values.ingress.hosts[0].paths[0].pathType }}
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 4: Package and Install the Chart&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Run:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s helm3 package .
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This creates &lt;code&gt;mychart-0.1.0.tgz&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Install it using:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s helm3 install myapp ./mychart-0.1.0.tgz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 5: Verify the Deployment&lt;/strong&gt;&lt;/h3&gt;
+&lt;h4&gt;&lt;strong&gt;Check Pods and Services&lt;/strong&gt;&lt;/h4&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get pods
+microk8s kubectl get svc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Ensure the service has an external IP from MetalLB.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Check Ingress&lt;/strong&gt;&lt;/h4&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get ingress
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Verify the host matches &lt;code&gt;myapp.local&lt;/code&gt;.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Step 6: Test Access&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Add an entry to &lt;code&gt;/etc/hosts&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;&amp;lt;metallb-ip&amp;gt; myapp.local
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, test access:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;curl http://myapp.local
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If your app serves HTTP, you should get a response.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;Troubleshooting&lt;/strong&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Check logs:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl logs -l app=myapp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Describe resources:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl describe pod &amp;lt;pod-name&amp;gt;
+microk8s kubectl describe ingress myapp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Ensure MetalLB assigned an IP:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get svc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3&gt;MetalLB Troubleshooting&lt;/h3&gt;
+&lt;h4&gt;&lt;strong&gt;1. Check if MetalLB is Running&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Run:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get pods -n metallb-system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Expected output should show MetalLB components like &lt;code&gt;controller&lt;/code&gt; and &lt;code&gt;speaker&lt;/code&gt; running:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;NAME                          READY   STATUS    RESTARTS   AGE
+metallb-controller-xxxxx      1/1     Running   0          3d
+metallb-speaker-xxxxx         1/1     Running   0          3d
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If MetalLB is not running, try:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s enable metallb
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It will prompt you to enter an IP range.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;2. Check for MetalLB Resources&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;MicroK8s may be using a &lt;code&gt;Custom Resource Definition (CRD)&lt;/code&gt; instead of the old &lt;code&gt;ConfigMap&lt;/code&gt;. Check for &lt;code&gt;IPAddressPools&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get ipaddresspools.metallb.io -A
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If an IP address pool exists, describe it:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl describe ipaddresspools.metallb.io default-addresspool -n metallb-system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;3. Reconfigure MetalLB (If CRD is Used)&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If the &lt;code&gt;ConfigMap&lt;/code&gt; is missing but &lt;code&gt;IPAddressPools&lt;/code&gt; exists, update the IP range by editing the &lt;code&gt;IPAddressPool&lt;/code&gt; resource:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl edit ipaddresspools.metallb.io &amp;lt;pool-name&amp;gt; -n metallb-system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Modify the &lt;code&gt;addresses&lt;/code&gt; section:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;spec:
+  addresses:
+    - 192.168.1.100-192.168.1.200
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Save and exit.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;4. Manually Create an IP Pool (If None Exists)&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;If there is no existing &lt;code&gt;IPAddressPool&lt;/code&gt;, create one:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;cat &amp;lt;&amp;lt;EOF | microk8s kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: my-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.1.100-192.168.1.200
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: my-l2-advert
+  namespace: metallb-system
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This defines an IP pool and advertises it to the cluster.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;5. Verify New Configuration&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;After making changes, check:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get ipaddresspools.metallb.io -n metallb-system
+microk8s kubectl get svc -A | grep LoadBalancer
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3&gt;MetalLB Static IP Assignment&lt;/h3&gt;
+&lt;h4&gt;&lt;strong&gt;1. Define a &lt;code&gt;IPAddressPool&lt;/code&gt; for a Static IP Range&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Ensure your MetalLB IP pool includes the static IPs you want to assign. If you haven&amp;#39;t already, create or edit an &lt;code&gt;IPAddressPool&lt;/code&gt; to include &lt;code&gt;192.168.29.16&lt;/code&gt; and &lt;code&gt;192.168.29.17&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl edit ipaddresspools.metallb.io my-ip-pool -n metallb-system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Modify or add:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;spec:
+  addresses:
+    - 192.168.29.16-192.168.29.17
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If an &lt;code&gt;IPAddressPool&lt;/code&gt; doesn’t exist, create one:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cat &amp;lt;&amp;lt;EOF | microk8s kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: my-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.29.16-192.168.29.17
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: my-l2-advert
+  namespace: metallb-system
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;2. Assign a Static IP in Your Helm Chart&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Modify your Helm chart&amp;#39;s &lt;code&gt;values.yaml&lt;/code&gt; to request a specific IP from MetalLB:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.16
+  port: 80
+  targetPort: 8000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For the next service, assign &lt;code&gt;192.168.29.17&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.17
+  port: 80
+  targetPort: 8080
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;3. Deploy the Helm Chart&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;After modifying &lt;code&gt;values.yaml&lt;/code&gt;, deploy (or upgrade) the chart:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s helm3 upgrade --install youtube-integ ./youtube-integ-chart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, verify the assigned IP:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;microk8s kubectl get svc -A | grep LoadBalancer
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It should show &lt;code&gt;192.168.29.16&lt;/code&gt; assigned persistently.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;4. Configure Local DNS&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Now, map the static IP to &lt;code&gt;youtube-integ.local&lt;/code&gt; in your local DNS or &lt;code&gt;/etc/hosts&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;echo &amp;quot;192.168.29.16 youtube-integ.local&amp;quot; | sudo tee -a /etc/hosts
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Test with:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;curl http://youtube-integ.local
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h4&gt;&lt;strong&gt;5. Repeat for Other Services&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;For the next service, ensure &lt;code&gt;values.yaml&lt;/code&gt; specifies:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.17
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then, deploy it and map &lt;code&gt;192.168.29.17&lt;/code&gt; in DNS.&lt;/p&gt;
+&lt;p&gt;Now, your services will always get the correct IPs even after uninstalling/reinstalling! 🚀&lt;/p&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/workload-identity-federation.html&quot;
+        data-default-href=&quot;../blog/workload-identity-federation.html&quot;
+        data-default-fragment=&quot;../blog/fragments/workload-identity-federation.html&quot;
+        data-fragment-href=&quot;../blog/fragments/workload-identity-federation.html&quot;
+        data-target-slug=&quot;workload-identity-federation&quot;
+        data-post-slug=&quot;workload-identity-federation&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Workload Identity Federation&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/microk8s-notes.html&quot;
+        data-default-href=&quot;../blog/microk8s-notes.html&quot;
+        data-default-fragment=&quot;../blog/fragments/microk8s-notes.html&quot;
+        data-fragment-href=&quot;../blog/fragments/microk8s-notes.html&quot;
+        data-target-slug=&quot;microk8s-notes&quot;
+        data-post-slug=&quot;microk8s-notes&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;MicroK8s Deployment Notes&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

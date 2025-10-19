@@ -1,0 +1,307 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">smoke-test.yaml</h4>
+        <div class="git-file-meta">
+          <span>8.1 KB</span>
+          <span>smoke-test.yaml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>title: Core
+
+description: All your base are belong to us.
+
+# CM-specific settings
+cmTitle: Core
+cmTagline: These are not the droids you are looking for...
+cmFooterText: Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+
+parallaxImage: assets/template/logo-sitegen-parallax.png
+parallaxPush: &quot;10vh&quot;
+
+assets: static-sitegen/assets
+templates: static-sitegen/templates
+
+pages:
+  # - title: About
+  #   slug: about
+  #   content: |
+  #     ## About SiteGen
+  #
+  #     **Welcome to SiteGen!**  
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus blandit, lorem non dictum dictum, arcu risus tincidunt justo, in euismod eros justo in metus. 
+  #
+  #     ### Meet the Team
+  #     
+  #     SiteGen was founded by Jane Doe and John Smith.
+  #
+  #     &lt;div style=&quot;text-align: center;&quot;&gt;
+  #       &lt;img src=&quot;assets/template/stick-fig-template.jpg&quot; alt=&quot;Team&quot; style=&quot;width: 200px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);&quot; /&gt;
+  #       &lt;p style=&quot;font-size: 1.1em; color: var(--text-secondary); margin-top: 0.5em;&quot;&gt;Our dedicated team at SiteGen&lt;/p&gt;
+  #     &lt;/div&gt;
+  #
+  #     ### Our Contributors
+  #
+  #     * Alice Example (Lead Developer)
+  #     * Bob Sample (UX Designer)
+  #     * Charlie Placeholder (Content Writer)
+  #
+  #     ---
+  #
+  #     ### Why Use SiteGen?
+  #
+  #     - **Easy configuration** via YAML  
+  #     - Supports *Markdown* and **HTML**  
+  #     - Modern responsive design  
+  #     - Built-in theming and parallax backgrounds  
+  #     - Simple asset management
+  #
+  #     &gt; “SiteGen made building our static site a breeze!”  
+  #     &gt; — *Jane Doe, Founder*
+  #
+  #     ### Example Markdown
+  #
+  #     Here’s an example code block:
+  #
+  #     ```yaml
+  #     theme:
+  #       mode: dark
+  #       primary_color: &quot;#1e40af&quot;
+  #       secondary_color: &quot;#f59e42&quot;
+  #     ```
+  #
+  #     Or inline code: ``sitegen ./your-config.yaml ./output_dir``
+  #
+  #     ### Parallax Background Demo
+  #
+  #     ![Sample Parallax](assets/template/logo-sitegen-parallax.png)
+  #
+  #     The background above uses our parallax feature—customizable via config!
+  #
+  #   image: assets/template/logo-template.png
+  #   fullWidthImage: false
+  #   hideTitle: false
+  #
+    # - title: Features
+  #   slug: features
+  #   content: |
+  #     ## Site Features
+  #
+  #     - Easy to use and highly customizable
+  #     - Responsive design out of the box
+  #     - Markdown and HTML content support
+  #     - Powered by YAML configuration
+  #
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse gravida pretium magna, vel pretium massa feugiat id.
+  #   
+  # - title: Contact
+  #   slug: contact
+  #   hideTitle: false
+  #   content: |
+  #     ## Contact Us
+  #
+  #     Reach out to us via email!
+  #
+  #     For general inquiries: [info@example.com](mailto:info@example.com)
+  #
+  #     Or use our contact form (coming soon!).
+
+styles: [&quot;assets/modern.css&quot;]
+
+blog:
+  enabled: true
+  title: &quot;Chaos &amp; Majesty Journal&quot;
+  description: &quot;Dispatches from the underground console.&quot;
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    heroTitle: &quot;Chaos &amp; Majesty Journal&quot;
+    heroTagline: &quot;Dispatches from the underground console&quot;
+    intro: |
+      Terminal-born perspectives on building the experience.
+      Read the latest dispatches from Chaos and Majesty without leaving the console.
+    useCmHead: true
+    useCmFooter: true
+    cmImage: &quot;assets/static/img/bunny-punx.webp&quot;
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+
+  authors:
+    - id: m4xx3d0ut
+      name: &quot;m4xx3d0ut&quot;
+      title: &quot;Chaos Operator&quot;
+      avatar: &quot;assets/static/img/bunny-punx.webp&quot;
+      bio: &quot;Architect of the Neon Terminal Core and Professional Technologist.&quot;
+      social:
+        - label: &quot;@m4xx3d0ut&quot;
+          href: &quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot;
+    - id: reneerules
+      name: &quot;ReneéRules&quot;
+      title: &quot;Majesty Orchestrator&quot;
+      avatar: &quot;assets/static/img/bunny-punx.svg&quot;
+      bio: &quot;Curates the Majesty and keeps the interface vibrations high.&quot;
+      social:
+        - label: &quot;@ReneeRules&quot;
+          href: &quot;https://www.linkedin.com/in/rene%C3%A9-k-025083bb/&quot;
+
+index: 
+  title: Home
+
+  # Use CM console on home page
+  useCmHead: true
+  useCmConsole: true
+  useCmFooter: true
+  # cmImage: &quot;assets/static/img/bunny-punx.webp&quot;
+  use3DLogo: true
+  hideTitle: true
+
+  # Content styling
+  contentFont: &quot;modern-mono&quot; # Options: terminal, modern-mono, system-mono
+  terminalStyle: true # Adds terminal-like styling with cursor and scanlines
+
+  tagline: &quot;These are not the droids you are looking for...&quot;
+  # mainImage: &quot;assets/static/img/bunny-punx.webp&quot;
+  # mainImageAlt: &quot;Punks not dead&quot;
+  footerText: &quot;Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.&quot;
+
+  content: |
+
+    &lt;br&gt;
+
+    ## Welcome to Chaos &amp; Majesty!
+
+    &lt;br&gt;
+
+    Gather round, denizens of the internet, for we have something to share.
+
+    &lt;br&gt;
+    
+    A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
+    Fellow denizians, this is our place, welcome home.
+
+    &lt;br&gt;
+
+    \- ***m4xx3d0ut*** &amp; ***ReneéRules***
+
+    &lt;br&gt;
+
+  cta:
+    label: Visit the Blog
+    href: &quot;blog.html&quot;
+
+  # image: assets/template/logo-template.png
+  # fullWidthImage: true
+
+sections:
+  - id: chaos
+    heading: Chaos Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: &quot;assets/static/img/bunny-punx.webp&quot;
+    content: |
+      ## Chaos Blog
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.  
+      Pellentesque sed turpis id urna convallis maximus.  
+      Proin tincidunt, purus nec tincidunt cursus, urna mi vehicula urna, eget consequat sem augue vel ligula.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: &quot;15/85&quot;
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Majesty](majesty.html)
+      rightContent: |
+        ## Chaos Theory in Practice
+        Full blog post content here...
+
+  - id: majesty
+    heading: Majesty Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: &quot;assets/static/img/bunny-punx.webp&quot;
+    content: |
+      ## Majesty Blog
+
+      Etiam scelerisque, lorem eget pulvinar dictum, nisi sem dictum dui, id mattis neque nulla at lectus.  
+      Suspendisse potenti. Curabitur ultricies nibh a ex pretium, non hendrerit urna dignissim.
+
+      ```html
+      &lt;!-- HTML is supported inside markdown content! --&gt;
+      &lt;button&gt;Click me&lt;/button&gt;
+      ```
+
+      &gt; You can mix markdown and HTML for advanced layouts.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: &quot;15/85&quot;
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Chaos](chaos.html)
+      rightContent: |
+        ## Behold the Majesty
+        Full blog post content here...
+
+sitemap:
+  useCmHead: true
+  useCmFooter: true
+  cmImage: &quot;assets/static/img/bunny-punx.webp&quot;
+  hideTitle: true
+
+header:
+  links:
+    - label: Home
+      href: &quot;index.html&quot;
+    # - label: About
+    #   href: &quot;about.html&quot;
+    # - label: Features
+    #   href: &quot;features.html&quot;
+    # - label: Contact
+    #   href: &quot;contact.html&quot;
+    - label: Blog
+      href: &quot;blog.html&quot;
+    # - label: Sitemap
+    #   href: &quot;sitemap.html&quot;
+
+footer:
+  text: © 2025 Example Static Site. All rights reserved.
+  links:
+    - label: GitHub
+      href: &quot;https://github.com/example&quot;
+    - label: Privacy Policy
+      href: &quot;privacy.html&quot;
+    - label: Terms
+      href: &quot;terms.html&quot;
+    # - label: Sitemap
+    #   href: &quot;sitemap.html&quot;
+
+domain: chaosandmajesty.com
+page_title: Chaos &amp; Majesty
+logo: assets/static/img/not-dead.webp
+
+theme:
+  mode: dark
+  primary_color: &quot;#1e40af&quot;
+  secondary_color: &quot;#f59e42&quot;
+
+analytics_id: UA-XXXXXXXX-X
+social_preview_image: assets/social-preview.jpg
+
+meta:
+  description: All your base are belong to us.  Welcome to the Chaos and Majesty home!
+  keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker
+</code></pre>
+      </div>
+    </article>
+  

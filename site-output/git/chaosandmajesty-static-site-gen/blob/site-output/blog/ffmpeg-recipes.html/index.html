@@ -1,0 +1,282 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">ffmpeg-recipes.html</h4>
+        <div class="git-file-meta">
+          <span>10 KB</span>
+          <span>site-output/blog/ffmpeg-recipes.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – FFmpeg Production Recipes&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;ffmpeg-recipes&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;FFmpeg Production Recipes&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Oct 20, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;2 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;-ss&lt;/code&gt;/&lt;code&gt;-t&lt;/code&gt; with &lt;code&gt;-c copy&lt;/code&gt; to clip segments without re-encoding, and rely on &lt;code&gt;libx264&lt;/code&gt;/&lt;code&gt;libx265&lt;/code&gt; (or &lt;code&gt;h264_nvenc&lt;/code&gt;) when you need transcodes.&lt;/li&gt;
+&lt;li&gt;Loop still images or test patterns with &lt;code&gt;-loop 1&lt;/code&gt; and &lt;code&gt;lavfi&lt;/code&gt; sources, then concat segments via a manifest to reach longer runtimes.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;drawtext&lt;/code&gt; filter handles timecode overlays; remember to point to a valid font and position text with expressions like &lt;code&gt;(w-tw)/2&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Transcode 4K MOV to 1080p H.264 AAC&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -i input.mov -vf &amp;quot;scale=1920:1080&amp;quot; -c:v libx264 -crf 23 -c:a aac -b:a 192k output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Hardware-accelerated NVENC variant:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -i input.mov -vf &amp;quot;scale=1920:1080&amp;quot; -c:v h264_nvenc -rc:v vbr_hq -b:v 8M -pix_fmt yuv420p -c:a aac -b:a 192k output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Reduce file size with HEVC:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -i input.mp4 -c:v libx265 -crf 28 -c:a copy output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Batch transcode current directory to an &lt;code&gt;out/&lt;/code&gt; folder:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;mkdir -p out
+for file in &amp;quot;$(pwd)&amp;quot;/*; do
+  [ -f &amp;quot;$file&amp;quot; ] || continue
+  ffmpeg -y -i &amp;quot;$file&amp;quot; -c:v libx264 -crf 28 -c:a copy &amp;quot;$(pwd)&amp;quot;/out/&amp;quot;${file##*/}&amp;quot;
+done
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Clip a Segment&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -ss 00:00:00 -t 00:00:20 -i input.mp4 -c copy output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1-Minute SCTE Test Pattern (MJPEG)&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -f lavfi -i testsrc=size=1920x1080:rate=30 -t 60 -c:v mjpeg -an output_test_pattern.mjpeg
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1 kHz Audio Tone (60 seconds)&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -f lavfi -i sine=frequency=1000:duration=60 -c:a pcm_s16le audio.wav
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Bouncing Ball Test Pattern (excerpt)&lt;/h3&gt;
+&lt;p&gt;Generate a five-minute MJPEG test clip with moving graphics:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -f lavfi -i &amp;quot;testsrc=size=1920x1080:rate=30&amp;quot; \
+       -f lavfi -i &amp;quot;life=s=1920x1080:mold=10:r=30:ratio=0.1:death_color=black:life_color=white&amp;quot; \
+       -filter_complex &amp;quot;overlay&amp;quot; -t 300 -c:v mjpeg -an bouncing-ball.mjpeg
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Loop a Single Image&lt;/h3&gt;
+&lt;p&gt;Resize as needed (ImageMagick):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;convert input.png -resize 1920x1080 frame.png
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Build a 10-minute, 30 FPS loop:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -loop 1 -i frame.png -t 600 -r 30 -pix_fmt yuv420p loop-10min.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Concatenate six loops into an hour-long clip:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;for i in {1..6}; do echo &amp;quot;file &amp;#39;loop-10min.mp4&amp;#39;&amp;quot; &amp;gt;&amp;gt; concat.lst; done
+ffmpeg -f concat -safe 0 -i concat.lst -c copy loop-60min.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Burn-In Timecode&lt;/h3&gt;
+&lt;p&gt;Top-left overlay (adjust font path):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -i input.mp4 -vf &amp;quot;drawtext=fontfile=/path/to/font.ttf:fontsize=32:fontcolor=white:\
+  box=1:boxcolor=black@0.5:boxborderw=5:text=&amp;#39;%{pts\:hms}&amp;#39;:x=20:y=20&amp;quot; -c:a copy output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Centered overlay with golden-ratio offset:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -i input.mp4 -vf &amp;quot;drawtext=fontfile=/path/to/font.ttf:fontsize=48:fontcolor=white:\
+  box=1:boxcolor=black@0.5:boxborderw=5:text=&amp;#39;%{pts\:hms}&amp;#39;:x=(w-tw)/2:y=(h/PHI)+th&amp;quot; -c:a copy output.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Sample grabbing from an HLS stream and exporting a 20-second clip with timecode:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;ffmpeg -ss 00:04:30 -t 20 -i https://example.com/endpoint/index.m3u8 \
+  -vf &amp;quot;drawtext=fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:\
+  text=&amp;#39;%{pts\:hms}&amp;#39;:x=(w-tw)/2:y=(h/PHI)+th&amp;quot; -c:a copy clip-with-tc.mp4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Quick Reference Commands&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Create an MJPEG video test card and matching sine-wave audio tone for end-to-end testing.&lt;/li&gt;
+&lt;li&gt;Loop a still image via &lt;code&gt;-loop 1&lt;/code&gt; and use the concat demuxer to extend the runtime.&lt;/li&gt;
+&lt;li&gt;Clip segments with &lt;code&gt;-ss&lt;/code&gt;/&lt;code&gt;-t&lt;/code&gt;, preserving audio with &lt;code&gt;-c:a copy&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Switch between software (&lt;code&gt;libx264&lt;/code&gt;, &lt;code&gt;libx265&lt;/code&gt;) and hardware (&lt;code&gt;h264_nvenc&lt;/code&gt;) encoders depending on the workstation.&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/linux-priv-esc.html&quot;
+        data-default-href=&quot;../blog/linux-priv-esc.html&quot;
+        data-default-fragment=&quot;../blog/fragments/linux-priv-esc.html&quot;
+        data-fragment-href=&quot;../blog/fragments/linux-priv-esc.html&quot;
+        data-target-slug=&quot;linux-priv-esc&quot;
+        data-post-slug=&quot;linux-priv-esc&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 17 — Linux Privilege Escalation Guide&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/windows-priv-esc.html&quot;
+        data-default-href=&quot;../blog/windows-priv-esc.html&quot;
+        data-default-fragment=&quot;../blog/fragments/windows-priv-esc.html&quot;
+        data-fragment-href=&quot;../blog/fragments/windows-priv-esc.html&quot;
+        data-target-slug=&quot;windows-priv-esc&quot;
+        data-post-slug=&quot;windows-priv-esc&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 16 — Windows Privilege Escalation Strategies&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

@@ -1,0 +1,46 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">docker-compose.yml.j2</h4>
+        <div class="git-file-meta">
+          <span>1.1 KB</span>
+          <span>ansible/roles/app_deploy/templates/docker-compose.yml.j2</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>name: {{ compose_project_name }}
+
+services:
+  {{ compose_service_name }}:
+    image: {{ image_ref }}
+    container_name: {{ compose_container_name }}
+    restart: unless-stopped
+    ports:
+      - &quot;{{ http_bind_interface }}:80:{{ listen_port }}&quot;
+      - &quot;{{ https_bind_interface }}:443:{{ listen_port_ssl }}&quot;
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;curl -f http://127.0.0.1:8080{{ healthcheck_path }} || exit 1&quot;]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      com.chaosandmajesty.environment: prod
+      com.chaosandmajesty.service: {{ compose_service_name }}
+{% if webdav_mount_enabled or auth_file_host_path or letsencrypt_mount_enabled %}
+    volumes:
+{% if webdav_mount_enabled %}
+      - &quot;{{ webdav_host_path }}:{{ webdav_container_path }}:rw&quot;
+{% endif %}
+{% if auth_file_host_path %}
+      - &quot;{{ auth_file_host_path }}:{{ auth_file_container_path }}:ro&quot;
+{% endif %}
+{% if letsencrypt_mount_enabled %}
+      - &quot;{{ letsencrypt_host_path }}:{{ letsencrypt_container_path }}:ro&quot;
+      - &quot;{{ acme_webroot_host_path }}:{{ acme_webroot_container_path }}:rw&quot;
+{% endif %}
+{% endif %}
+</code></pre>
+      </div>
+    </article>
+  

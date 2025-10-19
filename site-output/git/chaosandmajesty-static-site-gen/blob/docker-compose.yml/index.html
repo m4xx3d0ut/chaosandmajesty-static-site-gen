@@ -1,0 +1,31 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">docker-compose.yml</h4>
+        <div class="git-file-meta">
+          <span>409 B</span>
+          <span>docker-compose.yml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>services:
+  cm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NGINX_CONFIG: nginx/default.dev.conf
+    container_name: cm-local
+    ports:
+      - &quot;8080:8080&quot;
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;wget&quot;, &quot;--no-verbose&quot;, &quot;--tries=1&quot;, &quot;--spider&quot;, &quot;http://localhost:8080&quot;]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+</code></pre>
+      </div>
+    </article>
+  

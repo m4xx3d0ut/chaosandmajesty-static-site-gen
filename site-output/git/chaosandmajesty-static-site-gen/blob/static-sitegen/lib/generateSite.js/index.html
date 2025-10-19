@@ -1,0 +1,966 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">generateSite.js</h4>
+        <div class="git-file-meta">
+          <span>34 KB</span>
+          <span>static-sitegen/lib/generateSite.js</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>import { promises as fs } from &#039;fs&#039;;
+import path from &#039;path&#039;;
+import { marked } from &#039;marked&#039;;
+import * as ejs from &#039;ejs&#039;;
+import yaml from &#039;js-yaml&#039;;
+
+// Default template for when no template is found
+const DEFAULT_TEMPLATE = `
+&lt;!DOCTYPE html&gt;\
+&lt;html lang=&quot;en&quot;&gt;\
+&lt;head&gt;\
+    &lt;meta charset=&quot;UTF-8&quot;&gt;\
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;\
+    &lt;title&gt;&lt;%= site.title %&gt; - &lt;%= page.title %&gt;&lt;/title&gt;\
+    &lt;% if (site.styles &amp;&amp; site.styles.length &gt; 0) { %&gt;\
+        &lt;% site.styles.forEach(function(style) { %&gt;\
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= style %&gt;&quot;&gt;\
+        &lt;% }); %&gt;\ 
+    &lt;% } else { %&gt;\
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= isSection ? &#039;../assets/modern.css&#039; : &#039;assets/modern.css&#039; %&gt;&quot;&gt;\
+    &lt;% } %&gt;\
+&lt;/head&gt;\
+&lt;body class=&quot;&lt;%= site.theme &amp;&amp; site.theme.mode === &#039;dark&#039; ? &#039;dark-mode&#039; : &#039;light-mode&#039; %&gt;&quot; \
+      data-theme=&quot;&lt;%= site.theme &amp;&amp; site.theme.mode === &#039;dark&#039; ? &#039;dark&#039; : &#039;light&#039; %&gt;&quot;&gt;\
+    &lt;header&gt;\
+        &lt;div class=&quot;container header-container&quot;&gt;\
+            &lt;h1 class=&quot;logo&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;\
+            &lt;nav&gt;\
+                &lt;ul class=&quot;nav-links&quot;&gt;\
+                    &lt;% if (site.header &amp;&amp; site.header.links) { %&gt;\
+                        &lt;% site.header.links.forEach(function(link) { 
+                           let href = link.href;
+                           if (link.href.startsWith(&#039;#&#039;)) {
+                             // This is a section link
+                             href = &#039;sections/&#039; + link.href.substring(1) + &#039;.html&#039;;
+                           }
+                           if (isSection &amp;&amp; !href.startsWith(&#039;http&#039;)) {
+                             href = &#039;../&#039; + href;
+                           }
+                        %&gt;\
+                    &lt;li&gt;&lt;a href=&quot;&lt;%= href %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;\
+                        &lt;% }); %&gt;\
+                    &lt;% } else if (site.pages) { %&gt;\
+                        &lt;li&gt;&lt;a href=&quot;&lt;%= isSection ? &#039;../index.html&#039; : &#039;index.html&#039; %&gt;&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;\
+                        &lt;% site.pages.forEach(function(page) { %&gt;\
+                    &lt;li&gt;&lt;a href=&quot;&lt;%= isSection ? &#039;../&#039; : &#039;&#039; %&gt;&lt;%= page.slug || page.title.toLowerCase().replace(/\\s+/g, &#039;-&#039;) %&gt;.html&quot;&gt;&lt;%= page.title %&gt;&lt;/a&gt;&lt;/li&gt;\
+                        &lt;% }); %&gt;\
+                        &lt;% if (site.sections) { site.sections.forEach(function(section) { %&gt;\
+                    &lt;li&gt;&lt;a href=&quot;&lt;%= isSection ? &#039;&#039; : &#039;sections/&#039; %&gt;&lt;%= section.id %&gt;.html&quot;&gt;&lt;%= section.heading || section.id %&gt;&lt;/a&gt;&lt;/li&gt;\
+                        &lt;% }); } %&gt;\
+                    &lt;% } else { %&gt;\
+                    &lt;li&gt;&lt;a href=&quot;&lt;%= isSection ? &#039;../index.html&#039; : &#039;index.html&#039; %&gt;&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;\
+                    &lt;% } %&gt;\
+                &lt;/ul&gt;\
+            &lt;/nav&gt;\
+        &lt;/div&gt;\
+    &lt;/header&gt;\
+    &lt;main class=&quot;container&quot;&gt;\
+        &lt;h2&gt;&lt;%= page.title %&gt;&lt;/h2&gt;\
+        &lt;%- content %&gt;\
+    &lt;/main&gt;\
+    &lt;footer&gt;\
+        &lt;div class=&quot;container&quot;&gt;\
+            &lt;p&gt;&amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title %&gt;. All rights reserved.&lt;/p&gt;\
+        &lt;/div&gt;\
+    &lt;/footer&gt;\
+&lt;/body&gt;\
+&lt;/html&gt;
+`;
+
+/**
+ * Copy directory recursively with proper error handling
+ */
+async function copyDirRecursive(src, dest, verbose = false) {
+  try {
+    await fs.mkdir(dest, { recursive: true });
+    const entries = await fs.readdir(src, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+        await copyDirRecursive(srcPath, destPath, verbose);
+      } else {
+        await fs.copyFile(srcPath, destPath);
+        if (verbose) console.log(`Copied: ${srcPath} -&gt; ${destPath}`);
+      }
+    }
+  } catch (error) {
+    if (verbose) console.error(`Error copying ${src}: ${error.message}`);
+    throw error;
+  }
+}
+
+// Helper function to ensure CSS is properly loaded
+function ensureCssIsLoaded(config) {
+  // Create a copy to avoid modifying the original
+  const updatedConfig = { ...config };
+  
+  // Initialize styles array if it doesn&#039;t exist
+  if (!updatedConfig.styles) {
+    updatedConfig.styles = [];
+  }
+  
+  // If styles is empty or doesn&#039;t include modern.css, add it
+  if (Array.isArray(updatedConfig.styles)) {
+    const hasModernCss = updatedConfig.styles.some(style =&gt; 
+      style.includes(&#039;modern.css&#039;) || style.includes(&#039;styles.css&#039;)
+    );
+    
+    if (!hasModernCss) {
+      updatedConfig.styles.push(&#039;assets/modern.css&#039;);
+    }
+  }
+  return updatedConfig;
+}
+
+// --- COPY STATIC FILES FROM cm-source IF EXISTS (RECURSIVE NOW) ---
+async function copyStaticFiles(outputDir, verbose = false) {
+  try {
+    const staticDir = path.join(outputDir, &#039;static&#039;);
+    // Always create parent dirs for static
+    await fs.mkdir(staticDir, { recursive: true });
+
+    // Check if cm-source exists
+    const cmSourceDir = path.join(process.cwd(), &#039;cm-source&#039;);
+    // Use try/catch for exists
+    let cmSourceExists = false;
+    try {
+      await fs.access(cmSourceDir);
+      cmSourceExists = true;
+    } catch {}
+
+    if (cmSourceExists) {
+      // Recursively copy static contents from cm-source/static/* to output/static/*
+      const cmSourceStatic = path.join(cmSourceDir, &#039;static&#039;);
+      try {
+        await copyDirRecursive(cmSourceStatic, staticDir, verbose);
+      } catch (e) {
+        if (verbose) console.error(`Error copying cm-source static files: ${e.message}`);
+      }
+
+      // Copy root files like robots.txt and site.webmanifest if they exist
+      const rootFiles = [&#039;robots.txt&#039;, &#039;site.webmanifest&#039;];
+      for (const file of rootFiles) {
+        const sourcePath = path.join(cmSourceDir, file);
+        try {
+          await fs.access(sourcePath);
+          await fs.copyFile(sourcePath, path.join(outputDir, file));
+          if (verbose) console.log(`Copied root file: ${file}`);
+        } catch {}
+      }
+    }
+  } catch (error) {
+    console.error(`Error copying static files: ${error.message}`);
+  }
+}
+
+async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) {
+  const postsDir = path.resolve(process.cwd(), blogConfig.postsDir || &#039;content/blog&#039;);
+  const blogOutputRel = (blogConfig.outputDir || &#039;blog&#039;).replace(/^(\.\/)+/, &#039;&#039;).replace(/\\/g, &#039;/&#039;);
+  const fragmentRelDir = (blogConfig.fragmentDir || `${blogOutputRel}/fragments`).replace(/^(\.\/)+/, &#039;&#039;).replace(/\\/g, &#039;/&#039;);
+  const baseUrl = siteConfig.baseUrl || &#039;/&#039;;
+  const normalizedBaseUrl = baseUrl.endsWith(&#039;/&#039;) ? baseUrl.slice(0, -1) : baseUrl;
+  const publicBase = normalizedBaseUrl === &#039;/&#039; ? &#039;&#039; : normalizedBaseUrl;
+  const toPublicPath = (p) =&gt; {
+    if (!p) return publicBase || &#039;/&#039;;
+    return `${publicBase}${p.startsWith(&#039;/&#039;) ? p : &#039;/&#039; + p}`;
+  };
+  let files;
+
+  try {
+    files = await fs.readdir(postsDir);
+  } catch (error) {
+    if (error.code === &#039;ENOENT&#039;) {
+      console.warn(`Blog posts directory not found at ${postsDir}, skipping blog generation.`);
+      return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+    }
+    throw error;
+  }
+
+  const isExternalUrl = (value) =&gt; typeof value === &#039;string&#039; &amp;&amp; /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value);
+
+  const authors = Array.isArray(blogConfig.authors)
+    ? blogConfig.authors.map(author =&gt; {
+        const normalizedAvatar = normalizeAssetPath(author.avatar);
+        const avatarHref = normalizedAvatar &amp;&amp; !isExternalUrl(normalizedAvatar)
+          ? (publicBase
+            ? toPublicPath(normalizedAvatar)
+            : normalizedAvatar.replace(/^\/+/, &#039;&#039;))
+          : normalizedAvatar;
+        return {
+          ...author,
+          avatarPath: avatarHref
+        };
+      })
+    : [];
+
+  const authorsById = new Map(authors.map(author =&gt; [author.id, author]));
+
+  const posts = [];
+
+  const defaultPostPathConfig = blogConfig.index?.defaultPostPath || blogConfig.defaultPostPath;
+  const defaultPostAbs = defaultPostPathConfig
+    ? path.resolve(process.cwd(), defaultPostPathConfig)
+    : null;
+
+  function createPostObject(fileName, attributes, body, { includeOutputPaths = true, markHidden = false } = {}) {
+    const slug = attributes.slug || slugFromFilename(fileName);
+    const title = attributes.title || slug.replace(/-/g, &#039; &#039;);
+
+    const authorId = attributes.author;
+    const author = authorId ? authorsById.get(authorId) : null;
+
+    if (!author &amp;&amp; authorId &amp;&amp; verbose) {
+      console.warn(`No author configured for id &quot;${authorId}&quot; while processing ${fileName}`);
+    }
+
+    const publishedAtIso = attributes.publishedAt || attributes.date;
+    const publishedAtRaw = publishedAtIso ? new Date(publishedAtIso) : null;
+    const publishedAtValid = publishedAtRaw &amp;&amp; !Number.isNaN(publishedAtRaw.getTime())
+      ? publishedAtRaw
+      : null;
+    const updatedAtIso = attributes.updatedAt;
+    const updatedAt = updatedAtIso ? new Date(updatedAtIso) : null;
+
+    const html = marked.parse(body || &#039;&#039;);
+    const summary = attributes.summary || truncateSummary(body || &#039;&#039;);
+    const readingMinutes = attributes.readingMinutes || estimateReadingMinutes(body);
+    const heroImageNormalized = normalizeAssetPath(attributes.heroImage);
+    const heroImagePath = heroImageNormalized &amp;&amp; !isExternalUrl(heroImageNormalized)
+      ? (publicBase
+        ? toPublicPath(heroImageNormalized)
+        : heroImageNormalized.replace(/^\/+/, &#039;&#039;))
+      : heroImageNormalized;
+
+    let postRelPath = null;
+    let fragmentRelPath = null;
+    let canonicalHref = null;
+    let publicHref = null;
+    let fragmentHref = null;
+
+    if (includeOutputPaths) {
+      postRelPath = path.posix.join(blogOutputRel, `${slug}.html`);
+      fragmentRelPath = path.posix.join(fragmentRelDir, `${slug}.html`);
+      canonicalHref = toPublicPath(`/${postRelPath}`);
+      publicHref = publicBase ? canonicalHref : postRelPath;
+      fragmentHref = publicBase ? toPublicPath(`/${fragmentRelPath}`) : fragmentRelPath;
+    }
+
+    let showArticleNav = null;
+    if (attributes.forceArticleNav === true) {
+      showArticleNav = true;
+    } else if (typeof attributes.showArticleNav === &#039;boolean&#039;) {
+      showArticleNav = attributes.showArticleNav;
+    }
+
+    return {
+      slug,
+      title,
+      author,
+      summary,
+      html,
+      rawBody: body,
+      tags: attributes.tags || [],
+      publishedAt: publishedAtValid,
+      publishedAtIso: publishedAtValid ? (publishedAtIso || publishedAtValid.toISOString()) : null,
+      updatedAt,
+      updatedAtIso: updatedAtIso || (updatedAt ? updatedAt.toISOString() : null),
+      displayPublishedAt: formatDisplayDate(publishedAtIso || publishedAtValid),
+      displayUpdatedAt: formatDisplayDate(updatedAtIso),
+      readingMinutes,
+      heroImagePath,
+      canonicalPath: postRelPath,
+      canonicalHref,
+      relativeHref: postRelPath,
+      publicHref,
+      fragmentPath: fragmentRelPath,
+      fragmentHref,
+      seoDescription: attributes.seoDescription || summary,
+      isHidden: markHidden,
+      showArticleNav
+    };
+  }
+
+  for (const file of files) {
+    if (!file.endsWith(&#039;.md&#039;)) {
+      continue;
+    }
+
+    const fullPath = path.join(postsDir, file);
+    if (defaultPostAbs &amp;&amp; path.resolve(fullPath) === defaultPostAbs) {
+      continue;
+    }
+    const raw = await fs.readFile(fullPath, &#039;utf8&#039;);
+    const { attributes, body } = parseFrontMatter(raw, file);
+    if (attributes.hidden) {
+      posts.push(createPostObject(file, attributes, body, { includeOutputPaths: true, markHidden: true }));
+      continue;
+    }
+
+    posts.push(createPostObject(file, attributes, body, { includeOutputPaths: true }));
+  }
+
+  if (posts.length === 0 &amp;&amp; !defaultPostAbs) {
+    console.warn(&#039;No blog posts found, skipping blog generation.&#039;);
+    return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+  }
+
+  if (posts.length &gt; 1) {
+    posts.sort((a, b) =&gt; (b.publishedAt || 0) - (a.publishedAt || 0));
+  }
+
+  const hiddenPosts = posts.filter(post =&gt; post.isHidden);
+  const displayPosts = posts.filter(post =&gt; !post.isHidden);
+
+  const formatNeighbor = (post) =&gt; {
+    if (!post) return null;
+    return {
+      slug: post.slug,
+      title: post.title,
+      displayPublishedAt: post.displayPublishedAt,
+      relativeHref: post.relativeHref,
+      publicHref: post.publicHref,
+      fragmentPath: post.fragmentPath,
+      fragmentHref: post.fragmentHref
+    };
+  };
+
+  posts.forEach((post, index) =&gt; {
+    const prevVisible = (() =&gt; {
+      for (let i = index - 1; i &gt;= 0; i -= 1) {
+        if (!posts[i].isHidden) {
+          return posts[i];
+        }
+      }
+      return null;
+    })();
+
+    const nextVisible = (() =&gt; {
+      for (let i = index + 1; i &lt; posts.length; i += 1) {
+        if (!posts[i].isHidden) {
+          return posts[i];
+        }
+      }
+      return null;
+    })();
+
+    post.adjacent = {
+      previous: formatNeighbor(prevVisible),
+      next: formatNeighbor(nextVisible)
+    };
+  });
+
+  if (displayPosts.length === 0 &amp;&amp; !defaultPostAbs) {
+    console.warn(&#039;No visible blog posts found, skipping blog generation.&#039;);
+    return { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+  }
+
+  let defaultInitialPost = null;
+  if (defaultPostAbs) {
+    try {
+      const raw = await fs.readFile(defaultPostAbs, &#039;utf8&#039;);
+      const { attributes, body } = parseFrontMatter(raw, path.basename(defaultPostAbs));
+      defaultInitialPost = createPostObject(path.basename(defaultPostAbs), attributes, body, {
+        includeOutputPaths: false
+      });
+    } catch (error) {
+      console.warn(`Failed to load default blog post at ${defaultPostAbs}: ${error.message}`);
+    }
+  }
+
+  const blogOutputDir = path.join(outputDir, blogOutputRel);
+  const fragmentOutputDir = path.join(outputDir, fragmentRelDir);
+  await fs.mkdir(blogOutputDir, { recursive: true });
+  await fs.mkdir(fragmentOutputDir, { recursive: true });
+
+  const indexTemplate = blogConfig.indexTemplate || &#039;blog/index.ejs&#039;;
+  const postTemplate = blogConfig.postTemplate || &#039;blog/post.ejs&#039;;
+  const fragmentTemplate = blogConfig.fragmentTemplate || &#039;blog/fragment.ejs&#039;;
+
+  const shouldRenderInitial = blogConfig.index?.renderInitialPost !== false;
+  let initialPost = null;
+  let isDefaultInitialPost = false;
+  let isHiddenInitialPost = false;
+
+  if (shouldRenderInitial) {
+    if (defaultInitialPost) {
+      initialPost = defaultInitialPost;
+      isDefaultInitialPost = true;
+    } else {
+      initialPost = hiddenPosts[0] || displayPosts[0] || null;
+      if (initialPost &amp;&amp; initialPost.isHidden) {
+        isHiddenInitialPost = true;
+      }
+    }
+  }
+
+  const indexPageConfig = {
+    title: blogConfig.title || &#039;Blog&#039;,
+    template: indexTemplate,
+    hideTitle: true,
+    useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
+    useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
+    cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
+    baseDepth: 0,
+    hero: {
+      title: blogConfig.index?.heroTitle || blogConfig.title || &#039;Blog&#039;,
+      tagline: blogConfig.index?.heroTagline || blogConfig.description,
+      intro: blogConfig.index?.intro || blogConfig.description
+    },
+    blogDescription: blogConfig.description,
+    posts: displayPosts,
+    hiddenPosts,
+    authors,
+    initialPost,
+    isDefaultInitialPost,
+    isHiddenInitialPost,
+    sidebarPageSize: blogConfig.index?.sidebarPageSize || blogConfig.sidebarPageSize || 6,
+    emptyStateText: blogConfig.index?.emptyStateText || blogConfig.emptyStateText || null,
+    emptyStateHtml: blogConfig.index?.emptyStateText || blogConfig.emptyStateText
+      ? marked.parse(blogConfig.index?.emptyStateText || blogConfig.emptyStateText)
+      : null,
+    fragmentDir: fragmentRelDir,
+    outputDir: blogOutputRel,
+    fragmentTemplate,
+    postTemplate,
+    rootBase: publicBase,
+    authorFilter: blogConfig.enableAuthorFilter !== false
+  };
+
+  await generatePage(indexPageConfig, siteConfig, outputDir, verbose, &#039;blog.html&#039;);
+
+  // Also emit a directory index for /blog/ routing convenience
+  const directoryIndexConfig = { ...indexPageConfig, baseDepth: 1 };
+  await generatePage(directoryIndexConfig, siteConfig, blogOutputDir, verbose, &#039;index.html&#039;);
+
+  for (const post of posts) {
+    const postPageConfig = {
+      title: post.title,
+      template: postTemplate,
+      hideTitle: true,
+      useCmHead: blogConfig.index?.useCmHead ?? siteConfig.useCmHead,
+      useCmFooter: blogConfig.index?.useCmFooter ?? siteConfig.useCmFooter,
+      cmImage: blogConfig.index?.cmImage || siteConfig.cmImage,
+      baseDepth: 1,
+      post,
+      blog: {
+        title: blogConfig.title || &#039;Blog&#039;,
+        description: blogConfig.description,
+        indexHref: publicBase ? toPublicPath(&#039;/blog.html&#039;) : &#039;blog.html&#039;,
+        rootBase: publicBase
+      },
+      rootBase: publicBase
+    };
+
+    await generatePage(postPageConfig, siteConfig, blogOutputDir, verbose, `${post.slug}.html`);
+
+    const fragmentPageConfig = {
+      title: post.title,
+      template: fragmentTemplate,
+      hideTitle: true,
+      useCmHead: false,
+      useCmFooter: false,
+      baseDepth: 0,
+      post,
+      rootBase: publicBase
+    };
+
+    await generatePage(fragmentPageConfig, siteConfig, fragmentOutputDir, verbose, `${post.slug}.html`);
+  }
+
+  return {
+    indexPath: &#039;blog.html&#039;,
+    postPaths: posts.map(post =&gt; post.canonicalPath),
+    fragmentPaths: posts.map(post =&gt; post.fragmentPath),
+    posts,
+    hiddenPosts
+  };
+}
+
+const FRONT_MATTER_REGEX = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)/;
+
+function parseFrontMatter(rawContent, fileName) {
+  const match = rawContent.match(FRONT_MATTER_REGEX);
+  if (!match) {
+    return { attributes: {}, body: rawContent };
+  }
+
+  let attributes = {};
+  try {
+    attributes = yaml.load(match[1]) || {};
+  } catch (error) {
+    throw new Error(`Failed to parse front matter in ${fileName}: ${error.message}`);
+  }
+
+  const body = match[2] || &#039;&#039;;
+  return { attributes, body };
+}
+
+function normalizeAssetPath(value) {
+  if (!value) return value;
+  if (typeof value !== &#039;string&#039;) return value;
+  if (/^(?:https?:)?\/\//.test(value) || value.startsWith(&#039;data:&#039;) || value.startsWith(&#039;/&#039;)) {
+    return value;
+  }
+  return &#039;/&#039; + value.replace(/^\/+/, &#039;&#039;);
+}
+
+function formatDisplayDate(value) {
+  if (!value) return &#039;&#039;;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return &#039;&#039;;
+  }
+  return date.toLocaleDateString(&#039;en-US&#039;, {
+    year: &#039;numeric&#039;,
+    month: &#039;short&#039;,
+    day: &#039;numeric&#039;
+  });
+}
+
+function estimateReadingMinutes(content, fallback = 5) {
+  if (!content) return fallback;
+  const words = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+function truncateSummary(text, maxLength = 160) {
+  if (!text) return &#039;&#039;;
+  const normalized = text.replace(/\s+/g, &#039; &#039;).trim();
+  if (normalized.length &lt;= maxLength) return normalized;
+  return normalized.slice(0, maxLength).trimEnd() + &#039;…&#039;;
+}
+
+function slugFromFilename(filename) {
+  const base = path.parse(filename).name;
+  return base.toLowerCase().replace(/[^a-z0-9]+/g, &#039;-&#039;).replace(/^-+|-+$/g, &#039;&#039;);
+}
+
+/**
+ * Generate a static site based on the provided configuration
+ * @param {Object} config - Site configuration
+ * @param {string} outputDir - Output directory path
+ * @param {boolean} verbose - Whether to log verbose output
+ * @returns {Object} Result object
+ */
+export async function generateSite(config, outputDir, verbose = false) {
+  const updatedConfig = ensureCssIsLoaded(config);
+
+  try {
+    // Clean and create output directory
+    await fs.rm(outputDir, { recursive: true, force: true });
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // Copy assets with exact structure matching site-output/
+    if (config.assets) {
+      const assetsDir = path.resolve(process.cwd(), config.assets);
+      const outputAssetsDir = path.join(outputDir, &#039;assets&#039;);
+      
+      if (verbose) console.log(`Copying assets: ${assetsDir} -&gt; ${outputAssetsDir}`);
+      await copyDirRecursive(assetsDir, outputAssetsDir, verbose);
+    }
+
+    // Copy root files (robots.txt, site.webmanifest)
+    const rootFiles = [&#039;robots.txt&#039;, &#039;site.webmanifest&#039;];
+    for (const file of rootFiles) {
+      const sourcePath = path.join(process.cwd(), config.assets || &#039;assets&#039;, file);
+      try {
+        await fs.access(sourcePath);
+        await fs.copyFile(sourcePath, path.join(outputDir, file));
+        if (verbose) console.log(`Copied root file: ${file}`);
+      } catch {
+        // File doesn&#039;t exist, skip
+      }
+    }
+    
+    // Create a mapping of section IDs for navigation
+    const sectionMap = {};
+    if (updatedConfig.sections &amp;&amp; Array.isArray(updatedConfig.sections)) {
+      updatedConfig.sections.forEach(section =&gt; {
+        if (section.id) {
+          sectionMap[section.id] = `sections/${section.id}.html`;
+        }
+      });
+    }
+    
+    let indexPageConfigData;
+    if (updatedConfig.index) {
+      indexPageConfigData = { ...updatedConfig.index, isIndex: true, sectionMap };
+    } else {
+      indexPageConfigData = {
+        title: updatedConfig.title,
+        content: updatedConfig.description || `Welcome to ${updatedConfig.title}`,
+        isIndex: true,
+        sectionMap
+      };
+    }
+    if (typeof indexPageConfigData.baseDepth !== &#039;number&#039;) {
+      indexPageConfigData.baseDepth = 0;
+    }
+    
+    // Generate blog content if enabled
+    let blogArtifacts = { indexPath: null, postPaths: [], fragmentPaths: [], posts: [] };
+    if (updatedConfig.blog &amp;&amp; updatedConfig.blog.enabled) {
+      blogArtifacts = await generateBlog(updatedConfig.blog, updatedConfig, outputDir, verbose);
+    }
+
+    if (blogArtifacts.posts &amp;&amp; blogArtifacts.posts.length &gt; 0) {
+      const latestPostsByAuthor = {};
+      for (const post of blogArtifacts.posts) {
+        if (!post || !post.author || !post.author.id) {
+          continue;
+        }
+        if (post.isHidden) {
+          continue;
+        }
+        const authorId = post.author.id.toLowerCase();
+        if (latestPostsByAuthor[authorId]) {
+          continue;
+        }
+        const aliases = new Set();
+        aliases.add(authorId);
+        if (post.author.name) {
+          aliases.add(post.author.name.toLowerCase());
+        }
+        latestPostsByAuthor[authorId] = {
+          id: post.author.id,
+          name: post.author.name || post.author.id,
+          title: post.title,
+          summary: post.summary || &#039;&#039;,
+          url: post.publicHref || post.canonicalHref,
+          aliases: Array.from(aliases).filter(Boolean)
+        };
+      }
+      indexPageConfigData.latestPostsByAuthor = latestPostsByAuthor;
+
+      const consoleDispatches = blogArtifacts.posts
+        .filter(post =&gt; !post.isHidden)
+        .map(post =&gt; ({
+          slug: post.slug,
+          title: post.title,
+          authorId: post.author?.id || &#039;&#039;,
+          authorName: post.author?.name || post.author?.id || &#039;&#039;,
+          summary: post.summary || &#039;&#039;,
+          url: post.publicHref || post.canonicalHref || post.relativeHref,
+          publishedAtIso: post.publishedAtIso || (post.publishedAt ? post.publishedAt.toISOString() : null),
+          displayPublishedAt: post.displayPublishedAt || &#039;&#039;,
+          readingMinutes: post.readingMinutes || null,
+          tags: Array.isArray(post.tags) ? post.tags : []
+        }));
+
+      if (consoleDispatches.length &gt; 0) {
+        indexPageConfigData.consoleDispatches = consoleDispatches;
+      }
+    }
+
+    await generatePage(indexPageConfigData, updatedConfig, outputDir, verbose, &#039;index.html&#039;);
+
+    // Create a sitemap.html file with links to all pages
+    const pages = [&#039;index.html&#039;];
+    if (blogArtifacts.indexPath) {
+      pages.push(blogArtifacts.indexPath);
+    }
+    if (blogArtifacts.postPaths &amp;&amp; blogArtifacts.postPaths.length &gt; 0) {
+      pages.push(...blogArtifacts.postPaths);
+    }
+    
+    // Add regular pages to sitemap
+    if (updatedConfig.pages) {
+      pages.push(...updatedConfig.pages.map(p =&gt; `${p.slug || p.title.toLowerCase().replace(/\s+/g, &#039;-&#039;)}.html`));
+    }
+    
+    // Add section pages to sitemap
+    if (updatedConfig.sections &amp;&amp; Array.isArray(updatedConfig.sections)) {
+      // Create a sections directory if it doesn&#039;t exist yet
+      const sectionsDir = path.join(outputDir, &#039;sections&#039;);
+      try {
+        await fs.mkdir(sectionsDir, { recursive: true });
+      } catch (error) {
+        // Directory might already exist, ignore error
+      }
+      pages.push(...updatedConfig.sections.map(s =&gt; `sections/${s.id}.html`));
+    }
+    
+    // Generate sitemap content with proper links and descriptions
+    const sitemapContent = `
+      &lt;h1&gt;Sitemap&lt;/h1&gt;
+      &lt;ul class=&quot;sitemap-list&quot;&gt;
+        &lt;li&gt;&lt;a href=&quot;index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+        ${updatedConfig.pages ? updatedConfig.pages.map(p =&gt; 
+          `&lt;li&gt;&lt;a href=&quot;${p.slug || p.title.toLowerCase().replace(/\s+/g, &#039;-&#039;)}.html&quot;&gt;${p.title}&lt;/a&gt;&lt;/li&gt;`
+        ).join(&#039;\n&#039;) : &#039;&#039;}
+        ${blogArtifacts.indexPath ? `&lt;li&gt;&lt;a href=&quot;${blogArtifacts.indexPath}&quot;&gt;${updatedConfig.blog?.title || &#039;Blog&#039;}&lt;/a&gt;&lt;/li&gt;` : &#039;&#039;}
+        ${blogArtifacts.posts &amp;&amp; blogArtifacts.posts.length &gt; 0 ? `
+          &lt;li&gt;&lt;strong&gt;Blog Posts:&lt;/strong&gt;&lt;/li&gt;
+          ${blogArtifacts.posts.map(post =&gt; `&lt;li&gt;&lt;a href=&quot;${post.relativeHref}&quot;&gt;${post.title}&lt;/a&gt;&lt;/li&gt;`).join(&#039;\n&#039;)}
+        ` : &#039;&#039;}
+        &lt;li&gt;&lt;strong&gt;Sections:&lt;/strong&gt;&lt;/li&gt;
+        ${updatedConfig.sections ? updatedConfig.sections.map(s =&gt; 
+          `&lt;li&gt;&lt;a href=&quot;sections/${s.id}.html&quot;&gt;${s.heading || s.id}&lt;/a&gt;&lt;/li&gt;`
+        ).join(&#039;\n&#039;) : &#039;&#039;}
+      &lt;/ul&gt;`;
+
+    await generatePage({
+      title: &#039;Sitemap&#039;, 
+      processedContent: sitemapContent, 
+      sectionMap,
+      // Inherit global CM settings for sitemap
+      useCmHead: updatedConfig.sitemap?.useCmHead ?? updatedConfig.useCmHead,
+      useCmConsole: updatedConfig.sitemap?.useCmConsole ?? updatedConfig.useCmConsole,
+      useCmFooter: updatedConfig.sitemap?.useCmFooter ?? updatedConfig.useCmFooter,
+      cmImage: updatedConfig.sitemap?.cmImage || updatedConfig.cmImage,
+      use3DLogo: updatedConfig.sitemap?.use3DLogo ?? updatedConfig.use3DLogo,
+      hideTitle: updatedConfig.sitemap?.hideTitle ?? updatedConfig.hideTitle
+    }, updatedConfig, outputDir, verbose, &#039;sitemap.html&#039;);
+
+    if (verbose) console.log(&#039;Generated sitemap.html with proper section links&#039;);
+    
+    // Generate pages
+    if (updatedConfig.pages &amp;&amp; Array.isArray(updatedConfig.pages)) {
+      for (const page of updatedConfig.pages) {
+        // Create a copy of the page to avoid modifying the original
+        const pageCopy = { ...page, sectionMap };
+        if (typeof pageCopy.baseDepth !== &#039;number&#039;) {
+          pageCopy.baseDepth = 0;
+        }
+        
+        // Process markdown content if it exists
+        if (pageCopy.content) {
+          try {
+            pageCopy.processedContent = marked.parse(pageCopy.content);
+          } catch (error) {
+            console.error(`Error parsing markdown for page ${pageCopy.slug || &#039;unknown&#039;}: ${error.message}`);
+          }
+        }
+        await generatePage(pageCopy, updatedConfig, outputDir, verbose);
+      }
+    }
+    
+    // Generate section pages if specified
+    if (updatedConfig.sections &amp;&amp; Array.isArray(updatedConfig.sections)) {
+      // Create a sections directory
+      const sectionsDir = path.join(outputDir, &#039;sections&#039;);
+      await fs.mkdir(sectionsDir, { recursive: true });
+      
+      // Track section IDs to avoid duplicates with regular pages
+      const sectionIds = new Set();
+      
+      for (const section of updatedConfig.sections) {
+        if (!section.id) {
+          console.warn(&#039;Section without ID found, skipping&#039;);
+          continue;
+        }
+        
+        sectionIds.add(section.id);
+        
+        // Create a copy of the section to avoid modifying the original
+        const sectionCopy = { ...section };
+        
+        // Process markdown content for section
+        if (sectionCopy.content) {
+          try {
+            sectionCopy.processedContent = marked.parse(sectionCopy.content);
+          } catch (error) {
+            console.error(`Error parsing markdown for section ${sectionCopy.id}: ${error.message}`);
+          }
+        }
+        
+        // Generate section page
+        const sectionPage = { 
+          ...sectionCopy, 
+          title: sectionCopy.heading || sectionCopy.id,
+          isSection: true,
+          sectionMap,
+          baseDepth: typeof sectionCopy.baseDepth === &#039;number&#039; ? sectionCopy.baseDepth : 1,
+          // Inherit global CM settings if not specified in section
+          useCmHead: sectionCopy.useCmHead ?? updatedConfig.useCmHead,
+          useCmConsole: sectionCopy.useCmConsole ?? updatedConfig.useCmConsole,
+          useCmFooter: sectionCopy.useCmFooter ?? updatedConfig.useCmFooter,
+          cmImage: sectionCopy.cmImage || updatedConfig.cmImage,
+          use3DLogo: sectionCopy.use3DLogo ?? updatedConfig.use3DLogo,
+          hideTitle: sectionCopy.hideTitle ?? updatedConfig.hideTitle,
+          // Ensure columnLayout is passed through
+          columnLayout: sectionCopy.columnLayout
+        };
+
+        // Debug logging
+        if (verbose &amp;&amp; sectionCopy.columnLayout) {
+          console.log(`Section ${sectionCopy.id} columnLayout:`, JSON.stringify(sectionCopy.columnLayout, null, 2));
+        }
+        const filename = `${sectionCopy.id}.html`;
+        await generatePage(sectionPage, updatedConfig, sectionsDir, verbose, filename);
+      }
+      
+      // Check for duplicate pages that exist both as regular pages and sections
+      if (updatedConfig.pages) {
+        for (const page of updatedConfig.pages) {
+          const pageId = page.slug || page.title.toLowerCase().replace(/\s+/g, &#039;-&#039;);
+          if (sectionIds.has(pageId)) {
+            console.warn(`Warning: Page &quot;${page.title}&quot; has the same ID as a section. This may cause navigation issues.`);
+          }
+        }
+      }
+    }
+    
+    // if (verbose) {
+    //   console.log(`Site generated successfully in ${outputDir}`);
+    // }
+    
+    return { success: true };
+  } catch (error) {
+    console.error(`Error generating site: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Generate a single page
+ * @param {Object} pageConfig - Page configuration
+ * @param {Object} siteConfig - Site configuration
+ * @param {string} outputDir - Output directory path
+ * @param {boolean} verbose - Whether to log verbose output
+ * @param {string} filename - Output filename
+ */
+async function generatePage(pageConfig, siteConfig, outputDir, verbose, filename) {
+  try {
+    // Process markdown content if available
+    if (pageConfig.content &amp;&amp; !pageConfig.processedContent) {
+      try {
+        pageConfig.processedContent = marked.parse(pageConfig.content);
+      } catch (error) {
+        console.error(`Error parsing markdown: ${error.message}`);
+        pageConfig.processedContent = pageConfig.content;
+      }
+    }
+    
+    // Process column layout content if it exists
+    if (pageConfig.columnLayout &amp;&amp; pageConfig.columnLayout.enabled) {
+      if (pageConfig.columnLayout.leftContent &amp;&amp; !pageConfig.columnLayout.processedLeftContent) {
+        try {
+          pageConfig.columnLayout.processedLeftContent = marked.parse(pageConfig.columnLayout.leftContent);
+        } catch (error) {
+          console.error(`Error parsing left column markdown: ${error.message}`);
+          pageConfig.columnLayout.processedLeftContent = pageConfig.columnLayout.leftContent;
+        }
+      }
+      if (pageConfig.columnLayout.rightContent &amp;&amp; !pageConfig.columnLayout.processedRightContent) {
+        try {
+          pageConfig.columnLayout.processedRightContent = marked.parse(pageConfig.columnLayout.rightContent);
+        } catch (error) {
+          console.error(`Error parsing right column markdown: ${error.message}`);
+          pageConfig.columnLayout.processedRightContent = pageConfig.columnLayout.rightContent;
+        }
+      }
+    }
+    
+    // Determine output filename
+    if (!filename) {
+      if (!pageConfig.slug &amp;&amp; !pageConfig.title) {
+        console.warn(&#039;Page has no slug or title, using &quot;unnamed-page&quot; as filename&#039;);
+        filename = &#039;unnamed-page.html&#039;;
+      } else {
+        filename = `${pageConfig.slug || pageConfig.title.toLowerCase().replace(/\s+/g, &#039;-&#039;)}.html`;
+      }
+    }
+    
+    const outputPath = path.join(outputDir, filename);
+    
+    // Determine if this is a section page by checking the output directory or explicit flag
+    const isSection = pageConfig.isSection || outputDir.endsWith(&#039;sections&#039;) || outputDir.includes(&#039;/sections&#039;);
+    
+    // Adjust styles paths for section pages
+    const adjustedStyles = isSection 
+      ? (siteConfig.styles || [&#039;assets/modern.css&#039;]).map(style =&gt; 
+          style.startsWith(&#039;assets/&#039;) ? &#039;../&#039; + style : style
+        )
+      : siteConfig.styles;
+    
+    // Get template path
+    const templateName = pageConfig.template || &#039;page.ejs&#039;;
+    const fallbackTemplateName = &#039;base.ejs&#039;;
+    let templatePath = path.join(
+      process.cwd(),
+      siteConfig.templates || &#039;templates&#039;,
+      templateName
+    );
+    
+    let html;
+    try {
+      // Try to render with the specified template
+      if (verbose) console.log(`Using template: ${templatePath}`);
+      html = await ejs.renderFile(templatePath, { 
+        site: {
+          ...siteConfig,
+          baseUrl: siteConfig.baseUrl || &#039;&#039;,
+          styles: adjustedStyles || siteConfig.styles
+        },
+        page: pageConfig, 
+        content: pageConfig.processedContent || pageConfig.content || &#039;&#039;,
+        isIndex: pageConfig.isIndex,
+        isSection: isSection
+      });
+    } catch (error) {
+      if (verbose) {
+        console.warn(`Error rendering template ${templateName}: ${error.message}`);
+      }
+      try {
+        // Try fallback template before using default
+        const fallbackPath = path.join(
+          process.cwd(),
+          siteConfig.templates || &#039;templates&#039;,
+          fallbackTemplateName
+        );
+        if (verbose) console.log(`Template not found, trying fallback: ${fallbackPath}`);
+        html = await ejs.renderFile(fallbackPath, { 
+          site: {
+            ...siteConfig,
+            baseUrl: siteConfig.baseUrl || &#039;&#039;,
+            styles: adjustedStyles || siteConfig.styles
+          }, 
+          page: pageConfig, 
+          content: pageConfig.processedContent || pageConfig.content || &#039;&#039;,
+          isIndex: pageConfig.isIndex,
+          isSection: isSection
+        });
+      } catch (fallbackError) {
+        // If both templates not found, use default template
+        console.warn(`Templates not found, using default template`);
+        html = ejs.render(DEFAULT_TEMPLATE, { 
+          site: {
+            ...siteConfig,
+            baseUrl: siteConfig.baseUrl || &#039;&#039;,
+            styles: adjustedStyles || siteConfig.styles
+          },
+          page: pageConfig, 
+          content: pageConfig.processedContent || pageConfig.content || &#039;&#039;,
+          isIndex: pageConfig.isIndex,
+          isSection: isSection
+        });
+      }
+    }
+    
+    // Write output file
+    if (verbose) console.log(`Generating page: ${outputPath}`);
+    await fs.writeFile(outputPath, html);
+  } catch (error) {
+    console.error(`Error generating page ${filename}: ${error.message}`);
+    throw new Error(`Failed to generate page ${filename}: ${error.message}`);
+  }
+}
+</code></pre>
+      </div>
+    </article>
+  

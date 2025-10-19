@@ -1,0 +1,104 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">build-doom.sh</h4>
+        <div class="git-file-meta">
+          <span>2.1 KB</span>
+          <span>scripts/build-doom.sh</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>#!/usr/bin/env bash
+# builds the DOOM wasm assets expected by the console minigame
+#
+# usage:
+#   ./scripts/build-doom.sh [--force]
+#
+# By default this script downloads the published wasm artefact from
+# https://diekmann.github.io/wasm-fizzbuzz/doom/.
+#
+# Set DOOM_WASM_URL to override the download source, or DOOM_SOURCE_DIR to copy
+# from a local checkout (containing a built doom.wasm). See docs/doom.md for
+# the full build instructions.
+
+set -euo pipefail
+
+SCRIPT_DIR=&quot;$(cd &quot;$(dirname &quot;$0&quot;)&quot; &amp;&amp; pwd)&quot;
+REPO_ROOT=&quot;$(cd &quot;$SCRIPT_DIR/..&quot; &amp;&amp; pwd)&quot;
+ASSET_DIR=&quot;$REPO_ROOT/static-sitegen/assets/doom&quot;
+FORCE=0
+
+if [[ ${1:-} == &quot;--force&quot; ]]; then
+  FORCE=1
+fi
+
+mkdir -p &quot;$ASSET_DIR&quot;
+
+ASSET_FILES=(doom.wasm)
+
+missing=()
+for f in &quot;${ASSET_FILES[@]}&quot;; do
+  if [[ ! -f &quot;$ASSET_DIR/$f&quot; ]]; then
+    missing+=(&quot;$f&quot;)
+  fi
+done
+
+if [[ ${#missing[@]} -eq 0 &amp;&amp; $FORCE -eq 0 ]]; then
+  echo &quot;[doom] assets already exist in $ASSET_DIR (use --force to overwrite)&quot;
+  exit 0
+fi
+
+SOURCE_DIR=${DOOM_SOURCE_DIR:-&quot;&quot;}
+WASM_URL=${DOOM_WASM_URL:-&quot;https://diekmann.github.io/wasm-fizzbuzz/doom/doom.wasm&quot;}
+
+copy_from_dir() {
+  local dir=&quot;$1&quot;
+  echo &quot;[doom] copying assets from $dir -&gt; $ASSET_DIR&quot;
+  for f in &quot;${ASSET_FILES[@]}&quot;; do
+    if [[ -f &quot;$dir/$f&quot; ]]; then
+      cp &quot;$dir/$f&quot; &quot;$ASSET_DIR/$f&quot;
+    else
+      echo &quot;[doom] warning: missing $f in source; continuing&quot; &gt;&amp;2
+    fi
+  done
+}
+
+if [[ -n &quot;$SOURCE_DIR&quot; ]]; then
+  if [[ ! -d &quot;$SOURCE_DIR&quot; ]]; then
+    echo &quot;[doom] DOOM_SOURCE_DIR does not exist: $SOURCE_DIR&quot; &gt;&amp;2
+    exit 1
+  fi
+
+  CANDIDATES=(
+    &quot;$SOURCE_DIR&quot;
+    &quot;$SOURCE_DIR/dist/doom&quot;
+    &quot;$SOURCE_DIR/doom&quot;
+  )
+  SOURCE_FOUND=&quot;&quot;
+  for dir in &quot;${CANDIDATES[@]}&quot;; do
+    if [[ -f &quot;$dir/doom.wasm&quot; ]]; then
+      SOURCE_FOUND=&quot;$dir&quot;
+      break
+    fi
+  done
+  if [[ -z &quot;$SOURCE_FOUND&quot; ]]; then
+    echo &quot;[doom] could not find doom.wasm in $SOURCE_DIR or known subdirectories.&quot; &gt;&amp;2
+    exit 1
+  fi
+  copy_from_dir &quot;$SOURCE_FOUND&quot;
+else
+  tmp=&quot;$(mktemp)&quot;
+  echo &quot;[doom] downloading wasm from $WASM_URL&quot;
+  if ! curl -L --fail --output &quot;$tmp&quot; &quot;$WASM_URL&quot;; then
+    echo &quot;[doom] download failed&quot; &gt;&amp;2
+    rm -f &quot;$tmp&quot;
+    exit 1
+  fi
+  mv &quot;$tmp&quot; &quot;$ASSET_DIR/doom.wasm&quot;
+fi
+
+echo &quot;[doom] done&quot;
+</code></pre>
+      </div>
+    </article>
+  

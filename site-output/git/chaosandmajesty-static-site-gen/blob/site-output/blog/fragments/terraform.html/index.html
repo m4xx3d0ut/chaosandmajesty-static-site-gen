@@ -1,0 +1,241 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">terraform.html</h4>
+        <div class="git-file-meta">
+          <span>8.5 KB</span>
+          <span>site-output/blog/fragments/terraform.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;terraform&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;Terraform&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Feb 6, 2025&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;5 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;p&gt;&lt;a href=&quot;https://developer.hashicorp.com/terraform/language&quot;&gt;Terraform Docs&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;General Usage&lt;/h2&gt;
+&lt;h3&gt;Format and validate the configuration&lt;/h3&gt;
+&lt;p&gt;Format your configuration. Terraform will print out the names of the files it modified, if any. In this case, your configuration file was already formatted correctly, so Terraform won&amp;#39;t return any file names.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform fmt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Validate your configuration. The example configuration provided above is valid, so Terraform will return a success message.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform validate
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Create infrastructure&lt;/h3&gt;
+&lt;p&gt;Apply the configuration now with the terraform apply command. Terraform will print output similar to what is shown below. We have truncated some of the output to save space.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform apply
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Inspect state&lt;/h3&gt;
+&lt;p&gt;Inspect the current state using terraform show.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform show
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Manually Managing State&lt;/h3&gt;
+&lt;p&gt;Terraform has a built-in command called terraform state for advanced state management. Use the list subcommand to list of the resources in your project&amp;#39;s state.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform state list
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Destroy&lt;/h3&gt;
+&lt;p&gt;Destroy the resources you created.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform destroy
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Define input variables&lt;/h2&gt;
+&lt;h3&gt;Set the container name with a variable&lt;/h3&gt;
+&lt;p&gt;Create a new file called variables.tf with a block defining a new container_name variable.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;variable &amp;quot;container_name&amp;quot; {
+  description = &amp;quot;Value of the name for the Docker container&amp;quot;
+  type        = string
+  default     = &amp;quot;ExampleNginxContainer&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In main.tf, update the docker_container resource block to use the new variable. The container_name variable block will default to its default value (&amp;quot;ExampleNginxContainer&amp;quot;) unless you declare a different value.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;resource &amp;quot;docker_container&amp;quot; &amp;quot;nginx&amp;quot; {
+  image = docker_image.nginx.image_id
+  name  = var.container_name
+  ports {
+    internal = 80
+    external = 8080
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Apply the configuration. Respond to the confirmation prompt with a yes.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform apply
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now apply the configuration again, this time overriding the default container name by passing in a variable using the -var flag. Terraform will update the container&amp;#39;s name attribute with the new name. Respond to the confirmation prompt with yes.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform apply -var &amp;quot;container_name=YetAnotherName&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;Docker&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs&quot;&gt;Provider Reference&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Build&lt;/h3&gt;
+&lt;p&gt;Simple example to create a Nginx Docker container.&lt;/p&gt;
+&lt;p&gt;Create a &lt;code&gt;main.tf&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform {
+  required_providers {
+    docker = {
+      source  = &amp;quot;kreuzwerker/docker&amp;quot;
+      version = &amp;quot;~&amp;gt; 3.0.1&amp;quot;
+    }
+  }
+}
+
+provider &amp;quot;docker&amp;quot; {}
+
+resource &amp;quot;docker_image&amp;quot; &amp;quot;nginx&amp;quot; {
+  name         = &amp;quot;nginx&amp;quot;
+  keep_locally = false
+}
+
+resource &amp;quot;docker_container&amp;quot; &amp;quot;nginx&amp;quot; {
+  image = docker_image.nginx.image_id
+  name  = &amp;quot;tutorial&amp;quot;
+
+  ports {
+    internal = 80
+    external = 8000
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Initialize the directory.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform init
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Terraform downloads the docker provider and installs it in a hidden subdirectory of your current working directory, named .terraform. The terraform init command prints out which version of the provider was installed. Terraform also creates a lock file named .terraform.lock.hcl which specifies the exact provider versions used, so that you can control when you want to update the providers used for your project.&lt;/p&gt;
+&lt;h3&gt;Output Docker container configuration&lt;/h3&gt;
+&lt;p&gt;Add the configuration below to outputs.tf to define outputs for your container&amp;#39;s ID and the image ID.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;output &amp;quot;container_id&amp;quot; {
+  description = &amp;quot;ID of the Docker container&amp;quot;
+  value       = docker_container.nginx.id
+}
+
+output &amp;quot;image_id&amp;quot; {
+  description = &amp;quot;ID of the Docker image&amp;quot;
+  value       = docker_image.nginx.id
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You must apply this configuration before you can use these output values. Apply your configuration now. Respond to the confirmation prompt with yes.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform apply
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Terraform prints output values to the screen when you apply your configuration. Query the outputs with the terraform output command.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;$ terraform output
+container_id = &amp;quot;e5fff27c62e26dc9504d21980543f21161225ab483a1e534a98311a677b9453a&amp;quot;
+image_id = &amp;quot;sha256:d1a364dc548d5357f0da3268c888e1971bbdb957ee3f028fe7194f1d61c6fdeenginx:latest&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;More detail on &lt;a href=&quot;https://developer.hashicorp.com/terraform/tutorials/configuration-language/outputs&quot;&gt;outputs&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;AWS&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://registry.terraform.io/providers/hashicorp/aws/latest/docs&quot;&gt;Provider Reference&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Build&lt;/h3&gt;
+&lt;p&gt;Create a &lt;code&gt;main.tf&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform {
+  required_providers {
+    aws = {
+      source  = &amp;quot;hashicorp/aws&amp;quot;
+      version = &amp;quot;~&amp;gt; 4.16&amp;quot;
+    }
+  }
+
+  required_version = &amp;quot;&amp;gt;= 1.2.0&amp;quot;
+}
+
+provider &amp;quot;aws&amp;quot; {
+  region  = &amp;quot;us-west-2&amp;quot;
+}
+
+resource &amp;quot;aws_instance&amp;quot; &amp;quot;app_server&amp;quot; {
+  ami           = &amp;quot;ami-830c94e3&amp;quot;
+  instance_type = &amp;quot;t2.micro&amp;quot;
+
+  tags = {
+    Name = &amp;quot;ExampleAppServerInstance&amp;quot;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Initialize the directory.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;terraform init
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Terraform downloads the aws provider and installs it in a hidden subdirectory of your current working directory, named .terraform. The terraform init command prints out which version of the provider was installed. Terraform also creates a lock file named .terraform.lock.hcl which specifies the exact provider versions used, so that you can control when you want to update the providers used for your project.&lt;/p&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/sli-slo.html&quot;
+        data-default-href=&quot;blog/sli-slo.html&quot;
+        data-default-fragment=&quot;blog/fragments/sli-slo.html&quot;
+        data-fragment-href=&quot;blog/fragments/sli-slo.html&quot;
+        data-target-slug=&quot;sli-slo&quot;
+        data-post-slug=&quot;sli-slo&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Measuring Reliability With SLIs And SLOs&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/workload-identity-federation.html&quot;
+        data-default-href=&quot;blog/workload-identity-federation.html&quot;
+        data-default-fragment=&quot;blog/fragments/workload-identity-federation.html&quot;
+        data-fragment-href=&quot;blog/fragments/workload-identity-federation.html&quot;
+        data-target-slug=&quot;workload-identity-federation&quot;
+        data-post-slug=&quot;workload-identity-federation&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Workload Identity Federation&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

@@ -1,0 +1,95 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">main.yml</h4>
+        <div class="git-file-meta">
+          <span>2.0 KB</span>
+          <span>ansible/roles/app_deploy/tasks/main.yml</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>---
+- name: Ensure application directory exists
+  file:
+    path: &quot;{{ app_dir }}&quot;
+    state: directory
+    owner: &quot;{{ app_owner }}&quot;
+    group: &quot;{{ app_group }}&quot;
+    mode: &#039;0755&#039;
+
+- name: Ensure WebDAV directory exists on host
+  file:
+    path: &quot;{{ webdav_host_path }}&quot;
+    state: directory
+    owner: root
+    group: root
+    mode: &#039;0775&#039;
+  when: webdav_mount_enabled | bool
+
+- name: Ensure ACME webroot exists on host
+  file:
+    path: &quot;{{ acme_webroot_host_path }}/.well-known/acme-challenge&quot;
+    state: directory
+    owner: root
+    group: root
+    mode: &#039;0755&#039;
+  when: letsencrypt_mount_enabled | bool
+
+- name: Render docker-compose configuration
+  template:
+    src: docker-compose.yml.j2
+    dest: &quot;{{ app_dir }}/docker-compose.yml&quot;
+    owner: &quot;{{ app_owner }}&quot;
+    group: &quot;{{ app_group }}&quot;
+    mode: &#039;0640&#039;
+
+- name: Record desired image reference
+  copy:
+    dest: &quot;{{ app_dir }}/.current-image&quot;
+    content: &quot;{{ image_ref }}\n&quot;
+    owner: &quot;{{ app_owner }}&quot;
+    group: &quot;{{ app_group }}&quot;
+    mode: &#039;0640&#039;
+
+- name: Authenticate to container registry (optional)
+  community.docker.docker_login:
+    registry_url: &quot;{{ image_registry }}&quot;
+    username: &quot;{{ registry_username }}&quot;
+    password: &quot;{{ registry_password }}&quot;
+  when: registry_login | bool
+
+- name: Pull deployment image explicitly
+  community.docker.docker_image:
+    name: &quot;{{ image_ref }}&quot;
+    source: pull
+    force_source: true
+
+- name: Stop host nginx service if requested
+  service:
+    name: &quot;{{ host_nginx_service_name }}&quot;
+    state: stopped
+    enabled: false
+  when: disable_host_nginx | bool
+
+- name: Apply compose project
+  community.docker.docker_compose_v2:
+    project_src: &quot;{{ app_dir }}&quot;
+    pull: never
+    recreate: always
+    remove_orphans: true
+    state: present
+
+- name: Probe container health endpoint
+  uri:
+    url: &quot;http://{{ healthcheck_address }}:{{ healthcheck_port }}{{ healthcheck_path }}&quot;
+    status_code: 200
+    timeout: 10
+    return_content: false
+  register: healthcheck_response
+  retries: 5
+  delay: 5
+  until: healthcheck_response.status == 200
+</code></pre>
+      </div>
+    </article>
+  

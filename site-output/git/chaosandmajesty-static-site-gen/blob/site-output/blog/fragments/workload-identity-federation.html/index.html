@@ -1,0 +1,511 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">workload-identity-federation.html</h4>
+        <div class="git-file-meta">
+          <span>23 KB</span>
+          <span>site-output/blog/fragments/workload-identity-federation.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>
+
+
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;workload-identity-federation&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;Workload Identity Federation&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Feb 6, 2025&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;5 min read&lt;/span&gt;
+      
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;1. Key &amp;amp; JWKS Generation&lt;/h2&gt;
+&lt;p&gt;To create &lt;strong&gt;pri&lt;/strong&gt; and &lt;strong&gt;pub&lt;/strong&gt; JSON keys&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# **Create public &amp;amp; private keys**
+$ python api/jwks_auth/main.py --help
+usage: main.py [-h] [--create] [--stdout] [--save_public SAVE_PUBLIC] [--save_private SAVE_PRIVATE]
+
+options:
+  -h, --help            show this help message and exit
+  --create              Generate JWKS
+  --stdout              Print output to STDOUT
+  --save_public SAVE_PUBLIC
+                        File path to save public JWKS
+  --save_private SAVE_PRIVATE
+                        File path to save private JWKS
+
+$ python api/jwks_auth/main.py --create --save_public api/prd-pub.json --save_private api/prd-pri.json --stdout
+[*] Creating JWKS...
+[*] JWKS Public JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+[*] JWKS Private JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;d&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dp&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dq&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;p&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;q&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;qi&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+[*] JWKS Public JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+JWKS (public) JSON file saved successfully to prd-pub.json.
+[*] JWKS Private JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;d&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dp&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dq&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;p&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;q&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;qi&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+JWKS (private) JSON file saved successfully to prd-pri.json.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;2. Configure Workload Identity Federation in Google Cloud&lt;/h2&gt;
+&lt;p&gt;Set up the identity federation configuration in the Google Cloud Console:&lt;/p&gt;
+&lt;h3&gt;a. Create a Workload Identity Pool&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Navigate to IAM &amp;amp; Admin &amp;gt; Workload Identity Pools:&lt;/strong&gt;&lt;br&gt;In the GCP Console, go to &lt;strong&gt;IAM &amp;amp; Admin&lt;/strong&gt; and select &lt;strong&gt;Workload Identity Pools&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Create a New Pool:&lt;/strong&gt;&lt;br&gt;Provide a name (e.g., &lt;code&gt;pool-0&lt;/code&gt;) and description. Note your pool’s resource name (it will look like &lt;code&gt;projects/123456789/locations/global/workloadIdentityPools/pool-0&lt;/code&gt;).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;b. Create a Workload Identity Provider&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Within your pool, add a new provider:&lt;/strong&gt;&lt;br&gt;Select the provider type (OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; The issuer URL does not have to be externally accessible, &amp;quot;&lt;a href=&quot;https://example.internal/.well-known/jwks.json&quot;&gt;https://example.internal/.well-known/jwks.json&lt;/a&gt;&amp;quot; can be used as a default value.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Set up attribute mapping:&lt;/strong&gt;&lt;br&gt;Map external identity attributes (e.g., the subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; In you claims JSON, &lt;code&gt;&amp;quot;sub&amp;quot;&lt;/code&gt; matches pool ID &lt;code&gt;&amp;quot;pool-0&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Record the Provider Resource Name:&lt;/strong&gt;&lt;br&gt;If your Provide ID is &amp;quot;pool-0&amp;quot;, it will look similar to:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/pool-0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;c. Enable Service Account Impersonation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Create (or select) a service account:&lt;/strong&gt;&lt;br&gt;Ensure it has the necessary BigQuery permissions.&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; A default SA should be created by the WIP&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Allow the Identity Pool to Impersonate the Service Account:&lt;/strong&gt;&lt;br&gt;In the IAM section, grant the &lt;code&gt;roles/iam.workloadIdentityUser&lt;/code&gt; role on the service account to the identity pool. This allows federated credentials to impersonate the service account.&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; The default SA should have the correct permissions and roles.  Be sure that role &lt;code&gt;workloadIdentityUser&lt;/code&gt; is assigned along with the following permissions:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;3. Create an External Credentials File&lt;/h2&gt;
+&lt;p&gt;Instead of a service account key, you create a JSON “external account” credentials file that instructs the Google authentication library how to exchange your external token for GCP credentials.&lt;/p&gt;
+&lt;h3&gt;Sample &lt;code&gt;clientLibraryConfig-pool-0.json&lt;/code&gt; File&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
+  &amp;quot;type&amp;quot;: &amp;quot;external_account&amp;quot;,
+  &amp;quot;audience&amp;quot;: &amp;quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&amp;quot;,
+  &amp;quot;subject_token_type&amp;quot;: &amp;quot;urn:ietf:params:oauth:token-type:jwt&amp;quot;,
+  &amp;quot;token_url&amp;quot;: &amp;quot;https://sts.googleapis.com/v1/token&amp;quot;,
+  &amp;quot;credential_source&amp;quot;: {
+    &amp;quot;file&amp;quot;: &amp;quot;/opt/example-lwt.json&amp;quot;  // This file should contain your external identity token (e.g., a JWT)
+  },
+  &amp;quot;service_account_impersonation_url&amp;quot;: &amp;quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT_EMAIL}:generateAccessToken&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;audience:&lt;/strong&gt; Use the provider resource name from your Workload Identity Provider.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;credential_source:&lt;/strong&gt; Retrieve your external token JSON file.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;service_account_impersonation_url:&lt;/strong&gt; Points to the connected service account.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;4. Using the BigQuery Test Client with Federated Credentials&lt;/h2&gt;
+&lt;p&gt;With your environment set up, test the BigQuery connection by listing the tables in the &lt;code&gt;your_dataset&lt;/code&gt; dataset of the target project ID&amp;#39;s BigQuery instance.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;# **CD from repo root**
+$ cd your-repo/analytics_cluster/analytics_api
+
+# **Assuming your virtual env is already setup with requirements installed**
+$ source venv/bin/activate
+
+# **Generate a new LWT with the private key and claims JSON**
+$ python api/jwks_auth/payload.py --files api/prod-pri.json api/prod-claims.json --save_lwt /opt/lwt.json
+JWT Token:
+&amp;lt;example-jwt-token&amp;gt;
+JWT Claims:
+{&amp;quot;aud&amp;quot;:&amp;quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&amp;quot;,&amp;quot;iss&amp;quot;:&amp;quot;https://example.internal/.well-known/jwks.json&amp;quot;,&amp;quot;sub&amp;quot;:&amp;quot;${SUBJECT_ATTRIBUTE_VALUE}&amp;quot;}
+LWT JSON saved to /opt/lwt.json
+Generated LWT JSON:
+{
+    &amp;quot;access_token&amp;quot;: &amp;quot;&amp;lt;example-access-token&amp;gt;&amp;quot;
+}
+
+# **Validate the LWT (Optional)**
+$ python api/jwks_auth/payload.py --validate api/prod-pub.json /opt/lwt.json
+Validated JWT Claims from external files:
+{&amp;quot;aud&amp;quot;:&amp;quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}&amp;quot;,&amp;quot;exp&amp;quot;:&amp;quot;&amp;lt;example-expiration&amp;gt;&amp;quot;,&amp;quot;iat&amp;quot;:&amp;quot;&amp;lt;example-issued-at&amp;gt;&amp;quot;,&amp;quot;iss&amp;quot;:&amp;quot;https://example.internal/.well-known/jwks.json&amp;quot;,&amp;quot;sub&amp;quot;:&amp;quot;${SUBJECT_ATTRIBUTE_VALUE}&amp;quot;}
+
+# **Test query the dataset**
+$ python api/test_bq_conn.py --dataset your_dataset --creds api/clientLibraryConfig-pool-0.json
+Tables in dataset &amp;#39;your_dataset&amp;#39;:
+- example_table_one
+- example_table_two
+- example_table_three
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;1. Key &amp;amp; JWKS Generation&lt;/h2&gt;
+&lt;p&gt;To create &lt;strong&gt;pri&lt;/strong&gt; and &lt;strong&gt;pub&lt;/strong&gt; JSON keys&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-########################################&quot;&gt;### CREATE PUBLIC &amp;amp; PRIVATE KEY JSON ###
+########################################
+
+$ python jwks_auth/main.py --help
+usage: main.py [-h] [--create] [--stdout] [--save_public SAVE_PUBLIC] [--save_private SAVE_PRIVATE]
+
+options:
+  -h, --help            show this help message and exit
+  --create              Generate JWKS
+  --stdout              Print output to STDOUT
+  --save_public SAVE_PUBLIC
+                        File path to save public JWKS
+  --save_private SAVE_PRIVATE
+                        File path to save private JWKS
+
+$ python jwks_auth/main.py --create --save_public prd-pub.json --save_private prd-pri.json --stdout
+[*] Creating JWKS...
+[*] JWKS Public JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+[*] JWKS Private JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;d&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dp&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dq&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;p&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;q&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;qi&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+[*] JWKS Public JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+JWKS (public) JSON file saved successfully to prd-pub.json.
+[*] JWKS Private JSON:
+{
+    &amp;quot;keys&amp;quot;: [
+        {
+            &amp;quot;d&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dp&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;dq&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;e&amp;quot;: &amp;quot;AQAB&amp;quot;,
+            &amp;quot;kty&amp;quot;: &amp;quot;RSA&amp;quot;,
+            &amp;quot;n&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;p&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;q&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;,
+            &amp;quot;qi&amp;quot;: &amp;quot;&amp;lt;omitted&amp;gt;&amp;quot;
+        }
+    ]
+}
+JWKS (private) JSON file saved successfully to prd-pri.json.
+
+
+#######################
+### CREATE LWT JSON ###
+#######################
+
+$ python jwks_auth/payload.py --files prd-pri.json prd-claims.json --save_lwt /opt/lwt.json
+JWT Token:
+&amp;lt;example-jwt-token&amp;gt;
+JWT Claims:
+{&amp;quot;aud&amp;quot;:&amp;quot;https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/pool-0&amp;quot;,&amp;quot;iss&amp;quot;:&amp;quot;https://example.internal/.well-known/jwks.json&amp;quot;,&amp;quot;sub&amp;quot;:&amp;quot;${SERVICE_ACCOUNT_SUBJECT}&amp;quot;}
+LWT JSON saved to /opt/lwt.json
+Generated LWT JSON:
+{
+    &amp;quot;access_token&amp;quot;: &amp;quot;&amp;lt;example-access-token&amp;gt;&amp;quot;
+}
+
+
+#############################
+### TEST TOKEN VALIDATION ###
+#############################
+
+$ python jwks_auth/payload.py --validate prd-pub.json /opt/lwt.json
+Validated JWT Claims from external files:
+{&amp;quot;aud&amp;quot;:&amp;quot;https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/pool-0&amp;quot;,&amp;quot;exp&amp;quot;:&amp;quot;&amp;lt;example-expiration&amp;gt;&amp;quot;,&amp;quot;iat&amp;quot;:&amp;quot;&amp;lt;example-issued-at&amp;gt;&amp;quot;,&amp;quot;iss&amp;quot;:&amp;quot;https://example.internal/.well-known/jwks.json&amp;quot;,&amp;quot;sub&amp;quot;:&amp;quot;${SERVICE_ACCOUNT_SUBJECT}&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;NOTES&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# DEV
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/subject/${SERVICE_ACCOUNT_NAME_DEV}
+
+# PRD
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/${SERVICE_ACCOUNT_NAME_PROD}
+
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/pool-0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Example Analytics Pool&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-ID&quot;&gt;pool-0
+Description
+Example analytics WIF
+Status
+IAM principal 
+principal://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE 
+Logs 
+View
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Providers&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;example-oidc-provider	OIDC
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Provider Details&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-example-oidc-provider&quot;&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Issuer URL&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;https://example.internal/.well-known/jwks.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; Record the resulting IAM principal, grant to SA with &lt;code&gt;roles/iam.workloadIdentityUser&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;principal://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/subject/SUBJECT_ATTRIBUTE_VALUE
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Audiences
+Default Audiences&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# DEV
+https://iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/providers/example-jwt-provider
+
+# PRD
+https://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/example-oidc-provider
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;OIDC 1&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-assertion.sub&quot;&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;SA Permissions/Roles&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# DEV
+${SERVICE_ACCOUNT_NAME_DEV}@${PROJECT_ID_DEV}.iam.gserviceaccount.com
+${SERVICE_ACCOUNT_NAME_DEV}
+BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+
+# PRD
+${SERVICE_ACCOUNT_NAME_PROD}@${PROJECT_ID_PROD}.iam.gserviceaccount.com
+${SERVICE_ACCOUNT_NAME_PROD}	
+BigQuery Data Viewer
+BigQuery Job User
+BigQuery Metadata Viewer
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Service Account must be granted access to IAM WIP principal (from pool creation) with &lt;code&gt;roles/iam.workloadIdentityUser&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Create a &lt;code&gt;claims.json&lt;/code&gt; with your SA, issue, and audience (without &lt;code&gt;https:&lt;/code&gt;)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;sub&amp;quot;: &amp;quot;${SERVICE_ACCOUNT_SUBJECT}&amp;quot;,
+  &amp;quot;iss&amp;quot;: &amp;quot;https://example.internal/.well-known/jwks.json&amp;quot;,
+  &amp;quot;aud&amp;quot;: &amp;quot;//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/pool-0/providers/example-oidc-provider&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;2. Configure Workload Identity Federation in Google Cloud&lt;/h2&gt;
+&lt;p&gt;Before writing any code, you need to set up your identity federation configuration in the Google Cloud Console:&lt;/p&gt;
+&lt;h3&gt;a. Create a Workload Identity Pool&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Navigate to IAM &amp;amp; Admin &amp;gt; Workload Identity Pools:&lt;/strong&gt;&lt;br&gt;In the GCP Console, go to &lt;strong&gt;IAM &amp;amp; Admin&lt;/strong&gt; and select &lt;strong&gt;Workload Identity Pools&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Create a New Pool:&lt;/strong&gt;&lt;br&gt;Provide a name (e.g., &lt;code&gt;pool-0&lt;/code&gt;) and description. Note your pool’s resource name (it will look like &lt;code&gt;projects/123456789/locations/global/workloadIdentityPools/pool-0&lt;/code&gt;).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;b. Create a Workload Identity Provider&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Within your pool, add a new provider:&lt;/strong&gt;&lt;br&gt;Select the provider type (for example, OIDC for JWT-based tokens) and configure the details of your external identity provider (e.g., the issuer URL).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Set up attribute mapping:&lt;/strong&gt;&lt;br&gt;Map external identity attributes (like email or subject) to Google Cloud attributes. This mapping is used when you impersonate a service account.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Record the Provider Resource Name:&lt;/strong&gt;&lt;br&gt;It will look similar to:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/my-provider
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;c. Enable Service Account Impersonation&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Create (or select) a service account:&lt;/strong&gt;&lt;br&gt;Ensure it has the necessary BigQuery permissions.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Allow the Identity Pool to Impersonate the Service Account:&lt;/strong&gt;&lt;br&gt;In the IAM section, grant the &lt;code&gt;roles/iam.workloadIdentityUser&lt;/code&gt; role on the service account to the identity pool. This allows federated credentials to impersonate the service account.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;em&gt;For additional details, refer to the &lt;a href=&quot;https://cloud.google.com/docs/authentication/workload-identity-federation&quot;&gt;Workload Identity Federation documentation&lt;/a&gt; citeturn0doc1.&lt;/em&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;3. Create an External Credentials File&lt;/h2&gt;
+&lt;p&gt;Instead of a service account key, you create a JSON file (often called an “external account” credentials file) that instructs the Google authentication library how to exchange your external token for GCP credentials.&lt;/p&gt;
+&lt;h3&gt;Sample &lt;code&gt;clientLibraryConfig-pool-0.json&lt;/code&gt; File&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
+  &amp;quot;type&amp;quot;: &amp;quot;external_account&amp;quot;,
+  &amp;quot;audience&amp;quot;: &amp;quot;//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/pool-0/providers/my-provider&amp;quot;,
+  &amp;quot;subject_token_type&amp;quot;: &amp;quot;urn:ietf:params:oauth:token-type:jwt&amp;quot;,
+  &amp;quot;token_url&amp;quot;: &amp;quot;https://sts.googleapis.com/v1/token&amp;quot;,
+  &amp;quot;credential_source&amp;quot;: {
+    &amp;quot;file&amp;quot;: &amp;quot;/path/to/external/token&amp;quot;  // This file should contain your external identity token (e.g., a JWT)
+  },
+  &amp;quot;service_account_impersonation_url&amp;quot;: &amp;quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/my-service-account@my-project.iam.gserviceaccount.com:generateAccessToken&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;audience:&lt;/strong&gt; Use the provider resource name from your Workload Identity Provider.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;credential_source:&lt;/strong&gt; Configure how to retrieve your external token. This might be a file, a command, or another source.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;service_account_impersonation_url:&lt;/strong&gt; Points to the service account you wish to impersonate.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;More on external account configuration can be found in the &lt;a href=&quot;https://cloud.google.com/docs/authentication/external-account&quot;&gt;External Account Credentials documentation&lt;/a&gt; citeturn0doc2.&lt;/em&gt;&lt;/p&gt;
+&lt;h3&gt;NOTES&lt;/h3&gt;
+&lt;p&gt;External Credentials File &lt;strong&gt;clientLibraryConfig-example-jwt-provider.json&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;universe_domain&amp;quot;: &amp;quot;googleapis.com&amp;quot;,
+  &amp;quot;type&amp;quot;: &amp;quot;external_account&amp;quot;,
+  &amp;quot;audience&amp;quot;: &amp;quot;//iam.googleapis.com/projects/${PROJECT_NUMBER_DEV}/locations/global/workloadIdentityPools/pool-0/providers/example-jwt-provider&amp;quot;,
+  &amp;quot;subject_token_type&amp;quot;: &amp;quot;urn:ietf:params:oauth:token-type:jwt&amp;quot;,
+  &amp;quot;token_url&amp;quot;: &amp;quot;https://sts.googleapis.com/v1/token&amp;quot;,
+  &amp;quot;service_account_impersonation_url&amp;quot;: &amp;quot;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT_NAME_DEV}@${PROJECT_ID_DEV}.iam.gserviceaccount.com:generateAccessToken&amp;quot;,
+  &amp;quot;credential_source&amp;quot;: {
+    &amp;quot;file&amp;quot;: &amp;quot;/opt/lwt.json&amp;quot;,
+    &amp;quot;format&amp;quot;: {
+      &amp;quot;type&amp;quot;: &amp;quot;json&amp;quot;,
+      &amp;quot;subject_token_field_name&amp;quot;: &amp;quot;access_token&amp;quot;
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;4. Set the Environment Variable&lt;/h2&gt;
+&lt;p&gt;Tell the Google Cloud client libraries where to find your external account credentials by setting the environment variable:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;export GOOGLE_APPLICATION_CREDENTIALS=&amp;quot;/path/to/clientLibraryConfig-pool-0.json&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This step ensures that when you create a BigQuery client, it will automatically load and use the federated credentials.&lt;/p&gt;
+&lt;h3&gt;NOTES&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# **NOTE:** for BQ federated identity auth
+GCP_PROJECT=&amp;quot;${PROJECT_ID_DEV}&amp;quot;
+GCP_BQ_DATASET=&amp;quot;${BQ_DATASET_ID}&amp;quot;
+GCP_CLIENT_CONF=&amp;quot;/app/api/clientLibraryConfig-example.json&amp;quot;
+GCP_PRI_KEY=&amp;quot;/app/api/pri.json&amp;quot;
+GCP_CLAIMS_FILE=&amp;quot;/app/api/claims.json&amp;quot;
+GCP_PUB_KEY=&amp;quot;/app/api/pub.json&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2&gt;5. Using the BigQuery Python Client with Federated Credentials&lt;/h2&gt;
+&lt;p&gt;With your environment set up, your Python code remains almost identical to using any other form of credentials. The &lt;code&gt;google-cloud-bigquery&lt;/code&gt; library leverages the credentials provided via the environment variable.&lt;/p&gt;
+&lt;h3&gt;Sample Code&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;from google.cloud import bigquery
+
+# The client automatically picks up the federated credentials from the environment.
+client = bigquery.Client()
+
+query = &amp;quot;&amp;quot;&amp;quot;
+    SELECT name, SUM(number) as total
+    FROM `bigquery-public-data.usa_names.usa_1910_2013`
+    GROUP BY name
+    ORDER BY total DESC
+    LIMIT 10
+&amp;quot;&amp;quot;&amp;quot;
+
+query_job = client.query(query)
+results = query_job.result()
+
+print(&amp;quot;Top 10 Names by Total Count:&amp;quot;)
+for row in results:
+    print(f&amp;quot;{row.name}: {row.total}&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When this script runs, the BigQuery client:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Reads the JSON credentials file specified by &lt;code&gt;GOOGLE_APPLICATION_CREDENTIALS&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Uses the external token (provided via your &lt;code&gt;credential_source&lt;/code&gt;) and exchanges it for short-lived Google Cloud credentials via the Security Token Service (STS).&lt;/li&gt;
+&lt;li&gt;Impersonates the designated service account and accesses BigQuery as allowed by the service account’s permissions.&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;blog/terraform.html&quot;
+        data-default-href=&quot;blog/terraform.html&quot;
+        data-default-fragment=&quot;blog/fragments/terraform.html&quot;
+        data-fragment-href=&quot;blog/fragments/terraform.html&quot;
+        data-target-slug=&quot;terraform&quot;
+        data-post-slug=&quot;terraform&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Terraform&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;blog/microk8s-helm-deploy.html&quot;
+        data-default-href=&quot;blog/microk8s-helm-deploy.html&quot;
+        data-default-fragment=&quot;blog/fragments/microk8s-helm-deploy.html&quot;
+        data-fragment-href=&quot;blog/fragments/microk8s-helm-deploy.html&quot;
+        data-target-slug=&quot;microk8s-helm-deploy&quot;
+        data-post-slug=&quot;microk8s-helm-deploy&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;Deploying a Custom Helm Chart on MicroK8s&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+</code></pre>
+      </div>
+    </article>
+  

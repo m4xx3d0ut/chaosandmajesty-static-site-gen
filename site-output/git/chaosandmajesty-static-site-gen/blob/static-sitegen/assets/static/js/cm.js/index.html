@@ -1,0 +1,3503 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">cm.js</h4>
+        <div class="git-file-meta">
+          <span>113 KB</span>
+          <span>static-sitegen/assets/static/js/cm.js</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>(function() {
+  const CONTRAST_KEY = &#039;cm-contrast-mode&#039;;
+  const CONTRAST_CLASS = &#039;contrast-mode&#039;;
+  const LOGO_PAUSE_REASON_TERMINAL = &#039;terminal-input&#039;;
+  const LOGO_PAUSE_REASON_DOOM = &#039;doom&#039;;
+  const DOOM_DEFAULT_ZONE_MB = 96;
+  // Boost DOOM&#039;s zone allocator so save / audio heaps fit comfortably.
+  const DOOM_DEFAULT_LAUNCH_ARGS = [&#039;-mb&#039;, String(DOOM_DEFAULT_ZONE_MB)];
+  const TERMINAL_STORAGE_KEY = &#039;cm-terminal-buffer&#039;;
+  const TERMINAL_MAX_SEGMENTS = 320;
+
+  function ensureLogoControl() {
+    if (typeof window === &#039;undefined&#039;) {
+      return {
+        setController: function() {},
+        pause: function() {},
+        resume: function() {},
+        toggleManualPause: function() {},
+        isPaused: function() { return false; }
+      };
+    }
+
+    const existing = window.cmLogoControl;
+    if (existing &amp;&amp; typeof existing.pause === &#039;function&#039; &amp;&amp; typeof existing.resume === &#039;function&#039;) {
+      return existing;
+    }
+
+    const pendingReasons = new Set();
+    let controller = null;
+
+    const stub = {
+      setController(nextController) {
+        controller = nextController;
+        if (!controller || typeof controller.pause !== &#039;function&#039;) {
+          return;
+        }
+        if (pendingReasons.size &gt; 0) {
+          pendingReasons.forEach(reason =&gt; {
+            try {
+              controller.pause(reason);
+            } catch (err) {
+              console.error(&#039;Failed to apply pending CM logo pause reason&#039;, reason, err);
+            }
+          });
+          pendingReasons.clear();
+        }
+      },
+      pause(reason) {
+        const key = reason || &#039;manual&#039;;
+        if (controller &amp;&amp; typeof controller.pause === &#039;function&#039;) {
+          controller.pause(key);
+          return;
+        }
+        pendingReasons.add(key);
+      },
+      resume(reason) {
+        const key = reason || &#039;manual&#039;;
+        if (controller &amp;&amp; typeof controller.resume === &#039;function&#039;) {
+          controller.resume(key);
+          return;
+        }
+        pendingReasons.delete(key);
+      },
+      toggleManualPause() {
+        if (controller &amp;&amp; typeof controller.toggleManualPause === &#039;function&#039;) {
+          controller.toggleManualPause();
+          return;
+        }
+        if (pendingReasons.has(&#039;manual&#039;)) {
+          pendingReasons.delete(&#039;manual&#039;);
+        } else {
+          pendingReasons.add(&#039;manual&#039;);
+        }
+      },
+      isPaused() {
+        if (controller &amp;&amp; typeof controller.isPaused === &#039;function&#039;) {
+          return controller.isPaused();
+        }
+        return pendingReasons.size &gt; 0;
+      }
+    };
+
+    window.cmLogoControl = stub;
+    return stub;
+  }
+
+  const logoControl = ensureLogoControl();
+
+  function pauseLogo(reason) {
+    if (logoControl &amp;&amp; typeof logoControl.pause === &#039;function&#039;) {
+      logoControl.pause(reason);
+    }
+  }
+
+  function resumeLogo(reason) {
+    if (logoControl &amp;&amp; typeof logoControl.resume === &#039;function&#039;) {
+      logoControl.resume(reason);
+    }
+  }
+
+  function updateToggleState(toggle, isSoft) {
+    if (!toggle) return;
+    toggle.textContent = &#039;1337&#039;;
+    toggle.title = &#039;1337 Mode&#039;;
+    toggle.setAttribute(&#039;aria-label&#039;, &#039;Toggle 1337 Mode&#039;);
+    toggle.setAttribute(&#039;aria-pressed&#039;, isSoft ? &#039;false&#039; : &#039;true&#039;);
+    toggle.classList.toggle(&#039;is-1337&#039;, !isSoft);
+  }
+
+  function applyContrastPreference(pref, toggle) {
+    const body = document.body;
+    if (!body) return;
+    const isSoft = pref !== &#039;neon&#039;;
+
+    if (isSoft) {
+      body.classList.add(CONTRAST_CLASS);
+      body.setAttribute(&#039;data-contrast&#039;, &#039;soft&#039;);
+    } else {
+      body.classList.remove(CONTRAST_CLASS);
+      body.removeAttribute(&#039;data-contrast&#039;);
+    }
+
+    updateToggleState(toggle, isSoft);
+  }
+
+  function initThemeToggle() {
+    const toggle = document.querySelector(&#039;.theme-toggle&#039;);
+    const stored = window.localStorage.getItem(CONTRAST_KEY) || &#039;soft&#039;;
+
+    applyContrastPreference(stored, toggle);
+
+    if (!toggle) return;
+
+    toggle.addEventListener(&#039;click&#039;, function() {
+      const body = document.body;
+      if (!body) return;
+      const next = body.classList.contains(CONTRAST_CLASS) ? &#039;neon&#039; : &#039;soft&#039;;
+      applyContrastPreference(next, toggle);
+      window.localStorage.setItem(CONTRAST_KEY, next);
+    });
+  }
+
+  function initBackToTop() {
+    const btn = document.querySelector(&#039;.blog-back-to-top&#039;);
+    if (!btn) return;
+
+    const toggleVisibility = () =&gt; {
+      const scrolled = window.pageYOffset || document.documentElement.scrollTop || 0;
+      if (scrolled &gt; 400) {
+        btn.classList.add(&#039;is-visible&#039;);
+      } else {
+        btn.classList.remove(&#039;is-visible&#039;);
+      }
+    };
+
+    btn.addEventListener(&#039;click&#039;, function() {
+      window.scrollTo({ top: 0, behavior: &#039;smooth&#039; });
+    });
+
+    window.addEventListener(&#039;scroll&#039;, toggleVisibility, { passive: true });
+    toggleVisibility();
+  }
+
+  function isLikelyMobileViewport() {
+    if (typeof window === &#039;undefined&#039;) {
+      return false;
+    }
+
+    var matchesMobileWidth = false;
+    if (typeof window.matchMedia === &#039;function&#039;) {
+      try {
+        matchesMobileWidth = window.matchMedia(&#039;(max-width: 768px)&#039;).matches;
+      } catch (_err) {
+        matchesMobileWidth = false;
+      }
+    }
+
+    var hasTouchCapability = false;
+    try {
+      hasTouchCapability = (&#039;ontouchstart&#039; in window) || (navigator &amp;&amp; typeof navigator.maxTouchPoints === &#039;number&#039; &amp;&amp; navigator.maxTouchPoints &gt; 0);
+    } catch (_err2) {
+      hasTouchCapability = false;
+    }
+
+    return matchesMobileWidth || hasTouchCapability;
+  }
+
+  function isLikelyIOS() {
+    if (typeof navigator === &#039;undefined&#039;) {
+      return false;
+    }
+
+    try {
+      var platform = navigator.platform || &#039;&#039;;
+      var userAgent = navigator.userAgent || &#039;&#039;;
+      var maxTouchPoints = typeof navigator.maxTouchPoints === &#039;number&#039; ? navigator.maxTouchPoints : 0;
+
+      if (/iP(hone|od|ad)/.test(platform)) {
+        return true;
+      }
+      if (/iPhone|iPad|iPod/.test(userAgent)) {
+        return true;
+      }
+      if (/Mac/.test(platform) &amp;&amp; maxTouchPoints &gt; 1) {
+        return true;
+      }
+    } catch (_err) {
+      return false;
+    }
+
+    return false;
+  }
+
+  function initMobileConsoleKeyboardScaling() {
+    if (typeof document === &#039;undefined&#039;) {
+      return;
+    }
+
+    var body = document.body;
+    if (!body || !isLikelyMobileViewport()) {
+      return;
+    }
+
+    var consoleEl = document.getElementById(&#039;console&#039;);
+    var inputEl = document.getElementById(&#039;uIn&#039;);
+    if (!consoleEl || !inputEl) {
+      return;
+    }
+
+    var viewport = typeof window !== &#039;undefined&#039; ? window.visualViewport : null;
+    var baselineHeight = viewport ? viewport.height : null;
+    var keyboardActive = false;
+    var keyboardMarker = null;
+    var consoleWrapper = consoleEl.closest(&#039;.console-center&#039;);
+    var consoleTranslateY = 0;
+    var KEYBOARD_STATE_CLASS = &#039;cm-keyboard-open&#039;;
+    var KEYBOARD_MARKER_CLASS = &#039;cm-keyboard-anchor&#039;;
+    var KEYBOARD_MARKER_THICKNESS = 12; // Mirror --cm-keyboard-marker-thickness
+    var HEIGHT_THRESHOLD = 120;
+    var prefersScrollAlignment = isLikelyIOS();
+
+    function getViewportBottom() {
+      if (viewport) {
+        return viewport.height + viewport.offsetTop;
+      }
+      return window.innerHeight || (document.documentElement &amp;&amp; document.documentElement.clientHeight) || 0;
+    }
+
+    function ensureKeyboardMarker() {
+      if (keyboardMarker &amp;&amp; keyboardMarker.parentNode === body) {
+        return keyboardMarker;
+      }
+      keyboardMarker = document.createElement(&#039;div&#039;);
+      keyboardMarker.className = KEYBOARD_MARKER_CLASS;
+      keyboardMarker.setAttribute(&#039;aria-hidden&#039;, &#039;true&#039;);
+      body.appendChild(keyboardMarker);
+      return keyboardMarker;
+    }
+
+    function updateKeyboardMarker(isActive) {
+      if (!isActive &amp;&amp; !keyboardMarker) {
+        return;
+      }
+      var marker = ensureKeyboardMarker();
+      if (!marker) {
+        return;
+      }
+      if (!isActive) {
+        marker.classList.remove(&#039;is-active&#039;);
+        marker.style.top = &#039;&#039;;
+        return;
+      }
+      var viewportBottom = getViewportBottom();
+      var markerTop = viewportBottom - KEYBOARD_MARKER_THICKNESS;
+      if (markerTop &lt; 0) {
+        markerTop = 0;
+      }
+      marker.style.top = markerTop + &#039;px&#039;;
+      marker.classList.add(&#039;is-active&#039;);
+    }
+
+    function applyConsoleTranslate(nextValue) {
+      if (!consoleWrapper) {
+        consoleTranslateY = 0;
+        return;
+      }
+      if (prefersScrollAlignment) {
+        if (consoleWrapper.style.getPropertyValue(&#039;--cm-keyboard-translate&#039;)) {
+          consoleWrapper.style.removeProperty(&#039;--cm-keyboard-translate&#039;);
+        }
+        consoleWrapper.classList.remove(&#039;is-keyboard-adjusted&#039;);
+        consoleTranslateY = 0;
+        return;
+      }
+      if (!nextValue) {
+        consoleWrapper.style.removeProperty(&#039;--cm-keyboard-translate&#039;);
+        consoleWrapper.classList.remove(&#039;is-keyboard-adjusted&#039;);
+        consoleTranslateY = 0;
+        return;
+      }
+      consoleWrapper.style.setProperty(&#039;--cm-keyboard-translate&#039;, nextValue + &#039;px&#039;);
+      consoleWrapper.classList.add(&#039;is-keyboard-adjusted&#039;);
+      consoleTranslateY = nextValue;
+    }
+
+    function updateConsoleAlignment(isActive) {
+      if (!consoleWrapper) {
+        return;
+      }
+      if (!isActive) {
+        if (consoleTranslateY !== 0) {
+          applyConsoleTranslate(0);
+        }
+        return;
+      }
+
+      window.requestAnimationFrame(function() {
+        var viewportBottom = getViewportBottom();
+        if (!viewportBottom) {
+          return;
+        }
+        var rect = consoleWrapper.getBoundingClientRect();
+        var originalBottom = rect.bottom - consoleTranslateY;
+        var desiredBottom = viewportBottom;
+        var delta = originalBottom - desiredBottom;
+        if (prefersScrollAlignment) {
+          if (delta &gt; 4 &amp;&amp; typeof window.scrollBy === &#039;function&#039;) {
+            var scrollAmount = delta &gt; 600 ? 600 : delta;
+            window.scrollBy(0, scrollAmount);
+          }
+          return;
+        }
+        var nextTranslate = delta &gt; 1 ? -delta : 0;
+        if (Math.abs(nextTranslate - consoleTranslateY) &lt; 1) {
+          return;
+        }
+        applyConsoleTranslate(nextTranslate);
+      });
+    }
+
+    function setKeyboardState(nextState) {
+      var stateChanged = keyboardActive !== nextState;
+      keyboardActive = nextState;
+      if (stateChanged) {
+        if (keyboardActive) {
+          body.classList.add(KEYBOARD_STATE_CLASS);
+        } else {
+          body.classList.remove(KEYBOARD_STATE_CLASS);
+        }
+      }
+      if (!keyboardActive &amp;&amp; consoleTranslateY !== 0) {
+        applyConsoleTranslate(0);
+      }
+      updateKeyboardMarker(keyboardActive);
+      updateConsoleAlignment(keyboardActive);
+    }
+
+    function updateBaseline() {
+      if (!viewport) {
+        return;
+      }
+      if (baselineHeight === null || viewport.height &gt; baselineHeight) {
+        baselineHeight = viewport.height;
+      }
+    }
+
+    function detectKeyboardWithViewport() {
+      if (!viewport) {
+        return;
+      }
+      if (document.activeElement !== inputEl) {
+        setKeyboardState(false);
+        updateBaseline();
+        return;
+      }
+
+      updateBaseline();
+      var heightDelta = baselineHeight !== null ? (baselineHeight - viewport.height) : 0;
+      setKeyboardState(heightDelta &gt; HEIGHT_THRESHOLD);
+    }
+
+    if (!viewport) {
+      inputEl.addEventListener(&#039;focus&#039;, function() {
+        setKeyboardState(true);
+      });
+      inputEl.addEventListener(&#039;blur&#039;, function() {
+        setKeyboardState(false);
+      });
+      return;
+    }
+
+    viewport.addEventListener(&#039;resize&#039;, detectKeyboardWithViewport);
+    viewport.addEventListener(&#039;scroll&#039;, detectKeyboardWithViewport);
+
+    inputEl.addEventListener(&#039;focus&#039;, function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
+
+    inputEl.addEventListener(&#039;blur&#039;, function() {
+      setKeyboardState(false);
+      updateBaseline();
+    });
+
+    window.addEventListener(&#039;orientationchange&#039;, function() {
+      baselineHeight = viewport ? viewport.height : baselineHeight;
+      window.setTimeout(detectKeyboardWithViewport, 50);
+    });
+  }
+
+  const LIGHTBOX_STATE = {
+    overlay: null,
+    imageEl: null,
+    captionEl: null,
+    closeBtn: null,
+    targets: new Map(),
+    counter: 0,
+    previousActive: null
+  };
+
+  function isLightboxOptOut(el) {
+    if (!el) return false;
+    if (el.dataset) {
+      const flag = el.dataset.lightbox;
+      if (flag &amp;&amp; (flag === &#039;false&#039; || flag === &#039;off&#039; || flag === &#039;no&#039;)) {
+        return true;
+      }
+    }
+    if (typeof el.closest === &#039;function&#039;) {
+      return !!el.closest(&#039;[data-lightbox=&quot;false&quot;], [data-lightbox=&quot;off&quot;], [data-lightbox=&quot;no&quot;]&#039;);
+    }
+    return false;
+  }
+
+  function setLightboxCaption(text) {
+    const captionEl = LIGHTBOX_STATE.captionEl;
+    if (!captionEl) return;
+    const trimmed = (text || &#039;&#039;).trim();
+    if (!trimmed) {
+      captionEl.textContent = &#039;&#039;;
+      captionEl.hidden = true;
+      return;
+    }
+    captionEl.textContent = trimmed;
+    captionEl.hidden = false;
+  }
+
+  function pruneLightboxTargets() {
+    LIGHTBOX_STATE.targets.forEach(function(node, id) {
+      if (!node || !document.body.contains(node)) {
+        LIGHTBOX_STATE.targets.delete(id);
+      }
+    });
+  }
+
+  function handleLightboxKeydown(event) {
+    if (event.key === &#039;Escape&#039;) {
+      event.preventDefault();
+      closeLightbox();
+    }
+  }
+
+  function closeLightbox() {
+    const overlay = LIGHTBOX_STATE.overlay;
+    if (!overlay || !overlay.classList.contains(&#039;is-active&#039;)) return;
+    overlay.classList.remove(&#039;is-active&#039;);
+    overlay.setAttribute(&#039;aria-hidden&#039;, &#039;true&#039;);
+    document.body.classList.remove(&#039;is-lightbox-open&#039;);
+
+    const imageEl = LIGHTBOX_STATE.imageEl;
+    if (imageEl) {
+      imageEl.removeAttribute(&#039;src&#039;);
+      imageEl.removeAttribute(&#039;srcset&#039;);
+      imageEl.removeAttribute(&#039;sizes&#039;);
+      imageEl.alt = &#039;&#039;;
+    }
+
+    setLightboxCaption(&#039;&#039;);
+    document.removeEventListener(&#039;keydown&#039;, handleLightboxKeydown);
+
+    const previousActive = LIGHTBOX_STATE.previousActive;
+    if (previousActive &amp;&amp; typeof previousActive.focus === &#039;function&#039;) {
+      try {
+        previousActive.focus({ preventScroll: true });
+      } catch (err) {
+        // ignore focus errors
+      }
+    }
+
+    LIGHTBOX_STATE.previousActive = null;
+  }
+
+  function ensureLightboxOverlay() {
+    if (LIGHTBOX_STATE.overlay) {
+      return LIGHTBOX_STATE.overlay;
+    }
+
+    if (!document.body) {
+      return null;
+    }
+
+    const template = document.createElement(&#039;template&#039;);
+    template.innerHTML = &#039;&#039; +
+      &#039;&lt;div class=&quot;blog-image-lightbox&quot; aria-hidden=&quot;true&quot;&gt;&#039; +
+      &#039;  &lt;div class=&quot;blog-image-lightbox-backdrop&quot; data-lightbox-dismiss&gt;&lt;/div&gt;&#039; +
+      &#039;  &lt;div class=&quot;blog-image-lightbox-dialog&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;Expanded image&quot;&gt;&#039; +
+      &#039;    &lt;button type=&quot;button&quot; class=&quot;blog-image-lightbox-close&quot; data-lightbox-dismiss aria-label=&quot;Close expanded image&quot;&gt;&#039; +
+      &#039;      &lt;span aria-hidden=&quot;true&quot;&gt;&amp;times;&lt;/span&gt;&#039; +
+      &#039;    &lt;/button&gt;&#039; +
+      &#039;    &lt;figure class=&quot;blog-image-lightbox-frame&quot;&gt;&#039; +
+      &#039;      &lt;img class=&quot;blog-image-lightbox-media&quot; alt=&quot;&quot;&gt;&#039; +
+      &#039;      &lt;figcaption class=&quot;blog-image-lightbox-caption&quot; hidden&gt;&lt;/figcaption&gt;&#039; +
+      &#039;    &lt;/figure&gt;&#039; +
+      &#039;  &lt;/div&gt;&#039; +
+      &#039;&lt;/div&gt;&#039;;
+
+    const overlay = template.content.firstElementChild;
+    if (!overlay) {
+      return null;
+    }
+
+    document.body.appendChild(overlay);
+    LIGHTBOX_STATE.overlay = overlay;
+    LIGHTBOX_STATE.imageEl = overlay.querySelector(&#039;.blog-image-lightbox-media&#039;);
+    LIGHTBOX_STATE.captionEl = overlay.querySelector(&#039;.blog-image-lightbox-caption&#039;);
+    LIGHTBOX_STATE.closeBtn = overlay.querySelector(&#039;.blog-image-lightbox-close&#039;);
+
+    const closeTriggers = overlay.querySelectorAll(&#039;[data-lightbox-dismiss]&#039;);
+    closeTriggers.forEach(function(trigger) {
+      trigger.addEventListener(&#039;click&#039;, function(event) {
+        event.preventDefault();
+        closeLightbox();
+      });
+    });
+
+    overlay.addEventListener(&#039;click&#039;, function(event) {
+      if (event.target === overlay) {
+        closeLightbox();
+      }
+    });
+
+    overlay.closeLightbox = closeLightbox;
+    return overlay;
+  }
+
+  function openLightbox(img) {
+    const overlay = ensureLightboxOverlay();
+    if (!overlay || !img) return;
+
+    const imageEl = LIGHTBOX_STATE.imageEl;
+    if (!imageEl) return;
+
+    const source = img.currentSrc || img.src;
+    if (!source) return;
+
+    LIGHTBOX_STATE.previousActive = document.activeElement;
+
+    imageEl.src = source;
+    if (img.srcset) {
+      imageEl.srcset = img.srcset;
+    } else {
+      imageEl.removeAttribute(&#039;srcset&#039;);
+    }
+    if (img.sizes) {
+      imageEl.sizes = img.sizes;
+    } else {
+      imageEl.removeAttribute(&#039;sizes&#039;);
+    }
+
+    const figure = typeof img.closest === &#039;function&#039; ? img.closest(&#039;figure&#039;) : null;
+    const figureCaption = figure &amp;&amp; figure.querySelector(&#039;figcaption&#039;);
+    const altText = img.getAttribute(&#039;alt&#039;) || &#039;&#039;;
+    const captionText = figureCaption ? figureCaption.textContent : altText;
+    imageEl.alt = altText || &#039;&#039;;
+    setLightboxCaption(captionText);
+
+    overlay.classList.add(&#039;is-active&#039;);
+    overlay.setAttribute(&#039;aria-hidden&#039;, &#039;false&#039;);
+    document.body.classList.add(&#039;is-lightbox-open&#039;);
+    document.addEventListener(&#039;keydown&#039;, handleLightboxKeydown);
+
+    if (LIGHTBOX_STATE.closeBtn) {
+      try {
+        LIGHTBOX_STATE.closeBtn.focus({ preventScroll: true });
+      } catch (err) {
+        // ignore focus errors
+      }
+    }
+  }
+
+  function registerLightboxImage(img) {
+    if (!img || !(img instanceof HTMLImageElement)) return;
+    if (isLightboxOptOut(img)) return;
+
+    let imageId = img.dataset.lightboxId;
+    if (!imageId) {
+      imageId = `blog-lightbox-${++LIGHTBOX_STATE.counter}`;
+      img.dataset.lightboxId = imageId;
+    }
+
+    LIGHTBOX_STATE.targets.set(imageId, img);
+
+    const alreadyInitialised = img.dataset.lightboxReady === &#039;true&#039;;
+    const accessibleLabel = (img.getAttribute(&#039;alt&#039;) || &#039;&#039;).trim() || &#039;Expand image&#039;;
+
+    const wrapperLink = typeof img.closest === &#039;function&#039; ? img.closest(&#039;a&#039;) : null;
+    const useWrapper = wrapperLink &amp;&amp; !isLightboxOptOut(wrapperLink);
+
+    if (!alreadyInitialised) {
+      img.dataset.lightboxReady = &#039;true&#039;;
+      img.classList.add(&#039;blog-image-lightbox-target&#039;);
+    }
+
+    if (useWrapper) {
+      wrapperLink.dataset.lightboxId = imageId;
+      wrapperLink.classList.add(&#039;blog-image-lightbox-trigger&#039;);
+      if (!wrapperLink.hasAttribute(&#039;role&#039;)) {
+        wrapperLink.setAttribute(&#039;role&#039;, &#039;button&#039;);
+      }
+      wrapperLink.setAttribute(&#039;aria-haspopup&#039;, &#039;dialog&#039;);
+      if (!wrapperLink.hasAttribute(&#039;aria-label&#039;)) {
+        wrapperLink.setAttribute(&#039;aria-label&#039;, accessibleLabel);
+      }
+    } else {
+      img.classList.add(&#039;blog-image-lightbox-trigger&#039;);
+      if (!img.hasAttribute(&#039;tabindex&#039;)) {
+        img.setAttribute(&#039;tabindex&#039;, &#039;0&#039;);
+      }
+      img.setAttribute(&#039;role&#039;, &#039;button&#039;);
+      img.setAttribute(&#039;aria-haspopup&#039;, &#039;dialog&#039;);
+      if (!img.hasAttribute(&#039;aria-label&#039;)) {
+        img.setAttribute(&#039;aria-label&#039;, accessibleLabel);
+      }
+    }
+  }
+
+  function collectArticleElements(root) {
+    if (!root) return [];
+    const collection = [];
+    if (typeof root.matches === &#039;function&#039; &amp;&amp; root.matches(&#039;.blog-article-content&#039;)) {
+      collection.push(root);
+    }
+    if (typeof root.querySelectorAll === &#039;function&#039;) {
+      root.querySelectorAll(&#039;.blog-article-content&#039;).forEach(function(article) {
+        if (collection.indexOf(article) === -1) {
+          collection.push(article);
+        }
+      });
+    }
+    return collection;
+  }
+
+  function registerAllBlogImages(root) {
+    pruneLightboxTargets();
+    const articles = collectArticleElements(root || document);
+    if (!articles.length) return;
+    articles.forEach(function(article) {
+      article.querySelectorAll(&#039;img&#039;).forEach(registerLightboxImage);
+    });
+  }
+
+  function resolveImageFromTrigger(triggerEl) {
+    if (!triggerEl) return null;
+    const imageId = triggerEl.getAttribute(&#039;data-lightbox-id&#039;);
+    if (!imageId) return null;
+
+    const known = LIGHTBOX_STATE.targets.get(imageId);
+    if (known &amp;&amp; document.body.contains(known)) {
+      return known;
+    }
+
+    let candidate = null;
+    if (typeof triggerEl.matches === &#039;function&#039; &amp;&amp; triggerEl.matches(&#039;img&#039;)) {
+      candidate = triggerEl;
+    } else if (typeof triggerEl.querySelector === &#039;function&#039;) {
+      candidate = triggerEl.querySelector(&#039;img[data-lightbox-id]&#039;);
+    }
+
+    if (candidate &amp;&amp; candidate.dataset &amp;&amp; candidate.dataset.lightboxId === imageId) {
+      LIGHTBOX_STATE.targets.set(imageId, candidate);
+      return candidate;
+    }
+
+    const allImages = document.querySelectorAll ? document.querySelectorAll(&#039;img[data-lightbox-id]&#039;) : [];
+    for (var i = 0; i &lt; allImages.length; i += 1) {
+      var imgEl = allImages[i];
+      if (imgEl.dataset &amp;&amp; imgEl.dataset.lightboxId === imageId) {
+        LIGHTBOX_STATE.targets.set(imageId, imgEl);
+        return imgEl;
+      }
+    }
+
+    return null;
+  }
+
+  function initBlogImageLightbox() {
+    if (!document.body) return;
+
+    ensureLightboxOverlay();
+    registerAllBlogImages(document);
+
+    document.body.addEventListener(&#039;click&#039;, function(event) {
+      if (!event.target || typeof event.target.closest !== &#039;function&#039;) return;
+      const trigger = event.target.closest(&#039;[data-lightbox-id]&#039;);
+      if (!trigger) return;
+      if (!trigger.closest(&#039;.blog-article-content&#039;)) return;
+      const image = resolveImageFromTrigger(trigger);
+      if (!image) return;
+      event.preventDefault();
+      openLightbox(image);
+    });
+
+    document.body.addEventListener(&#039;keydown&#039;, function(event) {
+      if (event.key !== &#039;Enter&#039; &amp;&amp; event.key !== &#039; &#039;) return;
+      if (!event.target || typeof event.target.closest !== &#039;function&#039;) return;
+      const trigger = event.target.closest(&#039;[data-lightbox-id]&#039;);
+      if (!trigger) return;
+      if (!trigger.closest(&#039;.blog-article-content&#039;)) return;
+      const image = resolveImageFromTrigger(trigger);
+      if (!image) return;
+      event.preventDefault();
+      openLightbox(image);
+    });
+
+    if (window.htmx &amp;&amp; typeof window.htmx.on === &#039;function&#039;) {
+      const rehydrate = function(evt) {
+        const target = evt &amp;&amp; evt.detail &amp;&amp; evt.detail.target ? evt.detail.target : (evt.target || document);
+        registerAllBlogImages(target || document);
+      };
+      window.htmx.on(&#039;htmx:afterSwap&#039;, rehydrate);
+      window.htmx.on(&#039;htmx:afterSettle&#039;, rehydrate);
+    }
+  }
+
+  var opacity = 0;
+  var intervalID = null;
+  var out = 0;
+  var terminalRestored = false;
+  var hello = [
+      &#039;GREETINGS PROFESSOR FALKEN.&#039;,
+      &#039;HOW ARE YOU FEELING TODAY?&#039;,
+      &#039;SHALL WE PLAY A GAME?&#039;,
+      &#039;S2VybmVsIFBhbmljIQo=&#039;,
+      &#039;Payload_Execute......&#039;,
+      &#039;Reverse_Shell_Starting...&#039;,
+      &#039;ALL YOUR BASE ARE BELONG TO US!&#039;,
+      &#039;Awaiting command...&#039;
+  ];
+  var profileAliases = {
+      &#039;paul&#039;: 0,
+      &#039;pk&#039;: 0,
+      &#039;paulkolesa&#039;: 0,
+      &#039;m4xx3d0ut&#039;: 0,
+      &#039;architect&#039;: 0,
+      &#039;th34rch1t3ct&#039;: 0,
+      &#039;renee&#039;: 1,
+      &#039;rr&#039;: 1,
+      &#039;rk&#039;: 1,
+      &#039;matica&#039;: 1,
+      &#039;matica8&#039;: 1,
+      &#039;reneerules&#039;: 1
+  };
+  var commandHistory = [];
+  var historyIndex = 0;
+  var DISPATCH_PAGE_SIZE = 3;
+  var doomState = {
+      active: false,
+      overlay: null,
+      canvas: null,
+      statusNode: null,
+      instancePromise: null,
+      instance: null,
+      memory: null,
+      loopHandle: null,
+      loopFn: null,
+      listeners: [],
+      context: null,
+      screenEl: null,
+      prevScrollTop: null,
+      prevOverflow: null,
+      touchControlsRoot: null,
+      virtualKeyReleasers: [],
+      sendVirtualKey: null,
+      keyboardToggleBtn: null,
+      keyboardVisible: false,
+      keyboardProxy: null,
+      pendingLoadSlot: null,
+      lastSaveMeta: null,
+      lastLoadResult: null,
+      supportsSaveStates: false
+  };
+  var doomAudioState = {
+      context: null,
+      masterGain: null,
+      nextTime: 0,
+      sampleRate: 11025,
+      enabled: false,
+      bufferCache: new Map(),
+      memoryBuffer: null
+  };
+  var doomTextDecoder = (typeof TextDecoder === &#039;function&#039;) ? new TextDecoder(&#039;utf8&#039;) : null;
+  var DOOM_SAVE_MAX_SLOT = 5;
+  var DOOM_SAVE_KEY_PREFIX = &#039;cm-doom-save-slot-&#039;;
+  var DOOM_SAVE_VERSION = 1;
+
+  function clampDoomSlot(slot) {
+      var value = typeof slot === &#039;number&#039; ? slot : parseInt(slot, 10);
+      if (!Number.isFinite(value)) {
+          return null;
+      }
+      if (value &lt; 0) {
+          value = 0;
+      }
+      if (value &gt; DOOM_SAVE_MAX_SLOT) {
+          value = DOOM_SAVE_MAX_SLOT;
+      }
+      return value | 0;
+  }
+
+  function getDoomSaveKey(slot) {
+      return DOOM_SAVE_KEY_PREFIX + slot;
+  }
+
+  function computeDoomChecksum(bytes) {
+      if (!bytes) {
+          return 0;
+      }
+      var sum = 0;
+      for (var i = 0; i &lt; bytes.length; i++) {
+          sum = (sum + bytes[i]) &amp; 0xffff;
+      }
+      return sum;
+  }
+
+  function encodeBase64Bytes(bytes) {
+      if (!bytes || typeof window === &#039;undefined&#039; || typeof window.btoa !== &#039;function&#039;) {
+          return null;
+      }
+      var chunkSize = 0x8000;
+      var segments = [];
+      for (var offset = 0; offset &lt; bytes.length; offset += chunkSize) {
+          var slice = bytes.subarray(offset, Math.min(bytes.length, offset + chunkSize));
+          var chars = new Array(slice.length);
+          for (var idx = 0; idx &lt; slice.length; idx++) {
+              chars[idx] = String.fromCharCode(slice[idx]);
+          }
+          segments.push(chars.join(&#039;&#039;));
+      }
+      try {
+          return window.btoa(segments.join(&#039;&#039;));
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function decodeBase64ToBytes(encoded) {
+      if (!encoded || typeof window === &#039;undefined&#039; || typeof window.atob !== &#039;function&#039;) {
+          return null;
+      }
+      try {
+          var binary = window.atob(encoded);
+          var length = binary.length;
+          var view = new Uint8Array(length);
+          for (var i = 0; i &lt; length; i++) {
+              view[i] = binary.charCodeAt(i);
+          }
+          return view;
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function storeDoomSaveBytes(slot, bytes) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: &#039;storage-unavailable&#039; };
+      }
+      if (!bytes || !bytes.length) {
+          return { ok: false, reason: &#039;empty&#039; };
+      }
+      var encoded = encodeBase64Bytes(bytes);
+      if (!encoded) {
+          return { ok: false, reason: &#039;encode-failed&#039; };
+      }
+      var record = {
+          version: DOOM_SAVE_VERSION,
+          checksum: computeDoomChecksum(bytes),
+          length: bytes.length,
+          savedAt: Date.now(),
+          data: encoded
+      };
+      try {
+          storage.setItem(getDoomSaveKey(slot), JSON.stringify(record));
+          doomState.lastSaveMeta = {
+              slot: slot,
+              savedAt: record.savedAt,
+              length: record.length
+          };
+          return { ok: true, record: record };
+      } catch (error) {
+          return { ok: false, reason: &#039;write-failed&#039;, error: error };
+      }
+  }
+
+  function loadDoomSaveBytes(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: &#039;storage-unavailable&#039; };
+      }
+      try {
+          var raw = storage.getItem(getDoomSaveKey(slot));
+          if (!raw) {
+              return { ok: false, reason: &#039;missing&#039; };
+          }
+          var parsed = JSON.parse(raw);
+          if (!parsed || parsed.version !== DOOM_SAVE_VERSION || typeof parsed.data !== &#039;string&#039;) {
+              return { ok: false, reason: &#039;invalid-metadata&#039; };
+          }
+          var decoded = decodeBase64ToBytes(parsed.data);
+          if (!decoded) {
+              return { ok: false, reason: &#039;decode-failed&#039; };
+          }
+          if (parsed.length &amp;&amp; parsed.length !== decoded.length) {
+              return { ok: false, reason: &#039;length-mismatch&#039; };
+          }
+          var checksum = computeDoomChecksum(decoded);
+          if (parsed.checksum !== undefined &amp;&amp; parsed.checksum !== checksum) {
+              return { ok: false, reason: &#039;checksum-mismatch&#039; };
+          }
+          return { ok: true, bytes: decoded, record: parsed };
+      } catch (error) {
+          return { ok: false, reason: &#039;read-failed&#039;, error: error };
+      }
+  }
+
+  function clearDoomSaveSlot(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return { ok: false, reason: &#039;storage-unavailable&#039; };
+      }
+      try {
+          storage.removeItem(getDoomSaveKey(slot));
+          if (doomState.lastSaveMeta &amp;&amp; doomState.lastSaveMeta.slot === slot) {
+              doomState.lastSaveMeta = null;
+          }
+          if (doomState.pendingLoadSlot === slot) {
+              doomState.pendingLoadSlot = null;
+          }
+          return { ok: true };
+      } catch (error) {
+          return { ok: false, reason: &#039;clear-failed&#039;, error: error };
+      }
+  }
+
+  function doomSaveExists(slot) {
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return false;
+      }
+      try {
+          return !!storage.getItem(getDoomSaveKey(slot));
+      } catch (_err) {
+          return false;
+      }
+  }
+
+  function queueDoomLoad(slot) {
+      doomState.pendingLoadSlot = slot;
+  }
+
+  function describeDoomSlot(slot) {
+      return &#039;slot &#039; + slot;
+  }
+
+  function formatDoomStorageError(result) {
+      if (!result) {
+          return &#039;Unexpected DOOM storage error.&#039;;
+      }
+      if (result.reason === &#039;storage-unavailable&#039;) {
+          return &#039;Browser storage unavailable.&#039;;
+      }
+      if (result.reason === &#039;encode-failed&#039; || result.reason === &#039;decode-failed&#039;) {
+          return &#039;Unable to serialise DOOM save data.&#039;;
+      }
+      if (result.reason === &#039;checksum-mismatch&#039;) {
+          return &#039;Stored DOOM save appears corrupted.&#039;;
+      }
+      return &#039;DOOM storage operation failed.&#039;;
+  }
+
+  function ensureDoomAudioContext() {
+      if (!doomAudioState.enabled) {
+          return null;
+      }
+      if (doomAudioState.context) {
+          return doomAudioState.context;
+      }
+      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) {
+          doomAudioState.enabled = false;
+          return null;
+      }
+      try {
+          var context = new AudioContextCtor();
+          var gain = context.createGain();
+          gain.gain.value = 1;
+          gain.connect(context.destination);
+          doomAudioState.context = context;
+          doomAudioState.masterGain = gain;
+          doomAudioState.nextTime = context.currentTime;
+          return context;
+      } catch (_err) {
+          doomAudioState.enabled = false;
+          return null;
+      }
+  }
+
+  function initDoomAudio(sampleRate) {
+      doomAudioState.sampleRate = (typeof sampleRate === &#039;number&#039; &amp;&amp; sampleRate &gt; 0) ? sampleRate : 11025;
+      doomAudioState.enabled = true;
+      ensureDoomAudioContext();
+  }
+
+  function resumeDoomAudio() {
+      if (!doomAudioState.enabled) {
+          return;
+      }
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return;
+      }
+      if (context.state === &#039;suspended&#039; &amp;&amp; typeof context.resume === &#039;function&#039;) {
+          context.resume().catch(function() {});
+      }
+  }
+
+  function shutdownDoomAudio() {
+      doomAudioState.enabled = false;
+      doomAudioState.nextTime = 0;
+      doomAudioState.bufferCache.clear();
+      doomAudioState.memoryBuffer = null;
+      if (doomAudioState.context &amp;&amp; typeof doomAudioState.context.close === &#039;function&#039;) {
+          var ctx = doomAudioState.context;
+          doomAudioState.context = null;
+          doomAudioState.masterGain = null;
+          ctx.close().catch(function() {});
+      } else if (doomAudioState.context &amp;&amp; typeof doomAudioState.context.suspend === &#039;function&#039;) {
+          doomAudioState.context.suspend().catch(function() {});
+      }
+  }
+
+  function playDoomSfx(ptr, length, sampleRate, leftVolume, rightVolume, pitch) {
+      if (!doomAudioState.enabled) {
+          return;
+      }
+      var context = ensureDoomAudioContext();
+      if (!context || !doomState.memory || context.state === &#039;suspended&#039;) {
+          return;
+      }
+      if ((!leftVolume || leftVolume &lt;= 0) &amp;&amp; (!rightVolume || rightVolume &lt;= 0)) {
+          return;
+      }
+      try {
+          if (doomAudioState.memoryBuffer !== doomState.memory.buffer) {
+              doomAudioState.bufferCache.clear();
+              doomAudioState.memoryBuffer = doomState.memory.buffer;
+          }
+          var cacheKey = ptr + &#039;:&#039; + length;
+          var cached = doomAudioState.bufferCache.get(cacheKey);
+          var baseRate = (sampleRate &amp;&amp; sampleRate &gt; 0) ? sampleRate : doomAudioState.sampleRate;
+          if (!baseRate || !isFinite(baseRate)) {
+              baseRate = 11025;
+          }
+          if (!cached) {
+              var view = new Uint8Array(doomState.memory.buffer, ptr, length);
+              var monoData = new Float32Array(length);
+              for (var idx = 0; idx &lt; length; idx++) {
+                  monoData[idx] = (view[idx] - 128) / 128;
+              }
+              cached = { data: monoData, sampleRate: baseRate };
+              doomAudioState.bufferCache.set(cacheKey, cached);
+          } else {
+              baseRate = cached.sampleRate;
+          }
+          var mono = cached.data;
+          var ratio = Math.pow(2, (pitch - 128) / 64);
+          if (!isFinite(ratio) || ratio &lt;= 0) {
+              ratio = 1;
+          }
+          var effectiveRate = baseRate * ratio;
+          if (!isFinite(effectiveRate) || effectiveRate &lt;= 0) {
+              effectiveRate = baseRate;
+          }
+          var playbackRatio = effectiveRate / context.sampleRate;
+          if (!isFinite(playbackRatio) || playbackRatio &lt;= 0) {
+              playbackRatio = baseRate / context.sampleRate;
+          }
+          if (!isFinite(playbackRatio) || playbackRatio &lt;= 0) {
+              playbackRatio = 1;
+          }
+          var frames = Math.max(1, Math.ceil(mono.length / playbackRatio));
+          var buffer = context.createBuffer(2, frames, context.sampleRate);
+          var leftData = buffer.getChannelData(0);
+          var rightData = buffer.getChannelData(1);
+          var leftGain = Math.max(0, Math.min(1, leftVolume / 127));
+          var rightGain = Math.max(0, Math.min(1, rightVolume / 127));
+          for (var i = 0; i &lt; frames; i++) {
+              var sourceIndex = i * playbackRatio;
+              var baseIndex = sourceIndex | 0;
+              if (baseIndex &gt;= mono.length) {
+                  break;
+              }
+              var fraction = sourceIndex - baseIndex;
+              var sample0 = mono[baseIndex];
+              var sample1 = (baseIndex + 1 &lt; mono.length) ? mono[baseIndex + 1] : sample0;
+              var sample = sample0 + (sample1 - sample0) * fraction;
+              leftData[i] = sample * leftGain;
+              rightData[i] = sample * rightGain;
+          }
+          var source = context.createBufferSource();
+          source.buffer = buffer;
+          if (doomAudioState.masterGain) {
+              source.connect(doomAudioState.masterGain);
+          } else {
+              source.connect(context.destination);
+          }
+          var now = context.currentTime;
+          var scheduledTime = Math.max(now, doomAudioState.nextTime);
+          source.start(scheduledTime);
+          doomAudioState.nextTime = scheduledTime + buffer.duration;
+          source.onended = function() {
+              if (doomAudioState.context &amp;&amp; doomAudioState.context.currentTime &gt; doomAudioState.nextTime) {
+                  doomAudioState.nextTime = doomAudioState.context.currentTime;
+              }
+          };
+      } catch (_err) {
+          // Ignore playback errors to keep gameplay responsive.
+      }
+  }
+
+  function getDoomSaveApi() {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return null;
+      }
+      var exports = doomState.instance.exports;
+      var saveFn = exports.cm_save_state_v1 || exports.cm_save_state;
+      var loadFn = exports.cm_load_state_v1 || exports.cm_load_state;
+      var clearFn = exports.cm_clear_state_v1 || exports.cm_clear_state;
+      if (typeof saveFn === &#039;function&#039; &amp;&amp; typeof loadFn === &#039;function&#039;) {
+          return { saveFn: saveFn, loadFn: loadFn, clearFn: clearFn };
+      }
+      return null;
+  }
+
+  function detectDoomSaveSupport(/* instance */) {
+      var api = getDoomSaveApi();
+      doomState.supportsSaveStates = !!api;
+      return doomState.supportsSaveStates;
+  }
+
+  function triggerDoomSave(slot) {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return { ok: false, reason: &#039;inactive&#039; };
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          return { ok: false, reason: &#039;missing-export&#039; };
+      }
+      doomState.supportsSaveStates = true;
+      try {
+          var code = api.saveFn(slot | 0);
+          if (code === undefined || code === 0) {
+              return { ok: true, code: code };
+          }
+          return { ok: false, reason: &#039;engine&#039;, code: code };
+      } catch (error) {
+          return { ok: false, reason: &#039;exception&#039;, error: error };
+      }
+  }
+
+  function triggerDoomLoad(slot) {
+      if (!doomState.instance || !doomState.instance.exports) {
+          return { ok: false, reason: &#039;inactive&#039; };
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          return { ok: false, reason: &#039;missing-export&#039; };
+      }
+      doomState.supportsSaveStates = true;
+      try {
+          var code = api.loadFn(slot | 0);
+          if (code === undefined || code === 0) {
+              return { ok: true, code: code };
+          }
+          return { ok: false, reason: &#039;engine&#039;, code: code };
+      } catch (error) {
+          return { ok: false, reason: &#039;exception&#039;, error: error };
+      }
+  }
+
+  function wasmStoreDoomSave(slot, ptr, length) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      try {
+          var bytes = new Uint8Array(doomState.memory.buffer, ptr, length);
+          var copy = new Uint8Array(bytes.length);
+          copy.set(bytes);
+          var outcome = storeDoomSaveBytes(resolvedSlot, copy);
+          if (outcome.ok) {
+              return 0;
+          }
+          return 3;
+      } catch (error) {
+          console.error(&#039;Failed to persist DOOM save state:&#039;, error);
+          return -5;
+      }
+  }
+
+  function wasmLoadDoomSave(slot, ptr, capacity) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      var outcome = loadDoomSaveBytes(resolvedSlot);
+      if (!outcome.ok) {
+          return outcome.reason === &#039;missing&#039; ? 1 : 3;
+      }
+      try {
+          var bytes = outcome.bytes;
+          if (!doomState.memory || !doomState.memory.buffer) {
+              return -4;
+          }
+          if (capacity &lt;= 0 || ptr === 0) {
+              return bytes.length;
+          }
+          var writeLength = Math.min(bytes.length, capacity);
+          var target = new Uint8Array(doomState.memory.buffer, ptr, writeLength);
+          target.set(bytes.subarray(0, writeLength));
+          doomState.lastLoadResult = {
+              slot: resolvedSlot,
+              length: writeLength,
+              savedAt: outcome.record &amp;&amp; outcome.record.savedAt
+          };
+          return writeLength;
+      } catch (error) {
+          console.error(&#039;Failed to hydrate DOOM save state:&#039;, error);
+          return -5;
+      }
+  }
+
+  function wasmClearDoomSave(slot) {
+      var resolvedSlot = clampDoomSlot(slot);
+      if (resolvedSlot === null) {
+          return 2;
+      }
+      var result = clearDoomSaveSlot(resolvedSlot);
+      return result.ok ? 0 : 3;
+  }
+
+  function handleDoomSaveCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal([&#039;Invalid DOOM slot. Use numbers 0-&#039; + DOOM_SAVE_MAX_SLOT + &#039;.&#039;]);
+          return;
+      }
+      if (!doomState.active || !doomState.instance) {
+          terminal([&#039;Launch DOOM (`play doom`) before saving progress.&#039;]);
+          return;
+      }
+      if (!getDoomSaveApi()) {
+          doomState.supportsSaveStates = false;
+          terminal([&#039;This DOOM build does not expose save-state support yet.&#039;]);
+          return;
+      }
+      var outcome = triggerDoomSave(normalized);
+      if (outcome.ok) {
+          terminal([&#039;Save request issued for &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+          return;
+      }
+      if (outcome.reason === &#039;missing-export&#039;) {
+          terminal([&#039;This DOOM build does not support save-states yet.&#039;]);
+          return;
+      }
+      if (outcome.reason === &#039;engine&#039;) {
+          terminal([&#039;Save request failed (code &#039; + outcome.code + &#039;).&#039;]);
+          return;
+      }
+      if (outcome.reason === &#039;exception&#039;) {
+          var message = outcome.error &amp;&amp; outcome.error.message ? outcome.error.message : &#039;Unexpected error.&#039;;
+          terminal([&#039;Save request failed: &#039; + message]);
+          return;
+      }
+      terminal([&#039;Unable to trigger DOOM save.&#039;]);
+  }
+
+  function handleDoomLoadCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal([&#039;Invalid DOOM slot. Use numbers 0-&#039; + DOOM_SAVE_MAX_SLOT + &#039;.&#039;]);
+          return;
+      }
+      if (!doomSaveExists(normalized)) {
+          terminal([&#039;No stored DOOM save for &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+          return;
+      }
+      if (!doomState.active || !doomState.instance) {
+          queueDoomLoad(normalized);
+          terminal([&#039;Queued &#039; + describeDoomSlot(normalized) + &#039; to load when DOOM launches. Run `play doom` to continue.&#039;]);
+          return;
+      }
+      if (!getDoomSaveApi()) {
+          doomState.supportsSaveStates = false;
+          terminal([&#039;This DOOM build does not expose save-state support yet.&#039;]);
+          return;
+      }
+      var outcome = triggerDoomLoad(normalized);
+      if (outcome.ok) {
+          terminal([&#039;Loaded DOOM save &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+          return;
+      }
+      if (outcome.reason === &#039;missing-export&#039;) {
+          terminal([&#039;This DOOM build does not support save-state loading yet.&#039;]);
+          return;
+      }
+      if (outcome.reason === &#039;engine&#039;) {
+          if (outcome.code === 1) {
+              terminal([&#039;No stored DOOM save for &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+          } else {
+              terminal([&#039;Load request failed (code &#039; + outcome.code + &#039;).&#039;]);
+          }
+          return;
+      }
+      if (outcome.reason === &#039;exception&#039;) {
+          var message = outcome.error &amp;&amp; outcome.error.message ? outcome.error.message : &#039;Unexpected error.&#039;;
+          terminal([&#039;Load request failed: &#039; + message]);
+          return;
+      }
+      terminal([&#039;Unable to trigger DOOM load.&#039;]);
+  }
+
+  function handleDoomClearSlotCommand(slot) {
+      var normalized = clampDoomSlot(slot);
+      if (normalized === null) {
+          terminal([&#039;Invalid DOOM slot. Use numbers 0-&#039; + DOOM_SAVE_MAX_SLOT + &#039;.&#039;]);
+          return;
+      }
+      var existed = doomSaveExists(normalized);
+      var outcome = clearDoomSaveSlot(normalized);
+      if (!outcome.ok) {
+          terminal([formatDoomStorageError(outcome)]);
+          return;
+      }
+      if (existed) {
+          terminal([&#039;Cleared DOOM save &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+      } else {
+          terminal([&#039;No stored DOOM save for &#039; + describeDoomSlot(normalized) + &#039;.&#039;]);
+      }
+  }
+
+  function handleDoomClearAllCommand() {
+      var clearedAny = false;
+      for (var slot = 0; slot &lt;= DOOM_SAVE_MAX_SLOT; slot++) {
+          if (doomSaveExists(slot)) {
+              var outcome = clearDoomSaveSlot(slot);
+              if (outcome.ok) {
+                  clearedAny = true;
+              }
+          }
+      }
+      if (clearedAny) {
+          terminal([&#039;Cleared all stored DOOM saves.&#039;]);
+      } else {
+          terminal([&#039;No DOOM saves to clear.&#039;]);
+      }
+  }
+
+  function parseDoomSlotInput(token) {
+      if (token === undefined || token === null || token === &#039;&#039;) {
+          return 0;
+      }
+      return clampDoomSlot(token);
+  }
+
+  function doomStorageHelpLines() {
+      return [
+          &#039;DOOM storage usage:&#039;,
+          &#039;  clear doom &lt;slot|all&gt;  Remove a stored run&#039;,
+          &#039;Note: requires updated DOOM build with save support.&#039;
+      ];
+  }
+
+  function maybeAutoLoadDoom() {
+      if (!doomState.active || !doomState.instance) {
+          return;
+      }
+      var api = getDoomSaveApi();
+      if (!api) {
+          doomState.supportsSaveStates = false;
+          doomState.pendingLoadSlot = null;
+          return;
+      }
+      doomState.supportsSaveStates = true;
+      var slot = doomState.pendingLoadSlot;
+      if (slot === null || slot === undefined) {
+          return;
+      }
+      doomState.pendingLoadSlot = null;
+      if (!doomSaveExists(slot)) {
+          terminal([&#039;No stored DOOM save for &#039; + describeDoomSlot(slot) + &#039;.&#039;]);
+          return;
+      }
+      window.setTimeout(function() {
+          if (!doomState.active || !doomState.instance) {
+              queueDoomLoad(slot);
+              return;
+          }
+          var outcome = triggerDoomLoad(slot);
+          if (outcome.ok) {
+              terminal([&#039;Loaded DOOM save &#039; + describeDoomSlot(slot) + &#039;.&#039;]);
+              return;
+          }
+          if (outcome.reason === &#039;missing-export&#039;) {
+              terminal([&#039;This DOOM build does not support save-state loading yet.&#039;]);
+              return;
+          }
+          if (outcome.reason === &#039;engine&#039;) {
+              terminal([&#039;DOOM load request failed (code &#039; + outcome.code + &#039;).&#039;]);
+              return;
+          }
+          if (outcome.reason === &#039;exception&#039;) {
+              var message = outcome.error &amp;&amp; outcome.error.message ? outcome.error.message : &#039;Unexpected error.&#039;;
+              terminal([&#039;Failed to load DOOM save: &#039; + message]);
+              return;
+          }
+          terminal([&#039;Unable to load DOOM save.&#039;]);
+      }, 250);
+  }
+
+  function getLatestArticles() {
+      var articles = window.cmLatestArticles;
+      if (!articles || typeof articles !== &#039;object&#039;) {
+          return {};
+      }
+      return articles;
+  }
+
+  function getConsoleDispatches() {
+      var list = window.cmConsoleDispatches;
+      if (!Array.isArray(list)) {
+          return [];
+      }
+      return list
+        .map(function(entry) {
+          if (!entry) return null;
+          return {
+              slug: entry.slug || &#039;&#039;,
+              title: entry.title || &#039;Untitled dispatch&#039;,
+              authorId: entry.authorId || &#039;&#039;,
+              authorName: entry.authorName || entry.authorId || &#039;&#039;,
+              summary: entry.summary || &#039;&#039;,
+              url: entry.url || &#039;&#039;,
+              publishedAtIso: entry.publishedAtIso || &#039;&#039;,
+              displayPublishedAt: entry.displayPublishedAt || &#039;&#039;,
+              readingMinutes: entry.readingMinutes,
+              tags: Array.isArray(entry.tags) ? entry.tags : []
+          };
+        })
+        .filter(Boolean)
+        .sort(function(a, b) {
+          var aTime = a &amp;&amp; a.publishedAtIso ? Date.parse(a.publishedAtIso) : 0;
+          var bTime = b &amp;&amp; b.publishedAtIso ? Date.parse(b.publishedAtIso) : 0;
+          return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+        });
+  }
+  var prof = [
+      [
+          &#039;Seaching... Profile found!&#039;,
+          &#039;---&#039;,
+          &#039;Name: Paul Kolesa&#039;,
+          &#039;Handle: m4xx3d0ut&#039;,
+          &#039;Email: &#039;,
+          &#039;mailto:hakr@napster.com&#039;,
+          &#039;hakr@napster.com&#039;,
+          &#039;LinkedIn: &#039;,
+          &#039;https://www.linkedin.com/in/paul-k-a3a18196/&#039;,
+          &#039;The Architect&#039;,
+          &#039;About: Paul (m4xx3d0ut) is Napster\&#039;s Swiss Army Knife! Currently serving as Principal Technologist on the AI Tiger Team, he embeds with teams as an IC and arhitectural advisor. A Pythonista at heart, with an expansive background from InfoSec to Studio Production/Broadcast, he is capable of working across a number of languages and frameworks.&#039;,
+          &#039;Specialties: Python, Node, JS, React/TS, Kubernetes, Docker, AWS, GCP, OpenStack, Microk8s, InfoSec, DevOps/DevSecOps, GitOps, LlmOps&#039;,
+          &#039;---&#039;,
+          &#039;End of transmission...&#039;
+      ],
+      [
+          &#039;Seaching... Profile found!&#039;,
+          &#039;---&#039;,
+          &#039;Name: Renee Kresho-Kolesa&#039;,
+          &#039;Handle: ReneeRules&#039;,
+          &#039;LinkedIn: &#039;,
+          &#039;https://www.linkedin.com/in/rene%C3%A9-k-025083bb/&#039;,
+          &#039;Producer/Audio Engineer/Management&#039;,
+          &#039;About: Renee rules.&#039;,
+          &#039;---&#039;,
+          &#039;End of transmission...&#039;
+      ]
+  ];
+  var allowIn = true;
+  var elementId = 0;
+  var i = 0;
+  var TERMINAL_INITIAL_SPEED = 75;
+  var tSpeed = TERMINAL_INITIAL_SPEED;
+  var terminalTimeoutId = null;
+  String.prototype.trim = function() {
+    return this.replace(/^\s+|\s+$/g, &quot;&quot;);
+  };
+
+  function fadeBounce() {
+      var tagline = document.getElementById(&quot;tagline&quot;);
+      if (!tagline) return;
+      if (intervalID !== null) clearInterval(intervalID);
+      intervalID = setInterval(function() {
+        // Re-check every interval before running!
+        var body = document.getElementById(&quot;tagline&quot;);
+        if (!body) return;
+        show();
+      }, 200);
+  }
+
+  function show() {
+      var body = document.getElementById(&quot;tagline&quot;);
+      if (!body) return; // ultra-defensive
+      opacity = Number(window.getComputedStyle(body).getPropertyValue(&quot;opacity&quot;));
+      if (opacity &lt; 1 &amp;&amp; out === 0) {
+        opacity += 0.1;
+      } else if (opacity &gt; 0) {
+        out = 1;
+        opacity -= 0.1;
+      } else {
+        out = 0;
+        opacity += 0.1;
+      }
+      body.style.opacity = opacity;
+  }
+
+  function checkIn(cli) {
+      var i = cli;
+      if(!allowIn) {
+           window.setTimeout(checkIn, 100, i);
+      } else {
+          termFunc(i);
+      }
+  }
+
+  function blink(element) {
+      var speed = 1000;
+      var eId = document.getElementById(element);
+      if (!eId) return;
+      var eolChar = &#039;█&#039;; // Define the cursor character
+      eId.innerHTML += eolChar;
+      setInterval(function (eId) {
+          eId.style.visibility = (eId.style.visibility == &#039;hidden&#039; ? &#039;&#039; : &#039;hidden&#039;);
+      }, speed, eId);
+  }
+
+  function resolveLatest(alias) {
+      if (!alias) return null;
+      var latestArticles = getLatestArticles();
+      var key = alias.toLowerCase();
+      for (var id in latestArticles) {
+          if (!Object.prototype.hasOwnProperty.call(latestArticles, id)) continue;
+          var entry = latestArticles[id];
+          if (!entry) continue;
+          if (entry.id &amp;&amp; entry.id.toLowerCase() === key) return entry;
+          if (entry.aliases &amp;&amp; entry.aliases.indexOf(key) !== -1) return entry;
+          if (entry.name &amp;&amp; entry.name.toLowerCase() === key) return entry;
+      }
+      return null;
+  }
+
+  function latestLines(entry) {
+      var lines = [
+          &#039;Searching neon feeds... match found!&#039;,
+          &#039;---&#039;,
+          &#039;Author: &#039; + (entry.name || entry.id),
+          &#039;Title: &#039; + entry.title
+      ];
+      if (entry.summary) {
+          lines.push(&#039;Summary: &#039; + entry.summary);
+      }
+      if (entry.url) {
+          lines.push(&#039;Read: &#039;);
+          lines.push(entry.url);
+          lines.push(entry.url);
+      }
+      lines.push(&#039;---&#039;);
+      lines.push(&#039;End of transmission...&#039;);
+      return lines;
+  }
+
+  function normaliseCount(value, fallback, max) {
+      var parsed = parseInt(value, 10);
+      if (!Number.isFinite(parsed) || parsed &lt;= 0) {
+          parsed = fallback;
+      }
+      if (max &amp;&amp; parsed &gt; max) {
+          parsed = max;
+      }
+      return parsed;
+  }
+
+  function formatPageHeading(label, pageIndex, totalPages) {
+      var header = label ? label : &#039;Dispatch feed&#039;;
+      return &#039;// &#039; + header + &#039; // page &#039; + (pageIndex + 1) + &#039;/&#039; + totalPages;
+  }
+
+  function formatDispatchMeta(entry) {
+      var bits = [];
+      if (entry.displayPublishedAt) {
+          bits.push(entry.displayPublishedAt);
+      }
+      if (entry.readingMinutes) {
+          bits.push(entry.readingMinutes + &#039; min&#039;);
+      }
+      if (entry.tags &amp;&amp; entry.tags.length) {
+          bits.push(&#039;tags: &#039; + entry.tags.join(&#039;, &#039;));
+      }
+      return bits.length ? &#039;   &#039; + bits.join(&#039; • &#039;) : null;
+  }
+
+  function formatDispatchSummary(entry, index) {
+      var author = entry.authorName || entry.authorId || &#039;Unknown operative&#039;;
+      var base = &#039;[&#039; + String(index + 1).padStart(2, &#039;0&#039;) + &#039;] &#039; + entry.title + &#039; // &#039; + author;
+      return base;
+  }
+
+  function buildDispatchLines(entries, options) {
+      var opts = options || {};
+      var perPage = opts.pageSize || DISPATCH_PAGE_SIZE;
+      var heading = opts.heading || &#039;Dispatch feed&#039;;
+      var emptyMessage = opts.emptyMessage || &#039;No dispatches to display.&#039;;
+
+      if (!entries || !entries.length) {
+          return [emptyMessage];
+      }
+
+      var lines = [];
+      var totalPages = Math.ceil(entries.length / perPage);
+
+      entries.forEach(function(entry, idx) {
+          var pageIndex = Math.floor(idx / perPage);
+          if (idx % perPage === 0) {
+              lines.push(formatPageHeading(heading, pageIndex, totalPages));
+              lines.push(&#039;---&#039;);
+          }
+
+          lines.push(formatDispatchSummary(entry, idx));
+          var meta = formatDispatchMeta(entry);
+          if (meta) {
+              lines.push(meta);
+          }
+          if (entry.summary) {
+              lines.push(&#039;   &#039; + entry.summary);
+          }
+          if (entry.url) {
+              lines.push(&#039;Read: &#039;);
+              lines.push(entry.url);
+              lines.push(entry.url);
+          }
+
+          var isEndOfPage = ((idx + 1) % perPage === 0) &amp;&amp; (idx !== entries.length - 1);
+          if (isEndOfPage) {
+              lines.push(&#039;--- continue ---&#039;);
+          } else if (idx !== entries.length - 1) {
+              lines.push(&#039;---&#039;);
+          }
+      });
+
+      lines.push(&#039;End of transmission...&#039;);
+      return lines;
+  }
+
+  function sampleDispatches(entries, count) {
+      if (!entries || !entries.length) {
+          return [];
+      }
+      var pool = entries.slice();
+      var limit = Math.min(count, pool.length);
+      var picked = [];
+      for (var i = 0; i &lt; limit; i += 1) {
+          var idx = Math.floor(Math.random() * pool.length);
+          picked.push(pool[idx]);
+          pool.splice(idx, 1);
+      }
+      return picked;
+  }
+
+  function searchDispatches(term, entries) {
+      if (!term) return [];
+      var normalised = term.toLowerCase();
+      return entries.filter(function(entry) {
+          if (!entry) return false;
+          var haystacks = [entry.title, entry.summary, entry.authorName, entry.authorId];
+          if (entry.tags &amp;&amp; entry.tags.length) {
+              haystacks = haystacks.concat(entry.tags.join(&#039; &#039;));
+          }
+          return haystacks.some(function(value) {
+              if (!value) return false;
+              return value.toLowerCase().indexOf(normalised) !== -1;
+          });
+      });
+  }
+
+  function getDoomConfig() {
+      var config = window.cmDoomConfig || {};
+      var base = config.assetBase || &#039;assets/doom/&#039;;
+      if (typeof base === &#039;string&#039; &amp;&amp; base.slice(-1) !== &#039;/&#039;) {
+          base += &#039;/&#039;;
+      }
+      var args = null;
+      if (Array.isArray(config.args)) {
+          args = config.args.map(function(value) {
+              if (value === null || value === undefined) {
+                  return null;
+              }
+              var text = String(value);
+              return text.length ? text : null;
+          }).filter(function(entry) {
+              return entry !== null;
+          });
+          if (!args.length) {
+              args = null;
+          }
+      }
+      return {
+          assetBase: base,
+          canvasId: config.canvasId || &#039;doom-canvas&#039;,
+          args: args
+      };
+  }
+
+  function isDoomSupported() {
+      return typeof WebAssembly === &#039;object&#039;;
+  }
+
+  function setDoomStatus(message) {
+      if (doomState.statusNode) {
+          doomState.statusNode.textContent = message || &#039;&#039;;
+      }
+  }
+
+  function pointerLockElement() {
+      if (typeof document === &#039;undefined&#039;) {
+          return null;
+      }
+      return document.pointerLockElement ||
+          document.mozPointerLockElement ||
+          document.webkitPointerLockElement ||
+          null;
+  }
+
+  function supportsPointerLock(element) {
+      if (!element) {
+          return false;
+      }
+      return !!(element.requestPointerLock ||
+          element.mozRequestPointerLock ||
+          element.webkitRequestPointerLock);
+  }
+
+  function requestPointerLock(element) {
+      if (!element) {
+          return;
+      }
+      var request = element.requestPointerLock ||
+          element.mozRequestPointerLock ||
+          element.webkitRequestPointerLock;
+      if (request) {
+          try {
+              request.call(element);
+          } catch (_err) {
+              // Browsers may throw if pointer lock is denied; ignore silently.
+          }
+      }
+  }
+
+  function exitPointerLock() {
+      if (typeof document === &#039;undefined&#039;) {
+          return;
+      }
+      var exit = document.exitPointerLock ||
+          document.mozExitPointerLock ||
+          document.webkitExitPointerLock;
+      if (exit) {
+          try {
+              exit.call(document);
+          } catch (_err) {
+              // Pointer lock might already be released; ignore failures.
+          }
+      }
+  }
+
+  function isPointerLockedTo(element) {
+      return !!element &amp;&amp; pointerLockElement() === element;
+  }
+
+  function shouldShowDoomTouchControls() {
+      if (typeof window === &#039;undefined&#039;) {
+          return false;
+      }
+      var hasTouchSupport = false;
+      try {
+          hasTouchSupport = (&#039;ontouchstart&#039; in window) || (navigator &amp;&amp; navigator.maxTouchPoints &gt; 0);
+      } catch (_err) {
+          hasTouchSupport = false;
+      }
+      if (!hasTouchSupport) {
+          return false;
+      }
+      if (typeof window.matchMedia === &#039;function&#039;) {
+          try {
+              var prefersFinePointer = window.matchMedia(&#039;(pointer: fine)&#039;).matches;
+              var isLargeViewport = window.matchMedia(&#039;(min-width: 901px)&#039;).matches;
+              if (prefersFinePointer &amp;&amp; !window.matchMedia(&#039;(pointer: coarse)&#039;).matches) {
+                  return false;
+              }
+              if (isLargeViewport) {
+                  return false;
+              }
+          } catch (_err2) {
+              // Ignore matchMedia errors/unsupported values.
+          }
+      }
+      return true;
+  }
+
+  function isDesktopDoomEnvironment() {
+      return !shouldShowDoomTouchControls();
+  }
+
+  function setVirtualKeyboardState(isOpen) {
+      doomState.keyboardVisible = !!isOpen;
+      if (doomState.keyboardToggleBtn) {
+          doomState.keyboardToggleBtn.textContent = &#039;Toggle KB&#039;;
+          doomState.keyboardToggleBtn.setAttribute(&#039;aria-pressed&#039;, doomState.keyboardVisible ? &#039;true&#039; : &#039;false&#039;);
+      }
+  }
+
+  function toggleVirtualKeyboard() {
+      var inputEl = document.getElementById(&#039;uIn&#039;);
+      if (!inputEl) {
+          return;
+      }
+      if (!doomState.keyboardVisible) {
+          var focused = false;
+          if (navigator.virtualKeyboard &amp;&amp; typeof navigator.virtualKeyboard.show === &#039;function&#039;) {
+              try {
+                  navigator.virtualKeyboard.show();
+              } catch (_err) {
+                  // ignore navigator virtual keyboard failures
+              }
+          }
+          try {
+              inputEl.focus({ preventScroll: true });
+              focused = true;
+          } catch (_err) {
+              inputEl.focus();
+              focused = true;
+          }
+          attachDoomKeyboardProxy(inputEl);
+          setVirtualKeyboardState(focused || (document.activeElement === inputEl));
+      } else {
+          if (navigator.virtualKeyboard &amp;&amp; typeof navigator.virtualKeyboard.hide === &#039;function&#039;) {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err2) {
+                  // ignore navigator virtual keyboard hide failures
+              }
+          }
+          inputEl.blur();
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          if (doomState.active) {
+              focusDoomCanvas();
+          }
+      }
+  }
+
+  function syncKeyboardStateFromInput(inputEl) {
+      if (!inputEl) {
+          setVirtualKeyboardState(false);
+          detachDoomKeyboardProxy();
+          return;
+      }
+      var isActive = document.activeElement === inputEl;
+      setVirtualKeyboardState(isActive);
+      if (isActive) {
+          attachDoomKeyboardProxy(inputEl);
+      } else {
+          detachDoomKeyboardProxy();
+      }
+  }
+
+  function convertDomKeyToDoom(keyCode, keyValue) {
+      var code = keyCode || 0;
+      var keyLower = &#039;&#039;;
+      if (keyValue &amp;&amp; typeof keyValue === &#039;string&#039;) {
+          keyLower = keyValue.toLowerCase();
+      }
+
+      if (!code || code === 229) {
+          if (keyLower.length === 1) {
+              code = keyLower.charCodeAt(0);
+          } else if (keyLower) {
+              switch (keyLower) {
+                  case &#039;arrowleft&#039;:
+                      code = 37;
+                      break;
+                  case &#039;arrowup&#039;:
+                      code = 38;
+                      break;
+                  case &#039;arrowright&#039;:
+                      code = 39;
+                      break;
+                  case &#039;arrowdown&#039;:
+                      code = 40;
+                      break;
+                  case &#039;escape&#039;:
+                  case &#039;esc&#039;:
+                      code = 27;
+                      break;
+                  case &#039;enter&#039;:
+                  case &#039;return&#039;:
+                      code = 13;
+                      break;
+                  case &#039;tab&#039;:
+                      code = 9;
+                      break;
+                  case &#039;backspace&#039;:
+                      code = 8;
+                      break;
+                  case &#039;space&#039;:
+                  case &#039;spacebar&#039;:
+                      code = 32;
+                      break;
+                  case &#039;control&#039;:
+                  case &#039;ctrl&#039;:
+                      code = 17;
+                      break;
+                  case &#039;alt&#039;:
+                      code = 18;
+                      break;
+                  case &#039;shift&#039;:
+                      code = 16;
+                      break;
+                  default:
+                      code = 0;
+              }
+          }
+      }
+
+      if (!code) {
+          return null;
+      }
+
+      switch (code) {
+          case 8: return 127;
+          case 9: return 9;
+          case 13: return 13;
+          case 16: return 0x80 + 0x2a; // shift
+          case 17: return 0x80 + 0x1d;
+          case 18: return 0x80 + 0x38;
+          case 27: return 27;
+          case 32: return 32;
+          case 37: return 0xac;
+          case 38: return 0xad;
+          case 39: return 0xae;
+          case 40: return 0xaf;
+          default:
+              if (code &gt;= 65 &amp;&amp; code &lt;= 90) {
+                  return code + 32;
+              }
+              if (code &gt;= 112 &amp;&amp; code &lt;= 123) {
+                  return code + 75;
+              }
+              if (keyLower.length === 1) {
+                  return keyLower.charCodeAt(0);
+              }
+              return code;
+      }
+  }
+
+  function attachDoomKeyboardProxy(inputEl) {
+      if (!doomState.active || !inputEl || doomState.keyboardProxy) {
+          return;
+      }
+      var sendChar = function(ch) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var mapped = convertDomKeyToDoom(ch.charCodeAt(0), ch);
+          if (mapped === null) {
+              return;
+          }
+          doomState.handleKeyDown(mapped);
+          window.setTimeout(function() {
+              doomState.handleKeyUp(mapped);
+          }, 0);
+      };
+
+      var keydownHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyDown) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyDown(code);
+      };
+      var keyupHandler = function(event) {
+          if (!doomState.active || !doomState.handleKeyUp) {
+              return;
+          }
+          var code = convertDomKeyToDoom(event.keyCode || event.which || 0, event.key);
+          if (code === null) {
+              return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          doomState.handleKeyUp(code);
+      };
+
+      var inputHandler = function(event) {
+          if (!doomState.active) {
+              return;
+          }
+          var value = inputEl.value;
+          if (!value &amp;&amp; event &amp;&amp; typeof event.data === &#039;string&#039;) {
+              value = event.data;
+          }
+          if (typeof value !== &#039;string&#039; || !value.length) {
+              inputEl.value = &#039;&#039;;
+              return;
+          }
+          for (var idx = 0; idx &lt; value.length; idx += 1) {
+              var ch = value.charAt(idx);
+              sendChar(ch);
+          }
+          inputEl.value = &#039;&#039;;
+      };
+
+      var compositionHandler = function(event) {
+          if (!event || typeof event.data !== &#039;string&#039;) {
+              return;
+          }
+          for (var idx = 0; idx &lt; event.data.length; idx += 1) {
+              sendChar(event.data.charAt(idx));
+          }
+          inputEl.value = &#039;&#039;;
+      };
+
+      inputEl.addEventListener(&#039;keydown&#039;, keydownHandler, true);
+      inputEl.addEventListener(&#039;keyup&#039;, keyupHandler, true);
+      inputEl.addEventListener(&#039;input&#039;, inputHandler, true);
+      inputEl.addEventListener(&#039;compositionend&#039;, compositionHandler, true);
+      inputEl.value = &#039;&#039;;
+      doomState.keyboardProxy = {
+          element: inputEl,
+          onKeydown: keydownHandler,
+          onKeyup: keyupHandler,
+          onInput: inputHandler,
+          onComposition: compositionHandler
+      };
+  }
+
+  function detachDoomKeyboardProxy() {
+      var proxy = doomState.keyboardProxy;
+      if (!proxy || !proxy.element) {
+          doomState.keyboardProxy = null;
+          return;
+      }
+      try {
+          proxy.element.removeEventListener(&#039;keydown&#039;, proxy.onKeydown, true);
+          proxy.element.removeEventListener(&#039;keyup&#039;, proxy.onKeyup, true);
+          proxy.element.removeEventListener(&#039;input&#039;, proxy.onInput, true);
+          proxy.element.removeEventListener(&#039;compositionend&#039;, proxy.onComposition, true);
+      } catch (_err) {
+          // ignore detach errors
+      }
+      doomState.keyboardProxy = null;
+  }
+
+  function ensureDoomOverlay() {
+      var consoleEl = document.getElementById(&#039;console&#039;);
+      var screen = document.getElementById(&#039;tOut&#039;);
+      if (!consoleEl || !screen) {
+          return null;
+      }
+
+      var overlay = document.createElement(&#039;div&#039;);
+      overlay.className = &#039;doom-overlay&#039;;
+
+      var status = document.createElement(&#039;div&#039;);
+      status.className = &#039;doom-overlay__status&#039;;
+      overlay.appendChild(status);
+
+      var canvasWrap = document.createElement(&#039;div&#039;);
+      canvasWrap.className = &#039;doom-overlay__canvas-wrap&#039;;
+      var canvas = document.createElement(&#039;canvas&#039;);
+      canvas.id = getDoomConfig().canvasId;
+      canvas.tabIndex = -1;
+      canvas.width = 640;
+      canvas.height = 400;
+      canvasWrap.appendChild(canvas);
+      overlay.appendChild(canvasWrap);
+
+      var controls = document.createElement(&#039;div&#039;);
+      controls.className = &#039;doom-overlay__controls&#039;;
+      var instructions = document.createElement(&#039;span&#039;);
+      instructions.textContent = &#039;WASD / arrows to move · Ctrl / Space to shoot · `exit doom` to leave&#039;;
+      controls.appendChild(instructions);
+      var controlButtons = document.createElement(&#039;div&#039;);
+      controlButtons.className = &#039;doom-overlay__buttons&#039;;
+
+      var escBtn = document.createElement(&#039;button&#039;);
+      escBtn.type = &#039;button&#039;;
+      escBtn.textContent = &#039;Esc&#039;;
+      escBtn.addEventListener(&#039;click&#039;, function() {
+          var canvas = doomState.canvas;
+          var hasPointerLock = supportsPointerLock(canvas);
+          if (hasPointerLock &amp;&amp; isPointerLockedTo(canvas)) {
+              exitPointerLock();
+              setDoomStatus(&#039;Mouse free; tap canvas to capture again.&#039;);
+              focusDoomCanvas();
+              return;
+          }
+          if (typeof doomState.sendVirtualKey === &#039;function&#039;) {
+              doomState.sendVirtualKey(27);
+          }
+      });
+      controlButtons.appendChild(escBtn);
+
+      var exitBtn = document.createElement(&#039;button&#039;);
+      exitBtn.type = &#039;button&#039;;
+      exitBtn.textContent = &#039;Exit DOOM&#039;;
+      exitBtn.addEventListener(&#039;click&#039;, function() {
+          teardownDoom(&#039;User exit.&#039;);
+          terminal([&#039;Exited DOOM.&#039;]);
+      });
+      controlButtons.appendChild(exitBtn);
+
+      var keyboardBtn = document.createElement(&#039;button&#039;);
+      keyboardBtn.type = &#039;button&#039;;
+      keyboardBtn.textContent = &#039;Toggle KB&#039;;
+      registerDoomListener(keyboardBtn, &#039;click&#039;, function() {
+          var inputEl = document.getElementById(&#039;uIn&#039;);
+          if (!doomState.keyboardVisible) {
+              toggleVirtualKeyboard();
+              return;
+          }
+          if (navigator.virtualKeyboard &amp;&amp; typeof navigator.virtualKeyboard.hide === &#039;function&#039;) {
+              try {
+                  navigator.virtualKeyboard.hide();
+              } catch (_err) {
+                  // ignore virtual keyboard hide failures
+              }
+          }
+          if (inputEl &amp;&amp; document.activeElement === inputEl) {
+              inputEl.blur();
+          } else {
+              setVirtualKeyboardState(false);
+              detachDoomKeyboardProxy();
+              if (doomState.active) {
+                  focusDoomCanvas();
+              }
+          }
+      });
+      controlButtons.appendChild(keyboardBtn);
+
+      doomState.keyboardToggleBtn = keyboardBtn;
+
+      controls.appendChild(controlButtons);
+      overlay.appendChild(controls);
+
+      var keyboardInput = document.getElementById(&#039;uIn&#039;);
+      if (keyboardInput) {
+          registerDoomListener(keyboardInput, &#039;focus&#039;, function() {
+              if (doomState.active) {
+                  syncKeyboardStateFromInput(keyboardInput);
+              }
+          });
+          registerDoomListener(keyboardInput, &#039;blur&#039;, function() {
+              syncKeyboardStateFromInput(keyboardInput);
+          });
+          syncKeyboardStateFromInput(keyboardInput);
+      } else {
+          setVirtualKeyboardState(false);
+      }
+
+      if (shouldShowDoomTouchControls()) {
+          var touchControls = document.createElement(&#039;div&#039;);
+          touchControls.className = &#039;doom-touch-controls&#039;;
+          overlay.appendChild(touchControls);
+          doomState.touchControlsRoot = touchControls;
+      } else {
+          doomState.touchControlsRoot = null;
+      }
+
+      screen.appendChild(overlay);
+      consoleEl.classList.add(&#039;has-doom&#039;);
+
+      doomState.screenEl = screen;
+      doomState.prevScrollTop = screen.scrollTop;
+      doomState.prevOverflow = screen.style.overflowY;
+      screen.scrollTop = 0;
+      screen.style.overflowY = &#039;hidden&#039;;
+
+      doomState.overlay = overlay;
+      doomState.canvas = canvas;
+      doomState.statusNode = status;
+
+      return overlay;
+  }
+
+  function registerDoomListener(target, type, handler, options) {
+      if (!target || !type || typeof handler !== &#039;function&#039;) {
+          return;
+      }
+      target.addEventListener(type, handler, options || false);
+      doomState.listeners.push({ target: target, type: type, handler: handler, options: options || false });
+  }
+
+  function removeDoomListeners() {
+      doomState.listeners.forEach(function(binding) {
+          var target = binding.target;
+          if (target &amp;&amp; typeof target.removeEventListener === &#039;function&#039;) {
+              try {
+                  target.removeEventListener(binding.type, binding.handler, binding.options);
+              } catch (_err) {
+                  // ignore
+              }
+          }
+      });
+      doomState.listeners = [];
+  }
+
+  function instantiateDoom() {
+      if (doomState.instancePromise) {
+          return doomState.instancePromise;
+      }
+
+      var config = getDoomConfig();
+      var wasmUrl = config.assetBase + &#039;doom.wasm&#039;;
+      var canvas = doomState.canvas;
+      if (!canvas) {
+          return Promise.reject(new Error(&#039;DOOM canvas missing.&#039;));
+      }
+
+      var context = canvas.getContext(&#039;2d&#039;);
+      doomState.context = context;
+      var doomScreenWidth = 320 * 2;
+      var doomScreenHeight = 200 * 2;
+
+      doomState.memory = new WebAssembly.Memory({ initial: DOOM_DEFAULT_ZONE_MB * 16 });
+      doomAudioState.bufferCache.clear();
+      doomAudioState.memoryBuffer = doomState.memory.buffer;
+      var startTime = performance.now();
+
+      function readString(offset, length) {
+          try {
+              var bytes = new Uint8Array(doomState.memory.buffer, offset, length);
+              if (doomTextDecoder) {
+                  return doomTextDecoder.decode(bytes);
+              }
+              return new TextDecoder(&#039;utf8&#039;).decode(bytes);
+          } catch (_err) {
+              return &#039;&#039;;
+          }
+      }
+
+      function drawCanvas(ptr) {
+          if (!doomState.context) {
+              return;
+          }
+          var doomScreen = new Uint8ClampedArray(doomState.memory.buffer, ptr, doomScreenWidth * doomScreenHeight * 4);
+          var renderScreen = new ImageData(doomScreen, doomScreenWidth, doomScreenHeight);
+          doomState.context.putImageData(renderScreen, 0, 0);
+      }
+
+      var importObject = {
+          js: {
+              js_console_log: function(offset, length) {
+                  console.log(&#039;[DOOM]&#039;, readString(offset, length));
+              },
+              js_stdout: function(offset, length) {
+                  console.log(&#039;[DOOM stdout]&#039;, readString(offset, length));
+              },
+              js_stderr: function(offset, length) {
+                  console.error(&#039;[DOOM stderr]&#039;, readString(offset, length));
+              },
+              js_milliseconds_since_start: function() {
+                  return performance.now() - startTime;
+              },
+              js_draw_screen: drawCanvas,
+              js_audio_init: function(sampleRate) {
+                  initDoomAudio(sampleRate);
+              },
+              js_audio_play_sfx: function(ptr, length, sampleRate, leftVolume, rightVolume, pitch) {
+                  playDoomSfx(ptr, length, sampleRate, leftVolume, rightVolume, pitch);
+              },
+              js_audio_shutdown: function() {
+                  shutdownDoomAudio();
+              },
+              js_save_state_store: function(slot, ptr, length) {
+                  return wasmStoreDoomSave(slot, ptr, length);
+              },
+              js_save_state_load: function(slot, ptr, capacity) {
+                  return wasmLoadDoomSave(slot, ptr, capacity);
+              },
+              js_save_state_clear: function(slot) {
+                  return wasmClearDoomSave(slot);
+              }
+          },
+          env: {
+              memory: doomState.memory
+          }
+      };
+
+      setDoomStatus(&#039;Fetching DOOM wasm...&#039;);
+
+      doomState.instancePromise = fetch(wasmUrl).then(function(response) {
+          if (!response.ok) {
+              throw new Error(&#039;Failed to fetch DOOM wasm at &#039; + wasmUrl + &#039; (&#039; + response.status + &#039;)&#039;);
+          }
+          if (WebAssembly.instantiateStreaming) {
+              return WebAssembly.instantiateStreaming(response.clone(), importObject).catch(function(streamError) {
+                  return response.arrayBuffer().then(function(buffer) {
+                      return WebAssembly.instantiate(buffer, importObject);
+                  });
+              });
+          }
+          return response.arrayBuffer().then(function(buffer) {
+              return WebAssembly.instantiate(buffer, importObject);
+          });
+      }).then(function(result) {
+          doomState.instance = result.instance;
+          detectDoomSaveSupport(result.instance);
+          setDoomStatus(&#039;WASM ready. Initialising...&#039;);
+          return result.instance;
+      }).catch(function(error) {
+          doomState.instancePromise = null;
+          doomState.instance = null;
+          doomState.memory = null;
+          doomState.context = null;
+          shutdownDoomAudio();
+          throw error;
+      });
+
+      return doomState.instancePromise;
+  }
+
+  function normalizeDoomArgs(args) {
+      if (!Array.isArray(args) || !args.length) {
+          return [];
+      }
+      var normalized = [];
+      for (var i = 0; i &lt; args.length; i += 1) {
+          var current = args[i];
+          if (current === null || current === undefined) {
+              continue;
+          }
+          var value = String(current);
+          if (!value) {
+              continue;
+          }
+          if (value.toLowerCase() === &#039;-mb&#039;) {
+              var next = (i + 1 &lt; args.length) ? args[i + 1] : null;
+              var nextValue = (next === null || next === undefined) ? &#039;&#039; : String(next).trim();
+              if (nextValue) {
+                  normalized.push(&#039;-mb&#039; + nextValue);
+                  i += 1;
+                  continue;
+              }
+          }
+          normalized.push(value);
+      }
+      return normalized;
+  }
+
+  function invokeDoomMain(instance) {
+      if (!instance || !instance.exports || typeof instance.exports.main !== &#039;function&#039;) {
+          throw new Error(&#039;DOOM wasm missing main() export&#039;);
+      }
+
+      var exports = instance.exports;
+      if (!doomState.memory || typeof exports.malloc !== &#039;function&#039;) {
+          exports.main();
+          return;
+      }
+
+      var config = getDoomConfig();
+      var extraArgs = config.args ? config.args.slice() : [];
+      var hasMbArg = extraArgs.some(function(arg) {
+          if (typeof arg !== &#039;string&#039;) {
+              return false;
+          }
+          if (arg.toLowerCase() === &#039;-mb&#039;) {
+              return true;
+          }
+          if (arg.length &gt; 3 &amp;&amp; arg.slice(0, 3).toLowerCase() === &#039;-mb&#039;) {
+              return true;
+          }
+          return false;
+      });
+
+      var finalArgs = [&#039;doom.wasm&#039;];
+      if (!hasMbArg) {
+          finalArgs = finalArgs.concat(DOOM_DEFAULT_LAUNCH_ARGS);
+      }
+      if (extraArgs.length) {
+          finalArgs = finalArgs.concat(extraArgs);
+      }
+
+      var argvStrings = normalizeDoomArgs(finalArgs);
+
+      try {
+          if (typeof console !== &#039;undefined&#039; &amp;&amp; typeof console.log === &#039;function&#039;) {
+              console.log(&#039;[DOOM] Launch argv:&#039;, argvStrings);
+          }
+          var writeCString = function(text) {
+              var content = (typeof text === &#039;string&#039;) ? text : &#039;&#039;;
+              var length = content.length + 1;
+              var ptr = exports.malloc(length);
+              if (!ptr) {
+                  throw new Error(&#039;Failed to allocate DOOM argv string.&#039;);
+              }
+              var view = new Uint8Array(doomState.memory.buffer, ptr, length);
+              for (var j = 0; j &lt; content.length; j += 1) {
+                  view[j] = content.charCodeAt(j) &amp; 0xff;
+              }
+              view[length - 1] = 0;
+              return ptr;
+          };
+
+          var argc = argvStrings.length;
+          if (argc === 0) {
+              argvStrings = [&#039;doom.wasm&#039;];
+              argc = 1;
+          }
+          var argvPtr = exports.malloc((argc + 1) * 4);
+          if (!argvPtr) {
+              throw new Error(&#039;Failed to allocate DOOM argv table.&#039;);
+          }
+
+          var argvView = new Uint32Array(doomState.memory.buffer, argvPtr, argc + 1);
+          for (var index = 0; index &lt; argc; index += 1) {
+              argvView[index] = writeCString(argvStrings[index]);
+          }
+          argvView[argc] = 0;
+
+          exports.main(argc, argvPtr);
+      } catch (error) {
+          console.error(&#039;Failed to launch DOOM with custom argv. Falling back to bare main()&#039;, error);
+          exports.main();
+      }
+  }
+
+  function setupDoomInteractions(instance) {
+      var canvas = doomState.canvas;
+      if (!canvas || !instance || !instance.exports || typeof instance.exports.add_browser_event !== &#039;function&#039;) {
+          return;
+      }
+
+      if (!canvas.hasAttribute(&#039;tabindex&#039;)) {
+          canvas.setAttribute(&#039;tabindex&#039;, &#039;0&#039;);
+      }
+
+      var exports = instance.exports;
+
+      var keyDown = function(code) { exports.add_browser_event(0, code); };
+      var keyUp = function(code) { exports.add_browser_event(1, code); };
+
+      doomState.handleKeyDown = keyDown;
+      doomState.handleKeyUp = keyUp;
+
+      doomState.sendVirtualKey = function(keyCode) {
+          var code = convertDomKeyToDoom(keyCode, null);
+          if (code === null) {
+              return;
+          }
+          keyDown(code);
+          setTimeout(function() {
+              keyUp(code);
+          }, 0);
+      };
+
+      registerDoomListener(canvas, &#039;keydown&#039;, function(event) {
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyDown(mapped);
+          resumeDoomAudio();
+          event.preventDefault();
+      });
+      registerDoomListener(canvas, &#039;keyup&#039;, function(event) {
+          var mapped = convertDomKeyToDoom(event.keyCode, event.key);
+          if (mapped === null) {
+              return;
+          }
+          keyUp(mapped);
+          resumeDoomAudio();
+          event.preventDefault();
+      });
+
+      var pointerLockSupported = supportsPointerLock(canvas);
+
+      registerDoomListener(canvas, &#039;click&#039;, function() {
+          if (pointerLockSupported &amp;&amp; !isPointerLockedTo(canvas)) {
+              requestPointerLock(canvas);
+          }
+          resumeDoomAudio();
+          focusDoomCanvas();
+      });
+
+      if (pointerLockSupported) {
+          var handlePointerLockChange = function() {
+              if (!doomState.active || !doomState.overlay || !doomState.statusNode) {
+                  return;
+              }
+              if (isPointerLockedTo(canvas)) {
+                  setDoomStatus(&#039;Running. Press Esc to release mouse. Type `exit doom` to leave.&#039;);
+              } else {
+                  setDoomStatus(&#039;Running. Mouse free; click canvas to capture. Type `exit doom` to leave.&#039;);
+              }
+          };
+          var handlePointerLockError = function() {
+              if (doomState.active) {
+                  setDoomStatus(&#039;Unable to capture mouse. Click canvas to try again.&#039;);
+              }
+          };
+          registerDoomListener(document, &#039;pointerlockchange&#039;, handlePointerLockChange);
+          registerDoomListener(document, &#039;mozpointerlockchange&#039;, handlePointerLockChange);
+          registerDoomListener(document, &#039;webkitpointerlockchange&#039;, handlePointerLockChange);
+          registerDoomListener(document, &#039;pointerlockerror&#039;, handlePointerLockError);
+          registerDoomListener(document, &#039;mozpointerlockerror&#039;, handlePointerLockError);
+          registerDoomListener(document, &#039;webkitpointerlockerror&#039;, handlePointerLockError);
+      }
+
+      if (isDesktopDoomEnvironment()) {
+          var blockedMetaKeys = { w: true, r: true, t: true, n: true, l: true, tab: true, s: true, p: true, o: true };
+          registerDoomListener(window, &#039;keydown&#039;, function(event) {
+              if (!doomState.active || !isDesktopDoomEnvironment()) {
+                  return;
+              }
+              var key = (event.key || &#039;&#039;).toLowerCase();
+              var metaCombo = event.metaKey || event.ctrlKey;
+              if (metaCombo &amp;&amp; blockedMetaKeys[key]) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  return;
+              }
+              if (!metaCombo &amp;&amp; (key === &#039;f5&#039; || key === &#039;f11&#039;)) {
+                  event.preventDefault();
+                  event.stopPropagation();
+              }
+          }, true);
+      }
+
+      if (shouldShowDoomTouchControls() &amp;&amp; doomState.touchControlsRoot) {
+          setupTouchControls();
+      }
+
+      function bindVirtualButton(button, keyCode) {
+          if (!button) {
+              return;
+          }
+          var doomKey = convertDomKeyToDoom(keyCode, null);
+          if (doomKey === null) {
+              return;
+          }
+          var activeIds = new Set();
+          var pointerSupported = typeof window !== &#039;undefined&#039; &amp;&amp; typeof window.PointerEvent === &#039;function&#039;;
+
+          var pressPointer = function(pointerId) {
+              if (activeIds.size === 0) {
+                  keyDown(doomKey);
+              }
+              activeIds.add(pointerId);
+              button.classList.add(&#039;is-active&#039;);
+              focusDoomCanvas();
+          };
+          var releasePointer = function(pointerId) {
+              if (!activeIds.has(pointerId)) {
+                  return;
+              }
+              activeIds.delete(pointerId);
+              if (activeIds.size === 0) {
+                  button.classList.remove(&#039;is-active&#039;);
+                  keyUp(doomKey);
+              }
+          };
+          var releaseAll = function() {
+              if (activeIds.size &gt; 0) {
+                  activeIds.clear();
+                  button.classList.remove(&#039;is-active&#039;);
+                  keyUp(doomKey);
+              }
+          };
+
+          doomState.virtualKeyReleasers.push(releaseAll);
+
+          registerDoomListener(button, &#039;contextmenu&#039;, function(event) {
+              event.preventDefault();
+          });
+
+          if (pointerSupported) {
+              registerDoomListener(button, &#039;pointerdown&#039;, function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  if (typeof button.setPointerCapture === &#039;function&#039;) {
+                      try {
+                          button.setPointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore capture errors on unsupported targets.
+                      }
+                  }
+                  pressPointer(event.pointerId);
+              });
+              var finishPointer = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (typeof button.releasePointerCapture === &#039;function&#039;) {
+                      try {
+                          button.releasePointerCapture(event.pointerId);
+                      } catch (_err) {
+                          // Ignore release errors if pointer capture was never taken.
+                      }
+                  }
+                  releasePointer(event.pointerId);
+              };
+          registerDoomListener(button, &#039;pointerup&#039;, finishPointer);
+          registerDoomListener(button, &#039;pointercancel&#039;, finishPointer);
+          } else {
+              var touchIdPrefix = &#039;touch-&#039;;
+              registerDoomListener(button, &#039;touchstart&#039;, function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      pressPointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!event.changedTouches || event.changedTouches.length === 0) {
+                      pressPointer(touchIdPrefix + &#039;0&#039;);
+                  }
+              }, { passive: false });
+              var finishTouch = function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  var handled = false;
+                  Array.prototype.forEach.call(event.changedTouches || [], function(touch) {
+                      handled = true;
+                      releasePointer(touchIdPrefix + touch.identifier);
+                  });
+                  if (!handled) {
+                      releasePointer(touchIdPrefix + &#039;0&#039;);
+                  }
+              };
+              registerDoomListener(button, &#039;touchend&#039;, finishTouch);
+              registerDoomListener(button, &#039;touchcancel&#039;, finishTouch);
+              registerDoomListener(button, &#039;mousedown&#039;, function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  resumeDoomAudio();
+                  pressPointer(&#039;mouse&#039;);
+              });
+              registerDoomListener(button, &#039;mouseup&#039;, function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer(&#039;mouse&#039;);
+              });
+              registerDoomListener(button, &#039;mouseleave&#039;, function(event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  releasePointer(&#039;mouse&#039;);
+              });
+          }
+      }
+
+      function makeTouchButton(label, keyCode, extraClass) {
+          var button = document.createElement(&#039;button&#039;);
+          button.type = &#039;button&#039;;
+          button.textContent = label;
+          button.className = &#039;doom-touch-button&#039; + (extraClass ? &#039; &#039; + extraClass : &#039;&#039;);
+          bindVirtualButton(button, keyCode);
+          return button;
+      }
+
+      function setupTouchControls() {
+          var root = doomState.touchControlsRoot;
+          if (!root) {
+              return;
+          }
+
+          doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+              if (typeof releaseFn === &#039;function&#039;) {
+                  try {
+                      releaseFn();
+                  } catch (_err) {
+                      // ignore cleanup errors when rehydrating controls
+                  }
+              }
+          });
+          doomState.virtualKeyReleasers = [];
+
+          root.innerHTML = &#039;&#039;;
+
+          var leftCluster = document.createElement(&#039;div&#039;);
+          leftCluster.className = &#039;doom-touch-controls__cluster doom-touch-controls__cluster--left&#039;;
+          var leftRow = document.createElement(&#039;div&#039;);
+          leftRow.className = &#039;doom-touch-controls__row&#039;;
+          leftRow.appendChild(makeTouchButton(&#039;Alt&#039;, 18, &#039;doom-touch-button--alt&#039;));
+          leftRow.appendChild(makeTouchButton(&#039;Ctrl&#039;, 17, &#039;doom-touch-button--ctrl&#039;));
+          leftCluster.appendChild(leftRow);
+
+          var rightCluster = document.createElement(&#039;div&#039;);
+          rightCluster.className = &#039;doom-touch-controls__cluster doom-touch-controls__cluster--right&#039;;
+          var enterButton = makeTouchButton(&#039;Enter&#039;, 13, &#039;doom-touch-button--enter&#039;);
+          var spaceButton = makeTouchButton(&#039;Space&#039;, 32, &#039;doom-touch-button--space&#039;);
+          spaceButton.setAttribute(&#039;aria-label&#039;, &#039;Space&#039;);
+
+          var actionRow = document.createElement(&#039;div&#039;);
+          actionRow.className = &#039;doom-touch-controls__row doom-touch-controls__row--actions&#039;;
+          actionRow.appendChild(spaceButton);
+          actionRow.appendChild(enterButton);
+          rightCluster.appendChild(actionRow);
+
+          var dpad = document.createElement(&#039;div&#039;);
+          dpad.className = &#039;doom-touch-dpad&#039;;
+
+          var dpadTop = document.createElement(&#039;div&#039;);
+          dpadTop.className = &#039;doom-touch-dpad__row doom-touch-dpad__row--top&#039;;
+          dpadTop.appendChild(document.createElement(&#039;span&#039;));
+          dpadTop.appendChild(makeTouchButton(&#039;↑&#039;, 38, &#039;doom-touch-button--up&#039;));
+          dpadTop.appendChild(document.createElement(&#039;span&#039;));
+
+          var dpadMid = document.createElement(&#039;div&#039;);
+          dpadMid.className = &#039;doom-touch-dpad__row doom-touch-dpad__row--middle&#039;;
+          dpadMid.appendChild(makeTouchButton(&#039;←&#039;, 37, &#039;doom-touch-button--left&#039;));
+          dpadMid.appendChild(makeTouchButton(&#039;↓&#039;, 40, &#039;doom-touch-button--down&#039;));
+          dpadMid.appendChild(makeTouchButton(&#039;→&#039;, 39, &#039;doom-touch-button--right&#039;));
+
+          var dpadBottom = document.createElement(&#039;div&#039;);
+          dpadBottom.className = &#039;doom-touch-dpad__row doom-touch-dpad__row--bottom&#039;;
+          dpadBottom.appendChild(document.createElement(&#039;span&#039;));
+          dpadBottom.appendChild(document.createElement(&#039;span&#039;));
+          dpadBottom.appendChild(document.createElement(&#039;span&#039;));
+
+          dpad.appendChild(dpadTop);
+          dpad.appendChild(dpadMid);
+          dpad.appendChild(dpadBottom);
+
+          rightCluster.appendChild(dpad);
+
+          root.appendChild(leftCluster);
+          root.appendChild(rightCluster);
+      }
+  }
+
+  function beginDoomLoop(instance) {
+      if (!instance || !instance.exports || typeof instance.exports.doom_loop_step !== &#039;function&#039;) {
+          setDoomStatus(&#039;DOOM runtime missing loop entry point.&#039;);
+          return;
+      }
+
+      var step = function() {
+          if (!doomState.active || !doomState.instance) {
+              return;
+          }
+          try {
+              instance.exports.doom_loop_step();
+          } catch (error) {
+              console.error(&#039;DOOM runtime error:&#039;, error);
+              setDoomStatus(&#039;Runtime error. See console for details.&#039;);
+              teardownDoom();
+              return;
+          }
+          doomState.loopHandle = requestAnimationFrame(step);
+      };
+
+      doomState.loopFn = step;
+      doomState.loopHandle = requestAnimationFrame(step);
+      if (supportsPointerLock(doomState.canvas)) {
+          setDoomStatus(&#039;Running. Mouse free; click canvas to capture. Type `exit doom` to leave.&#039;);
+      } else {
+          setDoomStatus(&#039;Running. Type `exit doom` to leave.&#039;);
+      }
+  }
+
+  function focusDoomCanvas() {
+      if (doomState.canvas &amp;&amp; typeof doomState.canvas.focus === &#039;function&#039;) {
+          try {
+              doomState.canvas.focus({ preventScroll: true });
+          } catch (_err) {
+              doomState.canvas.focus();
+          }
+      }
+  }
+
+  function startDoom() {
+      if (!isDoomSupported()) {
+          terminal([&#039;This browser does not support WebAssembly. Unable to launch DOOM.&#039;]);
+          return;
+      }
+      if (doomState.active) {
+          terminal([&#039;DOOM is already running. Type `exit doom` to return.&#039;]);
+          return;
+      }
+
+      var overlay = ensureDoomOverlay();
+      if (!overlay) {
+          terminal([&#039;Unable to mount DOOM viewport.&#039;]);
+          return;
+      }
+
+      if (typeof document !== &#039;undefined&#039; &amp;&amp; document.body) {
+          document.body.classList.add(&#039;doom-prevent-highlight&#039;);
+      }
+      setVirtualKeyboardState(false);
+
+      doomState.active = true;
+      pauseLogo(LOGO_PAUSE_REASON_DOOM);
+      setDoomStatus(&#039;Initializing DOOM runtime...&#039;);
+
+      instantiateDoom().then(function(instance) {
+          invokeDoomMain(instance);
+          detectDoomSaveSupport(instance);
+          setupDoomInteractions(instance);
+          setDoomStatus(&#039;Loaded. Click canvas to capture controls.&#039;);
+          focusDoomCanvas();
+          beginDoomLoop(instance);
+          maybeAutoLoadDoom();
+      }).catch(function(error) {
+          terminal([&#039;Failed to load DOOM assets.&#039;, error &amp;&amp; error.message ? error.message : &#039;&#039;]);
+          teardownDoom();
+      });
+  }
+
+  function teardownDoom(message) {
+      resumeLogo(LOGO_PAUSE_REASON_DOOM);
+      if (!doomState.active &amp;&amp; !doomState.overlay) {
+          return;
+      }
+
+      shutdownDoomAudio();
+      if (typeof document !== &#039;undefined&#039; &amp;&amp; document.body) {
+          document.body.classList.remove(&#039;doom-prevent-highlight&#039;);
+      }
+
+      var consoleEl = document.getElementById(&#039;console&#039;);
+      if (consoleEl) {
+          consoleEl.classList.remove(&#039;has-doom&#039;);
+      }
+      if (doomState.overlay &amp;&amp; doomState.overlay.parentNode) {
+          doomState.overlay.parentNode.removeChild(doomState.overlay);
+      }
+
+      if (doomState.loopHandle) {
+          cancelAnimationFrame(doomState.loopHandle);
+      }
+
+      doomState.active = false;
+
+      removeDoomListeners();
+
+      exitPointerLock();
+
+      doomState.overlay = null;
+      doomState.canvas = null;
+      doomState.statusNode = null;
+      doomState.instance = null;
+      doomState.instancePromise = null;
+      doomState.context = null;
+      doomState.memory = null;
+      doomState.loopHandle = null;
+      doomState.loopFn = null;
+      doomState.sendVirtualKey = null;
+      doomState.supportsSaveStates = false;
+      doomState.pendingLoadSlot = null;
+      doomState.handleKeyDown = null;
+      doomState.handleKeyUp = null;
+      detachDoomKeyboardProxy();
+      if (doomState.screenEl) {
+          if (doomState.prevOverflow !== null) {
+              doomState.screenEl.style.overflowY = doomState.prevOverflow;
+          } else {
+              doomState.screenEl.style.removeProperty(&#039;overflow-y&#039;);
+          }
+          if (doomState.prevScrollTop !== null &amp;&amp; doomState.prevScrollTop !== undefined) {
+              doomState.screenEl.scrollTop = doomState.prevScrollTop;
+          }
+      }
+      doomState.screenEl = null;
+      doomState.prevScrollTop = null;
+      doomState.prevOverflow = null;
+      doomState.virtualKeyReleasers.forEach(function(releaseFn) {
+          if (typeof releaseFn === &#039;function&#039;) {
+              try {
+                  releaseFn();
+              } catch (_err) {
+                  // ignore failures while unwinding virtual key state
+              }
+          }
+      });
+      doomState.virtualKeyReleasers = [];
+      if (doomState.touchControlsRoot) {
+          doomState.touchControlsRoot.innerHTML = &#039;&#039;;
+      }
+      doomState.touchControlsRoot = null;
+      doomState.lastSaveMeta = null;
+      doomState.lastLoadResult = null;
+      setVirtualKeyboardState(false);
+      doomState.keyboardToggleBtn = null;
+      doomState.keyboardVisible = false;
+      detachDoomKeyboardProxy();
+
+      if (message) {
+          terminal([message]);
+      }
+  }
+
+  function helpLines() {
+      return [
+          &#039;Available commands:&#039;,
+          &#039;---&#039;,
+          &#039;help, ?            Show this menu&#039;,
+          &#039;latest &lt;alias&gt;     Fetch the latest dispatch&#039;,
+          &#039;top &lt;N&gt;            Fetch the top N dispatches (default 3)&#039;,
+          &#039;search &lt;term&gt;      Search dispatches for a term&#039;,
+          &#039;random &lt;N&gt;         Pull N random dispatches (default 3)&#039;,
+          &#039;profile &lt;alias&gt;    Reveal a dossier&#039;,
+          &#039;play doom          Boot the shareware DOOM build&#039;,
+          &#039;exit doom          Shut down the DOOM session&#039;,
+          &#039;clear doom &lt;slot|all&gt; Remove stored DOOM saves&#039;,
+          &#039;theme &lt;contrast|1337&gt; Switch console contrast&#039;,
+          &#039;theme toggle       Flip the current contrast mode&#039;,
+          &#039;clear              Purge terminal output&#039;,
+          &#039;↑ / ↓              Browse command history&#039;
+      ];
+  }
+
+  function profileHelpLines() {
+      return [
+          &#039;Usage: profile &lt;alias&gt;&#039;,
+          &#039;Aliases:&#039;,
+          &#039;  m4xx3d0ut → paul, pk, paulkolesa, m4xx3d0ut, architect, th34rch1t3ct&#039;,
+          &#039;  ReneéRules → renee, rr, rk, matica, matica8, reneerules&#039;
+      ];
+  }
+
+  function themeHelpLines() {
+      return [
+          &#039;Usage: theme &lt;contrast|1337|toggle&gt;&#039;,
+          &#039;  theme contrast   Engage soft contrast mode&#039;,
+          &#039;  theme 1337       Engage neon / 1337 mode&#039;,
+          &#039;  theme toggle     Flip between stored modes&#039;
+      ];
+  }
+
+  function detectProfileIndex(alias) {
+      if (!alias) return null;
+      var key = alias.toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(profileAliases, key)) {
+          return profileAliases[key];
+      }
+      return null;
+  }
+
+  function detectProfileIndexFromInput(input) {
+      if (!input) return null;
+      var direct = detectProfileIndex(input);
+      if (direct !== null &amp;&amp; direct !== undefined) {
+          return direct;
+      }
+      for (var key in profileAliases) {
+          if (!Object.prototype.hasOwnProperty.call(profileAliases, key)) continue;
+          if (input.indexOf(key) !== -1) {
+              return profileAliases[key];
+          }
+      }
+      return null;
+  }
+
+  function getTerminalStorage() {
+      try {
+          if (typeof window === &#039;undefined&#039; || !window.localStorage) {
+              return null;
+          }
+          return window.localStorage;
+      } catch (_err) {
+          return null;
+      }
+  }
+
+  function trimTerminalHtml(html) {
+      if (!html || TERMINAL_MAX_SEGMENTS &lt;= 0) {
+          return html;
+      }
+      var segments = html.split(&#039;&lt;br&gt;&#039;);
+      if (segments.length &lt;= TERMINAL_MAX_SEGMENTS) {
+          return html;
+      }
+      return segments.slice(segments.length - TERMINAL_MAX_SEGMENTS).join(&#039;&lt;br&gt;&#039;);
+  }
+
+  function persistTerminalBuffer(term) {
+      if (!term) {
+          return;
+      }
+      var storage = getTerminalStorage();
+      if (!storage) {
+          return;
+      }
+      try {
+          var html = term.innerHTML;
+          if (!html) {
+              storage.removeItem(TERMINAL_STORAGE_KEY);
+              return;
+          }
+          var trimmed = trimTerminalHtml(html);
+          if (trimmed !== html) {
+              term.innerHTML = trimmed;
+          }
+          storage.setItem(TERMINAL_STORAGE_KEY, trimmed);
+      } catch (_err) {
+          // Ignore persistence failures (e.g. storage disabled)
+      }
+  }
+
+  function restoreTerminalBuffer(term) {
+      var storage = getTerminalStorage();
+      if (!term || !storage) {
+          return false;
+      }
+      try {
+          var stored = storage.getItem(TERMINAL_STORAGE_KEY);
+          if (!stored) {
+              return false;
+          }
+          term.innerHTML = stored;
+          if (stored.slice(-2) !== &#039;$ &#039;) {
+              term.innerHTML += &#039;&lt;br&gt;$ &#039;;
+          }
+          terminalRestored = true;
+          allowIn = true;
+          elementId = 0;
+          i = 0;
+          persistTerminalBuffer(term);
+          scrollTerm(term);
+          return true;
+      } catch (_err) {
+          return false;
+      }
+  }
+
+  function clearTerminal() {
+      var term = document.getElementById(&quot;tOut&quot;);
+      if (!term) return;
+      term.innerHTML = &#039;$ &#039;;
+      elementId = 0;
+      i = 0;
+      allowIn = true;
+      historyIndex = commandHistory.length;
+      scrollTerm(term);
+      persistTerminalBuffer(term);
+  }
+
+  function cancelTerminalPlayback() {
+      if (terminalTimeoutId !== null) {
+          clearTimeout(terminalTimeoutId);
+          terminalTimeoutId = null;
+      }
+  }
+
+  function resetTerminalSession() {
+      var termIn = document.getElementById(&#039;uIn&#039;);
+      if (termIn) {
+          termIn.blur();
+          termIn.value = &#039;&#039;;
+      }
+
+      cancelTerminalPlayback();
+
+      if (commandHistory &amp;&amp; commandHistory.length) {
+          commandHistory.length = 0;
+      }
+      historyIndex = commandHistory.length;
+      terminalRestored = false;
+      elementId = 0;
+      i = 0;
+      allowIn = true;
+      tSpeed = TERMINAL_INITIAL_SPEED;
+      clearTerminal();
+      terminal(hello);
+  }
+
+  function recordCommand(command) {
+      if (!command || !command.trim()) {
+          historyIndex = commandHistory.length;
+          return;
+      }
+      commandHistory.push(command);
+      historyIndex = commandHistory.length;
+  }
+
+  function navigateHistory(direction, inputEl) {
+      if (!inputEl || !commandHistory.length) {
+          return;
+      }
+      if (direction === -1) {
+          if (historyIndex &gt; 0) {
+              historyIndex -= 1;
+          } else {
+              historyIndex = 0;
+          }
+      } else if (direction === 1) {
+          if (historyIndex &lt; commandHistory.length) {
+              historyIndex += 1;
+          }
+      }
+
+      if (historyIndex &gt;= commandHistory.length) {
+          historyIndex = commandHistory.length;
+          inputEl.value = &#039;&#039;;
+      } else {
+          inputEl.value = commandHistory[historyIndex];
+          var caretPos = inputEl.value.length;
+          if (typeof inputEl.setSelectionRange === &#039;function&#039;) {
+              inputEl.setSelectionRange(caretPos, caretPos);
+          }
+      }
+  }
+
+  function setThemePreference(mode) {
+      if (!mode) return null;
+      var normalized = mode.toLowerCase();
+      if (normalized === &#039;toggle&#039; || normalized === &#039;switch&#039;) {
+          if (document.body &amp;&amp; document.body.classList.contains(CONTRAST_CLASS)) {
+              normalized = &#039;neon&#039;;
+          } else {
+              normalized = &#039;soft&#039;;
+          }
+      }
+      if (normalized === &#039;contrast&#039;) {
+          normalized = &#039;soft&#039;;
+      }
+      if (normalized === &#039;1337&#039; || normalized === &#039;leet&#039;) {
+          normalized = &#039;neon&#039;;
+      }
+      if (normalized !== &#039;soft&#039; &amp;&amp; normalized !== &#039;neon&#039;) {
+          return null;
+      }
+      var toggle = document.querySelector(&#039;.theme-toggle&#039;);
+      applyContrastPreference(normalized, toggle);
+      try {
+          window.localStorage.setItem(CONTRAST_KEY, normalized);
+      } catch (storageError) {
+          // ignore storage failures (Safari private mode, etc.)
+      }
+      return [&#039;Console contrast channel set to &#039; + (normalized === &#039;neon&#039; ? &#039;1337.&#039; : &#039;contrast.&#039;)];
+  }
+
+  function termFunc(input) {
+      var raw = typeof input === &#039;string&#039; ? input : &#039;&#039;;
+      var term = raw.toLowerCase();
+      var trimmed = term.trim();
+      var trimmedOriginal = raw.trim();
+
+      if (!trimmed) {
+          terminal([&#039;Type `help` for available commands.&#039;]);
+          return;
+      }
+
+      var tokens = trimmed.split(/\s+/);
+      var command = tokens[0];
+      var argsLower = tokens.slice(1);
+      var remainderLower = trimmed.slice(command.length).trim();
+      var remainderOriginal = trimmedOriginal.slice(command.length).trim();
+      var tokensOriginal = trimmedOriginal ? trimmedOriginal.split(/\s+/) : [];
+      var argsOriginal = tokensOriginal.slice(1);
+
+      switch (command) {
+          case &#039;?&#039;:
+          case &#039;help&#039;:
+              terminal(helpLines());
+              return;
+          case &#039;clear&#039;:
+          case &#039;cls&#039;:
+              if (argsLower.length &amp;&amp; argsLower[0] === &#039;doom&#039;) {
+                  if (argsLower.length === 1) {
+                      terminal(doomStorageHelpLines());
+                      return;
+                  }
+                  if (argsLower[1] === &#039;all&#039;) {
+                      handleDoomClearAllCommand();
+                      return;
+                  }
+                  var clearToken = argsOriginal.length &gt; 1 ? argsOriginal[1] : argsLower[1];
+                  var clearSlot = parseDoomSlotInput(clearToken);
+                  if (clearSlot === null) {
+                      terminal([&#039;Invalid DOOM slot. Use numbers 0-&#039; + DOOM_SAVE_MAX_SLOT + &#039;.&#039;]);
+                  } else {
+                      handleDoomClearSlotCommand(clearSlot);
+                  }
+                  return;
+              }
+              clearTerminal();
+              terminal([&#039;Console buffer zeroed.&#039;]);
+              return;
+          case &#039;theme&#039;: {
+              if (!remainderLower) {
+                  terminal(themeHelpLines());
+          return;
+          }
+          var feedback = setThemePreference(remainderLower);
+          if (feedback) {
+              terminal(feedback);
+          } else {
+              terminal(themeHelpLines());
+          }
+          return;
+          }
+          case &#039;play&#039;: {
+              if (!remainderLower) {
+                  terminal([&#039;Usage: play &lt;target&gt;&#039;, &#039;Example: play doom&#039;]);
+                  return;
+              }
+              if (argsLower[0] === &#039;doom&#039;) {
+                  startDoom();
+              } else {
+                  terminal([&#039;Unknown play target &quot;&#039; + remainderOriginal + &#039;&quot;.&#039;]);
+              }
+              return;
+          }
+          case &#039;exit&#039;: {
+              if (!remainderLower) {
+                  terminal([&#039;Usage: exit &lt;target&gt;&#039;, &#039;Example: exit doom&#039;]);
+                  return;
+              }
+              if (argsLower[0] === &#039;doom&#039;) {
+                  if (doomState.active) {
+                      teardownDoom(&#039;Closed DOOM session.&#039;);
+                  } else {
+                      terminal([&#039;DOOM is not running.&#039;]);
+                  }
+              } else {
+                  terminal([&#039;Unknown exit target &quot;&#039; + remainderOriginal + &#039;&quot;.&#039;]);
+              }
+              return;
+          }
+          case &#039;profile&#039;: {
+              if (!remainderLower) {
+                  terminal(profileHelpLines());
+                  return;
+              }
+              var profileIndex = detectProfileIndex(remainderLower);
+              if (profileIndex !== null &amp;&amp; profileIndex !== undefined) {
+                  terminal(prof[profileIndex]);
+              } else {
+                  terminal([&#039;No dossier found for &quot;&#039; + (remainderOriginal || remainderLower) + &#039;&quot;.&#039;]);
+              }
+              return;
+          }
+          case &#039;latest&#039;: {
+              if (!remainderLower) {
+                  terminal([&#039;Usage: latest &lt;alias&gt;&#039;]);
+                  return;
+              }
+              var entry = resolveLatest(remainderLower);
+              if (entry) {
+                  terminal(latestLines(entry));
+              } else {
+                  terminal([&#039;No recent dispatch found for &quot;&#039; + (remainderOriginal || remainderLower) + &#039;&quot;.&#039;]);
+              }
+              return;
+          }
+          case &#039;top&#039;: {
+              var dispatches = getConsoleDispatches();
+              if (!dispatches.length) {
+                  terminal([&#039;No dispatch intel logged yet.&#039;]);
+                  return;
+              }
+              var requested = argsLower[0];
+              var countTop = normaliseCount(requested, DISPATCH_PAGE_SIZE, dispatches.length);
+              var topLines = buildDispatchLines(dispatches.slice(0, countTop), {
+                  heading: &#039;top feed&#039;,
+                  pageSize: DISPATCH_PAGE_SIZE,
+                  emptyMessage: &#039;No dispatch intel logged yet.&#039;
+              });
+              terminal(topLines);
+              return;
+          }
+          case &#039;search&#039;: {
+              if (!remainderLower) {
+                  terminal([&#039;Usage: search &lt;term&gt;&#039;]);
+                  return;
+              }
+              var corpus = getConsoleDispatches();
+              if (!corpus.length) {
+                  terminal([&#039;No dispatch intel logged yet.&#039;]);
+                  return;
+              }
+              var matches = searchDispatches(remainderLower, corpus);
+              if (!matches.length) {
+                  terminal([&#039;No matches for &quot;&#039; + (remainderOriginal || remainderLower) + &#039;&quot; in dispatch logs.&#039;]);
+                  return;
+              }
+              terminal(buildDispatchLines(matches, {
+                  heading: &#039;search &quot;&#039; + (remainderOriginal || remainderLower) + &#039;&quot;&#039;,
+                  pageSize: DISPATCH_PAGE_SIZE
+              }));
+              return;
+          }
+          case &#039;random&#039;: {
+              var deck = getConsoleDispatches();
+              if (!deck.length) {
+                  terminal([&#039;No dispatch intel logged yet.&#039;]);
+                  return;
+              }
+              var requestedRandom = argsLower[0];
+              var countRandom = normaliseCount(requestedRandom, DISPATCH_PAGE_SIZE, deck.length);
+              var randomSelection = sampleDispatches(deck, countRandom);
+              terminal(buildDispatchLines(randomSelection, {
+                  heading: &#039;random feed&#039;,
+                  pageSize: DISPATCH_PAGE_SIZE
+              }));
+              return;
+          }
+      }
+
+      var exactProfileIndex = detectProfileIndex(trimmed);
+      if (exactProfileIndex !== null &amp;&amp; exactProfileIndex !== undefined) {
+          terminal(prof[exactProfileIndex]);
+          return;
+      }
+
+      var fuzzyProfileIndex = detectProfileIndexFromInput(trimmed);
+      if (fuzzyProfileIndex !== null &amp;&amp; fuzzyProfileIndex !== undefined) {
+          terminal(prof[fuzzyProfileIndex]);
+          return;
+      }
+
+      terminal([&#039;DOES NOT COMPUTE!!!&#039;, &#039;Type `help` to see available commands.&#039;]);
+  }
+
+  function terminal(msgOut) {
+      var term = document.getElementById(&quot;tOut&quot;);
+      if (!term) return; // Avoid error if missing
+      if (terminalTimeoutId !== null) {
+          clearTimeout(terminalTimeoutId);
+          terminalTimeoutId = null;
+      }
+      var msg = msgOut[elementId];
+      if (msg === undefined) {
+          return;
+      }
+      allowIn = false;
+      var msgLen = msg.length;
+      if (i &lt; msg.length) {
+          term.innerHTML += msg.charAt(i);
+          i++;
+      } else {
+          i = 0;
+          if (msg === &#039;Email: &#039; || msg === &#039;LinkedIn: &#039; || msg === &#039;Read: &#039;) {
+              var a = document.createElement(&#039;a&#039;);
+              var link = document.createTextNode(msgOut[elementId+2])
+              a.appendChild(link);
+              a.title = msgOut[elementId+2];
+              a.href = msgOut[elementId+1];
+              a.target = &#039;_blank&#039;;
+              term.append(a);
+              elementId += 2;
+          }
+          elementId++;
+          term.innerHTML += &#039;&lt;br&gt;$ &#039;;
+          persistTerminalBuffer(term);
+      }
+      scrollTerm(term);
+      if (elementId &lt; msgOut.length) {
+          terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
+      }
+      if (tSpeed &gt; 25 &amp;&amp; elementId &gt;= 3) {
+          tSpeed = 25;
+      }
+      if (elementId === msgOut.length) {
+          elementId = 0;
+          allowIn = true;
+          terminalTimeoutId = null;
+      }
+  }
+
+  function scrollTerm(el) {
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function main() {
+      if (!document.getElementById(&quot;tOut&quot;) || !document.getElementById(&quot;tagline&quot;)) return;
+      fadeBounce();
+      if (!terminalRestored) {
+          terminal(hello);
+      }
+  }
+
+  // Only run everything after DOM is loaded!
+  window.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      initThemeToggle();
+      initBackToTop();
+      initBlogImageLightbox();
+
+      var termOut = document.getElementById(&quot;tOut&quot;);
+      var tagline = document.getElementById(&quot;tagline&quot;);
+      if (!termOut || !tagline) {
+          return;
+      }
+
+      initMobileConsoleKeyboardScaling();
+
+      restoreTerminalBuffer(termOut);
+
+      window.scrollTo(0, 0);
+      main();
+      const termIn = document.getElementById(&quot;uIn&quot;);
+      const resetButton = document.getElementById(&#039;cm-terminal-reset&#039;);
+      if (resetButton) {
+          resetButton.addEventListener(&#039;click&#039;, function() {
+              resetTerminalSession();
+          });
+      }
+      if (termIn) {
+          termIn.addEventListener(&#039;keydown&#039;, function(e) {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
+              if (e.key === &#039;ArrowUp&#039;) {
+                  e.preventDefault();
+                  navigateHistory(-1, termIn);
+              } else if (e.key === &#039;ArrowDown&#039;) {
+                  e.preventDefault();
+                  navigateHistory(1, termIn);
+              }
+          });
+
+          termIn.addEventListener(&#039;keyup&#039;, function(e) {
+              if ((e.key === &#039;Enter&#039; || e.which === 13) &amp;&amp; allowIn) {
+                  var cli = e.target.value;
+                  recordCommand(cli);
+                  terminal([cli]);
+                  checkIn(cli);
+                  e.target.value = &quot;&quot;;
+                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || &#039;soft&#039;);
+              }
+          });
+
+          termIn.addEventListener(&#039;pointerdown&#039;, function() {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
+          });
+
+          termIn.addEventListener(&#039;focus&#039;, function() {
+              pauseLogo(LOGO_PAUSE_REASON_TERMINAL);
+          });
+
+          termIn.addEventListener(&#039;blur&#039;, function() {
+              resumeLogo(LOGO_PAUSE_REASON_TERMINAL);
+          });
+      }
+  });
+
+  // Defensive: If the DOM is removed (e.g. SPA nav), clear the interval
+  window.addEventListener(&#039;beforeunload&#039;, function() {
+      if (intervalID !== null) {
+          clearInterval(intervalID);
+          intervalID = null;
+      }
+  });
+})();
+</code></pre>
+      </div>
+    </article>
+  

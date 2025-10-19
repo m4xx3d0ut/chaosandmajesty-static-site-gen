@@ -1,0 +1,45 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">cm-console.ejs</h4>
+        <div class="git-file-meta">
+          <span>1.5 KB</span>
+          <span>static-sitegen/templates/partials/cm-console.ejs</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!-- console partial (auto-generated) --&gt;
+&lt;div class=&quot;console-center&quot;&gt;
+  &lt;div id=&quot;tagline&quot;&gt;
+    &lt;h1&gt;&lt;%= page.cmTitle || site.cmTitle || site.title %&gt;&lt;/h1&gt;
+    &lt;p&gt;&lt;%= page.cmTagline || site.cmTagline || site.description %&gt;&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;% if (page.use3DLogo || site.use3DLogo) { %&gt;
+    &lt;div id=&quot;cm-logo-container&quot; class=&quot;center&quot; style=&quot;width:100%; height:300px; position:relative; z-index:1;&quot;&gt;&lt;/div&gt;
+    &lt;!-- Use the same CDN sources as in the test page --&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/SVGLoader.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+      window.cmLogoSvgPath = &#039;&lt;%= isSection ? &quot;../assets&quot; : &quot;assets&quot; %&gt;/static/img/bunny-punx.svg&#039;;
+    &lt;/script&gt;
+    &lt;script src=&quot;&lt;%= isSection ? &#039;../assets/static/js/cmLogo.js&#039; : &#039;assets/static/js/cmLogo.js&#039; %&gt;&quot;&gt;&lt;/script&gt;
+  &lt;% } else if (page.cmImage || site.cmImage) { %&gt;
+    &lt;div&gt;
+      &lt;img src=&quot;&lt;%= isSection ? &#039;../&#039; + (page.cmImage || site.cmImage) : (page.cmImage || site.cmImage) %&gt;&quot;
+           alt=&quot;&lt;%= page.cmImageAlt || site.cmImageAlt || &#039;Main image&#039; %&gt;&quot; class=&quot;center&quot;&gt;
+    &lt;/div&gt;
+  &lt;% } %&gt;
+
+  &lt;div class=&quot;console-stack&quot;&gt;
+    &lt;div id=&quot;console&quot;&gt;
+      &lt;div class=&quot;screen hscroll&quot; id=&quot;tOut&quot;&gt;$&lt;/div&gt;
+      &lt;input class=&quot;term&quot; type=&quot;text&quot; id=&quot;uIn&quot; placeholder=&quot;Enter a command or ?&quot;&gt;
+    &lt;/div&gt;
+    &lt;button type=&quot;button&quot; id=&quot;cm-terminal-reset&quot; class=&quot;console-reset&quot; aria-label=&quot;Reset terminal&quot;&gt;Reset terminal&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+      </div>
+    </article>
+  

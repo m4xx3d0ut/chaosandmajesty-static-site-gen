@@ -1,0 +1,40 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">nginx.conf</h4>
+        <div class="git-file-meta">
+          <span>630 B</span>
+          <span>nginx/nginx.conf</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>user www-data www-data;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /run/nginx/nginx.pid;
+
+load_module modules/ngx_http_dav_ext_module.so;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main &#039;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#039;
+                    &#039;$status $body_bytes_sent &quot;$http_referer&quot; &#039;
+                    &#039;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#039;;
+
+    access_log /var/log/nginx/access.log main;
+
+    sendfile on;
+    keepalive_timeout 65;
+
+    include /etc/nginx/http.d/*.conf;
+}
+</code></pre>
+      </div>
+    </article>
+  

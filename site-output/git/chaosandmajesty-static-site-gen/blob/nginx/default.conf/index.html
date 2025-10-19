@@ -1,0 +1,84 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">default.conf</h4>
+        <div class="git-file-meta">
+          <span>2.0 KB</span>
+          <span>nginx/default.conf</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>server {
+    listen 8080;
+    server_name chaosandmajesty.com www.chaosandmajesty.com;
+
+    # Redirect all HTTP traffic to HTTPS but keep health endpoint local
+    location = /health {
+        access_log off;
+        return 200 &quot;healthy\n&quot;;
+        add_header Content-Type text/plain;
+    }
+
+    location /.well-known/acme-challenge/ {
+        alias /var/www/letsencrypt/.well-known/acme-challenge/;
+        allow all;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 8443 ssl http2;
+    server_name chaosandmajesty.com www.chaosandmajesty.com;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    ssl_certificate /etc/letsencrypt/live/chaosandmajesty.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/chaosandmajesty.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header X-Frame-Options &quot;SAMEORIGIN&quot; always;
+    add_header X-XSS-Protection &quot;1; mode=block&quot; always;
+    add_header X-Content-Type-Options &quot;nosniff&quot; always;
+    add_header Referrer-Policy &quot;same-origin&quot; always;
+    add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control &quot;public, immutable&quot;;
+    }
+
+    location = /health {
+        access_log off;
+        return 200 &quot;healthy\n&quot;;
+        add_header Content-Type text/plain;
+    }
+
+    location /.well-known/acme-challenge/ {
+        alias /var/www/letsencrypt/.well-known/acme-challenge/;
+        allow all;
+    }
+
+    location /dav {
+        dav_methods PUT DELETE MKCOL COPY MOVE;
+        dav_ext_methods PROPFIND OPTIONS LOCK UNLOCK;
+        dav_access user:rw group:rw all:rw;
+        create_full_put_path on;
+        client_max_body_size 0;
+        client_body_temp_path /tmp/webdav;
+
+        auth_basic &quot;Core&quot;;
+        auth_basic_user_file /etc/nginx/auth/webdav;
+    }
+}
+</code></pre>
+      </div>
+    </article>
+  

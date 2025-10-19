@@ -1,0 +1,322 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">helios-security.md</h4>
+        <div class="git-file-meta">
+          <span>12 KB</span>
+          <span>content/blog/helios-security.md</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <hr>
+<p>title: Helios Security Baseline
+slug: helios-security
+author: m4xx3d0ut
+summary: &quot;Hardening checklist for the Helios hosts\u2014unattended upgrades, SSH lockdowns,<br>  \ UFW + Fail2ban, psad, and Tripwire tuning.&quot;
+tags:</p>
+<ul>
+<li>m4xx3d</li>
+<li>security</li>
+<li>hardening</li>
+<li>linux</li>
+<li>devops
+publishedAt: 2023-05-28
+updatedAt: 2023-08-27</li>
+</ul>
+<hr>
+<ul>
+<li>Enable unattended security upgrades, lock down SSH (no root logins, limited auth tries), and default-deny inbound traffic with UFW.</li>
+<li>Layer <code>fail2ban</code>, psad, and Tripwire to detect and respond to brute-force attempts, port scans, and file integrity drift.</li>
+<li>Keep firewall logging verbose so psad can parse packets, and schedule Tripwire integrity checks with meaningful policy overrides.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h2>helios</h2>
+<h3>Security</h3>
+<h4>Debian</h4>
+<h5>Security Updates</h5>
+<p>Installed and enable <code>unattended-upgrades</code> to automatically install security updates.</p>
+<h5>SSHD</h5>
+<p>Minor tweaks.  Disable root login, reduce auth tries, disable password auth, and empty passwords.</p>
+<pre><code>PermitRootLogin no
+MaxAuthTries 2
+PasswordAuthentication no
+PermitEmptyPasswords no
+</code></pre>
+<h4>UFW</h4>
+<h5>About</h5>
+<p>The Uncomplicated Firewall (ufw) is a frontend for iptables and is particularly well-suited for host-based firewalls. ufw provides a framework for managing netfilter, as well as a command-line interface for manipulating the firewall. ufw aims to provide an easy to use interface for people unfamiliar with firewall concepts, while at the same time simplifies complicated iptables commands to help an administrator who knows what he or she is doing. ufw is an upstream for other distributions and graphical frontends.</p>
+<h5>Install &amp; Configure</h5>
+<p>Setup Uncomplicated Fire Wall to allow SSH, HTTP, and HTTPS.  UFW will also be used as a ban mechanic for <code>fail2ban</code>.</p>
+<pre><code>$ apt install ufw
+
+$ sudo ufw default deny incoming
+Default incoming policy changed to &#39;deny&#39;
+(be sure to update your rules accordingly)
+
+$ sudo ufw default allow outgoing
+Default outgoing policy changed to &#39;allow&#39;
+(be sure to update your rules accordingly)
+
+$ sudo ufw allow ssh
+Rules updated
+Rules updated (v6)
+
+$ sudo ufw allow http
+Rules updated
+Rules updated (v6)
+
+$ sudo ufw allow https
+Rules updated
+Rules updated (v6)
+
+$ sudo ufw enable
+Command may disrupt existing ssh connections. Proceed with operation (y|n)? y
+Firewall is active and enabled on system startup
+</code></pre>
+<p>Check UFW status.</p>
+<pre><code>$ sudo ufw status
+
+Status: active
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW       Anywhere               
+80/tcp                     ALLOW       Anywhere   
+443                        ALLOW       Anywhere
+22/tcp (v6)                ALLOW       Anywhere (v6)
+80/tcp (v6)                ALLOW       Anywhere (v6)
+443 (v6)                   ALLOW       Anywhere (v6) 
+</code></pre>
+<p>Check UFW log.</p>
+<pre><code>$ sudo cat /var/log/ufw.log
+</code></pre>
+<h4>fail2ban</h4>
+<h5>About</h5>
+<p>Fail2ban scans log files (e.g. /var/log/apache/error_log) and bans IPs that show the malicious signs -- too many password failures, seeking for exploits, etc. Generally Fail2Ban is then used to update firewall rules to reject the IP addresses for a specified amount of time, although any arbitrary other action (e.g. sending an email) could also be configured. Out of the box Fail2Ban comes with filters for various services (apache, courier, ssh, etc).</p>
+<h5>Install &amp; Configure</h5>
+<p>Install <code>fail2ban</code> and copy a <code>jail.local</code> and ignore our IP.</p>
+<pre><code>$ apt install fail2ban
+
+$ cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+</code></pre>
+<p>Edit the <code>jail.local</code></p>
+<pre><code>[DEFAULT]
+ignoreip = {YourWanIPhere}
+</code></pre>
+<p>Added custom jails to <code>/etc/fail2ban/jail.d/defaults-debian.conf</code></p>
+<pre><code>[sshd]
+enabled = true
+banaction = ufw
+port = ssh
+filter = sshd
+logpath = %(sshd_log)s
+maxretry = 5
+backend = %(sshd_backend)s
+
+[nginx-auth]
+enabled = true
+port    = http,https
+filter = nginx-http-auth
+action = iptables-multiport[name=&quot;nginxauth&quot;, port=&quot;http,https&quot;, protocol=&quot;tcp&quot;]
+logpath = /var/log/nginx/*error.log
+maxretry = 3
+
+## To use &#39;nginx-limit-req&#39; jail you should have `ngx_http_limit_req_module` 
+## and define `limit_req` and `limit_req_zone` as described in nginx documentation
+## http://nginx.org/en/docs/http/ngx_http_limit_req_module.html
+## or for example see in &#39;config/filter.d/nginx-limit-req.conf&#39;
+[nginx-limit-req]
+port    = http,https
+logpath = %(nginx_error_log)s
+</code></pre>
+<p>Disabled as needed from <code>jail.local</code>.  Reload <code>fail2ban</code> and check jail status.</p>
+<pre><code>$ sudo fail2ban-client reload
+OK
+
+$ sudo fail2ban-client status
+Status
+|- Number of jail:	3
+`- Jail list:	nginx-auth, nginx-req-limit, sshd
+
+$ sudo fail2ban-client status sshd
+Status for the jail: sshd
+|- Filter
+|  |- Currently failed:	6
+|  |- Total failed:	7
+|  `- File list:	/var/log/auth.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+
+$ sudo fail2ban-client status nginx-auth
+Status for the jail: nginx-auth
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/var/log/nginx/error.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+
+$ sudo fail2ban-client status nginx-req-limit
+Status for the jail: nginx-req-limit
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/var/log/nginx/error.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:
+</code></pre>
+<p>Check <code>fail2ban</code> log.</p>
+<pre><code>$ sudo cat /var/log/fail2ban.log
+</code></pre>
+<h4>PSAD</h4>
+<h5>About</h5>
+<p>The Port Scan Attack Detector psad is a lightweight system daemon written in is designed to work with Linux iptables/ip6tables/firewalld firewalling code to detect suspicious traffic such as port scans and sweeps, backdoors, botnet command and control communications, and more. It features a set of highly configurable danger thresholds (with sensible defaults provided), verbose alert messages that include the source, destination, scanned port range, begin and end times, TCP flags and corresponding nmap options, reverse DNS info, email and syslog alerting, automatic blocking of offending IP addresses via dynamic configuration of iptables rulesets, passive operating system fingerprinting, and DShield reporting. In addition, psad incorporates many of the TCP, UDP, and ICMP signatures included in the Snort intrusion detection system. to detect highly suspect scans for various backdoor programs (e.g. EvilFTP, GirlFriend, SubSeven), DDoS tools (Mstream, Shaft), and advanced port scans (SYN, FIN, XMAS) which are easily leveraged against a machine via nmap. psad can also alert on Snort signatures that are logged via fwsnort, which makes use of the iptables string match extension to detect traffic that matches application layer signatures. As of the 2.4.4 release, psad can also detect the IoT default credentials scanning phase of the Mirai botnet.</p>
+<h5>Install &amp; Configure</h5>
+<p>Install <code>psad</code> and backup the default conf.</p>
+<pre><code>apt install psad
+
+cp /etc/psad/psad.conf /etc/psad/psad.conf.bk
+</code></pre>
+<p>Edit <code>/etc/psad/psad.conf</code> with the following lines and as needed.</p>
+<pre><code>EMAIL_ADDRESSES	{YourEmal}
+HOSTNAME	{HostName}
+EXPECT_TCP_OPTIONS Y;
+ENABLE_PSADWATCHD Y;    # &lt;-- Not needed with SystemD/Upstart
+ENABLE_AUTO_IDS Y;
+ENABLE_AUTO_IDS_EMAILS Y;
+</code></pre>
+<p>Backup UFW rules.</p>
+<pre><code>$ sudo cp /etc/ufw/before.rules /etc/ufw/before.rules.bk
+
+$ sudo cp /etc/ufw/before6.rules /etc/ufw/before6.rules.bk
+</code></pre>
+<p>Edit the end of both UFW rules files as shown.</p>
+<pre><code>## log all traffic so psad can analyze
+-A INPUT -j LOG --log-tcp-options --log-prefix &quot;[IPTABLES] &quot;
+-A FORWARD -j LOG --log-tcp-options --log-prefix &quot;[IPTABLES] &quot;
+
+## don&#39;t delete the &#39;COMMIT&#39; line or these rules won&#39;t be processed
+COMMIT
+</code></pre>
+<h5>SystemD Unit File</h5>
+<p>You may need a systemd unit file to start the watchdog deamon depending on your configuration.  Create a systemd unit file for <code>psadwatch</code> in <code>/etc/systemd/system/psadwatchd.service</code></p>
+<pre><code>[Unit]
+Description=Port scan attack detector daemon
+After=psad.service
+[Service]
+ExecStart=/usr/sbin/psadwatchd
+Type=oneshot
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>Reload the daemon, start, and enable <code>psadwatchd.service</code></p>
+<pre><code>$ systemctl daemon-reload
+
+$ systemctl start psadwatchd.service
+
+$ sudo systemctl enable psadwatchd.service
+
+$ sudo systemctl status psadwatchd.service 
+● psadwatchd.service - Port scan attack detector daemon
+     Loaded: loaded (/etc/systemd/system/psadwatchd.service; disabled; vendor preset: enabled)
+     Active: active (exited) since Thu 2023-06-01 20:37:17 UTC; 4s ago
+    Process: 1110219 ExecStart=/usr/sbin/psadwatchd (code=exited, status=0/SUCCESS)
+   Main PID: 1110219 (code=exited, status=0/SUCCESS)
+      Tasks: 1 (limit: 1129)
+     Memory: 188.0K
+        CPU: 325ms
+     CGroup: /system.slice/psadwatchd.service
+             └─1110220 /usr/sbin/psadwatchd
+</code></pre>
+<h5>Reload and Check</h5>
+<p>For the changes to take effect reload UFW,  PSAD, update PSAD signatures, and send HUP to PIDs.</p>
+<pre><code class="language-bash">sudo ufw reload
+
+sudo psad -R
+sudo psad --sig-update
+sudo psad -H
+</code></pre>
+<p>Make sure both <code>psad</code> and, if required by your config, <code>psadwatchd</code>are running.</p>
+<pre><code>$ ps -A | grep &quot;psad&quot;
+1114999 ?        00:00:00 psad
+1115002 ?        00:00:00 psadwatchd
+1115015 ?        00:00:00 psad
+</code></pre>
+<p>Check <code>psad</code> status.</p>
+<pre><code>$ sudo psad -S
+</code></pre>
+<p>Check <code>psad</code> logs.</p>
+<pre><code>$ sudo cat /var/log/psad/status.out
+</code></pre>
+<h5>Update Signatures</h5>
+<p>Create script for updating PSAD signatures and sending HUP to PIDs  <code>/usr/local/bin/psad-upd</code></p>
+<pre><code>##!/usr/bin/env bash
+
+psad --sig-update
+psad -H
+</code></pre>
+<p>Make the script executable.</p>
+<pre><code>$ chmod +x /usr/local/bin/psad-upd
+</code></pre>
+<p>Create a cron job to update daily.</p>
+<pre><code>## m h  dom mon dow   command
+0 0 * * * /usr/local/bin/psad-upd &gt;/dev/null 2&gt;&amp;1
+</code></pre>
+<h4>Tripwire</h4>
+<h5>About</h5>
+<p>A Tripwire check compares the current filesystem state against a known baseline state, and alerts on any changes it detects. The baseline and check behavior are controlled by a policy file, which specifies which files or directories to monitor, and which attributes to monitor on them, such as hashes, file permissions, and ownership.</p>
+<p>When an expected change occurs, such as upgrading a package, the baseline database can be updated to the new known-good state. The policy can also be updated, for example to reduce noise or cover a newly installed package.</p>
+<h5>Install &amp; Configure</h5>
+<p>Install, follow prompts to set passphrase (can be bypassed and scripted), and init <code>tripwire</code> DB.</p>
+<pre><code>$ apt install tripwire
+$ tripwire --init
+</code></pre>
+<p>Edit <code>/etc/tripwire/twpol.txt</code> and <code>/etc/tripwire/twcfg.txt</code> as needed.  You will find your file path and SMTP settings in <code>twcfg.txt</code>.  By default, it will check all of <code>/proc</code>, this is likely undesirable.  The following rules for <code>/proc</code> are more reasonable for most applications.</p>
+<pre><code>   /dev -&gt; $(Device) ;
+   #/proc -&gt; $(Device) ;
+   /proc/devices -&gt; $(Device) ;
+   /proc/net -&gt; $(Device) ;
+   /proc/tty -&gt; $(Device) ;
+   /proc/sys -&gt; $(Device) ;
+   /proc/cpuinfo -&gt; $(Device) ;
+   /proc/modules -&gt; $(Device) ;
+   /proc/mounts -&gt; $(Device) ;
+   /proc/dma -&gt; $(Device) ;
+   /proc/filesystems -&gt; $(Device) ;
+   /proc/interrupts -&gt; $(Device) ;
+   /proc/ioports -&gt; $(Device) ;
+   /proc/scsi -&gt; $(Device) ;
+   /proc/kcore -&gt; $(Device) ;
+   /proc/self -&gt; $(Device) ;
+   /proc/kmsg -&gt; $(Device) ;
+   /proc/stat -&gt; $(Device) ;
+   /proc/loadavg -&gt; $(Device) ;
+   /proc/uptime -&gt; $(Device) ;
+   /proc/locks -&gt; $(Device) ;
+   /proc/meminfo -&gt; $(Device) ;
+   /proc/misc -&gt; $(Device) ;
+</code></pre>
+<p>Every time you edit these files you must recreate encrypted policy and reinitialize the DB.</p>
+<pre><code>$ twadmin -m P /etc/tripwire/twpol.txt
+$ tripwire --init
+</code></pre>
+<p>Policy can be updated with.</p>
+<pre><code>tripwire --update-policy --secure-mode low /etc/tripwire/twpol.txt
+</code></pre>
+<p>You can run an interactive check as shown.  Note that you can use your editor of choice with the <code>--visual</code> flag.</p>
+<pre><code>$ tripwire --check --interactive --visual micro
+</code></pre>
+<h5>Mosh</h5>
+<pre><code class="language-bash">sudo ufw allow 60000:61000/udp
+</code></pre>
+
+      </div>
+    </article>
+  

@@ -1,0 +1,359 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">cmLogo.js</h4>
+        <div class="git-file-meta">
+          <span>11 KB</span>
+          <span>static-sitegen/assets/static/js/cmLogo.js</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>// CMLogoRenderer - 3D SVG logo renderer using Three.js
+// This script should be loaded after Three.js and SVGLoader
+
+window.addEventListener(&#039;load&#039;, () =&gt; {
+  const globalObject = typeof window !== &#039;undefined&#039; ? window : null;
+
+  function ensureGlobalControlStub() {
+    if (!globalObject) {
+      return null;
+    }
+    if (globalObject.cmLogoControl &amp;&amp; typeof globalObject.cmLogoControl === &#039;object&#039;) {
+      return globalObject.cmLogoControl;
+    }
+
+    const pendingReasons = new Set();
+    let controller = null;
+
+    const stub = {
+      setController(nextController) {
+        controller = nextController;
+        if (!controller || typeof controller.pause !== &#039;function&#039;) {
+          return;
+        }
+        if (pendingReasons.size &gt; 0) {
+          pendingReasons.forEach(reason =&gt; {
+            try {
+              controller.pause(reason);
+            } catch (err) {
+              console.error(&#039;Failed to apply pending pause reason&#039;, reason, err);
+            }
+          });
+          pendingReasons.clear();
+        }
+      },
+      pause(reason) {
+        const key = reason || &#039;manual&#039;;
+        if (controller &amp;&amp; typeof controller.pause === &#039;function&#039;) {
+          controller.pause(key);
+          return;
+        }
+        pendingReasons.add(key);
+      },
+      resume(reason) {
+        const key = reason || &#039;manual&#039;;
+        if (controller &amp;&amp; typeof controller.resume === &#039;function&#039;) {
+          controller.resume(key);
+          return;
+        }
+        pendingReasons.delete(key);
+      },
+      toggleManualPause() {
+        if (controller &amp;&amp; typeof controller.toggleManualPause === &#039;function&#039;) {
+          controller.toggleManualPause();
+          return;
+        }
+        if (pendingReasons.has(&#039;manual&#039;)) {
+          pendingReasons.delete(&#039;manual&#039;);
+        } else {
+          pendingReasons.add(&#039;manual&#039;);
+        }
+      },
+      isPaused() {
+        if (controller &amp;&amp; typeof controller.isPaused === &#039;function&#039;) {
+          return controller.isPaused();
+        }
+        return pendingReasons.size &gt; 0;
+      }
+    };
+
+    globalObject.cmLogoControl = stub;
+    return stub;
+  }
+
+  const globalControl = ensureGlobalControlStub();
+
+  class CMLogoRenderer {
+    constructor(container) {
+      this.container = container || document.body;
+      this.width = this.container.clientWidth;
+      this.height = this.container.clientHeight;
+
+      // Scene setup
+      this.scene = new THREE.Scene();
+      this.scene.background = new THREE.Color(0x000000);
+
+      // Camera setup (farther back to fit big SVGs)
+      this.camera = new THREE.PerspectiveCamera(85, this.width / this.height, 0.1, 5000);
+      this.camera.position.z = 250; // Large Z for safety
+
+      // Renderer setup
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setSize(this.width, this.height);
+      const maxPixelRatio = 2.0; // or 2.0 for sharper but still fast
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
+      this.container.appendChild(this.renderer.domElement);
+
+      // Lighting
+      const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+      this.scene.add(ambient);
+
+      const dir1 = new THREE.DirectionalLight(0xffffff, 1.0);
+      dir1.position.set(1, 2, 2);
+      this.scene.add(dir1);
+
+      const dir2 = new THREE.DirectionalLight(0xffffff, 0.5);
+      dir2.position.set(-1, -1, 2);
+      this.scene.add(dir2);
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+      hemi.position.set(0, 100, 0);
+      this.scene.add(hemi);
+
+      this.onWindowResize = this.onWindowResize.bind(this);
+      window.addEventListener(&#039;resize&#039;, this.onWindowResize);
+
+      this.pauseReasons = new Set();
+      this.animationFrameId = null;
+      this.rotationSpeed = 0.01;
+      this.animate = this.animate.bind(this);
+      this.handleContainerClick = this.handleContainerClick.bind(this);
+      this.handleContainerKey = this.handleContainerKey.bind(this);
+
+      this.setupInteractivity();
+      this.updatePausedStateAttributes();
+      this.startAnimation();
+      this.loadSVG();
+      this.registerWithGlobalControl();
+    }
+
+    loadSVG() {
+      const defaultPath = &#039;/assets/static/img/bunny-punx.svg&#039;;
+      const requestedPath = (globalObject &amp;&amp; globalObject.cmLogoSvgPath) ? globalObject.cmLogoSvgPath : defaultPath;
+      const fallbackCandidates = [requestedPath];
+      if (!fallbackCandidates.includes(defaultPath)) {
+        fallbackCandidates.push(defaultPath);
+      }
+      const relativeFallback = &#039;assets/static/img/bunny-punx.svg&#039;;
+      if (!fallbackCandidates.includes(relativeFallback)) {
+        fallbackCandidates.push(relativeFallback);
+      }
+
+      const fetchSequentially = (paths) =&gt; {
+        if (!paths.length) {
+          return Promise.reject(new Error(&#039;Unable to load SVG for CM logo.&#039;));
+        }
+        const nextPath = paths.shift();
+        return fetch(nextPath).then(response =&gt; {
+          if (!response.ok) {
+            throw new Error(&#039;Failed to load SVG from &#039; + nextPath + &#039; (&#039; + response.status + &#039;)&#039;);
+          }
+          return response.text();
+        }).catch(error =&gt; {
+          console.error(&#039;CM logo SVG fetch failed for&#039;, nextPath, error);
+          return fetchSequentially(paths);
+        });
+      };
+
+      fetchSequentially(fallbackCandidates.slice())
+        .then(svgText =&gt; {
+          const loader = new THREE.SVGLoader();
+          const svgData = loader.parse(svgText);
+
+          // Parent group for centering and rotation
+          const parentGroup = new THREE.Group();
+          this.scene.add(parentGroup);
+
+          // SVG group for geometry
+          const svgGroup = new THREE.Group();
+
+          svgData.paths.forEach(path =&gt; {
+            const shapes = THREE.SVGLoader.createShapes(path);
+            shapes.forEach(shape =&gt; {
+              const geometry = new THREE.ExtrudeGeometry(shape, {
+                depth: 10,
+                bevelEnabled: false,
+                curveSegments: 6 // Reduce for much lower geometry load!
+              });
+              const material = new THREE.MeshPhysicalMaterial({
+                color: 0x66ff00,
+                metalness: 0.6,
+                roughness: 0.25,
+                clearcoat: 0.7,
+                clearcoatRoughness: 0.1,
+                reflectivity: 0.5,
+                sheen: 1.0,
+                sheenColor: new THREE.Color(0x88ff88)
+              });
+              const mesh = new THREE.Mesh(geometry, material);
+              svgGroup.add(mesh);
+            });
+          });
+
+          // Scale SVG down and flip if needed (start with upright)
+          svgGroup.scale.set(0.8, -0.8, 0.8);
+
+          // Center SVG group at (0,0,0)
+          const box = new THREE.Box3().setFromObject(svgGroup);
+          const center = box.getCenter(new THREE.Vector3());
+          svgGroup.position.sub(center);
+
+          // Add to parent group
+          parentGroup.add(svgGroup);
+
+          // Store parent group for animation
+          this.svgParentGroup = parentGroup;
+          this.renderOnce();
+        })
+        .catch(error =&gt; {
+          console.error(&#039;Error loading SVG:&#039;, error);
+        });
+    }
+
+    onWindowResize() {
+      this.width = this.container.clientWidth;
+      this.height = this.container.clientHeight;
+      this.camera.aspect = this.width / this.height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(this.width, this.height);
+      this.renderOnce();
+    }
+
+    startAnimation() {
+      if (this.animationFrameId !== null || this.pauseReasons.size &gt; 0) {
+        return;
+      }
+      this.animationFrameId = requestAnimationFrame(this.animate);
+    }
+
+    stopAnimation() {
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+    }
+
+    animate() {
+      this.animationFrameId = null;
+
+      if (this.pauseReasons.size &gt; 0) {
+        this.updatePausedStateAttributes();
+        return;
+      }
+
+      if (this.svgParentGroup) {
+        this.svgParentGroup.rotation.y += this.rotationSpeed;
+      }
+      this.renderer.render(this.scene, this.camera);
+      this.animationFrameId = requestAnimationFrame(this.animate);
+    }
+
+    pause(reason = &#039;manual&#039;) {
+      const priorSize = this.pauseReasons.size;
+      this.pauseReasons.add(reason);
+      if (this.pauseReasons.size === priorSize) {
+        return;
+      }
+      this.stopAnimation();
+      this.renderOnce();
+      this.updatePausedStateAttributes();
+    }
+
+    resume(reason = &#039;manual&#039;) {
+      const removed = this.pauseReasons.delete(reason);
+      if (!removed) {
+        return;
+      }
+      if (this.pauseReasons.size === 0) {
+        this.startAnimation();
+      }
+      this.updatePausedStateAttributes();
+    }
+
+    toggleManualPause() {
+      if (this.pauseReasons.has(&#039;manual&#039;)) {
+        this.resume(&#039;manual&#039;);
+      } else {
+        this.pause(&#039;manual&#039;);
+      }
+    }
+
+    isPaused() {
+      return this.pauseReasons.size &gt; 0;
+    }
+
+    renderOnce() {
+      try {
+        this.renderer.render(this.scene, this.camera);
+      } catch (err) {
+        console.error(&#039;Failed to render CM logo frame&#039;, err);
+      }
+    }
+
+    setupInteractivity() {
+      if (!this.container) {
+        return;
+      }
+      this.container.classList.add(&#039;cm-logo-interactive&#039;);
+      if (!this.container.hasAttribute(&#039;tabindex&#039;)) {
+        this.container.setAttribute(&#039;tabindex&#039;, &#039;0&#039;);
+      }
+      this.container.setAttribute(&#039;role&#039;, &#039;button&#039;);
+      this.container.setAttribute(&#039;aria-label&#039;, this.container.getAttribute(&#039;aria-label&#039;) || &#039;Toggle CM logo animation&#039;);
+      this.container.addEventListener(&#039;click&#039;, this.handleContainerClick);
+      this.container.addEventListener(&#039;keydown&#039;, this.handleContainerKey);
+    }
+
+    handleContainerClick(event) {
+      event.preventDefault();
+      this.toggleManualPause();
+    }
+
+    handleContainerKey(event) {
+      if (event.key === &#039; &#039; || event.key === &#039;Spacebar&#039; || event.key === &#039;Enter&#039;) {
+        event.preventDefault();
+        this.toggleManualPause();
+      }
+    }
+
+    updatePausedStateAttributes() {
+      if (!this.container) {
+        return;
+      }
+      const paused = this.pauseReasons.size &gt; 0;
+      this.container.classList.toggle(&#039;is-paused&#039;, paused);
+      this.container.setAttribute(&#039;aria-pressed&#039;, paused ? &#039;true&#039; : &#039;false&#039;);
+      if (this.container.dataset) {
+        this.container.dataset.logoPaused = paused ? &#039;true&#039; : &#039;false&#039;;
+      }
+    }
+
+    registerWithGlobalControl() {
+      if (globalControl &amp;&amp; typeof globalControl.setController === &#039;function&#039;) {
+        globalControl.setController(this);
+      }
+    }
+  }
+
+  // Attach to your container (change ID if needed)
+  const container = document.getElementById(&#039;cm-logo-container&#039;);
+  if (container) {
+    new CMLogoRenderer(container);
+  } else {
+    console.warn(&#039;Container #cm-logo-container not found&#039;);
+  }
+});
+</code></pre>
+      </div>
+    </article>
+  

