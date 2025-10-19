@@ -88,7 +88,13 @@
   const emptyMessage = hasRepos
     ? 'No repositories match your search.'
     : 'No repositories were discovered during the build. Update the git manifest or page configuration.';
-  const disableRefresh = !safeDefaultRepoUrl;
+
+  if (defaultEntry) {
+    repoEntries = [
+      defaultEntry,
+      ...repoEntries.filter(repo => repo !== defaultEntry)
+    ];
+  }
 %>
 <section class="git-page">
   <div class="git-shell">
@@ -186,21 +192,6 @@
             >
               Hide repos
             </button>
-            <button
-              type="button"
-              class="git-refresh"
-              id="git-refresh-default"
-              data-git-default-url="<%= safeDefaultRepoUrl %>"
-              data-git-default-name="<%= safeDefaultRepoLabel %>"
-              data-git-default-fragment="<%= safeDefaultRepoFragment %>"
-              data-git-default-commits="<%= safeDefaultRepoCommits %>"
-              data-git-default-files="<%= safeDefaultRepoFiles %>"
-              data-git-default-refs="<%= safeDefaultRepoRefs %>"
-              data-git-default-readme="<%= safeDefaultRepoReadme %>"
-              <%= disableRefresh ? ' disabled' : '' %>
-            >
-              Refresh default
-            </button>
           </div>
         </header>
 
@@ -293,7 +284,6 @@
     var panelSlot = document.getElementById('git-panel-slot');
     var detailIndicator = document.getElementById('git-detail-indicator');
     var activeLabel = document.getElementById('git-active-repo-label');
-    var refreshBtn = document.getElementById('git-refresh-default');
 
     var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.git-tab-button'));
     var tabMap = {};
@@ -1218,26 +1208,6 @@
     if (searchInput) {
       searchInput.addEventListener('input', function(event) {
         filterList(event.target.value || '');
-      });
-    }
-
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        var targetEntry = activeEntry;
-        if (!targetEntry) {
-          var defaultFragment = refreshBtn.getAttribute('data-git-default-fragment') || '';
-          var defaultUrl = refreshBtn.getAttribute('data-git-default-url') || '';
-          var defaultName = refreshBtn.getAttribute('data-git-default-name') || '';
-          targetEntry =
-            findEntryByFragment(defaultFragment) ||
-            findEntryByUrl(defaultUrl) ||
-            findEntryByLabel(defaultName) ||
-            null;
-        }
-        if (targetEntry) {
-          activateEntry(targetEntry, { tab: activeTab, forceReload: true });
-        }
       });
     }
 

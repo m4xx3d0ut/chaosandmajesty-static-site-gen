@@ -152,6 +152,41 @@
               <button
                 type="button"
                 class="git-repo-button"
+                data-git-id="chaosandmajesty-static-site-gen"
+                data-git-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+                data-git-label="chaosandmajesty-static-site-gen"
+                data-git-search="chaosandmajesty-static-site-gen prod prod m4xx3d0ut chaosandmajesty.com static site gen project with wasm32 doom shareware integration git/chaosandmajesty-static-site-gen https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen"
+                data-git-stage="prod"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/chaosandmajesty-static-site-gen"
+                data-git-fragment="git/chaosandmajesty-static-site-gen/index.html"
+                data-git-commits="git/chaosandmajesty-static-site-gen/commits.json"
+                data-git-files="git/chaosandmajesty-static-site-gen/files.html"
+                data-git-refs="git/chaosandmajesty-static-site-gen/refs.html"
+                data-git-readme="git/chaosandmajesty-static-site-gen/readme.html"
+              >
+                <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">PROD</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration</p>
+                
+                
+                  <p class="git-repo-button-path">git/chaosandmajesty-static-site-gen</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
                 data-git-id="ai-system-config"
                 data-git-url="https://cm.core.home.arpa/git/ai-system-config/log.html"
                 data-git-label="ai-system-config"
@@ -358,41 +393,6 @@
               </button>
             </li>
           
-            <li class="git-repo-list-item">
-              <button
-                type="button"
-                class="git-repo-button"
-                data-git-id="chaosandmajesty-static-site-gen"
-                data-git-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
-                data-git-label="chaosandmajesty-static-site-gen"
-                data-git-search="chaosandmajesty-static-site-gen prod prod m4xx3d0ut chaosandmajesty.com static site gen project with wasm32 doom shareware integration git/chaosandmajesty-static-site-gen https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen"
-                data-git-stage="prod"
-                data-git-owner="m4xx3d0ut"
-                data-git-path="git/chaosandmajesty-static-site-gen"
-                data-git-fragment="git/chaosandmajesty-static-site-gen/index.html"
-                data-git-commits="git/chaosandmajesty-static-site-gen/commits.json"
-                data-git-files="git/chaosandmajesty-static-site-gen/files.html"
-                data-git-refs="git/chaosandmajesty-static-site-gen/refs.html"
-                data-git-readme="git/chaosandmajesty-static-site-gen/readme.html"
-              >
-                <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
-                <div class="git-repo-button-meta">
-                  
-                    <span class="git-repo-pill">PROD</span>
-                  
-                  
-                    <span class="git-repo-owner">@m4xx3d0ut</span>
-                  
-                </div>
-                
-                  <p class="git-repo-button-desc">Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration</p>
-                
-                
-                  <p class="git-repo-button-path">git/chaosandmajesty-static-site-gen</p>
-                
-              </button>
-            </li>
-          
         </ul>
 
         <p class="git-empty" id="git-empty" hidden>No repositories match your search.</p>
@@ -422,21 +422,6 @@
               aria-controls="git-sidebar"
             >
               Hide repos
-            </button>
-            <button
-              type="button"
-              class="git-refresh"
-              id="git-refresh-default"
-              data-git-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
-              data-git-default-name="chaosandmajesty-static-site-gen"
-              data-git-default-fragment="git/chaosandmajesty-static-site-gen/index.html"
-              data-git-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
-              data-git-default-files="git/chaosandmajesty-static-site-gen/files.html"
-              data-git-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
-              data-git-default-readme="git/chaosandmajesty-static-site-gen/readme.html"
-              
-            >
-              Refresh default
             </button>
           </div>
         </header>
@@ -524,7 +509,6 @@
     var panelSlot = document.getElementById('git-panel-slot');
     var detailIndicator = document.getElementById('git-detail-indicator');
     var activeLabel = document.getElementById('git-active-repo-label');
-    var refreshBtn = document.getElementById('git-refresh-default');
 
     var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.git-tab-button'));
     var tabMap = {};
@@ -1449,26 +1433,6 @@
     if (searchInput) {
       searchInput.addEventListener('input', function(event) {
         filterList(event.target.value || '');
-      });
-    }
-
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        var targetEntry = activeEntry;
-        if (!targetEntry) {
-          var defaultFragment = refreshBtn.getAttribute('data-git-default-fragment') || '';
-          var defaultUrl = refreshBtn.getAttribute('data-git-default-url') || '';
-          var defaultName = refreshBtn.getAttribute('data-git-default-name') || '';
-          targetEntry =
-            findEntryByFragment(defaultFragment) ||
-            findEntryByUrl(defaultUrl) ||
-            findEntryByLabel(defaultName) ||
-            null;
-        }
-        if (targetEntry) {
-          activateEntry(targetEntry, { tab: activeTab, forceReload: true });
-        }
       });
     }
 

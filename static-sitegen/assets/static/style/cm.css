@@ -1084,6 +1084,21 @@ body[data-page-slug="git"] .footer-container {
   --git-max-width: clamp(22rem, 92vw, 88rem);
   --git-sidebar-width: clamp(18rem, 28vw, 24rem);
   --git-accent: #66ff00;
+  --git-surface-primary: rgba(0, 0, 0, 0.82);
+  --git-surface-secondary: rgba(0, 0, 0, 0.64);
+  --git-surface-tertiary: rgba(0, 0, 0, 0.55);
+  --git-panel-border: rgba(102, 255, 0, 0.35);
+  --git-panel-border-strong: rgba(102, 255, 0, 0.45);
+  --git-panel-border-subtle: rgba(102, 255, 0, 0.25);
+  --git-panel-shadow: 0 0 28px rgba(102, 255, 0, 0.18);
+  --git-panel-shadow-strong: 0 18px 42px rgba(102, 255, 0, 0.25);
+  --git-text-strong: rgba(214, 255, 214, 0.92);
+  --git-text-primary: rgba(190, 255, 190, 0.85);
+  --git-text-secondary: rgba(150, 255, 200, 0.78);
+  --git-text-muted: rgba(130, 210, 170, 0.65);
+  --git-interactive-surface: rgba(2, 27, 2, 0.7);
+  --git-interactive-surface-soft: rgba(2, 27, 2, 0.55);
+  --git-interactive-surface-strong: rgba(102, 255, 0, 0.22);
   margin-top: 2rem;
 }
 
@@ -1117,12 +1132,12 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-hero {
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(102, 255, 0, 0.28);
+  background: var(--git-surface-tertiary);
+  border: 1px solid var(--git-panel-border);
   border-radius: 18px;
   padding: clamp(1.5rem, 3vw, 2rem);
   line-height: 1.65;
-  box-shadow: 0 28px 50px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--git-panel-shadow);
   margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
 }
 
@@ -1144,10 +1159,10 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 
 .git-sidebar,
 .git-content {
-  background: rgba(6, 12, 24, 0.82);
-  border: 1px solid rgba(102, 255, 0, 0.2);
+  background: var(--git-surface-primary);
+  border: 1px solid var(--git-panel-border);
   border-radius: 18px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--git-panel-shadow-strong);
   backdrop-filter: blur(6px);
 }
 
@@ -1177,7 +1192,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-sidebar-subtitle {
   margin: 0;
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--git-text-secondary);
   line-height: 1.4;
 }
 
@@ -1189,17 +1204,21 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   width: 100%;
   padding: 0.6rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid rgba(102, 255, 0, 0.25);
-  background: rgba(2, 8, 18, 0.92);
-  color: #f5fff1;
+  border: 1px solid var(--git-panel-border-subtle);
+  background: var(--git-interactive-surface-soft);
+  color: var(--git-text-strong);
   font-size: 0.9rem;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .git-search-input:focus-visible {
-  border-color: rgba(102, 255, 0, 0.55);
-  box-shadow: 0 0 0 3px rgba(102, 255, 0, 0.18);
+  border-color: var(--git-panel-border);
+  box-shadow: 0 0 0 3px rgba(102, 255, 0, 0.2);
   outline: none;
+}
+
+.git-search-input::placeholder {
+  color: var(--git-text-muted);
 }
 
 .git-loading {
@@ -1208,7 +1227,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--git-text-secondary);
   padding: 0.35rem 0.75rem;
 }
 
@@ -1249,12 +1268,12 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-repo-list::-webkit-scrollbar-thumb {
-  background: rgba(102, 255, 0, 0.45);
+  background: var(--git-panel-border-strong);
   border-radius: 12px;
 }
 
 .git-repo-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(6, 40, 6, 0.25);
   border-radius: 12px;
 }
 
@@ -1266,9 +1285,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   width: 100%;
   text-align: left;
   border-radius: 14px;
-  border: 1px solid transparent;
-  background: rgba(102, 255, 0, 0.08);
-  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--git-panel-border-subtle);
+  background: var(--git-surface-secondary);
+  color: var(--git-text-primary);
   padding: 0.65rem 0.85rem;
   display: flex;
   flex-direction: column;
@@ -1280,18 +1299,18 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 
 .git-repo-button:hover,
 .git-repo-button:focus-visible {
-  border-color: rgba(102, 255, 0, 0.55);
-  box-shadow: 0 18px 36px rgba(7, 48, 2, 0.45);
+  border-color: var(--git-panel-border);
+  box-shadow: var(--git-panel-shadow);
   transform: translateY(-2px);
   outline: none;
 }
 
 .git-repo-button.git-link-active,
 .git-repo-button.git-link-active:hover {
-  background: rgba(102, 255, 0, 0.22);
-  color: #111;
-  border-color: rgba(102, 255, 0, 0.75);
-  box-shadow: 0 20px 42px rgba(102, 255, 0, 0.28);
+  background: var(--git-interactive-surface-strong);
+  color: #021502;
+  border-color: var(--git-panel-border-strong);
+  box-shadow: var(--git-panel-shadow-strong);
 }
 
 .git-repo-button-title {
@@ -1308,7 +1327,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--git-text-muted);
 }
 
 .git-repo-pill {
@@ -1325,34 +1344,34 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 
 .git-repo-owner {
   font-style: italic;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--git-text-secondary);
 }
 
 .git-repo-button-desc {
   margin: 0;
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--git-text-primary);
   line-height: 1.4;
 }
 
 .git-repo-button-path {
   font-size: 0.76rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--git-text-muted);
   letter-spacing: 0.03em;
 }
 
 .git-empty {
   margin: 0.75rem 0 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--git-text-secondary);
 }
 
 .git-empty-state {
-  border: 1px dashed rgba(102, 255, 0, 0.35);
+  border: 1px dashed var(--git-panel-border);
   border-radius: 14px;
   padding: clamp(1.25rem, 3vw, 2rem);
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(12, 18, 32, 0.75);
+  color: var(--git-text-primary);
+  background: var(--git-surface-secondary);
   font-size: 0.92rem;
   line-height: 1.6;
   text-align: center;
@@ -1361,7 +1380,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-sidebar-footnote {
   margin-top: 1.25rem;
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--git-text-muted);
   line-height: 1.5;
 }
 
@@ -1441,46 +1460,14 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-content-subtitle {
   margin: 0;
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--git-text-secondary);
 }
 
 .git-content-description {
   margin: 0 0 1.25rem;
   font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--git-text-primary);
   line-height: 1.5;
-}
-
-.git-refresh {
-  background: linear-gradient(135deg, rgba(102, 255, 0, 0.16), rgba(102, 255, 0, 0.36));
-  border: 1px solid rgba(102, 255, 0, 0.55);
-  color: #0d1b04;
-  font-family: 'Syne Mono', monospace;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 0.6rem 1.05rem;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.git-refresh:hover,
-.git-refresh:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 32px rgba(102, 255, 0, 0.28);
-  outline: none;
-}
-
-.git-refresh:active {
-  transform: translateY(1px);
-}
-
-.git-refresh[disabled] {
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
 
 .git-content-body {
@@ -1506,10 +1493,10 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-panel {
-  background: rgba(6, 12, 24, 0.82);
-  border: 1px solid rgba(102, 255, 0, 0.24);
+  background: var(--git-surface-primary);
+  border: 1px solid var(--git-panel-border);
   border-radius: 18px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--git-panel-shadow-strong);
   backdrop-filter: blur(6px);
   padding: clamp(1.5rem, 3vw, 2.1rem);
   display: flex;
@@ -1547,7 +1534,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   gap: 0.65rem;
   align-items: center;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--git-text-secondary);
 }
 
 .git-panel-owner {
@@ -1572,7 +1559,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-panel-description {
   margin: 0;
   font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--git-text-primary);
   line-height: 1.55;
 }
 
@@ -1597,7 +1584,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   font-family: 'Syne Mono', monospace;
   font-size: 0.82rem;
   background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(102, 255, 0, 0.32);
+  border: 1px solid var(--git-panel-border-strong);
   border-radius: 14px;
   padding: 0.65rem 0.85rem;
   color: rgba(214, 255, 214, 0.95);
@@ -1605,9 +1592,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-clone-copy {
-  background: rgba(14, 32, 14, 0.82);
-  border: 1px solid rgba(102, 255, 0, 0.45);
-  color: rgba(180, 255, 180, 0.92);
+  background: var(--git-interactive-surface);
+  border: 1px solid var(--git-panel-border-strong);
+  color: var(--git-text-primary);
   font-family: 'Syne Mono', monospace;
   font-size: 0.74rem;
   letter-spacing: 0.1em;
@@ -1661,7 +1648,7 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 
 .git-activity-count {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--git-text-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1676,10 +1663,10 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-commit-item {
-  border: 1px solid rgba(102, 255, 0, 0.22);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 14px;
   padding: 0.9rem 1rem;
-  background: rgba(3, 10, 18, 0.78);
+  background: var(--git-surface-secondary);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -1803,8 +1790,8 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   margin: 0;
   padding: clamp(1rem, 2vw, 1.6rem);
   border-radius: 14px;
-  border: 1px solid rgba(102, 255, 0, 0.18);
-  background: rgba(4, 10, 18, 0.78);
+  border: 1px solid var(--git-panel-border-subtle);
+  background: var(--git-surface-secondary);
   color: rgba(204, 255, 204, 0.82);
   font-size: 0.95rem;
   line-height: 1.6;
@@ -1861,9 +1848,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   max-height: clamp(24rem, 70vh, 46rem);
   overflow: auto;
   padding: clamp(0.75rem, 1.2vw, 1rem);
-  border: 1px solid rgba(102, 255, 0, 0.18);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 14px;
-  background: rgba(4, 12, 18, 0.76);
+  background: var(--git-surface-secondary);
 }
 
 .git-tree-root,
@@ -1951,9 +1938,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-files-preview {
   flex: 1 1 auto;
   min-height: clamp(18rem, 60vh, 42rem);
-  border: 1px solid rgba(102, 255, 0, 0.18);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 14px;
-  background: rgba(4, 10, 18, 0.78);
+  background: var(--git-surface-secondary);
   padding: clamp(0.85rem, 1.5vw, 1.25rem);
   overflow: auto;
 }
@@ -1971,9 +1958,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-refs-column {
-  border: 1px solid rgba(102, 255, 0, 0.18);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 14px;
-  background: rgba(4, 12, 18, 0.7);
+  background: var(--git-surface-secondary);
   padding: clamp(0.9rem, 1.4vw, 1.3rem);
 }
 
@@ -1995,10 +1982,10 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-ref-item {
-  border: 1px solid rgba(102, 255, 0, 0.18);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 12px;
   padding: 0.65rem 0.75rem;
-  background: rgba(6, 16, 12, 0.55);
+  background: var(--git-surface-secondary);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -2059,8 +2046,8 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 }
 
 .git-readme-body pre {
-  background: rgba(2, 10, 16, 0.78);
-  border: 1px solid rgba(102, 255, 0, 0.2);
+  background: var(--git-surface-secondary);
+  border: 1px solid var(--git-panel-border-subtle);
   border-radius: 12px;
   padding: 0.85rem;
   overflow: auto;
@@ -2117,9 +2104,9 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(14, 32, 14, 0.82);
-  border: 1px solid rgba(102, 255, 0, 0.45);
-  color: rgba(190, 255, 190, 0.92);
+  background: var(--git-interactive-surface);
+  border: 1px solid var(--git-panel-border-strong);
+  color: var(--git-text-primary);
   font-family: 'Syne Mono', monospace;
   font-size: 0.74rem;
   letter-spacing: 0.1em;
@@ -2137,8 +2124,8 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
 .git-file-action:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(102, 255, 0, 0.21);
-  color: #061405;
-  background: rgba(102, 255, 0, 0.3);
+  color: #021502;
+  background: var(--git-interactive-surface-strong);
   outline: none;
 }
 
@@ -2316,11 +2303,6 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
-  }
-
-  .git-refresh {
-    width: 100%;
-    text-align: center;
   }
 
   .git-content-body {
