@@ -1,4 +1,28 @@
-<article class="git-panel" data-git-panel="<%= repo.id %>">
+<%
+  const logContext = log || {};
+  const logMode = logContext.mode || (logContext.isTruncated ? 'limited' : 'full');
+  const fullFragment = logContext.fullFragmentPath || '';
+  const limitedFragment = logContext.limitedFragmentPath || '';
+  const totalCommits = Number.isFinite(logContext.totalCommits)
+    ? logContext.totalCommits
+    : (stats && Number.isFinite(stats.totalCommits) ? stats.totalCommits : 0);
+  const displayedCommits = stats && Number.isFinite(stats.displayedCommits)
+    ? stats.displayedCommits
+    : (stats && Number.isFinite(stats.totalCommits) ? stats.totalCommits : 0);
+  const initialLimit = Number.isFinite(logContext.initialLimit) ? logContext.initialLimit : displayedCommits;
+  const showFullLink = !!(logContext && logContext.isTruncated && fullFragment);
+  const showCollapseLink = !showFullLink && logMode === 'full' && limitedFragment && initialLimit > 0 && totalCommits > initialLimit;
+  const showOriginLink = !showFullLink && !showCollapseLink && repo.detailUrl;
+%>
+<article
+  class="git-panel"
+  data-git-panel="<%= repo.id %>"
+  data-git-log-mode="<%= logMode %>"
+  data-git-full-fragment="<%= fullFragment %>"
+  data-git-limited-fragment="<%= limitedFragment %>"
+  data-git-log-total="<%= totalCommits %>"
+  data-git-log-initial-limit="<%= initialLimit %>"
+>
   <header class="git-panel-header">
     <div class="git-panel-lead">
       <h4 class="git-panel-title"><%= repo.label %></h4>
@@ -20,8 +44,12 @@
       <span class="git-clone-label">Clone repository (read-only)</span>
       <code class="git-clone-command" data-git-command="<%= clone.command %>"><%= clone.command %></code>
       <button type="button" class="git-clone-copy" data-copy-source="previous">Copy</button>
-      <% if (repo.detailUrl) { %>
-        <a class="git-panel-log-link" href="<%= repo.detailUrl %>" target="_blank" rel="noopener">Open full log</a>
+      <% if (showFullLink) { %>
+        <a class="git-panel-log-link" data-git-log-action="expand" href="<%= fullFragment %>">Open full log</a>
+      <% } else if (showCollapseLink) { %>
+        <a class="git-panel-log-link" data-git-log-action="collapse" href="<%= limitedFragment %>">Show latest <%= initialLimit %></a>
+      <% } else if (showOriginLink) { %>
+        <a class="git-panel-log-link" href="<%= repo.detailUrl %>" target="_blank" rel="noopener">View on origin</a>
       <% } %>
     </div>
   </header>
@@ -29,7 +57,14 @@
   <section class="git-activity">
     <header class="git-activity-header">
       <h5 class="git-activity-title">Recent commits</h5>
-      <% if (stats && typeof stats.totalCommits === 'number') { %>
+      <% if (stats && Number.isFinite(stats.displayedCommits)) { %>
+        <span class="git-activity-count">
+          <%= stats.displayedCommits %> shown
+          <% if (logContext && logContext.isTruncated && totalCommits > stats.displayedCommits) { %>
+            · of <%= totalCommits %> total
+          <% } %>
+        </span>
+      <% } else if (stats && Number.isFinite(stats.totalCommits)) { %>
         <span class="git-activity-count"><%= stats.totalCommits %> shown</span>
       <% } %>
     </header>

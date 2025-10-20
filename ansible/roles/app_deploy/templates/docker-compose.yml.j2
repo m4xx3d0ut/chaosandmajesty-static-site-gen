@@ -17,7 +17,7 @@ services:
     labels:
       com.chaosandmajesty.environment: prod
       com.chaosandmajesty.service: {{ compose_service_name }}
-{% if webdav_mount_enabled or auth_file_host_path or letsencrypt_mount_enabled or stagit_enabled %}
+{% if webdav_mount_enabled or auth_file_host_path or letsencrypt_mount_enabled %}
     volumes:
 {% if webdav_mount_enabled %}
       - "{{ webdav_host_path }}:{{ webdav_container_path }}:rw"
@@ -28,8 +28,5 @@ services:
 {% if letsencrypt_mount_enabled %}
       - "{{ letsencrypt_host_path }}:{{ letsencrypt_container_path }}:ro"
       - "{{ acme_webroot_host_path }}:{{ acme_webroot_container_path }}:rw"
-{% endif %}
-{% if stagit_enabled %}
-      - "{{ stagit_html_dir }}:/usr/share/nginx/html/git:ro"
 {% endif %}
 {% endif %}

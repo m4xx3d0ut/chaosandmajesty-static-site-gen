@@ -23,12 +23,11 @@ pages:
     git:
       intro: |
         <p>Browse the Core Git front door without leaving the site. Pick a repository on the left; the activity feed loads on the right.</p>
-      repoIndexUrl: "https://cm.core.home.arpa/git/"
-      manifest: "config/stagit/manifest.txt"
+      manifest: "config/git/manifest.txt"
       defaultRepoLabel: "chaosandmajesty-static-site-gen"
       repoDetailSuffix: "log.html"
       leftPaneTitle: "Core Git"
-      leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/stagit/manifest.txt)."
+      leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt)."
       rightPaneTitle: "Repository Activity"
       rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
       localRepoOverrides:

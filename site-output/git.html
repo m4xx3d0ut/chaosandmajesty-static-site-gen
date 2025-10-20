@@ -19,15 +19,7 @@
     <!-- head partial (auto-generated) -->
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
 <script type="text/javascript" src="assets/static/js/cm.js"></script>
 <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 <link rel="manifest" href="site.webmanifest"/>
@@ -131,7 +123,7 @@
       <aside class="git-sidebar" id="git-sidebar" aria-labelledby="git-sidebar-title">
         <header class="git-sidebar-header">
           <h3 class="git-sidebar-title" id="git-sidebar-title">Core Git</h3>
-          <p class="git-sidebar-subtitle">Select a repository from the Core Git catalog (hydrated from config/stagit/manifest.txt).</p>
+          <p class="git-sidebar-subtitle">Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt).</p>
         </header>
 
         <div class="git-sidebar-search">
@@ -164,6 +156,10 @@
                 data-git-files="git/chaosandmajesty-static-site-gen/files.html"
                 data-git-refs="git/chaosandmajesty-static-site-gen/refs.html"
                 data-git-readme="git/chaosandmajesty-static-site-gen/readme.html"
+                data-git-full-log="git/chaosandmajesty-static-site-gen/full.html"
+                data-git-limited-log="git/chaosandmajesty-static-site-gen/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="40"
               >
                 <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
                 <div class="git-repo-button-meta">
@@ -199,6 +195,10 @@
                 data-git-files="git/ai-system-config/files.html"
                 data-git-refs="git/ai-system-config/refs.html"
                 data-git-readme="git/ai-system-config/readme.html"
+                data-git-full-log="git/ai-system-config/index.html"
+                data-git-limited-log="git/ai-system-config/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="7"
               >
                 <span class="git-repo-button-title">ai-system-config</span>
                 <div class="git-repo-button-meta">
@@ -234,6 +234,10 @@
                 data-git-files="git/cicd-dev/files.html"
                 data-git-refs="git/cicd-dev/refs.html"
                 data-git-readme="git/cicd-dev/readme.html"
+                data-git-full-log="git/cicd-dev/index.html"
+                data-git-limited-log="git/cicd-dev/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="2"
               >
                 <span class="git-repo-button-title">cicd-dev</span>
                 <div class="git-repo-button-meta">
@@ -269,6 +273,10 @@
                 data-git-files="git/cm-blog-content-staging/files.html"
                 data-git-refs="git/cm-blog-content-staging/refs.html"
                 data-git-readme="git/cm-blog-content-staging/readme.html"
+                data-git-full-log="git/cm-blog-content-staging/index.html"
+                data-git-limited-log="git/cm-blog-content-staging/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="5"
               >
                 <span class="git-repo-button-title">cm-blog-content-staging</span>
                 <div class="git-repo-button-meta">
@@ -304,6 +312,10 @@
                 data-git-files="git/platform-config/files.html"
                 data-git-refs="git/platform-config/refs.html"
                 data-git-readme="git/platform-config/readme.html"
+                data-git-full-log="git/platform-config/full.html"
+                data-git-limited-log="git/platform-config/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="40"
               >
                 <span class="git-repo-button-title">platform-config</span>
                 <div class="git-repo-button-meta">
@@ -339,6 +351,10 @@
                 data-git-files="git/platform-nvidia-compute/files.html"
                 data-git-refs="git/platform-nvidia-compute/refs.html"
                 data-git-readme="git/platform-nvidia-compute/readme.html"
+                data-git-full-log="git/platform-nvidia-compute/index.html"
+                data-git-limited-log="git/platform-nvidia-compute/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="2"
               >
                 <span class="git-repo-button-title">platform-nvidia-compute</span>
                 <div class="git-repo-button-meta">
@@ -374,6 +390,10 @@
                 data-git-files="git/radiostatic-site-gen/files.html"
                 data-git-refs="git/radiostatic-site-gen/refs.html"
                 data-git-readme="git/radiostatic-site-gen/readme.html"
+                data-git-full-log="git/radiostatic-site-gen/full.html"
+                data-git-limited-log="git/radiostatic-site-gen/index.html"
+                data-git-log-limit="10"
+                data-git-log-total="40"
               >
                 <span class="git-repo-button-title">radiostatic-site-gen</span>
                 <div class="git-repo-button-meta">
@@ -397,12 +417,6 @@
 
         <p class="git-empty" id="git-empty" hidden>No repositories match your search.</p>
 
-        
-          <p class="git-sidebar-footnote">
-            View the full catalog at
-            <a href="https://cm.core.home.arpa/git/" target="_blank" rel="noopener">https://cm.core.home.arpa/git/</a>.
-          </p>
-        
       </aside>
 
       <section class="git-content" aria-labelledby="git-content-title">
@@ -445,6 +459,9 @@
               data-default-fragment="git/chaosandmajesty-static-site-gen/index.html"
               data-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
               data-default-name="chaosandmajesty-static-site-gen"
+              data-default-limited-log="git/chaosandmajesty-static-site-gen/index.html"
+              data-default-full-log="git/chaosandmajesty-static-site-gen/full.html"
+              data-default-log-limit="10"
               data-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
               data-default-files="git/chaosandmajesty-static-site-gen/files.html"
               data-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
@@ -488,6 +505,14 @@
       var detailUrl = button.getAttribute('data-git-url') || '';
       var label = button.getAttribute('data-git-label') || detailUrl;
       var searchText = button.getAttribute('data-git-search') || (label + ' ' + detailUrl);
+      var fullLogFragment = button.getAttribute('data-git-full-log') || '';
+      var limitedLogFragment = button.getAttribute('data-git-limited-log') || (button.getAttribute('data-git-fragment') || '');
+      var logLimitAttr = button.getAttribute('data-git-log-limit') || '';
+      var logTotalAttr = button.getAttribute('data-git-log-total') || '';
+      var parsedLogLimit = parseInt(logLimitAttr, 10);
+      var parsedLogTotal = parseInt(logTotalAttr, 10);
+      var logInitialLimit = Number.isFinite(parsedLogLimit) ? parsedLogLimit : null;
+      var logTotalCommits = Number.isFinite(parsedLogTotal) ? parsedLogTotal : null;
       return {
         id: button.getAttribute('data-git-id') || '',
         button: button,
@@ -497,6 +522,11 @@
         refsFragment: button.getAttribute('data-git-refs') || '',
         readmeFragment: button.getAttribute('data-git-readme') || '',
         commitsJsonPath: button.getAttribute('data-git-commits') || '',
+        fullLogFragment: fullLogFragment,
+        limitedLogFragment: limitedLogFragment,
+        logInitialLimit: logInitialLimit,
+        logTotalCommits: logTotalCommits,
+        logFragmentOverride: '',
         label: label,
         searchText: searchText.toLowerCase()
       };
@@ -835,7 +865,7 @@
     function findEntryByFragment(fragment) {
       if (!fragment) return null;
       return findEntry(function(entry) {
-        return entry.fragmentPath === fragment;
+        return entry.fragmentPath === fragment || entry.fullLogFragment === fragment;
       });
     }
 
@@ -922,6 +952,9 @@
         initFilesPanel();
       } else {
         activeFileButton = null;
+      }
+      if (tab === 'log') {
+        initLogPanel();
       }
     }
 
@@ -1038,6 +1071,66 @@
       var preview = panelSlot.querySelector('[data-git-file-preview]');
       if (preview) {
         preview.setAttribute('tabindex', '-1');
+      }
+    }
+
+    function initLogPanel() {
+      if (!panelSlot) {
+        return;
+      }
+      var panel = panelSlot.querySelector('.git-panel');
+      if (!panel) {
+        return;
+      }
+      var expandLink = panel.querySelector('[data-git-log-action="expand"]');
+      if (expandLink && expandLink.getAttribute('data-git-bound') !== 'true') {
+        expandLink.setAttribute('data-git-bound', 'true');
+        expandLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = expandLink.getAttribute('href') || panel.getAttribute('data-git-full-fragment') || '';
+          if (!fragment && activeEntry.fullLogFragment) {
+            fragment = activeEntry.fullLogFragment;
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: true
+          });
+        });
+      }
+      var collapseLink = panel.querySelector('[data-git-log-action="collapse"]');
+      if (collapseLink && collapseLink.getAttribute('data-git-bound') !== 'true') {
+        collapseLink.setAttribute('data-git-bound', 'true');
+        collapseLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = collapseLink.getAttribute('href') || panel.getAttribute('data-git-limited-fragment') || '';
+          if (!fragment) {
+            fragment = activeEntry.limitedLogFragment || activeEntry.fragmentPath || '';
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: false
+          });
+        });
       }
     }
 
@@ -1294,7 +1387,21 @@
         setSidebarCollapsed(false, { reason: 'auto' });
       }
 
-      var fragment = getFragmentForTab(entry, tab);
+      var fragmentOverride = options.fragmentOverride || '';
+      if (!fragmentOverride && tab === 'log' && entry.logFragmentOverride) {
+        fragmentOverride = entry.logFragmentOverride;
+      }
+      if (tab === 'log' && !entry.limitedLogFragment) {
+        entry.limitedLogFragment = entry.fragmentPath || '';
+      }
+      var fragment = fragmentOverride || getFragmentForTab(entry, tab);
+      if (tab === 'log') {
+        if (options.rememberFragment === true && fragmentOverride) {
+          entry.logFragmentOverride = fragmentOverride;
+        } else if (options.rememberFragment === false) {
+          entry.logFragmentOverride = '';
+        }
+      }
       setPanelMetadata(entry, tab, fragment);
       if (!fragment) {
         hideIndicator();

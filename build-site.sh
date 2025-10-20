@@ -16,7 +16,7 @@ if [ "${ENABLE_DOOM_BUILD:-0}" != "0" ]; then
 fi
 
 # Prepare Git manifest mirrors so the Git page has local data to render.
-MANIFEST_PATH="${GIT_MANIFEST_PATH:-config/stagit/manifest.txt}"
+MANIFEST_PATH="${GIT_MANIFEST_PATH:-config/git/manifest.txt}"
 SITEGEN_GIT_MIRRORS_DIR="${SITEGEN_GIT_MIRRORS_DIR:-tmp/git-mirrors}"
 export SITEGEN_GIT_MIRRORS_DIR
 

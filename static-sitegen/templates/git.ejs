@@ -13,7 +13,6 @@
 
   const layoutContent = include('partials/git-layout.ejs', {
     resolvedRepos,
-    repoIndexUrl: gitConfig.repoIndexUrl || gitConfig.repoIndex || 'https://cm.core.home.arpa/git/',
     defaultRepoUrl: gitConfig.defaultRepoUrl || (defaultRepoEntry ? defaultRepoEntry.detailUrl : ''),
     defaultRepoLabel: gitConfig.defaultRepoLabel || (defaultRepoEntry ? defaultRepoEntry.label : 'selected repository'),
     leftPaneTitle: gitConfig.leftPaneTitle || 'Repositories',

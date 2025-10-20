@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-DEFAULT_MANIFEST="config/stagit/manifest.txt"
+DEFAULT_MANIFEST="config/git/manifest.txt"
 DEFAULT_OUTPUT="tmp/git-mirrors"
 DEFAULT_DEPTH="${SYNC_GIT_MANIFEST_DEPTH:-200}"
 STRICT_MODE="${SYNC_GIT_MANIFEST_STRICT:-0}"
@@ -19,7 +19,7 @@ Fetches or clones repositories defined in the Git manifest so the static site
 generator can build local fragments for the Git page.
 
 Options:
-  -m, --manifest <path>   Path to manifest file (default: config/stagit/manifest.txt)
+  -m, --manifest <path>   Path to manifest file (default: config/git/manifest.txt)
   -o, --output <dir>      Destination directory for mirrors (default: tmp/git-mirrors)
   -d, --depth <n>         Shallow clone depth (default: 200 or $SYNC_GIT_MANIFEST_DEPTH)
   -r, --rewrite <rules>   Comma-separated prefix rewrites (from=>to,from2=>to2)

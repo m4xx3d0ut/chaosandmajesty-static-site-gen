@@ -9,7 +9,7 @@
     "httpUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute",
     "detailUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/log.html",
     "baseDetailUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute",
-    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/stagit/manifest.txt",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/git/manifest.txt",
     "repoPath": "git/platform-nvidia-compute",
     "stage": "dev",
     "stageLabel": "DEV"

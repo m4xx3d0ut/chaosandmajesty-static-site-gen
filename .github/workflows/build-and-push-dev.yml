@@ -104,26 +104,26 @@ jobs:
 
           if [[ "$TARGET" == refs/heads/* ]]; then
             BRANCH="${TARGET#refs/heads/}"
-            git clone --depth 1 --branch "$BRANCH" "$REPO_SSH" .
+            git clone --branch "$BRANCH" "$REPO_SSH" .
           elif [[ "$TARGET" == refs/tags/* ]]; then
             TAG="${TARGET#refs/tags/}"
-            git clone --depth 1 "$REPO_SSH" .
-            git fetch --depth 1 origin "refs/tags/$TAG:refs/tags/$TAG" || git fetch origin "refs/tags/$TAG"
+            git clone "$REPO_SSH" .
+            git fetch origin "refs/tags/$TAG:refs/tags/$TAG" || git fetch origin "refs/tags/$TAG"
             git checkout "tags/$TAG"
           elif [[ "$TARGET" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            git clone --depth 1 "$REPO_SSH" .
-            git fetch --depth 1 origin "$TARGET" || git fetch origin "$TARGET" || git fetch origin
+            git clone "$REPO_SSH" .
+            git fetch origin "$TARGET" || git fetch origin
             git checkout --detach "$TARGET"
           elif [[ -n "$TARGET" ]]; then
-            git clone --depth 1 --branch "$TARGET" "$REPO_SSH" . || {
-              git clone --depth 1 "$REPO_SSH" .
-              git fetch --depth 1 origin "$TARGET" || git fetch origin "$TARGET" || true
+            git clone --branch "$TARGET" "$REPO_SSH" . || {
+              git clone "$REPO_SSH" .
+              git fetch origin "$TARGET" || true
               git checkout --detach "$TARGET" || git checkout "$TARGET" || true
             }
           else
-            git clone --depth 1 "$REPO_SSH" .
+            git clone "$REPO_SSH" .
             if [[ -n "${GITHUB_SHA:-}" ]]; then
-              git fetch --depth 1 origin "${GITHUB_SHA}" || git fetch origin
+              git fetch origin "${GITHUB_SHA}" || git fetch origin
               git checkout --detach "${GITHUB_SHA}"
             fi
           fi

@@ -159,7 +159,7 @@ async function copyStaticFiles(outputDir, verbose = false) {
 }
 
 const DEFAULT_GIT_DETAIL_SUFFIX = 'log.html';
-const DEFAULT_GIT_MANIFEST_PATH = path.join('config', 'stagit', 'manifest.txt');
+const DEFAULT_GIT_MANIFEST_PATH = path.join('config', 'git', 'manifest.txt');
 
 function deriveGitRepoPath(url) {
   if (!url || typeof url !== 'string') {

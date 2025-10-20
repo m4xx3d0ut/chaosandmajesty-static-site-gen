@@ -9,7 +9,7 @@
     "httpUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging",
     "detailUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging/log.html",
     "baseDetailUrl": "https://cm.core.home.arpa/git/cm-blog-content-staging",
-    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/stagit/manifest.txt",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/git/manifest.txt",
     "repoPath": "git/cm-blog-content-staging",
     "stage": "dev",
     "stageLabel": "DEV"
@@ -29,7 +29,7 @@
       "authoredIso": "2025-10-09T11:00:26-07:00",
       "authoredEpochMs": 1760032826000,
       "authoredDisplay": "Oct 9, 2025, 6:00 PM",
-      "relativeTime": "last week",
+      "relativeTime": "2 weeks ago",
       "tags": [],
       "heads": [
         "dev"
@@ -51,7 +51,7 @@
       "authoredIso": "2025-10-09T10:51:40-07:00",
       "authoredEpochMs": 1760032300000,
       "authoredDisplay": "Oct 9, 2025, 5:51 PM",
-      "relativeTime": "last week",
+      "relativeTime": "2 weeks ago",
       "tags": [],
       "heads": [],
       "refNames": [],
@@ -67,7 +67,7 @@
       "authoredIso": "2025-10-09T08:40:24-07:00",
       "authoredEpochMs": 1760024424000,
       "authoredDisplay": "Oct 9, 2025, 3:40 PM",
-      "relativeTime": "last week",
+      "relativeTime": "2 weeks ago",
       "tags": [],
       "heads": [],
       "refNames": [],

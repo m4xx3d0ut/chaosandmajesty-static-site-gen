@@ -9,7 +9,7 @@
     "httpUrl": "https://cm.core.home.arpa/git/platform-config",
     "detailUrl": "https://cm.core.home.arpa/git/platform-config/log.html",
     "baseDetailUrl": "https://cm.core.home.arpa/git/platform-config",
-    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/stagit/manifest.txt",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/git/manifest.txt",
     "repoPath": "git/platform-config",
     "stage": "dev",
     "stageLabel": "DEV"
@@ -29,7 +29,7 @@
       "authoredIso": "2025-10-17T18:29:08+00:00",
       "authoredEpochMs": 1760725748000,
       "authoredDisplay": "Oct 17, 2025, 6:29 PM",
-      "relativeTime": "2 days ago",
+      "relativeTime": "3 days ago",
       "tags": [],
       "heads": [
         "dev"

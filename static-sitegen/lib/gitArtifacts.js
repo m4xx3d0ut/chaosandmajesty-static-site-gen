@@ -12,6 +12,7 @@ const FIELD_SEPARATOR = '\x1f';
 const LOG_FORMAT = '%H%x1f%h%x1f%an%x1f%ae%x1f%ad%x1f%ct%x1f%s%x1f%D%x1e';
 
 export const DEFAULT_COMMIT_LIMIT = 40;
+export const DEFAULT_INITIAL_LOG_LIMIT = 10;
 export const DEFAULT_CLONE_DEPTH = 1;
 
 const relativeTimeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
@@ -978,6 +979,8 @@ export async function ensureGitRepoArtifacts({
       url: cloneUrl
     });
 
+    const generatedAtIso = new Date().toISOString();
+
     const payload = {
       site: siteConfig,
       page: pageConfig,
@@ -989,26 +992,77 @@ export async function ensureGitRepoArtifacts({
         branch: display || repo.branch || ''
       },
       stats: {
-        generatedAtIso: new Date().toISOString(),
+        generatedAtIso,
         totalCommits: commits.length,
+        displayedCommits: commits.length,
         ref,
         refDisplay: display
       }
     };
 
-    const panelHtml = await renderRepoPanel(templatePath, payload, buildFallbackPanelHtml);
-    const panelOutputPath = path.join(repoOutputDir, 'index.html');
-    await fs.writeFile(panelOutputPath, panelHtml, 'utf8');
+    const initialLogLimit = Math.max(1, Math.min(DEFAULT_INITIAL_LOG_LIMIT, commitLimit));
+    const limitedCommits = commits.length > initialLogLimit ? commits.slice(0, initialLogLimit) : commits.slice();
+    const limitedDisplayedCount = limitedCommits.length;
+    const hasAdditionalCommits = commits.length > limitedDisplayedCount;
 
+    const fragmentRel = toPosixPath(path.join('git', slug, 'index.html'));
+    const fragmentOutputPath = path.join(repoOutputDir, 'index.html');
+    const fullFragmentRel = toPosixPath(path.join('git', slug, 'full.html'));
+    const fullFragmentOutputPath = path.join(repoOutputDir, 'full.html');
+    const commitsRel = toPosixPath(path.join('git', slug, 'commits.json'));
     const commitsOutputPath = path.join(repoOutputDir, 'commits.json');
+
+    const baseLogContext = {
+      totalCommits: commits.length,
+      displayedCommits: commits.length,
+      initialLimit: initialLogLimit,
+      fullFragmentPath: hasAdditionalCommits ? fullFragmentRel : fragmentRel,
+      limitedFragmentPath: fragmentRel
+    };
+
+    const limitedPayload = {
+      ...payload,
+      commits: limitedCommits,
+      stats: {
+        ...payload.stats,
+        displayedCommits: limitedDisplayedCount
+      },
+      log: {
+        ...baseLogContext,
+        displayedCommits: limitedDisplayedCount,
+        isTruncated: hasAdditionalCommits,
+        mode: hasAdditionalCommits ? 'limited' : 'full',
+        fullFragmentPath: hasAdditionalCommits ? fullFragmentRel : ''
+      }
+    };
+
+    const fullPayload = {
+      ...payload,
+      stats: {
+        ...payload.stats,
+        displayedCommits: commits.length
+      },
+      log: {
+        ...baseLogContext,
+        displayedCommits: commits.length,
+        isTruncated: false,
+        mode: 'full'
+      }
+    };
+
+    const panelHtml = await renderRepoPanel(templatePath, limitedPayload, buildFallbackPanelHtml);
+    await fs.writeFile(fragmentOutputPath, panelHtml, 'utf8');
+
+    if (hasAdditionalCommits) {
+      const fullPanelHtml = await renderRepoPanel(templatePath, fullPayload, buildFallbackPanelHtml);
+      await fs.writeFile(fullFragmentOutputPath, fullPanelHtml, 'utf8');
+    }
+
     await writeJson(commitsOutputPath, {
       repo: payload.repo,
       clone: payload.clone,
       commits
     });
-
-    const fragmentRel = toPosixPath(path.join('git', slug, 'index.html'));
-    const commitsRel = toPosixPath(path.join('git', slug, 'commits.json'));
 
     const treeData = await loadGitTree(repo.localPath, ref, verbose);
     const blobArtifacts = new Map();
@@ -1114,9 +1168,12 @@ export async function ensureGitRepoArtifacts({
     const readmeFragmentRel = toPosixPath(path.join('git', slug, 'readme.html'));
 
     repo.fragmentPath = fragmentRel;
+    repo.limitedFragmentPath = fragmentRel;
+    repo.fullLogFragmentPath = hasAdditionalCommits ? fullFragmentRel : fragmentRel;
     repo.commitsJsonPath = commitsRel;
     repo.generatedArtifacts = {
       panel: fragmentRel,
+      fullLog: hasAdditionalCommits ? fullFragmentRel : fragmentRel,
       commits: commitsRel,
       files: filesFragmentRel,
       refs: refsFragmentRel,
@@ -1128,6 +1185,8 @@ export async function ensureGitRepoArtifacts({
     repo.refsFragmentPath = refsFragmentRel;
     repo.readmeFragmentPath = readmeFragmentRel;
     repo.cloneCommand = cloneCommand;
+    repo.logInitialLimit = initialLogLimit;
+    repo.logTotalCommits = commits.length;
 
     generatedSet.add(generatedKey);
   }

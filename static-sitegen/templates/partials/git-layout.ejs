@@ -7,8 +7,7 @@
     leftPaneDescription,
     rightPaneTitle,
     rightPaneDescription,
-    introHtml,
-    repoIndexUrl
+    introHtml
   } = locals;
 
   let repoEntries = Array.isArray(resolvedRepos)
@@ -24,11 +23,15 @@
     normalized.description = normalized.description || '';
     normalized.repoPath = normalized.repoPath || normalized.relativePath || '';
     normalized.fragmentPath = normalized.fragmentPath || normalized.fragment || '';
+    normalized.limitedFragmentPath = normalized.limitedFragmentPath || normalized.fragmentPath || normalized.fragment || '';
+    normalized.fullLogFragmentPath = normalized.fullLogFragmentPath || normalized.fullLogFragment || '';
     normalized.commitsJsonPath = normalized.commitsJsonPath || normalized.commitsJson || '';
     normalized.filesFragmentPath = normalized.filesFragmentPath || normalized.filesFragment || '';
     normalized.refsFragmentPath = normalized.refsFragmentPath || normalized.refsFragment || '';
     normalized.readmeFragmentPath = normalized.readmeFragmentPath || normalized.readmeFragment || '';
     normalized.cloneCommand = normalized.cloneCommand || '';
+    normalized.logInitialLimit = Number.isFinite(normalized.logInitialLimit) ? normalized.logInitialLimit : null;
+    normalized.logTotalCommits = Number.isFinite(normalized.logTotalCommits) ? normalized.logTotalCommits : null;
     normalized.searchText = (normalized.searchText || [
       normalized.label,
       normalized.stage,
@@ -74,16 +77,18 @@
   const safeDefaultRepoUrl = (defaultEntry && defaultEntry.detailUrl) || defaultUrlRaw || (repoEntries[0] ? repoEntries[0].detailUrl : '');
   const safeDefaultRepoLabel = (defaultEntry && defaultEntry.label) || defaultLabelRaw || (repoEntries[0] ? repoEntries[0].label : 'selected repository');
   const safeDefaultRepoFragment = (defaultEntry && defaultEntry.fragmentPath) || '';
+  const safeDefaultRepoLimitedLog = (defaultEntry && defaultEntry.limitedFragmentPath) || safeDefaultRepoFragment;
+  const safeDefaultRepoFullLog = (defaultEntry && defaultEntry.fullLogFragmentPath) || '';
   const safeDefaultRepoCommits = (defaultEntry && defaultEntry.commitsJsonPath) || '';
   const safeDefaultRepoFiles = (defaultEntry && defaultEntry.filesFragmentPath) || '';
   const safeDefaultRepoRefs = (defaultEntry && defaultEntry.refsFragmentPath) || '';
   const safeDefaultRepoReadme = (defaultEntry && defaultEntry.readmeFragmentPath) || '';
+  const safeDefaultRepoLogLimit = defaultEntry && Number.isFinite(defaultEntry.logInitialLimit) ? defaultEntry.logInitialLimit : '';
 
   const safeLeftPaneTitle = leftPaneTitle || 'Repositories';
   const safeLeftPaneDescription = leftPaneDescription || 'Browse repositories hosted on Core.';
   const safeRightPaneTitle = rightPaneTitle || 'Repository Activity';
   const safeRightPaneDescription = rightPaneDescription || 'Commit logs and files render here.';
-  const sidebarFootnote = repoIndexUrl || '';
   const hasRepos = repoEntries.length > 0;
   const emptyMessage = hasRepos
     ? 'No repositories match your search.'
@@ -141,6 +146,10 @@
                 data-git-files="<%= repo.filesFragmentPath || '' %>"
                 data-git-refs="<%= repo.refsFragmentPath || '' %>"
                 data-git-readme="<%= repo.readmeFragmentPath || '' %>"
+                data-git-full-log="<%= repo.fullLogFragmentPath || '' %>"
+                data-git-limited-log="<%= repo.limitedFragmentPath || repo.fragmentPath || '' %>"
+                data-git-log-limit="<%= Number.isFinite(repo.logInitialLimit) ? repo.logInitialLimit : '' %>"
+                data-git-log-total="<%= Number.isFinite(repo.logTotalCommits) ? repo.logTotalCommits : '' %>"
               >
                 <span class="git-repo-button-title"><%= repo.label %></span>
                 <div class="git-repo-button-meta">
@@ -166,12 +175,6 @@
 
         <p class="git-empty" id="git-empty"<%= hasRepos ? ' hidden' : '' %>><%= emptyMessage %></p>
 
-        <% if (sidebarFootnote) { %>
-          <p class="git-sidebar-footnote">
-            View the full catalog at
-            <a href="<%= sidebarFootnote %>" target="_blank" rel="noopener"><%= sidebarFootnote %></a>.
-          </p>
-        <% } %>
       </aside>
 
       <section class="git-content" aria-labelledby="git-content-title">
@@ -214,6 +217,9 @@
               data-default-fragment="<%= safeDefaultRepoFragment %>"
               data-default-url="<%= safeDefaultRepoUrl %>"
               data-default-name="<%= safeDefaultRepoLabel %>"
+              data-default-limited-log="<%= safeDefaultRepoLimitedLog %>"
+              data-default-full-log="<%= safeDefaultRepoFullLog %>"
+              data-default-log-limit="<%= safeDefaultRepoLogLimit %>"
               data-default-commits="<%= safeDefaultRepoCommits %>"
               data-default-files="<%= safeDefaultRepoFiles %>"
               data-default-refs="<%= safeDefaultRepoRefs %>"
@@ -235,7 +241,7 @@
             </noscript>
           <% } else { %>
             <div class="git-empty-state" id="git-empty-state">
-              <p>No repositories were bundled into this build. Update <code>config/stagit/manifest.txt</code> or the Git page configuration to populate the catalog.</p>
+              <p>No repositories were bundled into this build. Update <code>config/git/manifest.txt</code> or the Git page configuration to populate the catalog.</p>
             </div>
           <% } %>
         </div>
@@ -263,6 +269,14 @@
       var detailUrl = button.getAttribute('data-git-url') || '';
       var label = button.getAttribute('data-git-label') || detailUrl;
       var searchText = button.getAttribute('data-git-search') || (label + ' ' + detailUrl);
+      var fullLogFragment = button.getAttribute('data-git-full-log') || '';
+      var limitedLogFragment = button.getAttribute('data-git-limited-log') || (button.getAttribute('data-git-fragment') || '');
+      var logLimitAttr = button.getAttribute('data-git-log-limit') || '';
+      var logTotalAttr = button.getAttribute('data-git-log-total') || '';
+      var parsedLogLimit = parseInt(logLimitAttr, 10);
+      var parsedLogTotal = parseInt(logTotalAttr, 10);
+      var logInitialLimit = Number.isFinite(parsedLogLimit) ? parsedLogLimit : null;
+      var logTotalCommits = Number.isFinite(parsedLogTotal) ? parsedLogTotal : null;
       return {
         id: button.getAttribute('data-git-id') || '',
         button: button,
@@ -272,6 +286,11 @@
         refsFragment: button.getAttribute('data-git-refs') || '',
         readmeFragment: button.getAttribute('data-git-readme') || '',
         commitsJsonPath: button.getAttribute('data-git-commits') || '',
+        fullLogFragment: fullLogFragment,
+        limitedLogFragment: limitedLogFragment,
+        logInitialLimit: logInitialLimit,
+        logTotalCommits: logTotalCommits,
+        logFragmentOverride: '',
         label: label,
         searchText: searchText.toLowerCase()
       };
@@ -610,7 +629,7 @@
     function findEntryByFragment(fragment) {
       if (!fragment) return null;
       return findEntry(function(entry) {
-        return entry.fragmentPath === fragment;
+        return entry.fragmentPath === fragment || entry.fullLogFragment === fragment;
       });
     }
 
@@ -697,6 +716,9 @@
         initFilesPanel();
       } else {
         activeFileButton = null;
+      }
+      if (tab === 'log') {
+        initLogPanel();
       }
     }
 
@@ -813,6 +835,66 @@
       var preview = panelSlot.querySelector('[data-git-file-preview]');
       if (preview) {
         preview.setAttribute('tabindex', '-1');
+      }
+    }
+
+    function initLogPanel() {
+      if (!panelSlot) {
+        return;
+      }
+      var panel = panelSlot.querySelector('.git-panel');
+      if (!panel) {
+        return;
+      }
+      var expandLink = panel.querySelector('[data-git-log-action="expand"]');
+      if (expandLink && expandLink.getAttribute('data-git-bound') !== 'true') {
+        expandLink.setAttribute('data-git-bound', 'true');
+        expandLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = expandLink.getAttribute('href') || panel.getAttribute('data-git-full-fragment') || '';
+          if (!fragment && activeEntry.fullLogFragment) {
+            fragment = activeEntry.fullLogFragment;
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: true
+          });
+        });
+      }
+      var collapseLink = panel.querySelector('[data-git-log-action="collapse"]');
+      if (collapseLink && collapseLink.getAttribute('data-git-bound') !== 'true') {
+        collapseLink.setAttribute('data-git-bound', 'true');
+        collapseLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = collapseLink.getAttribute('href') || panel.getAttribute('data-git-limited-fragment') || '';
+          if (!fragment) {
+            fragment = activeEntry.limitedLogFragment || activeEntry.fragmentPath || '';
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: false
+          });
+        });
       }
     }
 
@@ -1069,7 +1151,21 @@
         setSidebarCollapsed(false, { reason: 'auto' });
       }
 
-      var fragment = getFragmentForTab(entry, tab);
+      var fragmentOverride = options.fragmentOverride || '';
+      if (!fragmentOverride && tab === 'log' && entry.logFragmentOverride) {
+        fragmentOverride = entry.logFragmentOverride;
+      }
+      if (tab === 'log' && !entry.limitedLogFragment) {
+        entry.limitedLogFragment = entry.fragmentPath || '';
+      }
+      var fragment = fragmentOverride || getFragmentForTab(entry, tab);
+      if (tab === 'log') {
+        if (options.rememberFragment === true && fragmentOverride) {
+          entry.logFragmentOverride = fragmentOverride;
+        } else if (options.rememberFragment === false) {
+          entry.logFragmentOverride = '';
+        }
+      }
       setPanelMetadata(entry, tab, fragment);
       if (!fragment) {
         hideIndicator();

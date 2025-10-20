@@ -5,11 +5,10 @@ This playbook deploys the production container image to the Linode VPS via SSH.
 ## Layout
 - `inventory/hosts.ini` – target hosts; override `ansible_host` before use.
 - `group_vars/all.yml` – defaults (install path, image coordinates, mounts).
-- `deploy.yml` – entrypoint playbook that applies the `app_deploy` and optional `stagit_mirror` roles.
+- `deploy.yml` – entrypoint playbook that applies the `app_deploy` role.
 - `requirements.yml` – Ansible collections required (`community.docker`).
 - `roles/app_deploy` – renders Docker Compose configuration and deploys the site container.
-- `roles/stagit_mirror` – provisions a read-only stagit mirror for selected repositories.
-- `../config/stagit/` – manifest + shared assets consumed by the stagit workflows.
+- `../config/git/manifest.txt` – repository manifest consumed by the static site generator.
 
 ## Usage
 1. Install dependencies:
@@ -43,66 +42,8 @@ The role will render a Docker Compose project in `{{ app_dir }}` (default
 specified image, and recreate the container. A health check against
 `http://127.0.0.1:{{ healthcheck_port }}` guards against silent failures.
 
-## Static git mirror
+## Git manifest
 
-Set `stagit_enabled=true` to provision a read-only mirror rendered by
-[`stagit`](https://codemadness.org/stagit.html). The `stagit_mirror` role supports
-two operating modes:
-
-- **`stagit_mode: pull` (default)** – the VPS mirrors repositories directly. The
-  role installs `stagit`/`git`, manages the SSH deploy key, and executes
-  `/usr/local/bin/update-stagit.sh` during the play.
-- **`stagit_mode: push`** – CI generates the HTML and uploads it to the VPS. The
-  role still creates the directory structure but skips package/key management and
-  does not run the updater script, leaving CI to `rsync` the rendered output.
-
-In both modes the role ensures the git mirror directory (`stagit_repo_dir`),
-HTML output (`stagit_html_dir`), shared assets (`stagit_assets_dir`), and helper
-script are present. Set `stagit_manage_user=false` if you prefer to reuse an
-existing account (for example the pre-provisioned `deploy` user). Point
-`stagit_user`/`stagit_group` to that identity and ensure it can write under
-`stagit_base_dir`.
-
-Set `stagit_manage_user=false` if you prefer to reuse an existing account (for
-example the pre-provisioned `deploy` user). In that case, point `stagit_user`
-and `stagit_group` to the desired identity and ensure it can read the SSH key
-and write under `stagit_base_dir`.
-
-Define the mirror set one of two ways:
-
-1. Populate `config/stagit/manifest.txt` with pipe-delimited entries
-   (`url|branch|name|owner|description|homepage`). This manifest is copied to the
-   VPS and can be reused by CI when running in push mode.
-2. Or, set `stagit_repositories` to a list of dictionaries, e.g.:
-
-```yaml
-stagit_enabled: true
-stagit_repositories:
-  - url: git@lab-gitea:org/project-a.git
-    branch: main
-    name: project-a          # optional; defaults to repo name
-    owner: chaosandmajesty   # optional; shown on repo page
-    description: Project A static docs
-    homepage: https://chaosandmajesty.com/project-a
-```
-
-Assets live in `{{ stagit_assets_dir }}` (default `/srv/git/html/_assets`). The
-repository ships baseline files under `config/stagit/assets` (currently
-`style.css`). Leave `stagit_manage_assets=true` to copy those into place, or set
-it to false if CI uploads custom assets alongside the rendered HTML. The updater
-script symlinks any files
-listed in `stagit_shared_assets` (`style.css`, `logo.png`, `favicon.png` by default)
-into each rendered repository.
-
-Provide the read-only deploy key via `stagit_ssh_private_key` (ideally from an
-Ansible vault or CI secret) and seed host verification by populating
-`stagit_known_hosts` with dictionaries such as:
-
-```yaml
-stagit_known_hosts:
-  - name: lab-gitea.internal
-    key: "lab-gitea.internal ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA..."
-```
-
-The updater uses the manifest file to decide which repositories to keep; removing
-an entry will prune both the bare mirror and the rendered HTML on the next run.
+The static site generator consumes `config/git/manifest.txt` to know which
+repositories to mirror locally during `./build-site.sh`. Update that manifest
+before builds so the Git page sidebar stays in sync with your catalog.

@@ -9,7 +9,7 @@
     "httpUrl": "https://cm.core.home.arpa/git/cicd-dev",
     "detailUrl": "https://cm.core.home.arpa/git/cicd-dev/log.html",
     "baseDetailUrl": "https://cm.core.home.arpa/git/cicd-dev",
-    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/stagit/manifest.txt",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/git/manifest.txt",
     "repoPath": "git/cicd-dev",
     "stage": "dev",
     "stageLabel": "DEV"
