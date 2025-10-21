@@ -169,9 +169,27 @@
       <% if (site.footer && site.footer.links && site.footer.links.length > 0) { %>
         <nav>
           <ul class="footer-links">
-            <% site.footer.links.forEach(function(link) { %>
+            <% site.footer.links.forEach(function(link) { 
+                 if (!link || !link.href || !link.label) {
+                   return;
+                 }
+                 let href = link.href;
+                 const isExternal = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href);
+                 if (!isExternal) {
+                   if (href === '/' || href === 'index.html') {
+                     href = isSection ? '../index.html' : 'index.html';
+                   } else if (href.startsWith('#')) {
+                     href = isSection
+                       ? '../sections/' + href.substring(1) + '.html'
+                       : 'sections/' + href.substring(1) + '.html';
+                   } else if (!href.startsWith('/') && isSection) {
+                     href = '../' + href;
+                   }
+                 }
+                 const targetAttr = isExternal ? ' target="_blank" rel="noopener"' : '';
+            %>
               <li>
-                <a href="<%= link.href %>" target="_blank" rel="noopener">
+                <a href="<%= href %>"<%- targetAttr %>>
                   <%= link.label %>
                 </a>
               </li>
