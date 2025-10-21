@@ -73,6 +73,14 @@ Integrated Three.js support for 3D SVG logo rendering:
 - Support for complex asset dependencies
 - Automatic CSS/JS minification ready
 
+## 📄 License Notes
+
+The Chaos & Majesty site generator sources are distributed under the terms
+described in individual files. Bundled DOOM engine assets binary (`doom.wasm`)
+and corresponding patches are licensed under GPL-2.0-or-later; see `COPYING`,
+`docs/doom.md`, and `static-sitegen/assets/doom/` for provenance and rebuild
+instructions.
+
 ### **Robust Build System**
 - ES6 module architecture throughout
 - Comprehensive error handling and validation

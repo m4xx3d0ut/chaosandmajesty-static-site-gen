@@ -29,7 +29,7 @@
       "authoredIso": "2025-10-20T21:12:23+00:00",
       "authoredEpochMs": 1760994743000,
       "authoredDisplay": "Oct 20, 2025, 9:12 PM",
-      "relativeTime": "20 hours ago",
+      "relativeTime": "23 hours ago",
       "tags": [],
       "heads": [
         "dev"
@@ -51,7 +51,7 @@
       "authoredIso": "2025-10-20T19:28:32+00:00",
       "authoredEpochMs": 1760988512000,
       "authoredDisplay": "Oct 20, 2025, 7:28 PM",
-      "relativeTime": "22 hours ago",
+      "relativeTime": "yesterday",
       "tags": [],
       "heads": [],
       "refNames": [],
