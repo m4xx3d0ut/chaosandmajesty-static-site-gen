@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320">
   <rect width="960" height="320" fill="#111214" />
   <g>
-    <circle cx="200" cy="140" r="90" fill="#ff9800" opacity="0.78" />
-    <circle cx="380" cy="180" r="110" fill="#ffb74d" opacity="0.7" />
+    <circle cx="200" cy="140" r="90" fill="#ff436e" opacity="0.78" />
+    <circle cx="380" cy="180" r="110" fill="#ff6f8f" opacity="0.7" />
     <circle cx="560" cy="140" r="90" fill="#ffd59f" opacity="0.45" />
-    <circle cx="760" cy="180" r="110" fill="#ffab40" opacity="0.78" />
+    <circle cx="760" cy="180" r="110" fill="#ff628b" opacity="0.78" />
   </g>
   <text x="140" y="260" font-family="'Space Grotesk', sans-serif" font-size="34" fill="#f5f5f6">Design for the signal you broadcast.</text>
 </svg>

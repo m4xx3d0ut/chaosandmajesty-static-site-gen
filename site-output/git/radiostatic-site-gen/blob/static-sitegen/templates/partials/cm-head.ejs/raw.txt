@@ -38,7 +38,9 @@
     }
     return depthPrefix + cleaned;
   };
-  const faviconPath = (page && page.favicon) || (site && site.favicon) || 'assets/static/img/site-logo.svg';
+  const faviconPath = (page && page.favicon) || (site && site.favicon) || 'assets/static/img/site-icon-512.png';
+  const faviconType = (faviconPath && faviconPath.endsWith('.svg')) ? 'image/svg+xml' : 'image/png';
+  const appleTouchIconPath = (page && page.appleTouchIcon) || (site && site.appleTouchIcon) || 'assets/static/img/site-icon-180.png';
 %>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,4 +49,5 @@
 <link rel="stylesheet" type="text/css" href="<%= resolveAsset('assets/static/style/terminal-console.css') %>">
 <script type="text/javascript" src="<%= resolveAsset('assets/static/js/terminal-console.js') %>" defer></script>
 <link rel="manifest" href="<%= resolveAsset('site.webmanifest') %>"/>
-<link rel="icon" href="<%= resolveAsset(faviconPath) %>" type="image/svg+xml">
+<link rel="icon" href="<%= resolveAsset(faviconPath) %>" type="<%= faviconType %>">
+<link rel="apple-touch-icon" sizes="180x180" href="<%= resolveAsset(appleTouchIconPath) %>">

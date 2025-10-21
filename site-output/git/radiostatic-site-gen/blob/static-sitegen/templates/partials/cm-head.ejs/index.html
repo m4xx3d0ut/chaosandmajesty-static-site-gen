@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/static-sitegen/templates/partials/cm-head.ejs/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/static-sitegen/templates/partials/cm-head.ejs/raw.txt" data-git-line-count="50">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/static-sitegen/templates/partials/cm-head.ejs/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/static-sitegen/templates/partials/cm-head.ejs/raw.txt" data-git-line-count="53">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">cm-head.ejs</h4>
-          <div class="git-file-meta">2.4 KB · 50 lines · static-sitegen/templates/partials/cm-head.ejs</div>
+          <div class="git-file-meta">2.7 KB · 53 lines · static-sitegen/templates/partials/cm-head.ejs</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/static-sitegen/templates/partials/cm-head.ejs/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -503,7 +503,7 @@
           aria-label="Copy permalink for line 41"
           title="Copy permalink for line 41"
         >41</button>
-        <span class="git-code-text">  const faviconPath = (page &amp;&amp; page.favicon) || (site &amp;&amp; site.favicon) || &#039;assets/static/img/site-logo.svg&#039;;</span>
+        <span class="git-code-text">  const faviconPath = (page &amp;&amp; page.favicon) || (site &amp;&amp; site.favicon) || &#039;assets/static/img/site-icon-512.png&#039;;</span>
       </li>
     
 
@@ -515,7 +515,7 @@
           aria-label="Copy permalink for line 42"
           title="Copy permalink for line 42"
         >42</button>
-        <span class="git-code-text">%&gt;</span>
+        <span class="git-code-text">  const faviconType = (faviconPath &amp;&amp; faviconPath.endsWith(&#039;.svg&#039;)) ? &#039;image/svg+xml&#039; : &#039;image/png&#039;;</span>
       </li>
     
 
@@ -527,7 +527,7 @@
           aria-label="Copy permalink for line 43"
           title="Copy permalink for line 43"
         >43</button>
-        <span class="git-code-text">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;</span>
+        <span class="git-code-text">  const appleTouchIconPath = (page &amp;&amp; page.appleTouchIcon) || (site &amp;&amp; site.appleTouchIcon) || &#039;assets/static/img/site-icon-180.png&#039;;</span>
       </li>
     
 
@@ -539,7 +539,7 @@
           aria-label="Copy permalink for line 44"
           title="Copy permalink for line 44"
         >44</button>
-        <span class="git-code-text">&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;</span>
+        <span class="git-code-text">%&gt;</span>
       </li>
     
 
@@ -551,7 +551,7 @@
           aria-label="Copy permalink for line 45"
           title="Copy permalink for line 45"
         >45</button>
-        <span class="git-code-text">&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;</span>
+        <span class="git-code-text">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover&quot;/&gt;</span>
       </li>
     
 
@@ -563,7 +563,7 @@
           aria-label="Copy permalink for line 46"
           title="Copy permalink for line 46"
         >46</button>
-        <span class="git-code-text">&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;family=Share+Tech+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;</span>
+        <span class="git-code-text">&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;</span>
       </li>
     
 
@@ -575,7 +575,7 @@
           aria-label="Copy permalink for line 47"
           title="Copy permalink for line 47"
         >47</button>
-        <span class="git-code-text">&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;&lt;%= resolveAsset(&#039;assets/static/style/terminal-console.css&#039;) %&gt;&quot;&gt;</span>
+        <span class="git-code-text">&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;</span>
       </li>
     
 
@@ -587,7 +587,7 @@
           aria-label="Copy permalink for line 48"
           title="Copy permalink for line 48"
         >48</button>
-        <span class="git-code-text">&lt;script type=&quot;text/javascript&quot; src=&quot;&lt;%= resolveAsset(&#039;assets/static/js/terminal-console.js&#039;) %&gt;&quot; defer&gt;&lt;/script&gt;</span>
+        <span class="git-code-text">&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;family=Share+Tech+Mono&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;</span>
       </li>
     
 
@@ -599,7 +599,7 @@
           aria-label="Copy permalink for line 49"
           title="Copy permalink for line 49"
         >49</button>
-        <span class="git-code-text">&lt;link rel=&quot;manifest&quot; href=&quot;&lt;%= resolveAsset(&#039;site.webmanifest&#039;) %&gt;&quot;/&gt;</span>
+        <span class="git-code-text">&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;&lt;%= resolveAsset(&#039;assets/static/style/terminal-console.css&#039;) %&gt;&quot;&gt;</span>
       </li>
     
 
@@ -611,7 +611,43 @@
           aria-label="Copy permalink for line 50"
           title="Copy permalink for line 50"
         >50</button>
-        <span class="git-code-text">&lt;link rel=&quot;icon&quot; href=&quot;&lt;%= resolveAsset(faviconPath) %&gt;&quot; type=&quot;image/svg+xml&quot;&gt;</span>
+        <span class="git-code-text">&lt;script type=&quot;text/javascript&quot; src=&quot;&lt;%= resolveAsset(&#039;assets/static/js/terminal-console.js&#039;) %&gt;&quot; defer&gt;&lt;/script&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L51" data-git-line="51">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="51"
+          aria-label="Copy permalink for line 51"
+          title="Copy permalink for line 51"
+        >51</button>
+        <span class="git-code-text">&lt;link rel=&quot;manifest&quot; href=&quot;&lt;%= resolveAsset(&#039;site.webmanifest&#039;) %&gt;&quot;/&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L52" data-git-line="52">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="52"
+          aria-label="Copy permalink for line 52"
+          title="Copy permalink for line 52"
+        >52</button>
+        <span class="git-code-text">&lt;link rel=&quot;icon&quot; href=&quot;&lt;%= resolveAsset(faviconPath) %&gt;&quot; type=&quot;&lt;%= faviconType %&gt;&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L53" data-git-line="53">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="53"
+          aria-label="Copy permalink for line 53"
+          title="Copy permalink for line 53"
+        >53</button>
+        <span class="git-code-text">&lt;link rel=&quot;apple-touch-icon&quot; sizes=&quot;180x180&quot; href=&quot;&lt;%= resolveAsset(appleTouchIconPath) %&gt;&quot;&gt;</span>
       </li>
     
       </ol>

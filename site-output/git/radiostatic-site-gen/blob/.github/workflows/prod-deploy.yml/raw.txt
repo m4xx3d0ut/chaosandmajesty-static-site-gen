@@ -236,9 +236,9 @@ jobs:
           set -euo pipefail
           mkdir -p scripts/stagit
           if [ ! -f scripts/stagit/stagit-master.tar.gz ]; then
-            curl -fsSL https://codeload.github.com/chaosandmajesty-mirrors/stagit/tar.gz/refs/heads/master \
-              -o scripts/stagit/stagit-master.tar.gz || \
             curl -fsSL https://codeload.github.com/rski/stagit/tar.gz/refs/heads/master \
+              -o scripts/stagit/stagit-master.tar.gz || \
+            curl -fsSL https://git.codemadness.org/stagit/snapshot/stagit-master.tar.gz \
               -o scripts/stagit/stagit-master.tar.gz
           fi
 
@@ -299,7 +299,7 @@ jobs:
 
       - name: Sync stagit HTML to VPS
         env:
-          STAGIT_DEST: /opt/chaosandmajesty/git/html/
+          STAGIT_DEST: /opt/radiostatic/git/html/
         run: |
           set -euo pipefail
           RSYNC_SSH="ssh -i $HOME/.ssh/gitea-ci-prod -o StrictHostKeyChecking=yes"

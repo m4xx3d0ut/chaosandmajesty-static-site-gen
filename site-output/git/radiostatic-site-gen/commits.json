@@ -21,6 +21,44 @@
   },
   "commits": [
     {
+      "sha": "f95f5d3acc5e9947e00b148d177cf421c1919c76",
+      "shortSha": "f95f5d3",
+      "subject": "site-gen: ui/ux testing and fixes.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-20T21:12:23+00:00",
+      "authoredEpochMs": 1760994743000,
+      "authoredDisplay": "Oct 20, 2025, 9:12 PM",
+      "relativeTime": "5 hours ago",
+      "tags": [],
+      "heads": [
+        "dev"
+      ],
+      "refNames": [
+        "HEAD -> dev",
+        "origin/dev",
+        "origin/HEAD"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/f95f5d3acc5e9947e00b148d177cf421c1919c76.html",
+      "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/f95f5d3acc5e9947e00b148d177cf421c1919c76/"
+    },
+    {
+      "sha": "f63f9a13ddbbbbd3564dc225720f34c35bfe96d9",
+      "shortSha": "f63f9a1",
+      "subject": "site-gen: styling and logo update.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-20T19:28:32+00:00",
+      "authoredEpochMs": 1760988512000,
+      "authoredDisplay": "Oct 20, 2025, 7:28 PM",
+      "relativeTime": "7 hours ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/f63f9a13ddbbbbd3564dc225720f34c35bfe96d9.html",
+      "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/f63f9a13ddbbbbd3564dc225720f34c35bfe96d9/"
+    },
+    {
       "sha": "bacb6a95246aff87642822465cf445e3a8d0fe4b",
       "shortSha": "bacb6a9",
       "subject": "site-gen: style cleanup and testing.",
@@ -31,14 +69,8 @@
       "authoredDisplay": "Oct 17, 2025, 11:49 PM",
       "relativeTime": "3 days ago",
       "tags": [],
-      "heads": [
-        "dev"
-      ],
-      "refNames": [
-        "HEAD -> dev",
-        "origin/dev",
-        "origin/HEAD"
-      ],
+      "heads": [],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/bacb6a95246aff87642822465cf445e3a8d0fe4b.html",
       "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/bacb6a95246aff87642822465cf445e3a8d0fe4b/"
     },
@@ -259,7 +291,7 @@
       "authoredIso": "2025-10-13T22:04:54+00:00",
       "authoredEpochMs": 1760393094000,
       "authoredDisplay": "Oct 13, 2025, 10:04 PM",
-      "relativeTime": "7 days ago",
+      "relativeTime": "last week",
       "tags": [],
       "heads": [],
       "refNames": [],
@@ -633,38 +665,6 @@
       "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/8385730751e591a5ba2603368dabab579d573789.html",
       "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/8385730751e591a5ba2603368dabab579d573789/"
-    },
-    {
-      "sha": "6781b841172a38862c661a936de171933de6f20f",
-      "shortSha": "6781b84",
-      "subject": "feat: prev / next post style and scroll helper.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-10T03:24:54+00:00",
-      "authoredEpochMs": 1760066694000,
-      "authoredDisplay": "Oct 10, 2025, 3:24 AM",
-      "relativeTime": "2 weeks ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/6781b841172a38862c661a936de171933de6f20f.html",
-      "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/6781b841172a38862c661a936de171933de6f20f/"
-    },
-    {
-      "sha": "8aa3f6ec0cde4c6e90f2a4a86e2e866a299d317f",
-      "shortSha": "8aa3f6e",
-      "subject": "feat: prev / next post.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-10T03:14:05+00:00",
-      "authoredEpochMs": 1760066045000,
-      "authoredDisplay": "Oct 10, 2025, 3:14 AM",
-      "relativeTime": "2 weeks ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/commit/8aa3f6ec0cde4c6e90f2a4a86e2e866a299d317f.html",
-      "treeUrl": "https://cm.core.home.arpa/git/radiostatic-site-gen/tree/dev/8aa3f6ec0cde4c6e90f2a4a86e2e866a299d317f/"
     }
   ]
 }

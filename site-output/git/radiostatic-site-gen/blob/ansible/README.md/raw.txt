@@ -1,4 +1,4 @@
-# Chaos & Majesty Ansible Deployment
+# RadioStatic Ansible Deployment
 
 This playbook deploys the production container image to the Linode VPS via SSH.
 
@@ -17,14 +17,14 @@ This playbook deploys the production container image to the Linode VPS via SSH.
    ansible-galaxy collection install -r requirements.yml
    ```
 2. Provide the target host address by editing `inventory/hosts.ini` (defaults to
-   `chaosandmajesty.com`) or by passing
+   `radiostatic.example`) or by passing
    `-i "prod," -e ansible_host=vps.example.com`.
 3. Supply the registry coordinates and credentials (if private):
    ```bash
    ansible-playbook -i inventory/hosts.ini deploy.yml \
      -e image_registry=ghcr.io \
-     -e image_namespace=chaosandmajesty \
-     -e image_name=cm-site \
+     -e image_namespace=radiostatic \
+     -e image_name=radiostatic-site \
      -e image_tag=prod
    ```
 4. When running from CI, export `REGISTRY_USERNAME`/`REGISTRY_PASSWORD` secrets
@@ -39,7 +39,7 @@ Key defaults (override in `group_vars/all.yml` or via extra-vars):
 - `disable_host_nginx=true` stops and disables the system nginx service at deploy time.
 
 The role will render a Docker Compose project in `{{ app_dir }}` (default
-`/opt/chaosandmajesty`), ensure the WebDAV directory exists on the host, pull the
+`/opt/radiostatic`), ensure the WebDAV directory exists on the host, pull the
 specified image, and recreate the container. A health check against
 `http://127.0.0.1:{{ healthcheck_port }}` guards against silent failures.
 
@@ -81,9 +81,9 @@ stagit_repositories:
   - url: git@lab-gitea:org/project-a.git
     branch: main
     name: project-a          # optional; defaults to repo name
-    owner: chaosandmajesty   # optional; shown on repo page
+    owner: radiostatic       # optional; shown on repo page
     description: Project A static docs
-    homepage: https://chaosandmajesty.com/project-a
+    homepage: https://radiostatic.example/project-a
 ```
 
 Assets live in `{{ stagit_assets_dir }}` (default `/srv/git/html/_assets`). The

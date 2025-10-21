@@ -14,7 +14,8 @@
 <link rel="stylesheet" type="text/css" href="../assets/static/style/terminal-console.css">
 <script type="text/javascript" src="../assets/static/js/terminal-console.js" defer></script>
 <link rel="manifest" href="../site.webmanifest"/>
-<link rel="icon" href="../assets/static/img/site-logo.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/static/img/site-icon-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/static/img/site-icon-180.png">
 
 
   
@@ -41,7 +42,7 @@
       
       
         <a href="../index.html" class="logo-link">
-          <img src="../assets/static/img/site-logo.svg" alt="RadioStatic Demo Logo" class="logo">
+          <img src="../assets/static/img/site-icon-512.png" alt="RadioStatic Demo Logo" class="logo">
         </a>
       
       
@@ -58,7 +59,7 @@
             
               <li><a href="../blog.html">Blog</a></li>
             
-              <li><a href="../stagit/index.html">Git</a></li>
+              <li><a href="../sections/git.html">Git</a></li>
             
             <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
           </ul>
@@ -73,18 +74,17 @@
       <div class="blog-hero-header">
         
           <figure class="blog-hero-badge">
-            <img src="../assets/static/img/site-logo.svg" alt="RadioStatic Demo signal mark" class="blog-hero-logo">
+            <img src="../assets/static/img/site-icon-512.png" alt="RadioStatic Demo signal mark" class="blog-hero-logo">
             <figcaption class="visually-hidden">RadioStatic Demo signal emblem</figcaption>
           </figure>
         
         <div class="blog-hero-copy">
           <h2 class="blog-hero-title">RadioStatic Blog</h2>
           
-            <p class="blog-hero-tagline">Shortwave notes on security, theming, and automation.</p>
+            <p class="blog-hero-tagline">Dispatches for developers and makers dialing in their personal platform.</p>
           
           
-            <p class="blog-hero-intro">Tune into the engineering desk. These posts walk through securing static builds, wiring content pipelines, and keeping the RadioStatic signal sharp.
-</p>
+            <p class="blog-hero-intro">Dispatches for developers and makers dialing in their personal platform.</p>
           
         </div>
       </div>
@@ -117,6 +117,36 @@
           <button type="button" class="sidebar-nav-btn" data-sidebar-next>Next</button>
         </div>
         <ul class="blog-post-list">
+          
+            <li data-post-item data-author="unknown" data-title="retiring stagit, embracing htmx" data-summary="how the original stagit-powered console evolved into an htmx-driven system with faster refreshes and richer interactions.">
+              
+              <a
+                class="blog-post-link"
+                href="../blog/stagit-to-htmx.html"
+                data-post-slug="stagit-to-htmx"
+                hx-get="../blog/fragments/stagit-to-htmx.html"
+                hx-trigger="click"
+                hx-target="#blog-article"
+                hx-swap="innerHTML"
+                hx-push-url="?post=stagit-to-htmx"
+                hx-indicator="#blog-loading"
+              >
+                <h3>Retiring Stagit, Embracing HTMX</h3>
+                <div class="blog-post-meta">
+                  
+                    <span>Oct 20, 2025</span>
+                  
+                  
+                    <span aria-hidden="true">•</span>
+                    <span>7 min read</span>
+                  
+                  
+                </div>
+                
+                  <p>How the original Stagit-powered console evolved into an HTMX-driven system with faster refreshes and richer interactions.</p>
+                
+              </a>
+            </li>
           
             <li data-post-item data-author="your-name" data-title="kickstart your first build" data-summary="follow this quick workflow to move from cloning the repo to your first successful build.">
               
@@ -354,7 +384,7 @@
       <!-- Terminal footer partial -->
 <div class="terminal-footer">
   <p>
-    Swap out these placeholder assets with your own broadcast kit before publishing.
+    This is placeholder copy. Update cmFooterText in your YAML file.
   </p>
 </div>
 

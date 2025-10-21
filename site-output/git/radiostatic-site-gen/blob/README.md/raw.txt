@@ -1,6 +1,6 @@
 # RadioStatic Static Site Generator
 
-RadioStatic turns a YAML configuration, Markdown content, and a folder of static assets into a secure, retro-flavoured static website. Built for security-minded developers and makers, it ships with a self-contained demo so newcomers can explore every feature without importing Chaos & Majesty assets or copy.
+RadioStatic turns a YAML configuration, Markdown content, and a folder of static assets into a secure, retro-flavoured static website. Built for security-minded developers and makers, it ships with a self-contained demo so newcomers can explore every feature without pulling in proprietary branding or content.
 
 ---
 

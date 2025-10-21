@@ -12,7 +12,6 @@ STAGIT_REF="master"
 DEFAULT_REMOTES=(
   "git://git.codemadness.org/stagit"
   "git://git.2f30.org/stagit"
-  "https://github.com/chaosandmajesty-mirrors/stagit.git"
   "https://github.com/rski/stagit.git"
 )
 
@@ -76,7 +75,6 @@ if [[ -z "$srcdir" ]]; then
   tarball_urls=(
     "https://git.codemadness.org/stagit/snapshot/stagit-${STAGIT_REF}.tar.gz"
     "https://git.2f30.org/stagit/snapshot/stagit-${STAGIT_REF}.tar.gz"
-    "https://codeload.github.com/chaosandmajesty-mirrors/stagit/tar.gz/refs/heads/${STAGIT_REF}"
     "https://codeload.github.com/rski/stagit/tar.gz/refs/heads/${STAGIT_REF}"
   )
   for url in "${tarball_urls[@]}"; do

@@ -25,7 +25,8 @@
 <link rel="stylesheet" type="text/css" href="assets/static/style/terminal-console.css">
 <script type="text/javascript" src="assets/static/js/terminal-console.js" defer></script>
 <link rel="manifest" href="site.webmanifest"/>
-<link rel="icon" href="assets/static/img/site-logo.svg" type="image/svg+xml">
+<link rel="icon" href="assets/static/img/site-icon-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/static/img/site-icon-180.png">
 
   
 
@@ -63,7 +64,7 @@
       
         <a href="index.html" class="logo-link">
           <img
-            src="assets/static/img/site-logo.svg"
+            src="assets/static/img/site-icon-512.png"
             alt="RadioStatic Demo Logo"
             class="logo"
           >
@@ -86,7 +87,7 @@
             
               <li><a href="blog.html">Blog</a></li>
             
-              <li><a href="stagit/index.html">Git</a></li>
+              <li><a href="sections/git.html">Git</a></li>
             
             <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
           </ul>
@@ -98,17 +99,12 @@
   <!-- MAIN CONTENT -->
   <main class="container">
     
+      <h2 class="page-title">Sitemap</h2>
+    
 
     
 
     <!-- Include 3D Logo if specified -->
-    
-      
-<div>
-  <img src="assets/static/img/site-logo.svg" alt="Main image" class="center">
-</div>
-
-
     
 
     <!-- Include CM console if specified -->
@@ -125,14 +121,15 @@
         <li><a href="blog.html">RadioStatic Blog</a></li>
         
           <li><strong>Blog Posts:</strong></li>
-          <li><a href="blog/kickstart-your-first-build.html">Kickstart Your First Build</a></li>
+          <li><a href="blog/stagit-to-htmx.html">Retiring Stagit, Embracing HTMX</a></li>
+<li><a href="blog/kickstart-your-first-build.html">Kickstart Your First Build</a></li>
 <li><a href="blog/launch-checklist.html">Launch Checklist</a></li>
 <li><a href="blog/styling-your-pages.html">Styling Your Pages</a></li>
 <li><a href="blog/introducing-the-demo-site.html">Introducing the Demo Site</a></li>
         
         <li><strong>Sections:</strong></li>
-        <li><a href="sections/features.html">Signal Chain</a></li>
-<li><a href="sections/stagit.html">Git</a></li>
+        <li><a href="sections/features.html">Feature Tour</a></li>
+<li><a href="sections/git.html">Git Activity</a></li>
       </ul>
     </div>
 
@@ -149,7 +146,7 @@
       <!-- Terminal footer partial -->
 <div class="terminal-footer">
   <p>
-    Swap out these placeholder assets with your own broadcast kit before publishing.
+    This is placeholder copy. Update cmFooterText in your YAML file.
   </p>
 </div>
 

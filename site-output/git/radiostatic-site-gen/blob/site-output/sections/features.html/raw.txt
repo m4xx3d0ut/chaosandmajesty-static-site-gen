@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>RadioStatic Demo – Signal Chain</title>
+  <title>RadioStatic Demo – Feature Tour</title>
 
   
     <meta name="description" content="RadioStatic demo site showcasing the retro signal theme and security-first workflow.">
@@ -25,7 +25,8 @@
 <link rel="stylesheet" type="text/css" href="../assets/static/style/terminal-console.css">
 <script type="text/javascript" src="../assets/static/js/terminal-console.js" defer></script>
 <link rel="manifest" href="../site.webmanifest"/>
-<link rel="icon" href="../assets/static/img/site-logo.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/static/img/site-icon-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/static/img/site-icon-180.png">
 
   
 
@@ -63,7 +64,7 @@
       
         <a href="../index.html" class="logo-link">
           <img
-            src="../assets/static/img/site-logo.svg"
+            src="../assets/static/img/site-icon-512.png"
             alt="RadioStatic Demo Logo"
             class="logo"
           >
@@ -86,7 +87,7 @@
             
               <li><a href="../blog.html">Blog</a></li>
             
-              <li><a href="../stagit/index.html">Git</a></li>
+              <li><a href="../sections/git.html">Git</a></li>
             
             <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
           </ul>
@@ -98,19 +99,16 @@
   <!-- MAIN CONTENT -->
   <main class="container">
     
-      <h2 class="page-title">Signal Chain</h2>
+      <h2 class="page-title">Feature Tour</h2>
     
 
+    
+      <div class="page-image">
+        <img src="../assets/static/img/hero-cards.svg" alt="Feature Tour image">
+      </div>
     
 
     <!-- Include 3D Logo if specified -->
-    
-      
-<div>
-  <img src="../assets/static/img/hero-cards.svg" alt="Main image" class="center">
-</div>
-
-
     
 
     <!-- Include CM console if specified -->
@@ -119,11 +117,11 @@
     <div class="page-content
       
       ">
-      <h2>What Ships in the Demo</h2>
+      <h2>What ships in this demo</h2>
 <ul>
-<li><strong>Config-driven pages</strong> — update <code>smoke-test.yaml</code> or point RadioStatic at a new file.</li>
-<li><strong>Reusable templates</strong> — extend the EJS templates under <code>static-sitegen/templates/</code> to match your house style.</li>
-<li><strong>Broadcast-ready blog</strong> — Markdown posts, author bios, hero graphics, and on-page fragments.</li>
+<li><strong>Config-driven pages</strong> — adjust navigation, copy, and theme controls straight from YAML.</li>
+<li><strong>Reusable layouts</strong> — extend the EJS templates in <code>static-sitegen/templates/</code> to bring your own brand system.</li>
+<li><strong>Blog with fragments</strong> — serve HTMX fragments alongside full posts for instant previews.</li>
 </ul>
 
     </div>
@@ -135,13 +133,13 @@
           <h3>Quick Links</h3>
 <ul>
 <li><a href="../blog.html">Blog</a></li>
-<li><a href="../stagit/index.html">Git</a></li>
+<li><a href="../sections/git.html">Git Console</a></li>
 </ul>
 
         </div>
         <div class="right-column">
-          <h2>Customize Every Frequency</h2>
-<p>Swap fonts, palettes, and metadata from YAML alone. Rebuild anytime to keep your signal crisp.</p>
+          <h2>Customize every frequency</h2>
+<p>Set typography, palettes, and metadata without touching the templates. Rebuild anytime to keep your signal crisp.</p>
 
         </div>
       </div>
@@ -157,7 +155,7 @@
       <!-- Terminal footer partial -->
 <div class="terminal-footer">
   <p>
-    Swap out these placeholder assets with your own broadcast kit before publishing.
+    This is placeholder copy. Update cmFooterText in your YAML file.
   </p>
 </div>
 

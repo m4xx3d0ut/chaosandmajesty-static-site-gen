@@ -80,7 +80,7 @@ jobs:
       - name: Clone repo (SSH via in-cluster service)
         run: |
           set -euo pipefail
-          REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git"
+          REPO_SSH="ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/radiostatic/static-site-gen.git"
           TARGET_INPUT="${TARGET_REF:-}"
           DEFAULT_BRANCH="${DEFAULT_BRANCH:-dev}"
           DEFAULT_SHA="${DEFAULT_SHA:-}"
@@ -143,7 +143,6 @@ jobs:
 
           refs=(main master)
           mirrors=(
-            "chaosandmajesty-mirrors/stagit"
             "rski/stagit"
           )
 

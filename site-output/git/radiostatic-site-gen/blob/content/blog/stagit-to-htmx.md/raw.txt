@@ -1,0 +1,47 @@
+---
+title: "Retiring Stagit, Embracing HTMX"
+slug: stagit-to-htmx
+author: m4xx3d0ut
+summary: "How the original Stagit-powered console evolved into an HTMX-driven system with faster refreshes and richer interactions."
+publishedAt: '2025-10-20'
+readingMinutes: 7
+heroImage: assets/static/img/not-dead.webp
+tags:
+- sitegen
+- platform
+---
+
+When RadioStatic first came online, Stagit handled the heavy lifting for the repository console. The static HTML it generated meant we could mirror git history with zero server state, drop the files into the build, and walk away confident that a basic web host could keep serving them. That simplicity bought us time to focus on the stories, not the scaffolding.
+
+### What Stagit originally gave us
+
+- **Repository index pages** that enumerated projects with last-updated timestamps, commit counts, and default branches so readers could orient without cloning anything.
+- **Commit detail and diff views** generated as flat files, including per-file anchors and the trimmed patch so you could skim what changed without loading an external viewer.
+- **Tag and release snapshots** that mirrored annotated tags into their own subdirectories, which doubled as lightweight release notes.
+- **RSS/Atom feeds** straight from the git history, letting readers subscribe to repository activity the same way they would track new blog posts.
+
+Those affordances aligned with our early goal: a fully offline-capable archive that stayed in sync whenever we rebuilt the site.
+
+### Why we started phasing Stagit out
+
+By mid-2024 the cracks were obvious. The Stagit pages were frozen until the next full site regeneration, so hot fixes or walkthrough updates lagged behind live repos. The static diff styling also clashed with the rest of the console, and tailoring it meant forking Stagit’s C templates. Worse, search and filtering remained a separate JavaScript widget bolted on after the pages loaded, which felt like duct tape. On 2025-03-18 we marked the Stagit console as “legacy” in the roadmap and froze feature work.
+
+### Enter the HTMX console
+
+The replacement landed in two drops: a private alpha on 2025-06-02 and the public switch on 2025-07-09. Instead of pre-rendering every commit, we expose curated JSON endpoints during the build and let HTMX hydrate the console with targeted requests. The new stack layers:
+
+- **HTMX partial swaps** for the repo list, commit timelines, and file previews, keeping navigation snappy without full page reloads.
+- **Server-signed payloads** baked during `./build-site.sh`, so the console still deploys as static files but HTMX consumes fresh data snapshots generated minutes before publish.
+- **Composable EJS partials** that keep styling consistent across the console, docs, and blog while letting us drop in context-sensitive callouts.
+- **Telemetry hooks** that emit lightweight events for interaction patterns, giving us benchmarks on what readers actually open.
+
+### Improvements we’re seeing now
+
+- **Faster refresh cadence:** Regenerating the JSON snapshots is ~12× faster than rebuilding the full HTML tree, which cut publish latency from ~9 minutes to well under a minute for most pushes.
+- **Unified filtering:** Repo search, tag filters, and changelog toggles now live in a single HTMX-driven control bar, replacing the stitched-on JavaScript and making keyboard navigation reliable.
+- **Consistent accessibility:** We aligned aria roles and focus management across the console because HTMX lets us target fragments instead of whole pages, eliminating the tab-trap issues we had with Stagit modals.
+- **Editorial flexibility:** Because the console renders from JSON, we can append release summaries, attach post links, or flag breaking changes without editing C templates or rebuilding binary tooling.
+
+### What’s next
+
+The HTMX system isn’t “set and forget.” We still snapshot git data during build time, so truly real-time commit streams remain on the backlog. We’re also experimenting with progressive enhancement that streams the top commit diff as Markdown for readers on low-bandwidth connections. If you depended on the older Stagit pages, their frozen copies remain archived under `/legacy/stagit/` for reference, but the console of record now lives entirely in the HTMX pipeline.

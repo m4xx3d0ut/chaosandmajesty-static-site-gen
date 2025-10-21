@@ -1,11 +1,11 @@
 services:
-  cm:
+  radiostatic:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         NGINX_CONFIG: nginx/default.dev.conf
-    container_name: cm-local
+    container_name: radiostatic-local
     ports:
       - "8080:8080"
     healthcheck:

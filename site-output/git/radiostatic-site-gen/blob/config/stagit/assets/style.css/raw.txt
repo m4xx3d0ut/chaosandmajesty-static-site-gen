@@ -1,6 +1,6 @@
 /*
- * Chaos & Majesty stagit theme – styled to mirror the public site's
- * contrast mode palette while preserving stagit's semantic layout.
+ * RadioStatic stagit theme – styled to mirror the demo site's
+ * contrast palette while preserving stagit's semantic layout.
  */
 :root {
   --cm-background: #030407;
@@ -302,14 +302,14 @@ nav a:focus {
 }
 
 .warning {
-  border-left: 3px solid #ff9f5f;
+  border-left: 3px solid #ff6f8f;
   background: rgba(45, 24, 10, 0.75);
   padding: 1rem 1.25rem;
   border-radius: 0 var(--cm-radius-sm) var(--cm-radius-sm) 0;
 }
 
 .error {
-  border-left: 3px solid #ff5f5f;
+  border-left: 3px solid #ff4a76;
   background: rgba(59, 15, 21, 0.7);
   padding: 1rem 1.25rem;
   border-radius: 0 var(--cm-radius-sm) var(--cm-radius-sm) 0;

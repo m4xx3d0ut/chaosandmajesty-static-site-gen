@@ -32,8 +32,8 @@ FROM alpine:${ALPINE_VERSION}
 # Allow choosing which nginx config to bake into the runtime image (prod vs dev)
 ARG NGINX_CONFIG="nginx/default.conf"
 
-LABEL org.opencontainers.image.source="https://gitea.core.home.arpa/m4xx3d0ut/chaosandmajesty-static-site-gen" \
-      org.opencontainers.image.description="Chaos & Majesty static site served by hardened Nginx"
+LABEL org.opencontainers.image.source="https://git.example.com/radiostatic/static-site-gen" \
+      org.opencontainers.image.description="RadioStatic demo site served by hardened Nginx"
 
 RUN set -eux; \
     apk add --no-cache curl nginx nginx-mod-http-dav-ext; \

@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/.github/workflows/build-and-push-dev.yml/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/.github/workflows/build-and-push-dev.yml/raw.txt" data-git-line-count="240">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/.github/workflows/build-and-push-dev.yml/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/.github/workflows/build-and-push-dev.yml/raw.txt" data-git-line-count="239">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">build-and-push-dev.yml</h4>
-          <div class="git-file-meta">9.0 KB · 240 lines · .github/workflows/build-and-push-dev.yml</div>
+          <div class="git-file-meta">9.0 KB · 239 lines · .github/workflows/build-and-push-dev.yml</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/.github/workflows/build-and-push-dev.yml/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -1007,7 +1007,7 @@
           aria-label="Copy permalink for line 83"
           title="Copy permalink for line 83"
         >83</button>
-        <span class="git-code-text">          REPO_SSH=&quot;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/chaosandmajesty-static-site-gen.git&quot;</span>
+        <span class="git-code-text">          REPO_SSH=&quot;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/radiostatic/static-site-gen.git&quot;</span>
       </li>
     
 
@@ -1763,7 +1763,7 @@
           aria-label="Copy permalink for line 146"
           title="Copy permalink for line 146"
         >146</button>
-        <span class="git-code-text">            &quot;chaosandmajesty-mirrors/stagit&quot;</span>
+        <span class="git-code-text">            &quot;rski/stagit&quot;</span>
       </li>
     
 
@@ -1775,7 +1775,7 @@
           aria-label="Copy permalink for line 147"
           title="Copy permalink for line 147"
         >147</button>
-        <span class="git-code-text">            &quot;rski/stagit&quot;</span>
+        <span class="git-code-text">          )</span>
       </li>
     
 
@@ -1787,7 +1787,7 @@
           aria-label="Copy permalink for line 148"
           title="Copy permalink for line 148"
         >148</button>
-        <span class="git-code-text">          )</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1799,7 +1799,7 @@
           aria-label="Copy permalink for line 149"
           title="Copy permalink for line 149"
         >149</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          for ref in &quot;${refs[@]}&quot;; do</span>
       </li>
     
 
@@ -1811,7 +1811,7 @@
           aria-label="Copy permalink for line 150"
           title="Copy permalink for line 150"
         >150</button>
-        <span class="git-code-text">          for ref in &quot;${refs[@]}&quot;; do</span>
+        <span class="git-code-text">            for mirror in &quot;${mirrors[@]}&quot;; do</span>
       </li>
     
 
@@ -1823,7 +1823,7 @@
           aria-label="Copy permalink for line 151"
           title="Copy permalink for line 151"
         >151</button>
-        <span class="git-code-text">            for mirror in &quot;${mirrors[@]}&quot;; do</span>
+        <span class="git-code-text">              url=&quot;https://codeload.github.com/${mirror}/stagit/tar.gz/refs/heads/${ref}&quot;</span>
       </li>
     
 
@@ -1835,7 +1835,7 @@
           aria-label="Copy permalink for line 152"
           title="Copy permalink for line 152"
         >152</button>
-        <span class="git-code-text">              url=&quot;https://codeload.github.com/${mirror}/stagit/tar.gz/refs/heads/${ref}&quot;</span>
+        <span class="git-code-text">              tmp=&quot;$(mktemp scripts/stagit/stagit-download-XXXXXX.tar.gz)&quot;</span>
       </li>
     
 
@@ -1847,7 +1847,7 @@
           aria-label="Copy permalink for line 153"
           title="Copy permalink for line 153"
         >153</button>
-        <span class="git-code-text">              tmp=&quot;$(mktemp scripts/stagit/stagit-download-XXXXXX.tar.gz)&quot;</span>
+        <span class="git-code-text">              if curl -fsSL &quot;$url&quot; -o &quot;$tmp&quot;; then</span>
       </li>
     
 
@@ -1859,7 +1859,7 @@
           aria-label="Copy permalink for line 154"
           title="Copy permalink for line 154"
         >154</button>
-        <span class="git-code-text">              if curl -fsSL &quot;$url&quot; -o &quot;$tmp&quot;; then</span>
+        <span class="git-code-text">                dest=&quot;scripts/stagit/stagit-${ref}.tar.gz&quot;</span>
       </li>
     
 
@@ -1871,7 +1871,7 @@
           aria-label="Copy permalink for line 155"
           title="Copy permalink for line 155"
         >155</button>
-        <span class="git-code-text">                dest=&quot;scripts/stagit/stagit-${ref}.tar.gz&quot;</span>
+        <span class="git-code-text">                mv &quot;$tmp&quot; &quot;$dest&quot;</span>
       </li>
     
 
@@ -1883,7 +1883,7 @@
           aria-label="Copy permalink for line 156"
           title="Copy permalink for line 156"
         >156</button>
-        <span class="git-code-text">                mv &quot;$tmp&quot; &quot;$dest&quot;</span>
+        <span class="git-code-text">                ln -sfn &quot;$(basename &quot;$dest&quot;)&quot; scripts/stagit/stagit-fallback.tar.gz</span>
       </li>
     
 
@@ -1895,7 +1895,7 @@
           aria-label="Copy permalink for line 157"
           title="Copy permalink for line 157"
         >157</button>
-        <span class="git-code-text">                ln -sfn &quot;$(basename &quot;$dest&quot;)&quot; scripts/stagit/stagit-fallback.tar.gz</span>
+        <span class="git-code-text">                echo &quot;Cached stagit ${ref} tarball from ${mirror}&quot;</span>
       </li>
     
 
@@ -1907,7 +1907,7 @@
           aria-label="Copy permalink for line 158"
           title="Copy permalink for line 158"
         >158</button>
-        <span class="git-code-text">                echo &quot;Cached stagit ${ref} tarball from ${mirror}&quot;</span>
+        <span class="git-code-text">                exit 0</span>
       </li>
     
 
@@ -1919,7 +1919,7 @@
           aria-label="Copy permalink for line 159"
           title="Copy permalink for line 159"
         >159</button>
-        <span class="git-code-text">                exit 0</span>
+        <span class="git-code-text">              fi</span>
       </li>
     
 
@@ -1931,7 +1931,7 @@
           aria-label="Copy permalink for line 160"
           title="Copy permalink for line 160"
         >160</button>
-        <span class="git-code-text">              fi</span>
+        <span class="git-code-text">              rm -f &quot;$tmp&quot;</span>
       </li>
     
 
@@ -1943,7 +1943,7 @@
           aria-label="Copy permalink for line 161"
           title="Copy permalink for line 161"
         >161</button>
-        <span class="git-code-text">              rm -f &quot;$tmp&quot;</span>
+        <span class="git-code-text">            done</span>
       </li>
     
 
@@ -1955,7 +1955,7 @@
           aria-label="Copy permalink for line 162"
           title="Copy permalink for line 162"
         >162</button>
-        <span class="git-code-text">            done</span>
+        <span class="git-code-text">          done</span>
       </li>
     
 
@@ -1967,7 +1967,7 @@
           aria-label="Copy permalink for line 163"
           title="Copy permalink for line 163"
         >163</button>
-        <span class="git-code-text">          done</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1979,7 +1979,7 @@
           aria-label="Copy permalink for line 164"
           title="Copy permalink for line 164"
         >164</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          echo &quot;WARNING: Unable to cache stagit tarball from remote mirrors; using bundled archive if available&quot; &gt;&amp;2</span>
       </li>
     
 
@@ -1991,7 +1991,7 @@
           aria-label="Copy permalink for line 165"
           title="Copy permalink for line 165"
         >165</button>
-        <span class="git-code-text">          echo &quot;WARNING: Unable to cache stagit tarball from remote mirrors; using bundled archive if available&quot; &gt;&amp;2</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2003,7 +2003,7 @@
           aria-label="Copy permalink for line 166"
           title="Copy permalink for line 166"
         >166</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Install stagit toolchain</span>
       </li>
     
 
@@ -2015,7 +2015,7 @@
           aria-label="Copy permalink for line 167"
           title="Copy permalink for line 167"
         >167</button>
-        <span class="git-code-text">      - name: Install stagit toolchain</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2027,7 +2027,7 @@
           aria-label="Copy permalink for line 168"
           title="Copy permalink for line 168"
         >168</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          scripts/install-stagit.sh</span>
       </li>
     
 
@@ -2039,7 +2039,7 @@
           aria-label="Copy permalink for line 169"
           title="Copy permalink for line 169"
         >169</button>
-        <span class="git-code-text">          scripts/install-stagit.sh</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2051,7 +2051,7 @@
           aria-label="Copy permalink for line 170"
           title="Copy permalink for line 170"
         >170</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Generate stagit HTML (dev check)</span>
       </li>
     
 
@@ -2063,7 +2063,7 @@
           aria-label="Copy permalink for line 171"
           title="Copy permalink for line 171"
         >171</button>
-        <span class="git-code-text">      - name: Generate stagit HTML (dev check)</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -2075,7 +2075,7 @@
           aria-label="Copy permalink for line 172"
           title="Copy permalink for line 172"
         >172</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">          STAGIT_REPOLIST: ${{ github.workspace }}/config/stagit/manifest.txt</span>
       </li>
     
 
@@ -2087,7 +2087,7 @@
           aria-label="Copy permalink for line 173"
           title="Copy permalink for line 173"
         >173</button>
-        <span class="git-code-text">          STAGIT_REPOLIST: ${{ github.workspace }}/config/stagit/manifest.txt</span>
+        <span class="git-code-text">          STAGIT_REPOBASE: ${{ github.workspace }}/tmp/stagit/repos</span>
       </li>
     
 
@@ -2099,7 +2099,7 @@
           aria-label="Copy permalink for line 174"
           title="Copy permalink for line 174"
         >174</button>
-        <span class="git-code-text">          STAGIT_REPOBASE: ${{ github.workspace }}/tmp/stagit/repos</span>
+        <span class="git-code-text">          STAGIT_HTMLBASE: ${{ github.workspace }}/tmp/stagit/html</span>
       </li>
     
 
@@ -2111,7 +2111,7 @@
           aria-label="Copy permalink for line 175"
           title="Copy permalink for line 175"
         >175</button>
-        <span class="git-code-text">          STAGIT_HTMLBASE: ${{ github.workspace }}/tmp/stagit/html</span>
+        <span class="git-code-text">          STAGIT_ASSETSDIR: ${{ github.workspace }}/tmp/stagit/html/_assets</span>
       </li>
     
 
@@ -2123,7 +2123,7 @@
           aria-label="Copy permalink for line 176"
           title="Copy permalink for line 176"
         >176</button>
-        <span class="git-code-text">          STAGIT_ASSETSDIR: ${{ github.workspace }}/tmp/stagit/html/_assets</span>
+        <span class="git-code-text">          STAGIT_SHARED_ASSETS: style.css logo.png favicon.png</span>
       </li>
     
 
@@ -2135,7 +2135,7 @@
           aria-label="Copy permalink for line 177"
           title="Copy permalink for line 177"
         >177</button>
-        <span class="git-code-text">          STAGIT_SHARED_ASSETS: style.css logo.png favicon.png</span>
+        <span class="git-code-text">          STAGIT_URL_REWRITE: &gt;-</span>
       </li>
     
 
@@ -2147,7 +2147,7 @@
           aria-label="Copy permalink for line 178"
           title="Copy permalink for line 178"
         >178</button>
-        <span class="git-code-text">          STAGIT_URL_REWRITE: &gt;-</span>
+        <span class="git-code-text">            git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/,ssh://git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/</span>
       </li>
     
 
@@ -2159,7 +2159,7 @@
           aria-label="Copy permalink for line 179"
           title="Copy permalink for line 179"
         >179</button>
-        <span class="git-code-text">            git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/,ssh://git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2171,7 +2171,7 @@
           aria-label="Copy permalink for line 180"
           title="Copy permalink for line 180"
         >180</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -2183,7 +2183,7 @@
           aria-label="Copy permalink for line 181"
           title="Copy permalink for line 181"
         >181</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          rm -rf tmp/stagit</span>
       </li>
     
 
@@ -2195,7 +2195,7 @@
           aria-label="Copy permalink for line 182"
           title="Copy permalink for line 182"
         >182</button>
-        <span class="git-code-text">          rm -rf tmp/stagit</span>
+        <span class="git-code-text">          mkdir -p tmp/stagit/html/_assets</span>
       </li>
     
 
@@ -2207,7 +2207,7 @@
           aria-label="Copy permalink for line 183"
           title="Copy permalink for line 183"
         >183</button>
-        <span class="git-code-text">          mkdir -p tmp/stagit/html/_assets</span>
+        <span class="git-code-text">          if [ -d config/stagit/assets ]; then</span>
       </li>
     
 
@@ -2219,7 +2219,7 @@
           aria-label="Copy permalink for line 184"
           title="Copy permalink for line 184"
         >184</button>
-        <span class="git-code-text">          if [ -d config/stagit/assets ]; then</span>
+        <span class="git-code-text">            cp -a config/stagit/assets/. tmp/stagit/html/_assets/</span>
       </li>
     
 
@@ -2231,7 +2231,7 @@
           aria-label="Copy permalink for line 185"
           title="Copy permalink for line 185"
         >185</button>
-        <span class="git-code-text">            cp -a config/stagit/assets/. tmp/stagit/html/_assets/</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2243,7 +2243,7 @@
           aria-label="Copy permalink for line 186"
           title="Copy permalink for line 186"
         >186</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          scripts/update-stagit.sh</span>
       </li>
     
 
@@ -2255,7 +2255,7 @@
           aria-label="Copy permalink for line 187"
           title="Copy permalink for line 187"
         >187</button>
-        <span class="git-code-text">          scripts/update-stagit.sh</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2267,7 +2267,7 @@
           aria-label="Copy permalink for line 188"
           title="Copy permalink for line 188"
         >188</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Copy stagit mirror into site output</span>
       </li>
     
 
@@ -2279,7 +2279,7 @@
           aria-label="Copy permalink for line 189"
           title="Copy permalink for line 189"
         >189</button>
-        <span class="git-code-text">      - name: Copy stagit mirror into site output</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2291,7 +2291,7 @@
           aria-label="Copy permalink for line 190"
           title="Copy permalink for line 190"
         >190</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -2303,7 +2303,7 @@
           aria-label="Copy permalink for line 191"
           title="Copy permalink for line 191"
         >191</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          if [ ! -d tmp/stagit/html ]; then</span>
       </li>
     
 
@@ -2315,7 +2315,7 @@
           aria-label="Copy permalink for line 192"
           title="Copy permalink for line 192"
         >192</button>
-        <span class="git-code-text">          if [ ! -d tmp/stagit/html ]; then</span>
+        <span class="git-code-text">            echo &quot;WARN: stagit HTML directory missing; skipping copy&quot; &gt;&amp;2</span>
       </li>
     
 
@@ -2327,7 +2327,7 @@
           aria-label="Copy permalink for line 193"
           title="Copy permalink for line 193"
         >193</button>
-        <span class="git-code-text">            echo &quot;WARN: stagit HTML directory missing; skipping copy&quot; &gt;&amp;2</span>
+        <span class="git-code-text">            exit 0</span>
       </li>
     
 
@@ -2339,7 +2339,7 @@
           aria-label="Copy permalink for line 194"
           title="Copy permalink for line 194"
         >194</button>
-        <span class="git-code-text">            exit 0</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2351,7 +2351,7 @@
           aria-label="Copy permalink for line 195"
           title="Copy permalink for line 195"
         >195</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          mkdir -p site-output</span>
       </li>
     
 
@@ -2363,7 +2363,7 @@
           aria-label="Copy permalink for line 196"
           title="Copy permalink for line 196"
         >196</button>
-        <span class="git-code-text">          mkdir -p site-output</span>
+        <span class="git-code-text">          rm -rf site-output/git</span>
       </li>
     
 
@@ -2375,7 +2375,7 @@
           aria-label="Copy permalink for line 197"
           title="Copy permalink for line 197"
         >197</button>
-        <span class="git-code-text">          rm -rf site-output/git</span>
+        <span class="git-code-text">          cp -a tmp/stagit/html site-output/git</span>
       </li>
     
 
@@ -2387,7 +2387,7 @@
           aria-label="Copy permalink for line 198"
           title="Copy permalink for line 198"
         >198</button>
-        <span class="git-code-text">          cp -a tmp/stagit/html site-output/git</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2399,7 +2399,7 @@
           aria-label="Copy permalink for line 199"
           title="Copy permalink for line 199"
         >199</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Upload stagit HTML artifact (dev)</span>
       </li>
     
 
@@ -2411,7 +2411,7 @@
           aria-label="Copy permalink for line 200"
           title="Copy permalink for line 200"
         >200</button>
-        <span class="git-code-text">      - name: Upload stagit HTML artifact (dev)</span>
+        <span class="git-code-text">        uses: actions/upload-artifact@v3</span>
       </li>
     
 
@@ -2423,7 +2423,7 @@
           aria-label="Copy permalink for line 201"
           title="Copy permalink for line 201"
         >201</button>
-        <span class="git-code-text">        uses: actions/upload-artifact@v3</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -2435,7 +2435,7 @@
           aria-label="Copy permalink for line 202"
           title="Copy permalink for line 202"
         >202</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">          name: stagit-html-dev</span>
       </li>
     
 
@@ -2447,7 +2447,7 @@
           aria-label="Copy permalink for line 203"
           title="Copy permalink for line 203"
         >203</button>
-        <span class="git-code-text">          name: stagit-html-dev</span>
+        <span class="git-code-text">          path: tmp/stagit/html</span>
       </li>
     
 
@@ -2459,7 +2459,7 @@
           aria-label="Copy permalink for line 204"
           title="Copy permalink for line 204"
         >204</button>
-        <span class="git-code-text">          path: tmp/stagit/html</span>
+        <span class="git-code-text">          retention-days: 3</span>
       </li>
     
 
@@ -2471,7 +2471,7 @@
           aria-label="Copy permalink for line 205"
           title="Copy permalink for line 205"
         >205</button>
-        <span class="git-code-text">          retention-days: 3</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2483,7 +2483,7 @@
           aria-label="Copy permalink for line 206"
           title="Copy permalink for line 206"
         >206</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.</span>
       </li>
     
 
@@ -2495,7 +2495,7 @@
           aria-label="Copy permalink for line 207"
           title="Copy permalink for line 207"
         >207</button>
-        <span class="git-code-text">      # Only runs if creds exist; fine to keep — if your registry is no-auth, it will be skipped.</span>
+        <span class="git-code-text">      - name: Registry login (optional)</span>
       </li>
     
 
@@ -2507,7 +2507,7 @@
           aria-label="Copy permalink for line 208"
           title="Copy permalink for line 208"
         >208</button>
-        <span class="git-code-text">      - name: Registry login (optional)</span>
+        <span class="git-code-text">        if: ${{ secrets.REGISTRY_USERNAME != &#039;&#039; &amp;&amp; secrets.REGISTRY_PASSWORD != &#039;&#039; }}</span>
       </li>
     
 
@@ -2519,7 +2519,7 @@
           aria-label="Copy permalink for line 209"
           title="Copy permalink for line 209"
         >209</button>
-        <span class="git-code-text">        if: ${{ secrets.REGISTRY_USERNAME != &#039;&#039; &amp;&amp; secrets.REGISTRY_PASSWORD != &#039;&#039; }}</span>
+        <span class="git-code-text">        uses: docker/login-action@v3</span>
       </li>
     
 
@@ -2531,7 +2531,7 @@
           aria-label="Copy permalink for line 210"
           title="Copy permalink for line 210"
         >210</button>
-        <span class="git-code-text">        uses: docker/login-action@v3</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -2543,7 +2543,7 @@
           aria-label="Copy permalink for line 211"
           title="Copy permalink for line 211"
         >211</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">          registry: ${{ env.REGISTRY }}</span>
       </li>
     
 
@@ -2555,7 +2555,7 @@
           aria-label="Copy permalink for line 212"
           title="Copy permalink for line 212"
         >212</button>
-        <span class="git-code-text">          registry: ${{ env.REGISTRY }}</span>
+        <span class="git-code-text">          username: ${{ secrets.REGISTRY_USERNAME }}</span>
       </li>
     
 
@@ -2567,7 +2567,7 @@
           aria-label="Copy permalink for line 213"
           title="Copy permalink for line 213"
         >213</button>
-        <span class="git-code-text">          username: ${{ secrets.REGISTRY_USERNAME }}</span>
+        <span class="git-code-text">          password: ${{ secrets.REGISTRY_PASSWORD }}</span>
       </li>
     
 
@@ -2579,7 +2579,7 @@
           aria-label="Copy permalink for line 214"
           title="Copy permalink for line 214"
         >214</button>
-        <span class="git-code-text">          password: ${{ secrets.REGISTRY_PASSWORD }}</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2591,7 +2591,7 @@
           aria-label="Copy permalink for line 215"
           title="Copy permalink for line 215"
         >215</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure</span>
       </li>
     
 
@@ -2603,7 +2603,7 @@
           aria-label="Copy permalink for line 216"
           title="Copy permalink for line 216"
         >216</button>
-        <span class="git-code-text">      # ⬅️ Teach BuildKit that the NodePort registry is HTTP/insecure</span>
+        <span class="git-code-text">      - name: Set up Buildx</span>
       </li>
     
 
@@ -2615,7 +2615,7 @@
           aria-label="Copy permalink for line 217"
           title="Copy permalink for line 217"
         >217</button>
-        <span class="git-code-text">      - name: Set up Buildx</span>
+        <span class="git-code-text">        uses: docker/setup-buildx-action@v3</span>
       </li>
     
 
@@ -2627,7 +2627,7 @@
           aria-label="Copy permalink for line 218"
           title="Copy permalink for line 218"
         >218</button>
-        <span class="git-code-text">        uses: docker/setup-buildx-action@v3</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -2639,7 +2639,7 @@
           aria-label="Copy permalink for line 219"
           title="Copy permalink for line 219"
         >219</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">          config-inline: |</span>
       </li>
     
 
@@ -2651,7 +2651,7 @@
           aria-label="Copy permalink for line 220"
           title="Copy permalink for line 220"
         >220</button>
-        <span class="git-code-text">          config-inline: |</span>
+        <span class="git-code-text">            [registry.&quot;reg.microk8s.core.home.arpa:32000&quot;]</span>
       </li>
     
 
@@ -2663,7 +2663,7 @@
           aria-label="Copy permalink for line 221"
           title="Copy permalink for line 221"
         >221</button>
-        <span class="git-code-text">            [registry.&quot;reg.microk8s.core.home.arpa:32000&quot;]</span>
+        <span class="git-code-text">              http = true</span>
       </li>
     
 
@@ -2675,7 +2675,7 @@
           aria-label="Copy permalink for line 222"
           title="Copy permalink for line 222"
         >222</button>
-        <span class="git-code-text">              http = true</span>
+        <span class="git-code-text">              insecure = true</span>
       </li>
     
 
@@ -2687,7 +2687,7 @@
           aria-label="Copy permalink for line 223"
           title="Copy permalink for line 223"
         >223</button>
-        <span class="git-code-text">              insecure = true</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2699,7 +2699,7 @@
           aria-label="Copy permalink for line 224"
           title="Copy permalink for line 224"
         >224</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Build &amp; push image</span>
       </li>
     
 
@@ -2711,7 +2711,7 @@
           aria-label="Copy permalink for line 225"
           title="Copy permalink for line 225"
         >225</button>
-        <span class="git-code-text">      - name: Build &amp; push image</span>
+        <span class="git-code-text">        uses: docker/build-push-action@v6</span>
       </li>
     
 
@@ -2723,7 +2723,7 @@
           aria-label="Copy permalink for line 226"
           title="Copy permalink for line 226"
         >226</button>
-        <span class="git-code-text">        uses: docker/build-push-action@v6</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -2735,7 +2735,7 @@
           aria-label="Copy permalink for line 227"
           title="Copy permalink for line 227"
         >227</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">          context: .</span>
       </li>
     
 
@@ -2747,7 +2747,7 @@
           aria-label="Copy permalink for line 228"
           title="Copy permalink for line 228"
         >228</button>
-        <span class="git-code-text">          context: .</span>
+        <span class="git-code-text">          file: ./Dockerfile.dev</span>
       </li>
     
 
@@ -2759,7 +2759,7 @@
           aria-label="Copy permalink for line 229"
           title="Copy permalink for line 229"
         >229</button>
-        <span class="git-code-text">          file: ./Dockerfile.dev</span>
+        <span class="git-code-text">          no-cache: true</span>
       </li>
     
 
@@ -2771,7 +2771,7 @@
           aria-label="Copy permalink for line 230"
           title="Copy permalink for line 230"
         >230</button>
-        <span class="git-code-text">          no-cache: true</span>
+        <span class="git-code-text">          push: true</span>
       </li>
     
 
@@ -2783,7 +2783,7 @@
           aria-label="Copy permalink for line 231"
           title="Copy permalink for line 231"
         >231</button>
-        <span class="git-code-text">          push: true</span>
+        <span class="git-code-text">          tags: |</span>
       </li>
     
 
@@ -2795,7 +2795,7 @@
           aria-label="Copy permalink for line 232"
           title="Copy permalink for line 232"
         >232</button>
-        <span class="git-code-text">          tags: |</span>
+        <span class="git-code-text">            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}</span>
       </li>
     
 
@@ -2807,7 +2807,7 @@
           aria-label="Copy permalink for line 233"
           title="Copy permalink for line 233"
         >233</button>
-        <span class="git-code-text">            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_SHA }}</span>
+        <span class="git-code-text">            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}</span>
       </li>
     
 
@@ -2819,7 +2819,7 @@
           aria-label="Copy permalink for line 234"
           title="Copy permalink for line 234"
         >234</button>
-        <span class="git-code-text">            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_MAJOR }}</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2831,7 +2831,7 @@
           aria-label="Copy permalink for line 235"
           title="Copy permalink for line 235"
         >235</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Output image refs</span>
       </li>
     
 
@@ -2843,7 +2843,7 @@
           aria-label="Copy permalink for line 236"
           title="Copy permalink for line 236"
         >236</button>
-        <span class="git-code-text">      - name: Output image refs</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2855,7 +2855,7 @@
           aria-label="Copy permalink for line 237"
           title="Copy permalink for line 237"
         >237</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          echo &quot;Pushed:&quot;</span>
       </li>
     
 
@@ -2867,7 +2867,7 @@
           aria-label="Copy permalink for line 238"
           title="Copy permalink for line 238"
         >238</button>
-        <span class="git-code-text">          echo &quot;Pushed:&quot;</span>
+        <span class="git-code-text">          echo &quot;  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}&quot;</span>
       </li>
     
 
@@ -2879,18 +2879,6 @@
           aria-label="Copy permalink for line 239"
           title="Copy permalink for line 239"
         >239</button>
-        <span class="git-code-text">          echo &quot;  ${REGISTRY}/${IMAGE_NAME}:${TAG_SHA}&quot;</span>
-      </li>
-    
-
-      <li class="git-code-line" id="L240" data-git-line="240">
-        <button
-          type="button"
-          class="git-code-anchor"
-          data-git-line-anchor="240"
-          aria-label="Copy permalink for line 240"
-          title="Copy permalink for line 240"
-        >240</button>
         <span class="git-code-text">          echo &quot;  ${REGISTRY}/${IMAGE_NAME}:${TAG_MAJOR}&quot;</span>
       </li>
     

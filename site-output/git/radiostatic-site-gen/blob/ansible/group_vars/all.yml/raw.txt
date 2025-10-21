@@ -1,10 +1,10 @@
 ---
 # Global defaults for the deployment role. Override per-environment using
 # inventory variables or extra vars in CI.
-app_dir: /opt/chaosandmajesty
-compose_project_name: chaosandmajesty
-compose_service_name: cm_site
-compose_container_name: cm-prod
+app_dir: /opt/radiostatic
+compose_project_name: radiostatic
+compose_service_name: radiostatic_site
+compose_container_name: radiostatic-prod
 http_bind_interface: 0.0.0.0
 https_bind_interface: 0.0.0.0
 listen_port: 8080
@@ -16,8 +16,8 @@ app_group: deploy
 
 # Container image reference (registry/namespace/name:tag)
 image_registry: ghcr.io
-image_namespace: chaosandmajesty
-image_name: cm-site
+image_namespace: radiostatic
+image_name: radiostatic-site
 image_tag: prod
 
 # Registry credentials (optional). Leave blank for public images.
@@ -52,7 +52,7 @@ healthcheck_path: /health
 stagit_enabled: true
 stagit_user: deploy
 stagit_group: "{{ stagit_user }}"
-stagit_base_dir: /opt/chaosandmajesty/git
+stagit_base_dir: /opt/radiostatic/git
 stagit_repo_dir: "{{ stagit_base_dir }}/repos"
 stagit_html_dir: "{{ stagit_base_dir }}/html"
 stagit_assets_dir: "{{ stagit_html_dir }}/_assets"
@@ -86,8 +86,8 @@ stagit_http_clone_base: "{{ stagit_html_dir }}"
 stagit_http_clone_suffix: .git
 stagit_public_clone_base: "{{ stagit_public_http_base }}"
 stagit_public_clone_suffix: .git
-stagit_public_http_base: https://cm.core.home.arpa/git
-stagit_public_logo_url: https://cm.core.home.arpa/assets/static/img/not-dead.webp
+stagit_public_http_base: https://radiostatic.example/git
+stagit_public_logo_url: https://radiostatic.example/assets/static/img/site-icon-512.png
 stagit_ssh_private_key: ''
 stagit_known_hosts: []
 stagit_run_after_deploy: true

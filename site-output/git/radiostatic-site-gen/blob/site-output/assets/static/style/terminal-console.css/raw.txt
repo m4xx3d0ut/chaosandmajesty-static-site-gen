@@ -1,63 +1,67 @@
 :root {
-  --bg: #0e0e18;
-  --bg-alt: #191927;
-  --surface: rgba(31, 31, 45, 0.85);
-  --surface-strong: rgba(31, 31, 45, 0.95);
-  --border: rgba(137, 180, 250, 0.25);
-  --border-strong: rgba(137, 180, 250, 0.4);
-  --text: #e9e7ff;
-  --text-muted: #b4b3d0;
-  --text-soft: #8f8dad;
-  --primary: #89b4fa;
-  --primary-strong: #88c0ff;
-  --accent: #f5a97f;
-  --accent-strong: #f38ba8;
-  --shadow: rgba(6, 6, 12, 0.55);
-  --header-bg: rgba(14, 14, 24, 0.85);
-  --nav-toggle-bg: rgba(17, 17, 27, 0.8);
-  --nav-toggle-border: rgba(137, 180, 250, 0.25);
-  --theme-toggle-bg: rgba(28, 27, 38, 0.9);
-  --theme-toggle-border: rgba(137, 180, 250, 0.25);
-  --theme-toggle-hover-bg: rgba(36, 35, 49, 0.9);
-  --logo-shadow: 0 16px 32px rgba(8, 8, 12, 0.55);
-  --column-bg: rgba(22, 22, 34, 0.75);
-  --column-border: rgba(137, 180, 250, 0.18);
-  --column-shadow: 0 18px 48px rgba(8, 8, 12, 0.45);
-  --page-gradient: radial-gradient(circle at 15% 20%, rgba(137, 180, 250, 0.2), transparent 60%),
-    radial-gradient(circle at 85% 10%, rgba(243, 139, 168, 0.15), transparent 55%),
-    linear-gradient(180deg, #070710 0%, #11111b 40%, #090915 100%);
-  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', ui-monospace, monospace;
+  --bg: #131416;
+  --bg-alt: #1b1c1f;
+  --surface: rgba(32, 33, 37, 0.92);
+  --surface-strong: rgba(38, 39, 43, 0.97);
+  --border: rgba(94, 97, 105, 0.28);
+  --border-strong: rgba(124, 128, 136, 0.42);
+  --text: #f1f2f4;
+  --text-muted: #b7b9be;
+  --text-soft: #979aa0;
+  --primary: #ff436e;
+  --primary-strong: #ff2f57;
+  --accent: rgba(255, 67, 110, 0.82);
+  --accent-strong: rgba(255, 94, 137, 0.72);
+  --headline-shadow: rgba(255, 67, 110, 0.32);
+  --code-bg: rgba(255, 67, 110, 0.12);
+  --shadow: rgba(8, 9, 12, 0.55);
+  --header-bg: rgba(19, 20, 23, 0.88);
+  --nav-toggle-bg: rgba(31, 32, 36, 0.82);
+  --nav-toggle-border: rgba(94, 97, 105, 0.3);
+  --theme-toggle-bg: rgba(36, 38, 43, 0.92);
+  --theme-toggle-border: rgba(94, 97, 105, 0.32);
+  --theme-toggle-hover-bg: rgba(46, 48, 54, 0.92);
+  --logo-shadow: 0 16px 32px rgba(8, 9, 12, 0.6);
+  --column-bg: rgba(27, 28, 32, 0.84);
+  --column-border: rgba(94, 97, 105, 0.24);
+  --column-shadow: 0 20px 52px rgba(9, 10, 12, 0.48);
+  --page-gradient: radial-gradient(circle at 16% 18%, rgba(255, 67, 110, 0.18), transparent 55%),
+    radial-gradient(circle at 86% 14%, rgba(255, 94, 137, 0.12), transparent 48%),
+    linear-gradient(180deg, #101113 0%, #17181c 42%, #1f2023 100%);
+  --font-body: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Share Tech Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 }
 
 body.theme-light {
-  --bg: #f5f5f7;
-  --bg-alt: #e2e3e8;
-  --surface: rgba(255, 255, 255, 0.95);
-  --surface-strong: rgba(248, 249, 251, 0.98);
-  --border: rgba(148, 163, 184, 0.22);
-  --border-strong: rgba(107, 114, 128, 0.35);
-  --text: #1f2933;
-  --text-muted: #4b5563;
-  --text-soft: #6b7280;
-  --primary: #4b5563;
-  --primary-strong: #374151;
-  --accent: #fbbf24;
-  --accent-strong: #ca8a04;
-  --shadow: rgba(15, 23, 42, 0.18);
-  --header-bg: rgba(255, 255, 255, 0.92);
-  --nav-toggle-bg: rgba(229, 231, 235, 0.9);
-  --nav-toggle-border: rgba(209, 213, 219, 0.9);
-  --theme-toggle-bg: rgba(229, 231, 235, 0.92);
-  --theme-toggle-border: rgba(209, 213, 219, 0.9);
-  --theme-toggle-hover-bg: rgba(209, 213, 219, 0.86);
-  --logo-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
-  --column-bg: rgba(255, 255, 255, 0.92);
-  --column-border: rgba(209, 213, 219, 0.7);
-  --column-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
-  --page-gradient: radial-gradient(circle at 15% 20%, rgba(226, 232, 240, 0.6), transparent 60%),
-    radial-gradient(circle at 85% 10%, rgba(248, 250, 252, 0.55), transparent 55%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2f7 55%, #e2e8f0 100%);
+  --bg: #f2f3f5;
+  --bg-alt: #e7e8eb;
+  --surface: rgba(255, 255, 255, 0.96);
+  --surface-strong: rgba(249, 250, 252, 0.98);
+  --border: rgba(176, 180, 190, 0.32);
+  --border-strong: rgba(148, 152, 164, 0.44);
+  --text: #222326;
+  --text-muted: #50535a;
+  --text-soft: #6f737a;
+  --primary: #6f737a;
+  --primary-strong: #5d6168;
+  --accent: rgba(133, 137, 144, 0.85);
+  --accent-strong: rgba(118, 122, 130, 0.78);
+  --headline-shadow: rgba(111, 115, 122, 0.26);
+  --shadow: rgba(82, 85, 94, 0.18);
+  --header-bg: rgba(253, 253, 254, 0.9);
+  --nav-toggle-bg: rgba(233, 234, 238, 0.85);
+  --nav-toggle-border: rgba(195, 200, 210, 0.8);
+  --theme-toggle-bg: rgba(233, 234, 238, 0.92);
+  --theme-toggle-border: rgba(195, 200, 210, 0.82);
+  --theme-toggle-hover-bg: rgba(215, 218, 226, 0.92);
+  --logo-shadow: 0 16px 28px rgba(86, 89, 100, 0.16);
+  --column-bg: rgba(255, 255, 255, 0.94);
+  --column-border: rgba(195, 200, 210, 0.6);
+  --column-shadow: 0 18px 40px rgba(86, 89, 100, 0.12);
+  --page-gradient: radial-gradient(circle at 18% 20%, rgba(134, 138, 146, 0.28), transparent 60%),
+    radial-gradient(circle at 84% 14%, rgba(152, 156, 164, 0.22), transparent 55%),
+    linear-gradient(180deg, #fafafa 0%, #f0f1f4 55%, #e3e5eb 100%);
+  --code-bg: rgba(130, 134, 140, 0.18);
 }
 
 *,
@@ -201,7 +205,7 @@ main.container {
 }
 
 .page-content code {
-  background: rgba(137, 180, 250, 0.12);
+  background: var(--code-bg);
   color: var(--primary);
   padding: 2px 6px;
   border-radius: 6px;
@@ -330,8 +334,8 @@ footer {
   margin: 0;
   font-size: clamp(36px, 6vw, 56px);
   letter-spacing: 0.08em;
-  color: #ff9800;
-  text-shadow: 0 10px 20px rgba(255, 152, 0, 0.35);
+  color: var(--primary);
+  text-shadow: 0 10px 20px var(--headline-shadow);
 }
 
 .console-headline p {

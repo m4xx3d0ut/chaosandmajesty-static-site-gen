@@ -11,7 +11,7 @@
         </div>
       </header>
       <div class="git-file-body" data-git-file-body>
-        <h1>Chaos &amp; Majesty Ansible Deployment</h1>
+        <h1>RadioStatic Ansible Deployment</h1>
 <p>This playbook deploys the production container image to the Linode VPS via SSH.</p>
 <h2>Layout</h2>
 <ul>
@@ -29,12 +29,12 @@
 </code></pre>
 </li>
 <li>Provide the target host address by editing <code>inventory/hosts.ini</code> (defaults to
-<code>chaosandmajesty.com</code>) or by passing
+<code>radiostatic.example</code>) or by passing
 <code>-i &quot;prod,&quot; -e ansible_host=vps.example.com</code>.</li>
 <li>Supply the registry coordinates and credentials (if private):<pre><code class="language-bash">ansible-playbook -i inventory/hosts.ini deploy.yml \
   -e image_registry=ghcr.io \
-  -e image_namespace=chaosandmajesty \
-  -e image_name=cm-site \
+  -e image_namespace=radiostatic \
+  -e image_name=radiostatic-site \
   -e image_tag=prod
 </code></pre>
 </li>
@@ -51,7 +51,7 @@ in the workflow.</li>
 <li><code>disable_host_nginx=true</code> stops and disables the system nginx service at deploy time.</li>
 </ul>
 <p>The role will render a Docker Compose project in <code>{{ app_dir }}</code> (default
-<code>/opt/chaosandmajesty</code>), ensure the WebDAV directory exists on the host, pull the
+<code>/opt/radiostatic</code>), ensure the WebDAV directory exists on the host, pull the
 specified image, and recreate the container. A health check against
 <code>http://127.0.0.1:{{ healthcheck_port }}</code> guards against silent failures.</p>
 <h2>Static git mirror</h2>
@@ -88,9 +88,9 @@ stagit_repositories:
   - url: git@lab-gitea:org/project-a.git
     branch: main
     name: project-a          # optional; defaults to repo name
-    owner: chaosandmajesty   # optional; shown on repo page
+    owner: radiostatic       # optional; shown on repo page
     description: Project A static docs
-    homepage: https://chaosandmajesty.com/project-a
+    homepage: https://radiostatic.example/project-a
 </code></pre>
 <p>Assets live in <code>{{ stagit_assets_dir }}</code> (default <code>/srv/git/html/_assets</code>). The
 repository ships baseline files under <code>config/stagit/assets</code> (currently

@@ -482,9 +482,12 @@ body > header .header-container {
   justify-content: space-between;
   position: relative;
   width: 100%;
-  max-width: 64rem;
+  max-width: clamp(22rem, 92vw, 88rem);
   margin: 0 auto;
-  padding: 0 clamp(1rem, 4vw, 1.5rem);
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: clamp(1rem, 4vw, 1.5rem);
+  padding-right: clamp(1rem, 4vw, 1.5rem);
   box-sizing: border-box;
 }
 

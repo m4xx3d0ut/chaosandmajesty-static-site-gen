@@ -25,7 +25,8 @@
 <link rel="stylesheet" type="text/css" href="assets/static/style/terminal-console.css">
 <script type="text/javascript" src="assets/static/js/terminal-console.js" defer></script>
 <link rel="manifest" href="site.webmanifest"/>
-<link rel="icon" href="assets/static/img/site-logo.svg" type="image/svg+xml">
+<link rel="icon" href="assets/static/img/site-icon-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/static/img/site-icon-180.png">
 
   
 
@@ -63,7 +64,7 @@
       
         <a href="index.html" class="logo-link">
           <img
-            src="assets/static/img/site-logo.svg"
+            src="assets/static/img/site-icon-512.png"
             alt="RadioStatic Demo Logo"
             class="logo"
           >
@@ -86,7 +87,7 @@
             
               <li><a href="blog.html">Blog</a></li>
             
-              <li><a href="stagit/index.html">Git</a></li>
+              <li><a href="sections/git.html">Git</a></li>
             
             <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
           </ul>
@@ -109,8 +110,8 @@
       <!-- Terminal-style console partial -->
 <div class="console-center">
   <div class="console-headline">
-    <h1>RadioStatic Signal Console</h1>
-    <p>Tune the dial, run a build, and keep the signal clean.</p>
+    <h1>RadioStatic Demo</h1>
+    <p>A retro signal-inspired demo that shows how RadioStatic helps security-minded makers broadcast their platform.</p>
   </div>
 
   
@@ -130,18 +131,16 @@
     
 
     <div class="page-content
-      content-font-modern-mono
-      terminal-style">
-      <br>
-
-<h2>Broadcast Your Platform With RadioStatic</h2>
-<p>RadioStatic reads your configuration, mirrors assets, and renders templates with Markdown-driven content so you can ship a hardened static site.</p>
+      
+      ">
+      <h3>Build and ship a static site with one config</h3>
+<p>RadioStatic reads your YAML, copies the assets you point at, and renders modular templates so you can deploy a hardened static site in minutes.</p>
 <ul>
-<li>A retro console hero that responds to commands like <code>help</code> and <code>build</code>.</li>
-<li>Security-conscious defaults: static HTML, self-hostable assets, and no runtime dependencies.</li>
-<li>A maker-friendly blog that highlights your latest experiments and dispatches.</li>
+<li>Automatic asset mirroring and checksum-friendly output.</li>
+<li>Markdown-first content with reusable partials.</li>
+<li>Stagit-compatible Git mirrors for audit-friendly release notes.</li>
 </ul>
-<p>Clone the repo, run <code>./build-site.sh</code>, and serve the output locally to start your broadcast.</p>
+<p>Duplicate this configuration, tweak the metadata, and run <code>./build-site.sh</code> to watch a fresh build land in <code>site-output/</code>.</p>
 
     </div>
 
@@ -164,7 +163,7 @@
       <!-- Terminal footer partial -->
 <div class="terminal-footer">
   <p>
-    Swap out these placeholder assets with your own broadcast kit before publishing.
+    This is placeholder copy. Update cmFooterText in your YAML file.
   </p>
 </div>
 
@@ -247,7 +246,7 @@
       window.radiostaticConsoleDispatches = existing;
       window.sitegenConsoleDispatches = existing;
       window.cmConsoleDispatches = existing;
-    })([{"slug":"kickstart-your-first-build","title":"Kickstart Your First Build","authorId":"your-name","authorName":"Your Name","summary":"Follow this quick workflow to move from cloning the repo to your first successful build.","url":"blog/kickstart-your-first-build.html","publishedAtIso":"2024-04-12T00:00:00.000Z","displayPublishedAt":"Apr 12, 2024","readingMinutes":4,"tags":["workflow","getting-started"]},{"slug":"launch-checklist","title":"Launch Checklist","authorId":"your-name","authorName":"Your Name","summary":"A short preflight checklist to run before sharing your statically generated site.","url":"blog/launch-checklist.html","publishedAtIso":"2024-04-05T00:00:00.000Z","displayPublishedAt":"Apr 5, 2024","readingMinutes":5,"tags":["checklist","launch"]},{"slug":"styling-your-pages","title":"Styling Your Pages","authorId":"your-name","authorName":"Your Name","summary":"Learn how to plug in your own CSS and tweak the terminal theme provided with the demo.","url":"blog/styling-your-pages.html","publishedAtIso":"2024-03-28T00:00:00.000Z","displayPublishedAt":"Mar 28, 2024","readingMinutes":3,"tags":["design","tips"]},{"slug":"introducing-the-demo-site","title":"Introducing the Demo Site","authorId":"your-name","authorName":"Your Name","summary":"Tour the example content that ships with RadioStatic and see how it maps back to the YAML configuration.","url":"blog/introducing-the-demo-site.html","publishedAtIso":"2024-03-12T00:00:00.000Z","displayPublishedAt":"Mar 12, 2024","readingMinutes":4,"tags":["content","walkthrough"]}]);
+    })([{"slug":"stagit-to-htmx","title":"Retiring Stagit, Embracing HTMX","authorId":"","authorName":"","summary":"How the original Stagit-powered console evolved into an HTMX-driven system with faster refreshes and richer interactions.","url":"blog/stagit-to-htmx.html","publishedAtIso":"2025-10-20","displayPublishedAt":"Oct 20, 2025","readingMinutes":7,"tags":["sitegen","platform"]},{"slug":"kickstart-your-first-build","title":"Kickstart Your First Build","authorId":"your-name","authorName":"Your Name","summary":"Follow this quick workflow to move from cloning the repo to your first successful build.","url":"blog/kickstart-your-first-build.html","publishedAtIso":"2024-04-12T00:00:00.000Z","displayPublishedAt":"Apr 12, 2024","readingMinutes":4,"tags":["workflow","getting-started"]},{"slug":"launch-checklist","title":"Launch Checklist","authorId":"your-name","authorName":"Your Name","summary":"A short preflight checklist to run before sharing your statically generated site.","url":"blog/launch-checklist.html","publishedAtIso":"2024-04-05T00:00:00.000Z","displayPublishedAt":"Apr 5, 2024","readingMinutes":5,"tags":["checklist","launch"]},{"slug":"styling-your-pages","title":"Styling Your Pages","authorId":"your-name","authorName":"Your Name","summary":"Learn how to plug in your own CSS and tweak the terminal theme provided with the demo.","url":"blog/styling-your-pages.html","publishedAtIso":"2024-03-28T00:00:00.000Z","displayPublishedAt":"Mar 28, 2024","readingMinutes":3,"tags":["design","tips"]},{"slug":"introducing-the-demo-site","title":"Introducing the Demo Site","authorId":"your-name","authorName":"Your Name","summary":"Tour the example content that ships with RadioStatic and see how it maps back to the YAML configuration.","url":"blog/introducing-the-demo-site.html","publishedAtIso":"2024-03-12T00:00:00.000Z","displayPublishedAt":"Mar 12, 2024","readingMinutes":4,"tags":["content","walkthrough"]}]);
   </script>
   
 

@@ -1,23 +1,16 @@
 # Managed stagit manifest (url|branch|name|owner|description|homepage)
 # Populate with the repositories you wish to mirror. Lines beginning with '#'
 # are ignored. Example:
-# git@lab-gitea:org/project.git|main|project|Chaos & Majesty|Project docs|https://chaosandmajesty.com/project
+# git@lab-gitea:org/project.git|main|project|RadioStatic|Project docs|https://radiostatic.example/project
 
-# CM Site Prod
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git|prod|chaosandmajesty-static-site-gen|m4xx3d0ut|Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration|https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen
+# RadioStatic Site (production)
+ssh://git@gitea.core.home.arpa:32222/radiostatic/radiostatic-site.git|prod|radiostatic-site|radiostatic|RadioStatic demo static site|https://radiostatic.example/git/radiostatic-site
 
-# CM Blog Content Staging
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cm-blog-content-staging.git|dev|cm-blog-content-staging|m4xx3d0ut|Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content|https://cm.core.home.arpa/git/cm-blog-content-staging
+# RadioStatic Blog Content
+ssh://git@gitea.core.home.arpa:32222/radiostatic/blog-content.git|main|blog-content|radiostatic|Markdown sources for the RadioStatic demo blog|https://radiostatic.example/git/blog-content
 
-# Local Lab Platform Config
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-config.git|dev|platform-config|m4xx3d0ut|Flux GitOps platform configuration|https://cm.core.home.arpa/git/platform-config
+# Infrastructure Config
+ssh://git@gitea.core.home.arpa:32222/radiostatic/platform-config.git|main|platform-config|radiostatic|GitOps platform configuration used in the demo|https://radiostatic.example/git/platform-config
 
-# Local Lab AI System Config
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/ai-system-config.git|dev|ai-system-config|m4xx3d0ut|Flux LlmOps system configuration|https://cm.core.home.arpa/git/ai-system-config
-
-# Local Lab Nvidia Compute Platform
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-nvidia-compute.git|dev|platform-nvidia-compute|m4xx3d0ut|Nvidia compute platform configuration|https://cm.core.home.arpa/git/platform-nvidia-compute
-
-# Actions CICD Skeleton
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cicd-dev.git|dev|cicd-dev|m4xx3d0ut|CICD Skeleton|https://cm.core.home.arpa/git/cicd-dev
-
+# Sample CICD Workflows
+ssh://git@gitea.core.home.arpa:32222/radiostatic/pipeline-examples.git|main|pipeline-examples|radiostatic|CI/CD skeleton used in documentation|https://radiostatic.example/git/pipeline-examples

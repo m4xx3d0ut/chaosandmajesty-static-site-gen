@@ -29,7 +29,7 @@ To enable the terminal-style hero on a page, set the following keys either at th
 | `useCmConsole`  | Injects the console markup (`partials/cm-console.ejs`).                                  |
 | `cmTitle`       | Heading displayed above the console.                                                     |
 | `cmTagline`     | Subheading displayed under the heading.                                                  |
-| `cmImage`       | Optional illustration rendered above the console (e.g., `assets/static/img/site-logo.svg`). |
+| `cmImage`       | Optional illustration rendered above the console (e.g., `assets/static/img/site-icon-512.png`). |
 | `cmFooterText`  | Footer text rendered by `partials/cm-footer.ejs`.                                        |
 
 > These keys retain the historical `cm` prefix for compatibility. The next iteration will introduce `terminal*` aliases.

@@ -1,5 +1,5 @@
 ---
-- name: Deploy Chaos & Majesty site
+- name: Deploy RadioStatic site
   hosts: vps
   become: true
   gather_facts: true
