@@ -10,6 +10,7 @@ const execFileAsync = promisify(execFile);
 const RECORD_SEPARATOR = '\x1e';
 const FIELD_SEPARATOR = '\x1f';
 const LOG_FORMAT = '%H%x1f%h%x1f%an%x1f%ae%x1f%ad%x1f%ct%x1f%s%x1f%D%x1e';
+const DEFAULT_LICENSE_FILE_NAME = 'LICENSE';
 
 export const DEFAULT_COMMIT_LIMIT = 40;
 export const DEFAULT_INITIAL_LOG_LIMIT = 10;
@@ -499,6 +500,50 @@ function sortTreeEntries(node) {
   });
 }
 
+function matchesLicenseOverride(filePath, licenseOverride) {
+  if (!licenseOverride || !licenseOverride.enabled || !filePath) {
+    return false;
+  }
+  const normalizedPath = filePath.trim().toLowerCase();
+  if (!normalizedPath) {
+    return false;
+  }
+  const matchNames = Array.isArray(licenseOverride.matchNames) && licenseOverride.matchNames.length > 0
+    ? licenseOverride.matchNames
+    : [(licenseOverride.fileName || DEFAULT_LICENSE_FILE_NAME).toLowerCase()];
+  return matchNames.includes(normalizedPath);
+}
+
+function applyLicenseOverrideToTree(treeData, licenseOverride) {
+  if (!treeData || !treeData.root || !licenseOverride || !licenseOverride.enabled || !licenseOverride.content) {
+    return;
+  }
+
+  const fileName = licenseOverride.fileName || DEFAULT_LICENSE_FILE_NAME;
+  const matchNames = Array.isArray(licenseOverride.matchNames) && licenseOverride.matchNames.length > 0
+    ? licenseOverride.matchNames
+    : [fileName.toLowerCase()];
+  const matchSet = new Set(matchNames.map(name => (typeof name === 'string' ? name.toLowerCase() : '')));
+
+  let existing = treeData.files.find(node => node.path && matchSet.has(node.path.toLowerCase()));
+  if (!existing) {
+    existing = createTreeNode(fileName, fileName, 'blob');
+    treeData.files.push(existing);
+    if (!Array.isArray(treeData.root.entries)) {
+      treeData.root.entries = [];
+    }
+    treeData.root.entries.push(existing);
+  }
+
+  const size = Buffer.byteLength(licenseOverride.content, 'utf8');
+  existing.size = size;
+  existing.licenseOverride = true;
+  existing.isMarkdown = false;
+
+  treeData.root.fileCount = treeData.root.entries.filter(entry => entry.type === 'blob').length;
+  sortTreeEntries(treeData.root);
+}
+
 async function loadGitRefs(repoPath, verbose = false) {
   const args = [
     '-C',
@@ -835,7 +880,8 @@ async function ensureBlobFragment({
   fileNode,
   ref,
   templatesDir,
-  verbose = false
+  verbose = false,
+  licenseOverride = null
 }) {
   if (!fileNode || fileNode.type !== 'blob') {
     return null;
@@ -847,7 +893,7 @@ async function ensureBlobFragment({
   const fragmentRel = toPosixPath(path.join('git', slug, 'blob', ...segments, 'index.html'));
 
   const blobKey = `${ref}:${fileNode.path}`;
-  const result = await loadGitBlob(repoPath, ref, fileNode.path, verbose);
+  const overrideActive = matchesLicenseOverride(fileNode.path, licenseOverride);
 
   let bodyHtml = '';
   let skipped = false;
@@ -858,11 +904,20 @@ async function ensureBlobFragment({
   let lineCountLabel = '';
   let textContent = '';
 
-  if (result.skipped) {
-    skipped = true;
-    reason = result.reason;
+  if (overrideActive) {
+    textContent = typeof licenseOverride.content === 'string' ? licenseOverride.content : '';
+    fileNode.size = Buffer.byteLength(textContent, 'utf8');
   } else {
-    textContent = typeof result.content === 'string' ? result.content : '';
+    const result = await loadGitBlob(repoPath, ref, fileNode.path, verbose);
+    if (result.skipped) {
+      skipped = true;
+      reason = result.reason;
+    } else {
+      textContent = typeof result.content === 'string' ? result.content : '';
+    }
+  }
+
+  if (!skipped) {
     const { lines } = splitContentLines(textContent);
     lineCount = lines.length;
     lineCountLabel = `${lineCount} line${lineCount === 1 ? '' : 's'}`;
@@ -949,6 +1004,11 @@ export async function ensureGitRepoArtifacts({
   const filesTemplatePath = await resolveTemplatePath(templatesDir, 'files.ejs');
   const refsTemplatePath = await resolveTemplatePath(templatesDir, 'refs.ejs');
   const readmeTemplatePath = await resolveTemplatePath(templatesDir, 'readme.ejs');
+
+  const licenseOverride =
+    (pageConfig && pageConfig.git && pageConfig.git.licenseOverride)
+      || (siteConfig && siteConfig.git && siteConfig.git.licenseOverride)
+      || null;
 
   for (const repo of repos) {
     const generatedKey = defaultGeneratedKey(repo);
@@ -1065,6 +1125,9 @@ export async function ensureGitRepoArtifacts({
     });
 
     const treeData = await loadGitTree(repo.localPath, ref, verbose);
+    if (licenseOverride && licenseOverride.enabled && licenseOverride.content) {
+      applyLicenseOverrideToTree(treeData, licenseOverride);
+    }
     const blobArtifacts = new Map();
     let readmeCandidateNode = null;
     let readmeBlob = null;
@@ -1078,7 +1141,8 @@ export async function ensureGitRepoArtifacts({
         fileNode,
         ref,
         templatesDir,
-        verbose
+        verbose,
+        licenseOverride
       });
       if (blobInfo && blobInfo.fragmentPath) {
         fileNode.blobFragment = blobInfo.fragmentPath;

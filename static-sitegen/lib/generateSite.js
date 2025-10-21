@@ -69,6 +69,109 @@ const DEFAULT_TEMPLATE = `
 </html>
 `;
 
+const DEFAULT_LICENSE_FILE_NAME = 'LICENSE';
+const DEFAULT_LICENSE_MATCH_NAMES = ['license', 'license.txt', 'license.md', 'license.markdown'];
+
+function buildDefaultMitLicense(holder) {
+  const year = new Date().getFullYear();
+  const safeHolder = holder && holder.trim ? holder.trim() : '';
+  const copyrightHolder = safeHolder || 'Chaos & Majesty';
+  return `MIT License
+
+Copyright (c) ${year} ${copyrightHolder}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+`;
+}
+
+async function resolveLicenseOverrideConfig(rawValue, siteConfig, verbose = false) {
+  if (rawValue === false || rawValue === null) {
+    return null;
+  }
+
+  let resolvedConfig = {};
+  if (rawValue === undefined) {
+    resolvedConfig = {};
+  } else if (rawValue === true) {
+    resolvedConfig = { enabled: true };
+  } else if (typeof rawValue === 'string') {
+    resolvedConfig = { contentPath: rawValue };
+  } else if (typeof rawValue === 'object') {
+    resolvedConfig = { ...rawValue };
+  } else {
+    return null;
+  }
+
+  const enabled = resolvedConfig.enabled !== false;
+  if (!enabled) {
+    return null;
+  }
+
+  const fileName = typeof resolvedConfig.fileName === 'string' && resolvedConfig.fileName.trim().length > 0
+    ? resolvedConfig.fileName.trim()
+    : DEFAULT_LICENSE_FILE_NAME;
+
+  let content = '';
+  if (typeof resolvedConfig.content === 'string' && resolvedConfig.content.trim().length > 0) {
+    content = resolvedConfig.content;
+  } else if (typeof resolvedConfig.contentPath === 'string' && resolvedConfig.contentPath.trim().length > 0) {
+    const resolvedPath = path.resolve(process.cwd(), resolvedConfig.contentPath.trim());
+    try {
+      content = await fs.readFile(resolvedPath, 'utf8');
+    } catch (error) {
+      if (verbose) {
+        console.warn(`Unable to read license override at ${resolvedPath}: ${error.message}`);
+      }
+    }
+  }
+
+  if (!content) {
+    const holder = typeof resolvedConfig.holder === 'string' && resolvedConfig.holder.trim().length > 0
+      ? resolvedConfig.holder.trim()
+      : (siteConfig && typeof siteConfig.title === 'string' && siteConfig.title.trim().length > 0
+        ? siteConfig.title.trim()
+        : 'Chaos & Majesty');
+    content = buildDefaultMitLicense(holder);
+  }
+
+  const matchNamesInput = Array.isArray(resolvedConfig.matchNames) ? resolvedConfig.matchNames : [];
+  const matchNames = matchNamesInput
+    .map(name => (typeof name === 'string' ? name.trim().toLowerCase() : ''))
+    .filter(Boolean);
+  const fileNameLower = fileName.toLowerCase();
+  if (!matchNames.includes(fileNameLower)) {
+    matchNames.push(fileNameLower);
+  }
+  DEFAULT_LICENSE_MATCH_NAMES.forEach(defaultName => {
+    if (!matchNames.includes(defaultName)) {
+      matchNames.push(defaultName);
+    }
+  });
+
+  return {
+    enabled: true,
+    fileName,
+    matchNames,
+    content
+  };
+}
+
 /**
  * Copy directory recursively with proper error handling
  */
@@ -478,6 +581,13 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
   if (mirrorDirs.length > 0) {
     gitConfig.manifestMirrorDir = mirrorDirs[0];
   }
+
+  const licenseOverrideRaw = Object.prototype.hasOwnProperty.call(gitConfig, 'licenseOverride')
+    ? gitConfig.licenseOverride
+    : (Object.prototype.hasOwnProperty.call(siteGitConfig, 'licenseOverride')
+      ? siteGitConfig.licenseOverride
+      : undefined);
+  gitConfig.licenseOverride = await resolveLicenseOverrideConfig(licenseOverrideRaw, siteConfig, verbose);
 
   const processedRepos = [];
   for (const repo of combinedRepos) {
