@@ -102,6 +102,20 @@
   }
 %>
 <section class="git-page">
+  <div
+    class="git-orientation-overlay"
+    id="git-orientation-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="git-orientation-title"
+    aria-describedby="git-orientation-copy"
+    aria-hidden="true"
+  >
+    <div class="git-orientation-card">
+      <h2 class="git-orientation-title" id="git-orientation-title">Rotate to landscape</h2>
+      <p class="git-orientation-message" id="git-orientation-copy">For the best Git activity view, rotate your device to landscape.</p>
+    </div>
+  </div>
   <div class="git-shell">
     <% if (introHtml) { %>
       <div class="git-hero">
@@ -250,6 +264,10 @@
   </div>
 </section>
 
+<button type="button" class="blog-back-to-top git-back-to-top" aria-label="Back to top">
+  ▲
+</button>
+
 <script>
   (function() {
     if (typeof window === 'undefined' || !window.document) {
@@ -317,6 +335,22 @@
     var gitShell = document.querySelector('.git-shell');
     var sidebar = document.getElementById('git-sidebar');
     var sidebarToggle = document.getElementById('git-sidebar-toggle');
+    var orientationOverlay = document.getElementById('git-orientation-overlay');
+    var orientationMobileQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 1024px)')
+      : null;
+    var orientationPortraitQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(orientation: portrait)')
+      : null;
+    var orientationOverlayVisible = false;
+    var orientationOverlayLockClass = 'git-orientation-locked';
+    var orientationOverlayVisibleClass = 'is-visible';
+    var orientationBypassTapCount = 0;
+    var orientationBypassTapThreshold = 7;
+    var orientationBypassResetDelay = 2200;
+    var orientationBypassResetTimer = null;
+    var orientationBypassActive = false;
+    var orientationOverlaySupportsPointer = typeof window !== 'undefined' && typeof window.PointerEvent === 'function';
 
     var activeEntry = null;
     var activeButton = null;
@@ -327,6 +361,88 @@
     var sidebarCollapsed = false;
     var sidebarAutoCollapsed = false;
     var pendingPermalinkState = null;
+
+    function attachMediaQueryListener(query, handler) {
+      if (!query || typeof handler !== 'function') {
+        return;
+      }
+      if (typeof query.addEventListener === 'function') {
+        query.addEventListener('change', handler);
+      } else if (typeof query.addListener === 'function') {
+        query.addListener(handler);
+      }
+    }
+
+    function setOrientationOverlayVisible(visible) {
+      if (!orientationOverlay) {
+        return;
+      }
+      if (visible === orientationOverlayVisible) {
+        return;
+      }
+      orientationOverlayVisible = visible;
+      var body = document.body || document.documentElement;
+      orientationOverlay.classList.toggle(orientationOverlayVisibleClass, visible);
+      orientationOverlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (body) {
+        body.classList.toggle(orientationOverlayLockClass, visible);
+      }
+      if (!visible) {
+        resetOrientationBypassCounter();
+      }
+    }
+
+    function clearOrientationBypassReset() {
+      if (orientationBypassResetTimer) {
+        window.clearTimeout(orientationBypassResetTimer);
+        orientationBypassResetTimer = null;
+      }
+    }
+
+    function resetOrientationBypassCounter() {
+      orientationBypassTapCount = 0;
+      clearOrientationBypassReset();
+    }
+
+    function scheduleOrientationBypassReset() {
+      clearOrientationBypassReset();
+      orientationBypassResetTimer = window.setTimeout(function() {
+        resetOrientationBypassCounter();
+      }, orientationBypassResetDelay);
+    }
+
+    function handleOrientationOverlayTap(event) {
+      if (!orientationOverlayVisible || orientationBypassActive) {
+        return;
+      }
+      if (event && (event.isPrimary === false || (event.type === 'pointerup' && event.button !== 0))) {
+        return;
+      }
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      orientationBypassTapCount += 1;
+      if (orientationBypassTapCount >= orientationBypassTapThreshold) {
+        resetOrientationBypassCounter();
+        orientationBypassActive = true;
+        setOrientationOverlayVisible(false);
+        return;
+      }
+      scheduleOrientationBypassReset();
+    }
+
+    function evaluateOrientationOverlay() {
+      if (!orientationOverlay) {
+        return;
+      }
+      if (orientationBypassActive) {
+        setOrientationOverlayVisible(false);
+        return;
+      }
+      var isMobileViewport = orientationMobileQuery ? orientationMobileQuery.matches : window.innerWidth <= 1024;
+      var isPortraitOrientation = orientationPortraitQuery ? orientationPortraitQuery.matches : window.innerHeight >= window.innerWidth;
+      setOrientationOverlayVisible(isMobileViewport && isPortraitOrientation);
+    }
 
     function escapeHtml(value) {
       if (value == null) {
@@ -1335,6 +1451,24 @@
       } else {
         hideIndicator();
       }
+    }
+
+    if (orientationOverlay) {
+      if (orientationOverlaySupportsPointer) {
+        orientationOverlay.addEventListener('pointerup', handleOrientationOverlayTap);
+      } else {
+        orientationOverlay.addEventListener('click', handleOrientationOverlayTap);
+      }
+      evaluateOrientationOverlay();
+      attachMediaQueryListener(orientationMobileQuery, evaluateOrientationOverlay);
+      attachMediaQueryListener(orientationPortraitQuery, evaluateOrientationOverlay);
+      window.addEventListener('resize', evaluateOrientationOverlay);
+      window.addEventListener('orientationchange', evaluateOrientationOverlay);
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          evaluateOrientationOverlay();
+        }
+      });
     }
 
     window.addEventListener('hashchange', restoreLocationState);

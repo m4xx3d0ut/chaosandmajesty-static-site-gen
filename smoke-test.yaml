@@ -22,7 +22,7 @@ pages:
     hideTitle: true
     git:
       intro: |
-        <p>Browse the Core Git front door without leaving the site. Pick a repository on the left; the activity feed loads on the right.</p>
+        <p>Browse the Core Git currated mirrors. Pick a repository on the left; the activity feed loads on the right.</p>
       manifest: "config/git/manifest.txt"
       defaultRepoLabel: "chaosandmajesty-static-site-gen"
       repoDetailSuffix: "log.html"
@@ -192,7 +192,32 @@ index:
     <br>
     
     A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
-    Fellow denizians, this is our place, welcome home.
+    Fellow denizians, this is our place, welcome to our home.
+
+    <br>
+
+    Enjoy browsing some of our code on the site's Git mirror, the site itself is open source and available.  There is also a
+    base static site generator project that powers the site, which is also open source and available.  I encourage you to
+    build off of these projects.  The "RadioStatic" site generator leans heavily into HTMX for responsive, dynamic content,
+    while still serving only static content reducing potential attack vectors.  The git mirrors can be configured to mirror
+    single or multiple branches and can be configured to mirror curated branches of private repositories through CI/CD.
+
+    <br>
+
+    Every page is pre-rendered, every payload is deterministic, and every UI flourish is layered on top of static assets.
+    By keeping runtime dependencies out of production we minimize the attack surface, shrink the footprint exposed to bots,
+    and keep the trust boundary easy to reason about.  The HTMX flows that power our blog and Git explorers are compiled into
+    static fragments, so browsers only ever fetch first-party HTML, CSS, and JSON from the same origin.
+
+    <br>
+
+    For teams with compliance needs, the generator can be wired into CI to lint third-party resources, diff security headers,
+    or snapshot the final HTML for offline review.  Shipping static artifacts also means you can front the entire site with
+    a CDN + WAF combo, disable origin server scripting entirely, and rotate mirrors or keys without redeploying the UI
+    shell.  If you fork this project, you inherit a hardened baseline that assumes a hostile network and keeps the
+    surface lean.
+
+    ...and you can play DOOM on it!
 
     <br>
 
