@@ -1512,6 +1512,8 @@
   var TERMINAL_INITIAL_SPEED = 75;
   var tSpeed = TERMINAL_INITIAL_SPEED;
   var terminalTimeoutId = null;
+  var currentTerminalBuffer = null;
+  var terminalFlushMode = false;
   String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g, "");
   };
@@ -3087,6 +3089,20 @@
       }
   }
 
+  function flushTerminalPlayback() {
+      if (allowIn) {
+          return;
+      }
+      if (!currentTerminalBuffer || !Array.isArray(currentTerminalBuffer)) {
+          allowIn = true;
+          terminalFlushMode = false;
+          return;
+      }
+      cancelTerminalPlayback();
+      terminalFlushMode = true;
+      terminal(currentTerminalBuffer);
+  }
+
   function resetTerminalSession() {
       var termIn = document.getElementById('uIn');
       if (termIn) {
@@ -3359,48 +3375,89 @@
   }
 
   function terminal(msgOut) {
-      var term = document.getElementById("tOut");
-      if (!term) return; // Avoid error if missing
+      var term = document.getElementById('tOut');
+      if (!term || !Array.isArray(msgOut)) return;
+
+      currentTerminalBuffer = msgOut;
+
       if (terminalTimeoutId !== null) {
           clearTimeout(terminalTimeoutId);
           terminalTimeoutId = null;
       }
-      var msg = msgOut[elementId];
-      if (msg === undefined) {
-          return;
-      }
-      allowIn = false;
-      var msgLen = msg.length;
-      if (i < msg.length) {
-          term.innerHTML += msg.charAt(i);
-          i++;
-      } else {
+
+      var flushActive = terminalFlushMode;
+
+      while (true) {
+          var msg = msgOut[elementId];
+          if (msg === undefined) {
+              if (flushActive) {
+                  elementId = 0;
+                  allowIn = true;
+                  terminalFlushMode = false;
+                  currentTerminalBuffer = null;
+              }
+              return;
+          }
+
+          allowIn = false;
+          var msgLen = msg.length;
+
+          if (i < msgLen) {
+              if (flushActive) {
+                  term.innerHTML += msg.slice(i);
+                  i = msgLen;
+              } else {
+                  term.innerHTML += msg.charAt(i);
+                  i++;
+                  scrollTerm(term);
+                  terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
+                  return;
+              }
+          }
+
+          if (i < msgLen) {
+              return;
+          }
+
           i = 0;
+
           if (msg === 'Email: ' || msg === 'LinkedIn: ' || msg === 'Read: ') {
               var a = document.createElement('a');
-              var link = document.createTextNode(msgOut[elementId+2])
+              var link = document.createTextNode(msgOut[elementId + 2]);
               a.appendChild(link);
-              a.title = msgOut[elementId+2];
-              a.href = msgOut[elementId+1];
+              a.title = msgOut[elementId + 2];
+              a.href = msgOut[elementId + 1];
               a.target = '_blank';
               term.append(a);
               elementId += 2;
           }
+
           elementId++;
           term.innerHTML += '<br>$ ';
           persistTerminalBuffer(term);
-      }
-      scrollTerm(term);
-      if (elementId < msgOut.length) {
-          terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
-      }
-      if (tSpeed > 25 && elementId >= 3) {
-          tSpeed = 25;
-      }
-      if (elementId === msgOut.length) {
+
+          if (tSpeed > 25 && elementId >= 3) {
+              tSpeed = 25;
+          }
+
+          scrollTerm(term);
+
+          if (elementId < msgOut.length) {
+              if (flushActive) {
+                  continue;
+              }
+              terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
+              return;
+          }
+
           elementId = 0;
           allowIn = true;
           terminalTimeoutId = null;
+          currentTerminalBuffer = null;
+          if (flushActive) {
+              terminalFlushMode = false;
+          }
+          return;
       }
   }
 
@@ -3455,14 +3512,34 @@
           });
 
           termIn.addEventListener('keyup', function(e) {
-              if ((e.key === 'Enter' || e.which === 13) && allowIn) {
-                  var cli = e.target.value;
-                  recordCommand(cli);
-                  terminal([cli]);
-                  checkIn(cli);
-                  e.target.value = "";
-                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
+              if (e.key !== 'Enter' && e.which !== 13) {
+                  return;
               }
+
+              var cli = e.target.value || '';
+              var trimmedCli = cli.trim();
+              var wasBusy = !allowIn;
+
+              if (wasBusy) {
+                  flushTerminalPlayback();
+              }
+
+              if (!trimmedCli) {
+                  e.target.value = '';
+                  if (wasBusy) {
+                      return;
+                  }
+              }
+
+              if (!allowIn) {
+                  return;
+              }
+
+              recordCommand(cli);
+              terminal([cli]);
+              checkIn(cli);
+              e.target.value = '';
+              applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
           });
 
           termIn.addEventListener('pointerdown', function() {
