@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/assets/doom/README.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/assets/doom/README.md/raw.txt" data-git-line-count="5">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/assets/doom/README.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/assets/doom/README.md/raw.txt" data-git-line-count="28">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">README.md</h4>
-          <div class="git-file-meta">199 B · 5 lines · static-sitegen/assets/doom/README.md</div>
+          <div class="git-file-meta">1.1 KB · 28 lines · static-sitegen/assets/doom/README.md</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/static-sitegen/assets/doom/README.md/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -12,9 +12,30 @@
       </header>
       <div class="git-file-body" data-git-file-body>
         <h1>DOOM WASM Assets</h1>
-<p>This folder stores the <code>doom.wasm</code> binary consumed by the console minigame.
-Run <code>./scripts/build-doom.sh</code> to download or copy the artefact and consult
-<code>docs/doom.md</code> for details.</p>
+<p>This folder stores the <code>doom.wasm</code> binary and browser loader consumed by the
+console minigame.</p>
+<h2>Provenance</h2>
+<ul>
+<li>Upstream source: <a href="https://github.com/diekmann/wasm-fizzbuzz"><code>diekmann/wasm-fizzbuzz</code></a>
+<code>doom/</code> at commit <code>51a7030bea563d96027301a36619c17347b9270d</code>.</li>
+<li>Local changes: see <code>patches/0001-chaos-and-majesty-doom-wasm.patch</code> for the
+exact modifications applied during the Chaos &amp; Majesty build (audio bridge,
+menu updates, wasm toolchain tweaks, and music playback shim).</li>
+<li>Build steps and packaging guidance live in <code>docs/doom.md</code>.</li>
+</ul>
+<h2>Licensing</h2>
+<p>The DOOM engine is licensed under GPL-2.0-or-later. A copy of the license ships
+with this repository as <code>COPYING</code>. Any redistribution of <code>doom.wasm</code> must
+include:</p>
+<ol>
+<li>The GPL text (<code>COPYING</code>).</li>
+<li>The complete corresponding source, which you can regenerate by applying the
+patch above to the upstream repository and following the documented build
+steps.</li>
+</ol>
+<p>If you further modify the engine, add your changes either to the existing patch
+or as additional patches in this directory and document the update in
+<code>docs/doom.md</code>.</p>
 
       </div>
     </article>

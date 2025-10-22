@@ -3,7 +3,7 @@ import path from 'path';
 import { marked } from 'marked';
 import * as ejs from 'ejs';
 import yaml from 'js-yaml';
-import { ensureGitRepoArtifacts } from './gitArtifacts.js';
+import { ensureGitRepoArtifacts, DEFAULT_COMMIT_LIMIT as DEFAULT_GIT_COMMIT_LIMIT } from './gitArtifacts.js';
 
 // Default template for when no template is found
 const DEFAULT_TEMPLATE = `
@@ -294,6 +294,74 @@ function buildGitRepoSearchText(record) {
     .toLowerCase();
 }
 
+function parsePositiveInteger(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const parsed = Number.parseInt(trimmed, 10);
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      return null;
+    }
+    return parsed;
+  }
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+  return null;
+}
+
+function normalizeStringArray(value) {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  const items = [];
+  if (Array.isArray(value)) {
+    items.push(...value);
+  } else if (typeof value === 'string') {
+    const split = value.includes(',') ? value.split(',') : value.split(/\r?\n/);
+    items.push(...split);
+  } else {
+    items.push(String(value));
+  }
+  const results = [];
+  const seen = new Set();
+  for (const item of items) {
+    if (item === undefined || item === null) continue;
+    const normalized = item
+      .toString()
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/^\.\/+/, '');
+    if (!normalized) continue;
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      results.push(normalized);
+    }
+  }
+  return results;
+}
+
+function mergeStringArrays(...arrays) {
+  const seen = new Set();
+  const merged = [];
+  for (const arr of arrays) {
+    if (!arr || !Array.isArray(arr)) continue;
+    for (const item of arr) {
+      if (!item || typeof item !== 'string') continue;
+      if (!seen.has(item)) {
+        seen.add(item);
+        merged.push(item);
+      }
+    }
+  }
+  return merged;
+}
+
 function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) {
   if (!seed) {
     return null;
@@ -365,7 +433,9 @@ function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) 
     httpUrl: httpUrl || '',
     sshUrl: normalized.sshUrl || normalized.gitUrl || '',
     manifestSource: normalized.manifestSource || '',
-    tags: Array.isArray(normalized.tags) ? normalized.tags : (stage ? [stage.toLowerCase()] : [])
+    tags: Array.isArray(normalized.tags) ? normalized.tags : (stage ? [stage.toLowerCase()] : []),
+    commitLimit: parsePositiveInteger(normalized.commitLimit || normalized.commit_limit || normalized.historyLimit || normalized.limit),
+    skipGlobs: normalizeStringArray(normalized.skipGlobs || normalized.skip_globs || normalized.exclude || normalized.excludes)
   };
 }
 
@@ -481,6 +551,8 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
     let pathOverride = null;
     let branchOverride = null;
     let depthOverride = null;
+    let commitLimitOverride = null;
+    let skipGlobsOverride = null;
 
     if (typeof value === 'string') {
       pathOverride = path.resolve(process.cwd(), value);
@@ -496,12 +568,29 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
       if (typeof value.depth === 'number' && Number.isFinite(value.depth) && value.depth > 0) {
         depthOverride = Math.floor(value.depth);
       }
+      if (Object.prototype.hasOwnProperty.call(value, 'commitLimit')) {
+        commitLimitOverride = parsePositiveInteger(value.commitLimit);
+      } else if (Object.prototype.hasOwnProperty.call(value, 'commit_limit')) {
+        commitLimitOverride = parsePositiveInteger(value.commit_limit);
+      }
+      const overrideSkipRaw =
+        value.skipGlobs ??
+        value.skip_globs ??
+        value.exclude ??
+        value.excludes ??
+        value.ignore;
+      const normalizedSkip = normalizeStringArray(overrideSkipRaw);
+      if (normalizedSkip.length > 0) {
+        skipGlobsOverride = normalizedSkip;
+      }
     }
 
     localRepoOverrides[key] = {
       path: pathOverride,
       branch: branchOverride,
-      depth: depthOverride
+      depth: depthOverride,
+      commitLimit: commitLimitOverride,
+      skipGlobs: skipGlobsOverride
     };
   }
   gitConfig.localRepoOverrides = localRepoOverrides;
@@ -589,6 +678,30 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
       : undefined);
   gitConfig.licenseOverride = await resolveLicenseOverrideConfig(licenseOverrideRaw, siteConfig, verbose);
 
+  const siteSkipGlobs = normalizeStringArray(siteGitConfig.skipGlobs);
+  const pageSkipGlobs = normalizeStringArray(gitConfig.skipGlobs);
+  const envSkipGlobs = normalizeStringArray(process.env.SITEGEN_GIT_SKIP_GLOBS);
+  const defaultSkipGlobs = mergeStringArrays(siteSkipGlobs, pageSkipGlobs, envSkipGlobs);
+  gitConfig.skipGlobs = defaultSkipGlobs;
+
+  const commitLimitCandidates = [
+    gitConfig.commitLimit,
+    siteGitConfig.commitLimit,
+    process.env.SITEGEN_GIT_COMMIT_LIMIT
+  ];
+  let defaultCommitLimit = null;
+  for (const candidate of commitLimitCandidates) {
+    const parsed = parsePositiveInteger(candidate);
+    if (parsed !== null) {
+      defaultCommitLimit = parsed;
+      break;
+    }
+  }
+  if (defaultCommitLimit === null) {
+    defaultCommitLimit = DEFAULT_GIT_COMMIT_LIMIT;
+  }
+  gitConfig.commitLimit = defaultCommitLimit;
+
   const processedRepos = [];
   for (const repo of combinedRepos) {
     if (!repo) {
@@ -637,6 +750,9 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
       }
       if (matchedOverride.depth) {
         nextRepo.overrideDepth = matchedOverride.depth;
+      }
+      if (matchedOverride.commitLimit) {
+        nextRepo.overrideCommitLimit = matchedOverride.commitLimit;
       }
       nextRepo.localOverride = matchedOverride;
     } else if (!nextRepo.localPath && mirrorDirs.length > 0) {
@@ -695,6 +811,33 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
         nextRepo.mirrorPath = resolvedMirrorPath;
         nextRepo.manifestMirror = resolvedMirrorPath;
       }
+    }
+
+    const repoSkipGlobs = normalizeStringArray(nextRepo.skipGlobs);
+    const overrideSkipGlobs = matchedOverride && Array.isArray(matchedOverride.skipGlobs)
+      ? matchedOverride.skipGlobs
+      : [];
+    const effectiveSkipGlobs = mergeStringArrays(defaultSkipGlobs, repoSkipGlobs, overrideSkipGlobs);
+    if (effectiveSkipGlobs.length > 0) {
+      nextRepo.skipGlobs = effectiveSkipGlobs;
+    } else {
+      delete nextRepo.skipGlobs;
+    }
+
+    let repoCommitLimit = parsePositiveInteger(nextRepo.commitLimit);
+    const overrideCommitLimit = matchedOverride && matchedOverride.commitLimit
+      ? parsePositiveInteger(matchedOverride.commitLimit)
+      : null;
+    if (!repoCommitLimit && overrideCommitLimit) {
+      repoCommitLimit = overrideCommitLimit;
+    }
+    if (!repoCommitLimit && defaultCommitLimit) {
+      repoCommitLimit = defaultCommitLimit;
+    }
+    if (repoCommitLimit) {
+      nextRepo.commitLimit = repoCommitLimit;
+    } else {
+      delete nextRepo.commitLimit;
     }
 
     processedRepos.push(nextRepo);

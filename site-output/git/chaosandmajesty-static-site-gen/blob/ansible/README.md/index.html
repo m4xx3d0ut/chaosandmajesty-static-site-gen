@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/raw.txt" data-git-line-count="41">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/raw.txt" data-git-line-count="49">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">README.md</h4>
-          <div class="git-file-meta">1.9 KB · 41 lines · ansible/README.md</div>
+          <div class="git-file-meta">2.4 KB · 49 lines · ansible/README.md</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/ansible/README.md/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -19,6 +19,8 @@
 <li><code>group_vars/all.yml</code> – defaults (install path, image coordinates, mounts).</li>
 <li><code>deploy.yml</code> – entrypoint playbook that applies the <code>app_deploy</code> role.</li>
 <li><code>requirements.yml</code> – Ansible collections required (<code>community.docker</code>).</li>
+<li><code>roles/app_deploy</code> – renders Docker Compose configuration and deploys the site container.</li>
+<li><code>../config/git/manifest.txt</code> – repository manifest consumed by the static site generator.</li>
 </ul>
 <h2>Usage</h2>
 <ol>
@@ -51,6 +53,10 @@ in the workflow.</li>
 <code>/opt/chaosandmajesty</code>), ensure the WebDAV directory exists on the host, pull the
 specified image, and recreate the container. A health check against
 <code>http://127.0.0.1:{{ healthcheck_port }}</code> guards against silent failures.</p>
+<h2>Git manifest</h2>
+<p>The static site generator consumes <code>config/git/manifest.txt</code> to know which
+repositories to mirror locally during <code>./build-site.sh</code>. Update that manifest
+before builds so the Git page sidebar stays in sync with your catalog.</p>
 
       </div>
     </article>

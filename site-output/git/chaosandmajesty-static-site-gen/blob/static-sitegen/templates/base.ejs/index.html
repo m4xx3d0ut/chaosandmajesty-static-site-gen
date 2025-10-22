@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/base.ejs/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/base.ejs/raw.txt" data-git-line-count="266">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/base.ejs/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/base.ejs/raw.txt" data-git-line-count="285">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">base.ejs</h4>
-          <div class="git-file-meta">9.1 KB · 266 lines · static-sitegen/templates/base.ejs</div>
+          <div class="git-file-meta">10.0 KB · 285 lines · static-sitegen/templates/base.ejs</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/base.ejs/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -491,7 +491,7 @@
           aria-label="Copy permalink for line 40"
           title="Copy permalink for line 40"
         >40</button>
-        <span class="git-code-text">  &lt;% if (site.parallaxPush) { %&gt;</span>
+        <span class="git-code-text">  data-page-slug=&quot;&lt;%= page.slug || &#039;&#039; %&gt;&quot;</span>
       </li>
     
 
@@ -503,7 +503,7 @@
           aria-label="Copy permalink for line 41"
           title="Copy permalink for line 41"
         >41</button>
-        <span class="git-code-text">    style=&quot;--parallax-push:&lt;%= site.parallaxPush %&gt;;&quot;</span>
+        <span class="git-code-text">  &lt;% if (site.parallaxPush) { %&gt;</span>
       </li>
     
 
@@ -515,7 +515,7 @@
           aria-label="Copy permalink for line 42"
           title="Copy permalink for line 42"
         >42</button>
-        <span class="git-code-text">  &lt;% } %&gt;</span>
+        <span class="git-code-text">    style=&quot;--parallax-push:&lt;%= site.parallaxPush %&gt;;&quot;</span>
       </li>
     
 
@@ -527,7 +527,7 @@
           aria-label="Copy permalink for line 43"
           title="Copy permalink for line 43"
         >43</button>
-        <span class="git-code-text">&gt;</span>
+        <span class="git-code-text">  &lt;% } %&gt;</span>
       </li>
     
 
@@ -539,7 +539,7 @@
           aria-label="Copy permalink for line 44"
           title="Copy permalink for line 44"
         >44</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">&gt;</span>
       </li>
     
 
@@ -551,7 +551,7 @@
           aria-label="Copy permalink for line 45"
           title="Copy permalink for line 45"
         >45</button>
-        <span class="git-code-text">  &lt;!-- Optional Parallax Background DIV --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -563,7 +563,7 @@
           aria-label="Copy permalink for line 46"
           title="Copy permalink for line 46"
         >46</button>
-        <span class="git-code-text">  &lt;% if (site.parallaxImage) { %&gt;</span>
+        <span class="git-code-text">  &lt;!-- Optional Parallax Background DIV --&gt;</span>
       </li>
     
 
@@ -575,7 +575,7 @@
           aria-label="Copy permalink for line 47"
           title="Copy permalink for line 47"
         >47</button>
-        <span class="git-code-text">    &lt;div</span>
+        <span class="git-code-text">  &lt;% if (site.parallaxImage) { %&gt;</span>
       </li>
     
 
@@ -587,7 +587,7 @@
           aria-label="Copy permalink for line 48"
           title="Copy permalink for line 48"
         >48</button>
-        <span class="git-code-text">      class=&quot;parallax-bg&quot;</span>
+        <span class="git-code-text">    &lt;div</span>
       </li>
     
 
@@ -599,7 +599,7 @@
           aria-label="Copy permalink for line 49"
           title="Copy permalink for line 49"
         >49</button>
-        <span class="git-code-text">      style=&quot;background-image: url(</span>
+        <span class="git-code-text">      class=&quot;parallax-bg&quot;</span>
       </li>
     
 
@@ -611,7 +611,7 @@
           aria-label="Copy permalink for line 50"
           title="Copy permalink for line 50"
         >50</button>
-        <span class="git-code-text">        &#039;&lt;%= isSection ? &#039;../&#039; + site.parallaxImage : site.parallaxImage %&gt;&#039;</span>
+        <span class="git-code-text">      style=&quot;background-image: url(</span>
       </li>
     
 
@@ -623,7 +623,7 @@
           aria-label="Copy permalink for line 51"
           title="Copy permalink for line 51"
         >51</button>
-        <span class="git-code-text">      );&quot;</span>
+        <span class="git-code-text">        &#039;&lt;%= isSection ? &#039;../&#039; + site.parallaxImage : site.parallaxImage %&gt;&#039;</span>
       </li>
     
 
@@ -635,7 +635,7 @@
           aria-label="Copy permalink for line 52"
           title="Copy permalink for line 52"
         >52</button>
-        <span class="git-code-text">    &gt;&lt;/div&gt;</span>
+        <span class="git-code-text">      );&quot;</span>
       </li>
     
 
@@ -647,7 +647,7 @@
           aria-label="Copy permalink for line 53"
           title="Copy permalink for line 53"
         >53</button>
-        <span class="git-code-text">  &lt;% } %&gt;</span>
+        <span class="git-code-text">    &gt;&lt;/div&gt;</span>
       </li>
     
 
@@ -659,7 +659,7 @@
           aria-label="Copy permalink for line 54"
           title="Copy permalink for line 54"
         >54</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">  &lt;% } %&gt;</span>
       </li>
     
 
@@ -671,7 +671,7 @@
           aria-label="Copy permalink for line 55"
           title="Copy permalink for line 55"
         >55</button>
-        <span class="git-code-text">  &lt;!-- HEADER --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -683,7 +683,7 @@
           aria-label="Copy permalink for line 56"
           title="Copy permalink for line 56"
         >56</button>
-        <span class="git-code-text">  &lt;header&gt;</span>
+        <span class="git-code-text">  &lt;!-- HEADER --&gt;</span>
       </li>
     
 
@@ -695,7 +695,7 @@
           aria-label="Copy permalink for line 57"
           title="Copy permalink for line 57"
         >57</button>
-        <span class="git-code-text">    &lt;div class=&quot;container header-container&quot;&gt;</span>
+        <span class="git-code-text">  &lt;header&gt;</span>
       </li>
     
 
@@ -707,7 +707,7 @@
           aria-label="Copy permalink for line 58"
           title="Copy permalink for line 58"
         >58</button>
-        <span class="git-code-text">      &lt;% if (site.logo) { %&gt;</span>
+        <span class="git-code-text">    &lt;div class=&quot;container header-container&quot;&gt;</span>
       </li>
     
 
@@ -719,7 +719,7 @@
           aria-label="Copy permalink for line 59"
           title="Copy permalink for line 59"
         >59</button>
-        <span class="git-code-text">        &lt;a href=&quot;&lt;%= isSection ? &#039;../index.html&#039; : &#039;index.html&#039; %&gt;&quot; class=&quot;logo-link&quot;&gt;</span>
+        <span class="git-code-text">      &lt;% if (site.logo) { %&gt;</span>
       </li>
     
 
@@ -731,7 +731,7 @@
           aria-label="Copy permalink for line 60"
           title="Copy permalink for line 60"
         >60</button>
-        <span class="git-code-text">          &lt;img</span>
+        <span class="git-code-text">        &lt;a href=&quot;&lt;%= isSection ? &#039;../index.html&#039; : &#039;index.html&#039; %&gt;&quot; class=&quot;logo-link&quot;&gt;</span>
       </li>
     
 
@@ -743,7 +743,7 @@
           aria-label="Copy permalink for line 61"
           title="Copy permalink for line 61"
         >61</button>
-        <span class="git-code-text">            src=&quot;&lt;%= isSection ? &#039;../&#039; + site.logo : site.logo %&gt;&quot;</span>
+        <span class="git-code-text">          &lt;img</span>
       </li>
     
 
@@ -755,7 +755,7 @@
           aria-label="Copy permalink for line 62"
           title="Copy permalink for line 62"
         >62</button>
-        <span class="git-code-text">            alt=&quot;&lt;%= site.title %&gt; Logo&quot;</span>
+        <span class="git-code-text">            src=&quot;&lt;%= isSection ? &#039;../&#039; + site.logo : site.logo %&gt;&quot;</span>
       </li>
     
 
@@ -767,7 +767,7 @@
           aria-label="Copy permalink for line 63"
           title="Copy permalink for line 63"
         >63</button>
-        <span class="git-code-text">            class=&quot;logo&quot;</span>
+        <span class="git-code-text">            alt=&quot;&lt;%= site.title %&gt; Logo&quot;</span>
       </li>
     
 
@@ -779,7 +779,7 @@
           aria-label="Copy permalink for line 64"
           title="Copy permalink for line 64"
         >64</button>
-        <span class="git-code-text">          &gt;</span>
+        <span class="git-code-text">            class=&quot;logo&quot;</span>
       </li>
     
 
@@ -791,7 +791,7 @@
           aria-label="Copy permalink for line 65"
           title="Copy permalink for line 65"
         >65</button>
-        <span class="git-code-text">        &lt;/a&gt;</span>
+        <span class="git-code-text">          &gt;</span>
       </li>
     
 
@@ -803,7 +803,7 @@
           aria-label="Copy permalink for line 66"
           title="Copy permalink for line 66"
         >66</button>
-        <span class="git-code-text">      &lt;% } else { %&gt;</span>
+        <span class="git-code-text">        &lt;/a&gt;</span>
       </li>
     
 
@@ -815,7 +815,7 @@
           aria-label="Copy permalink for line 67"
           title="Copy permalink for line 67"
         >67</button>
-        <span class="git-code-text">        &lt;h1 class=&quot;logo-text&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;</span>
+        <span class="git-code-text">      &lt;% } else { %&gt;</span>
       </li>
     
 
@@ -827,7 +827,7 @@
           aria-label="Copy permalink for line 68"
           title="Copy permalink for line 68"
         >68</button>
-        <span class="git-code-text">      &lt;% } %&gt;</span>
+        <span class="git-code-text">        &lt;h1 class=&quot;logo-text&quot;&gt;&lt;%= site.title %&gt;&lt;/h1&gt;</span>
       </li>
     
 
@@ -839,7 +839,7 @@
           aria-label="Copy permalink for line 69"
           title="Copy permalink for line 69"
         >69</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      &lt;% } %&gt;</span>
       </li>
     
 
@@ -851,7 +851,7 @@
           aria-label="Copy permalink for line 70"
           title="Copy permalink for line 70"
         >70</button>
-        <span class="git-code-text">      &lt;% </span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -863,7 +863,7 @@
           aria-label="Copy permalink for line 71"
           title="Copy permalink for line 71"
         >71</button>
-        <span class="git-code-text">        // Compute navLinks for header; skip if absent or empty</span>
+        <span class="git-code-text">      &lt;% </span>
       </li>
     
 
@@ -875,7 +875,7 @@
           aria-label="Copy permalink for line 72"
           title="Copy permalink for line 72"
         >72</button>
-        <span class="git-code-text">        var navLinks = (site.header &amp;&amp; site.header.links &amp;&amp; site.header.links.length &gt; 0)</span>
+        <span class="git-code-text">        // Compute navLinks for header; skip if absent or empty</span>
       </li>
     
 
@@ -887,7 +887,7 @@
           aria-label="Copy permalink for line 73"
           title="Copy permalink for line 73"
         >73</button>
-        <span class="git-code-text">          ? site.header.links.filter(function(link) { return !!link &amp;&amp; !!link.label &amp;&amp; !!link.href; })</span>
+        <span class="git-code-text">        var navLinks = (site.header &amp;&amp; site.header.links &amp;&amp; site.header.links.length &gt; 0)</span>
       </li>
     
 
@@ -899,7 +899,7 @@
           aria-label="Copy permalink for line 74"
           title="Copy permalink for line 74"
         >74</button>
-        <span class="git-code-text">          : [];</span>
+        <span class="git-code-text">          ? site.header.links.filter(function(link) { return !!link &amp;&amp; !!link.label &amp;&amp; !!link.href; })</span>
       </li>
     
 
@@ -911,7 +911,7 @@
           aria-label="Copy permalink for line 75"
           title="Copy permalink for line 75"
         >75</button>
-        <span class="git-code-text">      %&gt;</span>
+        <span class="git-code-text">          : [];</span>
       </li>
     
 
@@ -923,7 +923,7 @@
           aria-label="Copy permalink for line 76"
           title="Copy permalink for line 76"
         >76</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      %&gt;</span>
       </li>
     
 
@@ -935,7 +935,7 @@
           aria-label="Copy permalink for line 77"
           title="Copy permalink for line 77"
         >77</button>
-        <span class="git-code-text">      &lt;% if (navLinks.length &gt; 0) { %&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -947,7 +947,7 @@
           aria-label="Copy permalink for line 78"
           title="Copy permalink for line 78"
         >78</button>
-        <span class="git-code-text">        &lt;!-- Hamburger toggle (only visible on ≤768px) --&gt;</span>
+        <span class="git-code-text">      &lt;% if (navLinks.length &gt; 0) { %&gt;</span>
       </li>
     
 
@@ -959,7 +959,7 @@
           aria-label="Copy permalink for line 79"
           title="Copy permalink for line 79"
         >79</button>
-        <span class="git-code-text">        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;</span>
+        <span class="git-code-text">        &lt;!-- Hamburger toggle (only visible on ≤768px) --&gt;</span>
       </li>
     
 
@@ -971,7 +971,7 @@
           aria-label="Copy permalink for line 80"
           title="Copy permalink for line 80"
         >80</button>
-        <span class="git-code-text">          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;</span>
+        <span class="git-code-text">        &lt;button type=&quot;button&quot; class=&quot;nav-toggle&quot; aria-label=&quot;Toggle navigation&quot;&gt;</span>
       </li>
     
 
@@ -983,7 +983,7 @@
           aria-label="Copy permalink for line 81"
           title="Copy permalink for line 81"
         >81</button>
-        <span class="git-code-text">            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;</span>
+        <span class="git-code-text">          &lt;svg width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;</span>
       </li>
     
 
@@ -995,7 +995,7 @@
           aria-label="Copy permalink for line 82"
           title="Copy permalink for line 82"
         >82</button>
-        <span class="git-code-text">          &lt;/svg&gt;</span>
+        <span class="git-code-text">            &lt;path d=&quot;M3 7h18M3 12h18M3 17h18&quot; /&gt;</span>
       </li>
     
 
@@ -1007,7 +1007,7 @@
           aria-label="Copy permalink for line 83"
           title="Copy permalink for line 83"
         >83</button>
-        <span class="git-code-text">        &lt;/button&gt;</span>
+        <span class="git-code-text">          &lt;/svg&gt;</span>
       </li>
     
 
@@ -1019,7 +1019,7 @@
           aria-label="Copy permalink for line 84"
           title="Copy permalink for line 84"
         >84</button>
-        <span class="git-code-text">        &lt;nav class=&quot;main-nav&quot;&gt;</span>
+        <span class="git-code-text">        &lt;/button&gt;</span>
       </li>
     
 
@@ -1031,7 +1031,7 @@
           aria-label="Copy permalink for line 85"
           title="Copy permalink for line 85"
         >85</button>
-        <span class="git-code-text">          &lt;ul class=&quot;nav-links&quot;&gt;</span>
+        <span class="git-code-text">        &lt;nav class=&quot;main-nav&quot;&gt;</span>
       </li>
     
 
@@ -1043,7 +1043,7 @@
           aria-label="Copy permalink for line 86"
           title="Copy permalink for line 86"
         >86</button>
-        <span class="git-code-text">            &lt;% navLinks.forEach(function(link) { </span>
+        <span class="git-code-text">          &lt;ul class=&quot;nav-links&quot;&gt;</span>
       </li>
     
 
@@ -1055,7 +1055,7 @@
           aria-label="Copy permalink for line 87"
           title="Copy permalink for line 87"
         >87</button>
-        <span class="git-code-text">                 let href = link.href;</span>
+        <span class="git-code-text">            &lt;% navLinks.forEach(function(link) { </span>
       </li>
     
 
@@ -1067,7 +1067,7 @@
           aria-label="Copy permalink for line 88"
           title="Copy permalink for line 88"
         >88</button>
-        <span class="git-code-text">                 if (link.href.startsWith(&#039;#&#039;)) {</span>
+        <span class="git-code-text">                 let href = link.href;</span>
       </li>
     
 
@@ -1079,7 +1079,7 @@
           aria-label="Copy permalink for line 89"
           title="Copy permalink for line 89"
         >89</button>
-        <span class="git-code-text">                   href = isSection</span>
+        <span class="git-code-text">                 if (link.href.startsWith(&#039;#&#039;)) {</span>
       </li>
     
 
@@ -1091,7 +1091,7 @@
           aria-label="Copy permalink for line 90"
           title="Copy permalink for line 90"
         >90</button>
-        <span class="git-code-text">                     ? &#039;../sections/&#039; + link.href.substring(1) + &#039;.html&#039;</span>
+        <span class="git-code-text">                   href = isSection</span>
       </li>
     
 
@@ -1103,7 +1103,7 @@
           aria-label="Copy permalink for line 91"
           title="Copy permalink for line 91"
         >91</button>
-        <span class="git-code-text">                     : &#039;sections/&#039; + link.href.substring(1) + &#039;.html&#039;;</span>
+        <span class="git-code-text">                     ? &#039;../sections/&#039; + link.href.substring(1) + &#039;.html&#039;</span>
       </li>
     
 
@@ -1115,7 +1115,7 @@
           aria-label="Copy permalink for line 92"
           title="Copy permalink for line 92"
         >92</button>
-        <span class="git-code-text">                 } else if (link.href === &#039;/&#039; || link.href === &#039;index.html&#039;) {</span>
+        <span class="git-code-text">                     : &#039;sections/&#039; + link.href.substring(1) + &#039;.html&#039;;</span>
       </li>
     
 
@@ -1127,7 +1127,7 @@
           aria-label="Copy permalink for line 93"
           title="Copy permalink for line 93"
         >93</button>
-        <span class="git-code-text">                   href = isSection ? &#039;../index.html&#039; : &#039;index.html&#039;;</span>
+        <span class="git-code-text">                 } else if (link.href === &#039;/&#039; || link.href === &#039;index.html&#039;) {</span>
       </li>
     
 
@@ -1139,7 +1139,7 @@
           aria-label="Copy permalink for line 94"
           title="Copy permalink for line 94"
         >94</button>
-        <span class="git-code-text">                 } else if (!link.href.match(/^https?:\/\//)) {</span>
+        <span class="git-code-text">                   href = isSection ? &#039;../index.html&#039; : &#039;index.html&#039;;</span>
       </li>
     
 
@@ -1151,7 +1151,7 @@
           aria-label="Copy permalink for line 95"
           title="Copy permalink for line 95"
         >95</button>
-        <span class="git-code-text">                   href = isSection ? &#039;../&#039; + link.href : link.href;</span>
+        <span class="git-code-text">                 } else if (!link.href.match(/^https?:\/\//)) {</span>
       </li>
     
 
@@ -1163,7 +1163,7 @@
           aria-label="Copy permalink for line 96"
           title="Copy permalink for line 96"
         >96</button>
-        <span class="git-code-text">                 }</span>
+        <span class="git-code-text">                   href = isSection ? &#039;../&#039; + link.href : link.href;</span>
       </li>
     
 
@@ -1175,7 +1175,7 @@
           aria-label="Copy permalink for line 97"
           title="Copy permalink for line 97"
         >97</button>
-        <span class="git-code-text">            %&gt;</span>
+        <span class="git-code-text">                 }</span>
       </li>
     
 
@@ -1187,7 +1187,7 @@
           aria-label="Copy permalink for line 98"
           title="Copy permalink for line 98"
         >98</button>
-        <span class="git-code-text">              &lt;li&gt;&lt;a href=&quot;&lt;%= href %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;</span>
+        <span class="git-code-text">            %&gt;</span>
       </li>
     
 
@@ -1199,7 +1199,7 @@
           aria-label="Copy permalink for line 99"
           title="Copy permalink for line 99"
         >99</button>
-        <span class="git-code-text">            &lt;% }); %&gt;</span>
+        <span class="git-code-text">              &lt;li&gt;&lt;a href=&quot;&lt;%= href %&gt;&quot;&gt;&lt;%= link.label %&gt;&lt;/a&gt;&lt;/li&gt;</span>
       </li>
     
 
@@ -1211,7 +1211,7 @@
           aria-label="Copy permalink for line 100"
           title="Copy permalink for line 100"
         >100</button>
-        <span class="git-code-text">            &lt;li&gt;&lt;button type=&quot;button&quot; class=&quot;theme-toggle&quot; aria-label=&quot;Toggle 1337 Mode&quot; title=&quot;1337 Mode&quot;&gt;1337&lt;/button&gt;&lt;/li&gt;</span>
+        <span class="git-code-text">            &lt;% }); %&gt;</span>
       </li>
     
 
@@ -1223,7 +1223,7 @@
           aria-label="Copy permalink for line 101"
           title="Copy permalink for line 101"
         >101</button>
-        <span class="git-code-text">          &lt;/ul&gt;</span>
+        <span class="git-code-text">            &lt;li&gt;&lt;button type=&quot;button&quot; class=&quot;theme-toggle&quot; aria-label=&quot;Toggle 1337 Mode&quot; title=&quot;1337 Mode&quot;&gt;1337&lt;/button&gt;&lt;/li&gt;</span>
       </li>
     
 
@@ -1235,7 +1235,7 @@
           aria-label="Copy permalink for line 102"
           title="Copy permalink for line 102"
         >102</button>
-        <span class="git-code-text">        &lt;/nav&gt;</span>
+        <span class="git-code-text">          &lt;/ul&gt;</span>
       </li>
     
 
@@ -1247,7 +1247,7 @@
           aria-label="Copy permalink for line 103"
           title="Copy permalink for line 103"
         >103</button>
-        <span class="git-code-text">      &lt;% } %&gt;</span>
+        <span class="git-code-text">        &lt;/nav&gt;</span>
       </li>
     
 
@@ -1259,7 +1259,7 @@
           aria-label="Copy permalink for line 104"
           title="Copy permalink for line 104"
         >104</button>
-        <span class="git-code-text">    &lt;/div&gt;</span>
+        <span class="git-code-text">      &lt;% } %&gt;</span>
       </li>
     
 
@@ -1271,7 +1271,7 @@
           aria-label="Copy permalink for line 105"
           title="Copy permalink for line 105"
         >105</button>
-        <span class="git-code-text">  &lt;/header&gt;</span>
+        <span class="git-code-text">    &lt;/div&gt;</span>
       </li>
     
 
@@ -1283,7 +1283,7 @@
           aria-label="Copy permalink for line 106"
           title="Copy permalink for line 106"
         >106</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">  &lt;/header&gt;</span>
       </li>
     
 
@@ -1295,7 +1295,7 @@
           aria-label="Copy permalink for line 107"
           title="Copy permalink for line 107"
         >107</button>
-        <span class="git-code-text">  &lt;!-- MAIN CONTENT --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1307,7 +1307,7 @@
           aria-label="Copy permalink for line 108"
           title="Copy permalink for line 108"
         >108</button>
-        <span class="git-code-text">  &lt;main class=&quot;container&quot;&gt;</span>
+        <span class="git-code-text">  &lt;!-- MAIN CONTENT --&gt;</span>
       </li>
     
 
@@ -1319,7 +1319,7 @@
           aria-label="Copy permalink for line 109"
           title="Copy permalink for line 109"
         >109</button>
-        <span class="git-code-text">    &lt;% if (!page.hideTitle) { %&gt;</span>
+        <span class="git-code-text">  &lt;main class=&quot;container&quot;&gt;</span>
       </li>
     
 
@@ -1331,7 +1331,7 @@
           aria-label="Copy permalink for line 110"
           title="Copy permalink for line 110"
         >110</button>
-        <span class="git-code-text">      &lt;h2 class=&quot;page-title&quot;&gt;&lt;%= page.title %&gt;&lt;/h2&gt;</span>
+        <span class="git-code-text">    &lt;% if (!page.hideTitle) { %&gt;</span>
       </li>
     
 
@@ -1343,7 +1343,7 @@
           aria-label="Copy permalink for line 111"
           title="Copy permalink for line 111"
         >111</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;h2 class=&quot;page-title&quot;&gt;&lt;%= page.title %&gt;&lt;/h2&gt;</span>
       </li>
     
 
@@ -1355,7 +1355,7 @@
           aria-label="Copy permalink for line 112"
           title="Copy permalink for line 112"
         >112</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1367,7 +1367,7 @@
           aria-label="Copy permalink for line 113"
           title="Copy permalink for line 113"
         >113</button>
-        <span class="git-code-text">    &lt;% if (page.image) { %&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1379,7 +1379,7 @@
           aria-label="Copy permalink for line 114"
           title="Copy permalink for line 114"
         >114</button>
-        <span class="git-code-text">      &lt;div class=&quot;page-image&lt;%= page.fullWidthImage ? &#039; full-viewport&#039; : &#039;&#039; %&gt;&quot;&gt;</span>
+        <span class="git-code-text">    &lt;% if (page.image) { %&gt;</span>
       </li>
     
 
@@ -1391,7 +1391,7 @@
           aria-label="Copy permalink for line 115"
           title="Copy permalink for line 115"
         >115</button>
-        <span class="git-code-text">        &lt;img src=&quot;&lt;%= isSection ? &#039;../&#039; + page.image : page.image %&gt;&quot; alt=&quot;&lt;%= page.title %&gt; image&quot;&gt;</span>
+        <span class="git-code-text">      &lt;div class=&quot;page-image&lt;%= page.fullWidthImage ? &#039; full-viewport&#039; : &#039;&#039; %&gt;&quot;&gt;</span>
       </li>
     
 
@@ -1403,7 +1403,7 @@
           aria-label="Copy permalink for line 116"
           title="Copy permalink for line 116"
         >116</button>
-        <span class="git-code-text">      &lt;/div&gt;</span>
+        <span class="git-code-text">        &lt;img src=&quot;&lt;%= isSection ? &#039;../&#039; + page.image : page.image %&gt;&quot; alt=&quot;&lt;%= page.title %&gt; image&quot;&gt;</span>
       </li>
     
 
@@ -1415,7 +1415,7 @@
           aria-label="Copy permalink for line 117"
           title="Copy permalink for line 117"
         >117</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;/div&gt;</span>
       </li>
     
 
@@ -1427,7 +1427,7 @@
           aria-label="Copy permalink for line 118"
           title="Copy permalink for line 118"
         >118</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1439,7 +1439,7 @@
           aria-label="Copy permalink for line 119"
           title="Copy permalink for line 119"
         >119</button>
-        <span class="git-code-text">    &lt;!-- Include 3D Logo if specified --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1451,7 +1451,7 @@
           aria-label="Copy permalink for line 120"
           title="Copy permalink for line 120"
         >120</button>
-        <span class="git-code-text">    &lt;% if ((page.use3DLogo || site.use3DLogo) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;</span>
+        <span class="git-code-text">    &lt;!-- Include 3D Logo if specified --&gt;</span>
       </li>
     
 
@@ -1463,7 +1463,7 @@
           aria-label="Copy permalink for line 121"
           title="Copy permalink for line 121"
         >121</button>
-        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;</span>
+        <span class="git-code-text">    &lt;% if ((page.use3DLogo || site.use3DLogo) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;</span>
       </li>
     
 
@@ -1475,7 +1475,7 @@
           aria-label="Copy permalink for line 122"
           title="Copy permalink for line 122"
         >122</button>
-        <span class="git-code-text">    &lt;% } else if ((page.cmImage || site.cmImage) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;</span>
+        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;</span>
       </li>
     
 
@@ -1487,7 +1487,7 @@
           aria-label="Copy permalink for line 123"
           title="Copy permalink for line 123"
         >123</button>
-        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;</span>
+        <span class="git-code-text">    &lt;% } else if ((page.cmImage || site.cmImage) &amp;&amp; !(page.useCmConsole || site.useCmConsole)) { %&gt;</span>
       </li>
     
 
@@ -1499,7 +1499,7 @@
           aria-label="Copy permalink for line 124"
           title="Copy permalink for line 124"
         >124</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-image.ejs&#039;) %&gt;</span>
       </li>
     
 
@@ -1511,7 +1511,7 @@
           aria-label="Copy permalink for line 125"
           title="Copy permalink for line 125"
         >125</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1523,7 +1523,7 @@
           aria-label="Copy permalink for line 126"
           title="Copy permalink for line 126"
         >126</button>
-        <span class="git-code-text">    &lt;!-- Include CM console if specified --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1535,7 +1535,7 @@
           aria-label="Copy permalink for line 127"
           title="Copy permalink for line 127"
         >127</button>
-        <span class="git-code-text">    &lt;% if (page.useCmConsole || site.useCmConsole) { %&gt;</span>
+        <span class="git-code-text">    &lt;!-- Include CM console if specified --&gt;</span>
       </li>
     
 
@@ -1547,7 +1547,7 @@
           aria-label="Copy permalink for line 128"
           title="Copy permalink for line 128"
         >128</button>
-        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-console.ejs&#039;) %&gt;</span>
+        <span class="git-code-text">    &lt;% if (page.useCmConsole || site.useCmConsole) { %&gt;</span>
       </li>
     
 
@@ -1559,7 +1559,7 @@
           aria-label="Copy permalink for line 129"
           title="Copy permalink for line 129"
         >129</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-console.ejs&#039;) %&gt;</span>
       </li>
     
 
@@ -1571,7 +1571,7 @@
           aria-label="Copy permalink for line 130"
           title="Copy permalink for line 130"
         >130</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1583,7 +1583,7 @@
           aria-label="Copy permalink for line 131"
           title="Copy permalink for line 131"
         >131</button>
-        <span class="git-code-text">    &lt;div class=&quot;page-content</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1595,7 +1595,7 @@
           aria-label="Copy permalink for line 132"
           title="Copy permalink for line 132"
         >132</button>
-        <span class="git-code-text">      &lt;%= page.contentFont === &#039;terminal&#039; ? &#039;content-font-terminal&#039; : </span>
+        <span class="git-code-text">    &lt;div class=&quot;page-content</span>
       </li>
     
 
@@ -1607,7 +1607,7 @@
           aria-label="Copy permalink for line 133"
           title="Copy permalink for line 133"
         >133</button>
-        <span class="git-code-text">         page.contentFont === &#039;modern-mono&#039; ? &#039;content-font-modern-mono&#039; : </span>
+        <span class="git-code-text">      &lt;%= page.contentFont === &#039;terminal&#039; ? &#039;content-font-terminal&#039; : </span>
       </li>
     
 
@@ -1619,7 +1619,7 @@
           aria-label="Copy permalink for line 134"
           title="Copy permalink for line 134"
         >134</button>
-        <span class="git-code-text">         page.contentFont === &#039;system-mono&#039; ? &#039;content-font-system-mono&#039; : &#039;&#039; %&gt;</span>
+        <span class="git-code-text">         page.contentFont === &#039;modern-mono&#039; ? &#039;content-font-modern-mono&#039; : </span>
       </li>
     
 
@@ -1631,7 +1631,7 @@
           aria-label="Copy permalink for line 135"
           title="Copy permalink for line 135"
         >135</button>
-        <span class="git-code-text">      &lt;%= page.terminalStyle ? &#039;terminal-style&#039; : &#039;&#039; %&gt;&quot;&gt;</span>
+        <span class="git-code-text">         page.contentFont === &#039;system-mono&#039; ? &#039;content-font-system-mono&#039; : &#039;&#039; %&gt;</span>
       </li>
     
 
@@ -1643,7 +1643,7 @@
           aria-label="Copy permalink for line 136"
           title="Copy permalink for line 136"
         >136</button>
-        <span class="git-code-text">      &lt;%- content %&gt;</span>
+        <span class="git-code-text">      &lt;%= page.terminalStyle ? &#039;terminal-style&#039; : &#039;&#039; %&gt;&quot;&gt;</span>
       </li>
     
 
@@ -1655,7 +1655,7 @@
           aria-label="Copy permalink for line 137"
           title="Copy permalink for line 137"
         >137</button>
-        <span class="git-code-text">    &lt;/div&gt;</span>
+        <span class="git-code-text">      &lt;%- content %&gt;</span>
       </li>
     
 
@@ -1667,7 +1667,7 @@
           aria-label="Copy permalink for line 138"
           title="Copy permalink for line 138"
         >138</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;/div&gt;</span>
       </li>
     
 
@@ -1679,7 +1679,7 @@
           aria-label="Copy permalink for line 139"
           title="Copy permalink for line 139"
         >139</button>
-        <span class="git-code-text">    &lt;!-- Column Layout Support --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1691,7 +1691,7 @@
           aria-label="Copy permalink for line 140"
           title="Copy permalink for line 140"
         >140</button>
-        <span class="git-code-text">    &lt;% if (page.columnLayout &amp;&amp; page.columnLayout.enabled) { %&gt;</span>
+        <span class="git-code-text">    &lt;!-- Column Layout Support --&gt;</span>
       </li>
     
 
@@ -1703,7 +1703,7 @@
           aria-label="Copy permalink for line 141"
           title="Copy permalink for line 141"
         >141</button>
-        <span class="git-code-text">      &lt;div class=&quot;two-column-layout &lt;%= page.columnLayout.ratio.replace(&#039;/&#039;, &#039;-&#039;) %&gt;&quot;&gt;</span>
+        <span class="git-code-text">    &lt;% if (page.columnLayout &amp;&amp; page.columnLayout.enabled) { %&gt;</span>
       </li>
     
 
@@ -1715,7 +1715,7 @@
           aria-label="Copy permalink for line 142"
           title="Copy permalink for line 142"
         >142</button>
-        <span class="git-code-text">        &lt;div class=&quot;left-column&quot;&gt;</span>
+        <span class="git-code-text">      &lt;div class=&quot;two-column-layout &lt;%= page.columnLayout.ratio.replace(&#039;/&#039;, &#039;-&#039;) %&gt;&quot;&gt;</span>
       </li>
     
 
@@ -1727,7 +1727,7 @@
           aria-label="Copy permalink for line 143"
           title="Copy permalink for line 143"
         >143</button>
-        <span class="git-code-text">          &lt;%- page.columnLayout.processedLeftContent || page.columnLayout.leftContent || &#039;&#039; %&gt;</span>
+        <span class="git-code-text">        &lt;div class=&quot;left-column&quot;&gt;</span>
       </li>
     
 
@@ -1739,7 +1739,7 @@
           aria-label="Copy permalink for line 144"
           title="Copy permalink for line 144"
         >144</button>
-        <span class="git-code-text">        &lt;/div&gt;</span>
+        <span class="git-code-text">          &lt;%- page.columnLayout.processedLeftContent || page.columnLayout.leftContent || &#039;&#039; %&gt;</span>
       </li>
     
 
@@ -1751,7 +1751,7 @@
           aria-label="Copy permalink for line 145"
           title="Copy permalink for line 145"
         >145</button>
-        <span class="git-code-text">        &lt;div class=&quot;right-column&quot;&gt;</span>
+        <span class="git-code-text">        &lt;/div&gt;</span>
       </li>
     
 
@@ -1763,7 +1763,7 @@
           aria-label="Copy permalink for line 146"
           title="Copy permalink for line 146"
         >146</button>
-        <span class="git-code-text">          &lt;%- page.columnLayout.processedRightContent || page.columnLayout.rightContent || &#039;&#039; %&gt;</span>
+        <span class="git-code-text">        &lt;div class=&quot;right-column&quot;&gt;</span>
       </li>
     
 
@@ -1775,7 +1775,7 @@
           aria-label="Copy permalink for line 147"
           title="Copy permalink for line 147"
         >147</button>
-        <span class="git-code-text">        &lt;/div&gt;</span>
+        <span class="git-code-text">          &lt;%- page.columnLayout.processedRightContent || page.columnLayout.rightContent || &#039;&#039; %&gt;</span>
       </li>
     
 
@@ -1787,7 +1787,7 @@
           aria-label="Copy permalink for line 148"
           title="Copy permalink for line 148"
         >148</button>
-        <span class="git-code-text">      &lt;/div&gt;</span>
+        <span class="git-code-text">        &lt;/div&gt;</span>
       </li>
     
 
@@ -1799,7 +1799,7 @@
           aria-label="Copy permalink for line 149"
           title="Copy permalink for line 149"
         >149</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;/div&gt;</span>
       </li>
     
 
@@ -1811,7 +1811,7 @@
           aria-label="Copy permalink for line 150"
           title="Copy permalink for line 150"
         >150</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1823,7 +1823,7 @@
           aria-label="Copy permalink for line 151"
           title="Copy permalink for line 151"
         >151</button>
-        <span class="git-code-text">    &lt;% if (page.cta) { %&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1835,7 +1835,7 @@
           aria-label="Copy permalink for line 152"
           title="Copy permalink for line 152"
         >152</button>
-        <span class="git-code-text">      &lt;div class=&quot;cta-wrapper&quot;&gt;</span>
+        <span class="git-code-text">    &lt;% if (page.cta) { %&gt;</span>
       </li>
     
 
@@ -1847,7 +1847,7 @@
           aria-label="Copy permalink for line 153"
           title="Copy permalink for line 153"
         >153</button>
-        <span class="git-code-text">        &lt;a class=&quot;cta-btn&quot; href=&quot;&lt;%= page.cta.href %&gt;&quot;&gt;</span>
+        <span class="git-code-text">      &lt;div class=&quot;cta-wrapper&quot;&gt;</span>
       </li>
     
 
@@ -1859,7 +1859,7 @@
           aria-label="Copy permalink for line 154"
           title="Copy permalink for line 154"
         >154</button>
-        <span class="git-code-text">          &lt;%= page.cta.label %&gt;</span>
+        <span class="git-code-text">        &lt;a class=&quot;cta-btn&quot; href=&quot;&lt;%= page.cta.href %&gt;&quot;&gt;</span>
       </li>
     
 
@@ -1871,7 +1871,7 @@
           aria-label="Copy permalink for line 155"
           title="Copy permalink for line 155"
         >155</button>
-        <span class="git-code-text">        &lt;/a&gt;</span>
+        <span class="git-code-text">          &lt;%= page.cta.label %&gt;</span>
       </li>
     
 
@@ -1883,7 +1883,7 @@
           aria-label="Copy permalink for line 156"
           title="Copy permalink for line 156"
         >156</button>
-        <span class="git-code-text">      &lt;/div&gt;</span>
+        <span class="git-code-text">        &lt;/a&gt;</span>
       </li>
     
 
@@ -1895,7 +1895,7 @@
           aria-label="Copy permalink for line 157"
           title="Copy permalink for line 157"
         >157</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;/div&gt;</span>
       </li>
     
 
@@ -1907,7 +1907,7 @@
           aria-label="Copy permalink for line 158"
           title="Copy permalink for line 158"
         >158</button>
-        <span class="git-code-text">  &lt;/main&gt;</span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -1919,7 +1919,7 @@
           aria-label="Copy permalink for line 159"
           title="Copy permalink for line 159"
         >159</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">  &lt;/main&gt;</span>
       </li>
     
 
@@ -1931,7 +1931,7 @@
           aria-label="Copy permalink for line 160"
           title="Copy permalink for line 160"
         >160</button>
-        <span class="git-code-text">  &lt;!-- FOOTER --&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1943,7 +1943,7 @@
           aria-label="Copy permalink for line 161"
           title="Copy permalink for line 161"
         >161</button>
-        <span class="git-code-text">  &lt;footer&gt;</span>
+        <span class="git-code-text">  &lt;!-- FOOTER --&gt;</span>
       </li>
     
 
@@ -1955,7 +1955,7 @@
           aria-label="Copy permalink for line 162"
           title="Copy permalink for line 162"
         >162</button>
-        <span class="git-code-text">    &lt;!-- Include CM footer if specified --&gt;</span>
+        <span class="git-code-text">  &lt;footer&gt;</span>
       </li>
     
 
@@ -1967,7 +1967,7 @@
           aria-label="Copy permalink for line 163"
           title="Copy permalink for line 163"
         >163</button>
-        <span class="git-code-text">    &lt;% if (page.useCmFooter || site.useCmFooter) { %&gt;</span>
+        <span class="git-code-text">    &lt;!-- Include CM footer if specified --&gt;</span>
       </li>
     
 
@@ -1979,7 +1979,7 @@
           aria-label="Copy permalink for line 164"
           title="Copy permalink for line 164"
         >164</button>
-        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-footer.ejs&#039;) %&gt;</span>
+        <span class="git-code-text">    &lt;% if (page.useCmFooter || site.useCmFooter) { %&gt;</span>
       </li>
     
 
@@ -1991,7 +1991,7 @@
           aria-label="Copy permalink for line 165"
           title="Copy permalink for line 165"
         >165</button>
-        <span class="git-code-text">    &lt;% } %&gt;</span>
+        <span class="git-code-text">      &lt;%- include(&#039;partials/cm-footer.ejs&#039;) %&gt;</span>
       </li>
     
 
@@ -2003,7 +2003,7 @@
           aria-label="Copy permalink for line 166"
           title="Copy permalink for line 166"
         >166</button>
-        <span class="git-code-text">    </span>
+        <span class="git-code-text">    &lt;% } %&gt;</span>
       </li>
     
 
@@ -2015,7 +2015,7 @@
           aria-label="Copy permalink for line 167"
           title="Copy permalink for line 167"
         >167</button>
-        <span class="git-code-text">    &lt;div class=&quot;container footer-container&quot;&gt;</span>
+        <span class="git-code-text">    </span>
       </li>
     
 
@@ -2027,7 +2027,7 @@
           aria-label="Copy permalink for line 168"
           title="Copy permalink for line 168"
         >168</button>
-        <span class="git-code-text">      &lt;% if (site.footer &amp;&amp; site.footer.links &amp;&amp; site.footer.links.length &gt; 0) { %&gt;</span>
+        <span class="git-code-text">    &lt;div class=&quot;container footer-container&quot;&gt;</span>
       </li>
     
 
@@ -2039,7 +2039,7 @@
           aria-label="Copy permalink for line 169"
           title="Copy permalink for line 169"
         >169</button>
-        <span class="git-code-text">        &lt;nav&gt;</span>
+        <span class="git-code-text">      &lt;% if (site.footer &amp;&amp; site.footer.links &amp;&amp; site.footer.links.length &gt; 0) { %&gt;</span>
       </li>
     
 
@@ -2051,7 +2051,7 @@
           aria-label="Copy permalink for line 170"
           title="Copy permalink for line 170"
         >170</button>
-        <span class="git-code-text">          &lt;ul class=&quot;footer-links&quot;&gt;</span>
+        <span class="git-code-text">        &lt;nav&gt;</span>
       </li>
     
 
@@ -2063,7 +2063,7 @@
           aria-label="Copy permalink for line 171"
           title="Copy permalink for line 171"
         >171</button>
-        <span class="git-code-text">            &lt;% site.footer.links.forEach(function(link) { %&gt;</span>
+        <span class="git-code-text">          &lt;ul class=&quot;footer-links&quot;&gt;</span>
       </li>
     
 
@@ -2075,7 +2075,7 @@
           aria-label="Copy permalink for line 172"
           title="Copy permalink for line 172"
         >172</button>
-        <span class="git-code-text">              &lt;li&gt;</span>
+        <span class="git-code-text">            &lt;% site.footer.links.forEach(function(link) { </span>
       </li>
     
 
@@ -2087,7 +2087,7 @@
           aria-label="Copy permalink for line 173"
           title="Copy permalink for line 173"
         >173</button>
-        <span class="git-code-text">                &lt;a href=&quot;&lt;%= link.href %&gt;&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;</span>
+        <span class="git-code-text">                 if (!link || !link.href || !link.label) {</span>
       </li>
     
 
@@ -2099,7 +2099,7 @@
           aria-label="Copy permalink for line 174"
           title="Copy permalink for line 174"
         >174</button>
-        <span class="git-code-text">                  &lt;%= link.label %&gt;</span>
+        <span class="git-code-text">                   return;</span>
       </li>
     
 
@@ -2111,7 +2111,7 @@
           aria-label="Copy permalink for line 175"
           title="Copy permalink for line 175"
         >175</button>
-        <span class="git-code-text">                &lt;/a&gt;</span>
+        <span class="git-code-text">                 }</span>
       </li>
     
 
@@ -2123,7 +2123,7 @@
           aria-label="Copy permalink for line 176"
           title="Copy permalink for line 176"
         >176</button>
-        <span class="git-code-text">              &lt;/li&gt;</span>
+        <span class="git-code-text">                 let href = link.href;</span>
       </li>
     
 
@@ -2135,7 +2135,7 @@
           aria-label="Copy permalink for line 177"
           title="Copy permalink for line 177"
         >177</button>
-        <span class="git-code-text">            &lt;% }); %&gt;</span>
+        <span class="git-code-text">                 const isExternal = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href);</span>
       </li>
     
 
@@ -2147,7 +2147,7 @@
           aria-label="Copy permalink for line 178"
           title="Copy permalink for line 178"
         >178</button>
-        <span class="git-code-text">          &lt;/ul&gt;</span>
+        <span class="git-code-text">                 if (!isExternal) {</span>
       </li>
     
 
@@ -2159,7 +2159,7 @@
           aria-label="Copy permalink for line 179"
           title="Copy permalink for line 179"
         >179</button>
-        <span class="git-code-text">        &lt;/nav&gt;</span>
+        <span class="git-code-text">                   if (href === &#039;/&#039; || href === &#039;index.html&#039;) {</span>
       </li>
     
 
@@ -2171,7 +2171,7 @@
           aria-label="Copy permalink for line 180"
           title="Copy permalink for line 180"
         >180</button>
-        <span class="git-code-text">      &lt;% } %&gt;</span>
+        <span class="git-code-text">                     href = isSection ? &#039;../index.html&#039; : &#039;index.html&#039;;</span>
       </li>
     
 
@@ -2183,7 +2183,7 @@
           aria-label="Copy permalink for line 181"
           title="Copy permalink for line 181"
         >181</button>
-        <span class="git-code-text">      &lt;p class=&quot;footer-copy&quot;&gt;</span>
+        <span class="git-code-text">                   } else if (href.startsWith(&#039;#&#039;)) {</span>
       </li>
     
 
@@ -2195,7 +2195,7 @@
           aria-label="Copy permalink for line 182"
           title="Copy permalink for line 182"
         >182</button>
-        <span class="git-code-text">        &amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title || &#039;Static Site&#039; %&gt;</span>
+        <span class="git-code-text">                     href = isSection</span>
       </li>
     
 
@@ -2207,7 +2207,7 @@
           aria-label="Copy permalink for line 183"
           title="Copy permalink for line 183"
         >183</button>
-        <span class="git-code-text">      &lt;/p&gt;</span>
+        <span class="git-code-text">                       ? &#039;../sections/&#039; + href.substring(1) + &#039;.html&#039;</span>
       </li>
     
 
@@ -2219,7 +2219,7 @@
           aria-label="Copy permalink for line 184"
           title="Copy permalink for line 184"
         >184</button>
-        <span class="git-code-text">    &lt;/div&gt;</span>
+        <span class="git-code-text">                       : &#039;sections/&#039; + href.substring(1) + &#039;.html&#039;;</span>
       </li>
     
 
@@ -2231,7 +2231,7 @@
           aria-label="Copy permalink for line 185"
           title="Copy permalink for line 185"
         >185</button>
-        <span class="git-code-text">  &lt;/footer&gt;</span>
+        <span class="git-code-text">                   } else if (!href.startsWith(&#039;/&#039;) &amp;&amp; isSection) {</span>
       </li>
     
 
@@ -2243,7 +2243,7 @@
           aria-label="Copy permalink for line 186"
           title="Copy permalink for line 186"
         >186</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">                     href = &#039;../&#039; + href;</span>
       </li>
     
 
@@ -2255,7 +2255,7 @@
           aria-label="Copy permalink for line 187"
           title="Copy permalink for line 187"
         >187</button>
-        <span class="git-code-text">  &lt;% </span>
+        <span class="git-code-text">                   }</span>
       </li>
     
 
@@ -2267,7 +2267,7 @@
           aria-label="Copy permalink for line 188"
           title="Copy permalink for line 188"
         >188</button>
-        <span class="git-code-text">    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;</span>
+        <span class="git-code-text">                 }</span>
       </li>
     
 
@@ -2279,7 +2279,7 @@
           aria-label="Copy permalink for line 189"
           title="Copy permalink for line 189"
         >189</button>
-        <span class="git-code-text">    const hasLatestArticleMap = latestArticleMap &amp;&amp; Object.keys(latestArticleMap).length &gt; 0;</span>
+        <span class="git-code-text">                 const targetAttr = isExternal ? &#039; target=&quot;_blank&quot; rel=&quot;noopener&quot;&#039; : &#039;&#039;;</span>
       </li>
     
 
@@ -2291,7 +2291,7 @@
           aria-label="Copy permalink for line 190"
           title="Copy permalink for line 190"
         >190</button>
-        <span class="git-code-text">  %&gt;</span>
+        <span class="git-code-text">            %&gt;</span>
       </li>
     
 
@@ -2303,7 +2303,7 @@
           aria-label="Copy permalink for line 191"
           title="Copy permalink for line 191"
         >191</button>
-        <span class="git-code-text">  &lt;% if (hasLatestArticleMap) { %&gt;</span>
+        <span class="git-code-text">              &lt;li&gt;</span>
       </li>
     
 
@@ -2315,7 +2315,7 @@
           aria-label="Copy permalink for line 192"
           title="Copy permalink for line 192"
         >192</button>
-        <span class="git-code-text">  &lt;script&gt;</span>
+        <span class="git-code-text">                &lt;a href=&quot;&lt;%= href %&gt;&quot;&lt;%- targetAttr %&gt;&gt;</span>
       </li>
     
 
@@ -2327,7 +2327,7 @@
           aria-label="Copy permalink for line 193"
           title="Copy permalink for line 193"
         >193</button>
-        <span class="git-code-text">    (function(seed) {</span>
+        <span class="git-code-text">                  &lt;%= link.label %&gt;</span>
       </li>
     
 
@@ -2339,7 +2339,7 @@
           aria-label="Copy permalink for line 194"
           title="Copy permalink for line 194"
         >194</button>
-        <span class="git-code-text">      var existing = window.cmLatestArticles || {};</span>
+        <span class="git-code-text">                &lt;/a&gt;</span>
       </li>
     
 
@@ -2351,7 +2351,7 @@
           aria-label="Copy permalink for line 195"
           title="Copy permalink for line 195"
         >195</button>
-        <span class="git-code-text">      if (seed &amp;&amp; typeof seed === &#039;object&#039;) {</span>
+        <span class="git-code-text">              &lt;/li&gt;</span>
       </li>
     
 
@@ -2363,7 +2363,7 @@
           aria-label="Copy permalink for line 196"
           title="Copy permalink for line 196"
         >196</button>
-        <span class="git-code-text">        for (var key in seed) {</span>
+        <span class="git-code-text">            &lt;% }); %&gt;</span>
       </li>
     
 
@@ -2375,7 +2375,7 @@
           aria-label="Copy permalink for line 197"
           title="Copy permalink for line 197"
         >197</button>
-        <span class="git-code-text">          if (Object.prototype.hasOwnProperty.call(seed, key)) {</span>
+        <span class="git-code-text">          &lt;/ul&gt;</span>
       </li>
     
 
@@ -2387,7 +2387,7 @@
           aria-label="Copy permalink for line 198"
           title="Copy permalink for line 198"
         >198</button>
-        <span class="git-code-text">            existing[key] = seed[key];</span>
+        <span class="git-code-text">        &lt;/nav&gt;</span>
       </li>
     
 
@@ -2399,7 +2399,7 @@
           aria-label="Copy permalink for line 199"
           title="Copy permalink for line 199"
         >199</button>
-        <span class="git-code-text">          }</span>
+        <span class="git-code-text">      &lt;% } %&gt;</span>
       </li>
     
 
@@ -2411,7 +2411,7 @@
           aria-label="Copy permalink for line 200"
           title="Copy permalink for line 200"
         >200</button>
-        <span class="git-code-text">        }</span>
+        <span class="git-code-text">      &lt;p class=&quot;footer-copy&quot;&gt;</span>
       </li>
     
 
@@ -2423,7 +2423,7 @@
           aria-label="Copy permalink for line 201"
           title="Copy permalink for line 201"
         >201</button>
-        <span class="git-code-text">      }</span>
+        <span class="git-code-text">        &amp;copy; &lt;%= new Date().getFullYear() %&gt; &lt;%= site.title || &#039;Static Site&#039; %&gt;</span>
       </li>
     
 
@@ -2435,7 +2435,7 @@
           aria-label="Copy permalink for line 202"
           title="Copy permalink for line 202"
         >202</button>
-        <span class="git-code-text">      window.cmLatestArticles = existing;</span>
+        <span class="git-code-text">      &lt;/p&gt;</span>
       </li>
     
 
@@ -2447,7 +2447,7 @@
           aria-label="Copy permalink for line 203"
           title="Copy permalink for line 203"
         >203</button>
-        <span class="git-code-text">    })(&lt;%- JSON.stringify(latestArticleMap) %&gt;);</span>
+        <span class="git-code-text">    &lt;/div&gt;</span>
       </li>
     
 
@@ -2459,7 +2459,7 @@
           aria-label="Copy permalink for line 204"
           title="Copy permalink for line 204"
         >204</button>
-        <span class="git-code-text">  &lt;/script&gt;</span>
+        <span class="git-code-text">  &lt;/footer&gt;</span>
       </li>
     
 
@@ -2471,7 +2471,7 @@
           aria-label="Copy permalink for line 205"
           title="Copy permalink for line 205"
         >205</button>
-        <span class="git-code-text">  &lt;% } %&gt;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2483,7 +2483,7 @@
           aria-label="Copy permalink for line 206"
           title="Copy permalink for line 206"
         >206</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">  &lt;% </span>
       </li>
     
 
@@ -2495,7 +2495,7 @@
           aria-label="Copy permalink for line 207"
           title="Copy permalink for line 207"
         >207</button>
-        <span class="git-code-text">  &lt;% </span>
+        <span class="git-code-text">    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;</span>
       </li>
     
 
@@ -2507,7 +2507,7 @@
           aria-label="Copy permalink for line 208"
           title="Copy permalink for line 208"
         >208</button>
-        <span class="git-code-text">    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;</span>
+        <span class="git-code-text">    const hasLatestArticleMap = latestArticleMap &amp;&amp; Object.keys(latestArticleMap).length &gt; 0;</span>
       </li>
     
 
@@ -2519,7 +2519,7 @@
           aria-label="Copy permalink for line 209"
           title="Copy permalink for line 209"
         >209</button>
-        <span class="git-code-text">    const hasDispatchData = dispatchData &amp;&amp; dispatchData.length &gt; 0;</span>
+        <span class="git-code-text">  %&gt;</span>
       </li>
     
 
@@ -2531,7 +2531,7 @@
           aria-label="Copy permalink for line 210"
           title="Copy permalink for line 210"
         >210</button>
-        <span class="git-code-text">  %&gt;</span>
+        <span class="git-code-text">  &lt;% if (hasLatestArticleMap) { %&gt;</span>
       </li>
     
 
@@ -2543,7 +2543,7 @@
           aria-label="Copy permalink for line 211"
           title="Copy permalink for line 211"
         >211</button>
-        <span class="git-code-text">  &lt;% if (hasDispatchData) { %&gt;</span>
+        <span class="git-code-text">  &lt;script&gt;</span>
       </li>
     
 
@@ -2555,7 +2555,7 @@
           aria-label="Copy permalink for line 212"
           title="Copy permalink for line 212"
         >212</button>
-        <span class="git-code-text">  &lt;script&gt;</span>
+        <span class="git-code-text">    (function(seed) {</span>
       </li>
     
 
@@ -2567,7 +2567,7 @@
           aria-label="Copy permalink for line 213"
           title="Copy permalink for line 213"
         >213</button>
-        <span class="git-code-text">    (function(seed) {</span>
+        <span class="git-code-text">      var existing = window.cmLatestArticles || {};</span>
       </li>
     
 
@@ -2579,7 +2579,7 @@
           aria-label="Copy permalink for line 214"
           title="Copy permalink for line 214"
         >214</button>
-        <span class="git-code-text">      var existing = Array.isArray(window.cmConsoleDispatches) ? window.cmConsoleDispatches.slice() : [];</span>
+        <span class="git-code-text">      if (seed &amp;&amp; typeof seed === &#039;object&#039;) {</span>
       </li>
     
 
@@ -2591,7 +2591,7 @@
           aria-label="Copy permalink for line 215"
           title="Copy permalink for line 215"
         >215</button>
-        <span class="git-code-text">      var seen = new Set();</span>
+        <span class="git-code-text">        for (var key in seed) {</span>
       </li>
     
 
@@ -2603,7 +2603,7 @@
           aria-label="Copy permalink for line 216"
           title="Copy permalink for line 216"
         >216</button>
-        <span class="git-code-text">      existing.forEach(function(entry) {</span>
+        <span class="git-code-text">          if (Object.prototype.hasOwnProperty.call(seed, key)) {</span>
       </li>
     
 
@@ -2615,7 +2615,7 @@
           aria-label="Copy permalink for line 217"
           title="Copy permalink for line 217"
         >217</button>
-        <span class="git-code-text">        if (entry &amp;&amp; entry.slug) {</span>
+        <span class="git-code-text">            existing[key] = seed[key];</span>
       </li>
     
 
@@ -2627,7 +2627,7 @@
           aria-label="Copy permalink for line 218"
           title="Copy permalink for line 218"
         >218</button>
-        <span class="git-code-text">          seen.add(entry.slug);</span>
+        <span class="git-code-text">          }</span>
       </li>
     
 
@@ -2651,7 +2651,7 @@
           aria-label="Copy permalink for line 220"
           title="Copy permalink for line 220"
         >220</button>
-        <span class="git-code-text">      });</span>
+        <span class="git-code-text">      }</span>
       </li>
     
 
@@ -2663,7 +2663,7 @@
           aria-label="Copy permalink for line 221"
           title="Copy permalink for line 221"
         >221</button>
-        <span class="git-code-text">      if (Array.isArray(seed)) {</span>
+        <span class="git-code-text">      window.cmLatestArticles = existing;</span>
       </li>
     
 
@@ -2675,7 +2675,7 @@
           aria-label="Copy permalink for line 222"
           title="Copy permalink for line 222"
         >222</button>
-        <span class="git-code-text">        seed.forEach(function(entry) {</span>
+        <span class="git-code-text">    })(&lt;%- JSON.stringify(latestArticleMap) %&gt;);</span>
       </li>
     
 
@@ -2687,7 +2687,7 @@
           aria-label="Copy permalink for line 223"
           title="Copy permalink for line 223"
         >223</button>
-        <span class="git-code-text">          if (!entry || (entry.slug &amp;&amp; seen.has(entry.slug))) {</span>
+        <span class="git-code-text">  &lt;/script&gt;</span>
       </li>
     
 
@@ -2699,7 +2699,7 @@
           aria-label="Copy permalink for line 224"
           title="Copy permalink for line 224"
         >224</button>
-        <span class="git-code-text">            return;</span>
+        <span class="git-code-text">  &lt;% } %&gt;</span>
       </li>
     
 
@@ -2711,7 +2711,7 @@
           aria-label="Copy permalink for line 225"
           title="Copy permalink for line 225"
         >225</button>
-        <span class="git-code-text">          }</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2723,7 +2723,7 @@
           aria-label="Copy permalink for line 226"
           title="Copy permalink for line 226"
         >226</button>
-        <span class="git-code-text">          existing.push(entry);</span>
+        <span class="git-code-text">  &lt;% </span>
       </li>
     
 
@@ -2735,7 +2735,7 @@
           aria-label="Copy permalink for line 227"
           title="Copy permalink for line 227"
         >227</button>
-        <span class="git-code-text">          if (entry.slug) {</span>
+        <span class="git-code-text">    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;</span>
       </li>
     
 
@@ -2747,7 +2747,7 @@
           aria-label="Copy permalink for line 228"
           title="Copy permalink for line 228"
         >228</button>
-        <span class="git-code-text">            seen.add(entry.slug);</span>
+        <span class="git-code-text">    const hasDispatchData = dispatchData &amp;&amp; dispatchData.length &gt; 0;</span>
       </li>
     
 
@@ -2759,7 +2759,7 @@
           aria-label="Copy permalink for line 229"
           title="Copy permalink for line 229"
         >229</button>
-        <span class="git-code-text">          }</span>
+        <span class="git-code-text">  %&gt;</span>
       </li>
     
 
@@ -2771,7 +2771,7 @@
           aria-label="Copy permalink for line 230"
           title="Copy permalink for line 230"
         >230</button>
-        <span class="git-code-text">        });</span>
+        <span class="git-code-text">  &lt;% if (hasDispatchData) { %&gt;</span>
       </li>
     
 
@@ -2783,7 +2783,7 @@
           aria-label="Copy permalink for line 231"
           title="Copy permalink for line 231"
         >231</button>
-        <span class="git-code-text">      }</span>
+        <span class="git-code-text">  &lt;script&gt;</span>
       </li>
     
 
@@ -2795,7 +2795,7 @@
           aria-label="Copy permalink for line 232"
           title="Copy permalink for line 232"
         >232</button>
-        <span class="git-code-text">      window.cmConsoleDispatches = existing;</span>
+        <span class="git-code-text">    (function(seed) {</span>
       </li>
     
 
@@ -2807,7 +2807,7 @@
           aria-label="Copy permalink for line 233"
           title="Copy permalink for line 233"
         >233</button>
-        <span class="git-code-text">    })(&lt;%- JSON.stringify(dispatchData) %&gt;);</span>
+        <span class="git-code-text">      var existing = Array.isArray(window.cmConsoleDispatches) ? window.cmConsoleDispatches.slice() : [];</span>
       </li>
     
 
@@ -2819,7 +2819,7 @@
           aria-label="Copy permalink for line 234"
           title="Copy permalink for line 234"
         >234</button>
-        <span class="git-code-text">  &lt;/script&gt;</span>
+        <span class="git-code-text">      var seen = new Set();</span>
       </li>
     
 
@@ -2831,7 +2831,7 @@
           aria-label="Copy permalink for line 235"
           title="Copy permalink for line 235"
         >235</button>
-        <span class="git-code-text">  &lt;% } %&gt;</span>
+        <span class="git-code-text">      existing.forEach(function(entry) {</span>
       </li>
     
 
@@ -2843,7 +2843,7 @@
           aria-label="Copy permalink for line 236"
           title="Copy permalink for line 236"
         >236</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        if (entry &amp;&amp; entry.slug) {</span>
       </li>
     
 
@@ -2855,7 +2855,7 @@
           aria-label="Copy permalink for line 237"
           title="Copy permalink for line 237"
         >237</button>
-        <span class="git-code-text">  &lt;% </span>
+        <span class="git-code-text">          seen.add(entry.slug);</span>
       </li>
     
 
@@ -2867,7 +2867,7 @@
           aria-label="Copy permalink for line 238"
           title="Copy permalink for line 238"
         >238</button>
-        <span class="git-code-text">    const doomBaseDepthValue = (typeof page.baseDepth === &#039;number&#039; &amp;&amp; page.baseDepth &gt; 0) ? &#039;../&#039;.repeat(page.baseDepth) : &#039;&#039;;</span>
+        <span class="git-code-text">        }</span>
       </li>
     
 
@@ -2879,7 +2879,7 @@
           aria-label="Copy permalink for line 239"
           title="Copy permalink for line 239"
         >239</button>
-        <span class="git-code-text">    const rootBaseValue = (typeof page.rootBase === &#039;string&#039; &amp;&amp; page.rootBase.length &gt; 0)</span>
+        <span class="git-code-text">      });</span>
       </li>
     
 
@@ -2891,7 +2891,7 @@
           aria-label="Copy permalink for line 240"
           title="Copy permalink for line 240"
         >240</button>
-        <span class="git-code-text">      ? page.rootBase.replace(/\/+$/, &#039;&#039;)</span>
+        <span class="git-code-text">      if (Array.isArray(seed)) {</span>
       </li>
     
 
@@ -2903,7 +2903,7 @@
           aria-label="Copy permalink for line 241"
           title="Copy permalink for line 241"
         >241</button>
-        <span class="git-code-text">      : ((site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039;) ? site.baseUrl.replace(/\/+$/, &#039;&#039;) : &#039;&#039;);</span>
+        <span class="git-code-text">        seed.forEach(function(entry) {</span>
       </li>
     
 
@@ -2915,7 +2915,7 @@
           aria-label="Copy permalink for line 242"
           title="Copy permalink for line 242"
         >242</button>
-        <span class="git-code-text">    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;</span>
+        <span class="git-code-text">          if (!entry || (entry.slug &amp;&amp; seen.has(entry.slug))) {</span>
       </li>
     
 
@@ -2927,7 +2927,7 @@
           aria-label="Copy permalink for line 243"
           title="Copy permalink for line 243"
         >243</button>
-        <span class="git-code-text">  %&gt;</span>
+        <span class="git-code-text">            return;</span>
       </li>
     
 
@@ -2939,7 +2939,7 @@
           aria-label="Copy permalink for line 244"
           title="Copy permalink for line 244"
         >244</button>
-        <span class="git-code-text">  &lt;script&gt;</span>
+        <span class="git-code-text">          }</span>
       </li>
     
 
@@ -2951,7 +2951,7 @@
           aria-label="Copy permalink for line 245"
           title="Copy permalink for line 245"
         >245</button>
-        <span class="git-code-text">    (function() {</span>
+        <span class="git-code-text">          existing.push(entry);</span>
       </li>
     
 
@@ -2963,7 +2963,7 @@
           aria-label="Copy permalink for line 246"
           title="Copy permalink for line 246"
         >246</button>
-        <span class="git-code-text">      var config = window.cmDoomConfig = window.cmDoomConfig || {};</span>
+        <span class="git-code-text">          if (entry.slug) {</span>
       </li>
     
 
@@ -2975,7 +2975,7 @@
           aria-label="Copy permalink for line 247"
           title="Copy permalink for line 247"
         >247</button>
-        <span class="git-code-text">      if (!config.assetBase) {</span>
+        <span class="git-code-text">            seen.add(entry.slug);</span>
       </li>
     
 
@@ -2987,7 +2987,7 @@
           aria-label="Copy permalink for line 248"
           title="Copy permalink for line 248"
         >248</button>
-        <span class="git-code-text">        config.assetBase = &#039;&lt;%= doomAssetBase %&gt;&#039;;</span>
+        <span class="git-code-text">          }</span>
       </li>
     
 
@@ -2999,7 +2999,7 @@
           aria-label="Copy permalink for line 249"
           title="Copy permalink for line 249"
         >249</button>
-        <span class="git-code-text">      }</span>
+        <span class="git-code-text">        });</span>
       </li>
     
 
@@ -3011,7 +3011,7 @@
           aria-label="Copy permalink for line 250"
           title="Copy permalink for line 250"
         >250</button>
-        <span class="git-code-text">    })();</span>
+        <span class="git-code-text">      }</span>
       </li>
     
 
@@ -3023,7 +3023,7 @@
           aria-label="Copy permalink for line 251"
           title="Copy permalink for line 251"
         >251</button>
-        <span class="git-code-text">  &lt;/script&gt;</span>
+        <span class="git-code-text">      window.cmConsoleDispatches = existing;</span>
       </li>
     
 
@@ -3035,7 +3035,7 @@
           aria-label="Copy permalink for line 252"
           title="Copy permalink for line 252"
         >252</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    })(&lt;%- JSON.stringify(dispatchData) %&gt;);</span>
       </li>
     
 
@@ -3047,7 +3047,7 @@
           aria-label="Copy permalink for line 253"
           title="Copy permalink for line 253"
         >253</button>
-        <span class="git-code-text">  &lt;!-- NAV TOGGLE SCRIPT --&gt;</span>
+        <span class="git-code-text">  &lt;/script&gt;</span>
       </li>
     
 
@@ -3059,7 +3059,7 @@
           aria-label="Copy permalink for line 254"
           title="Copy permalink for line 254"
         >254</button>
-        <span class="git-code-text">  &lt;script&gt;</span>
+        <span class="git-code-text">  &lt;% } %&gt;</span>
       </li>
     
 
@@ -3071,7 +3071,7 @@
           aria-label="Copy permalink for line 255"
           title="Copy permalink for line 255"
         >255</button>
-        <span class="git-code-text">    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -3083,7 +3083,7 @@
           aria-label="Copy permalink for line 256"
           title="Copy permalink for line 256"
         >256</button>
-        <span class="git-code-text">      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);</span>
+        <span class="git-code-text">  &lt;% </span>
       </li>
     
 
@@ -3095,7 +3095,7 @@
           aria-label="Copy permalink for line 257"
           title="Copy permalink for line 257"
         >257</button>
-        <span class="git-code-text">      var headerEl = document.querySelector(&#039;header&#039;);</span>
+        <span class="git-code-text">    const doomBaseDepthValue = (typeof page.baseDepth === &#039;number&#039; &amp;&amp; page.baseDepth &gt; 0) ? &#039;../&#039;.repeat(page.baseDepth) : &#039;&#039;;</span>
       </li>
     
 
@@ -3107,7 +3107,7 @@
           aria-label="Copy permalink for line 258"
           title="Copy permalink for line 258"
         >258</button>
-        <span class="git-code-text">      if (toggleBtn) {</span>
+        <span class="git-code-text">    const rootBaseValue = (typeof page.rootBase === &#039;string&#039; &amp;&amp; page.rootBase.length &gt; 0)</span>
       </li>
     
 
@@ -3119,7 +3119,7 @@
           aria-label="Copy permalink for line 259"
           title="Copy permalink for line 259"
         >259</button>
-        <span class="git-code-text">        toggleBtn.addEventListener(&#039;click&#039;, function() {</span>
+        <span class="git-code-text">      ? page.rootBase.replace(/\/+$/, &#039;&#039;)</span>
       </li>
     
 
@@ -3131,7 +3131,7 @@
           aria-label="Copy permalink for line 260"
           title="Copy permalink for line 260"
         >260</button>
-        <span class="git-code-text">          headerEl.classList.toggle(&#039;nav-open&#039;);</span>
+        <span class="git-code-text">      : ((site.baseUrl &amp;&amp; site.baseUrl !== &#039;/&#039;) ? site.baseUrl.replace(/\/+$/, &#039;&#039;) : &#039;&#039;);</span>
       </li>
     
 
@@ -3143,7 +3143,7 @@
           aria-label="Copy permalink for line 261"
           title="Copy permalink for line 261"
         >261</button>
-        <span class="git-code-text">        });</span>
+        <span class="git-code-text">    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;</span>
       </li>
     
 
@@ -3155,7 +3155,7 @@
           aria-label="Copy permalink for line 262"
           title="Copy permalink for line 262"
         >262</button>
-        <span class="git-code-text">      }</span>
+        <span class="git-code-text">  %&gt;</span>
       </li>
     
 
@@ -3167,7 +3167,7 @@
           aria-label="Copy permalink for line 263"
           title="Copy permalink for line 263"
         >263</button>
-        <span class="git-code-text">    });</span>
+        <span class="git-code-text">  &lt;script&gt;</span>
       </li>
     
 
@@ -3179,7 +3179,7 @@
           aria-label="Copy permalink for line 264"
           title="Copy permalink for line 264"
         >264</button>
-        <span class="git-code-text">  &lt;/script&gt;</span>
+        <span class="git-code-text">    (function() {</span>
       </li>
     
 
@@ -3191,7 +3191,7 @@
           aria-label="Copy permalink for line 265"
           title="Copy permalink for line 265"
         >265</button>
-        <span class="git-code-text">&lt;/body&gt;</span>
+        <span class="git-code-text">      var config = window.cmDoomConfig = window.cmDoomConfig || {};</span>
       </li>
     
 
@@ -3203,6 +3203,234 @@
           aria-label="Copy permalink for line 266"
           title="Copy permalink for line 266"
         >266</button>
+        <span class="git-code-text">      if (!config.assetBase) {</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L267" data-git-line="267">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="267"
+          aria-label="Copy permalink for line 267"
+          title="Copy permalink for line 267"
+        >267</button>
+        <span class="git-code-text">        config.assetBase = &#039;&lt;%= doomAssetBase %&gt;&#039;;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L268" data-git-line="268">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="268"
+          aria-label="Copy permalink for line 268"
+          title="Copy permalink for line 268"
+        >268</button>
+        <span class="git-code-text">      }</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L269" data-git-line="269">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="269"
+          aria-label="Copy permalink for line 269"
+          title="Copy permalink for line 269"
+        >269</button>
+        <span class="git-code-text">    })();</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L270" data-git-line="270">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="270"
+          aria-label="Copy permalink for line 270"
+          title="Copy permalink for line 270"
+        >270</button>
+        <span class="git-code-text">  &lt;/script&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L271" data-git-line="271">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="271"
+          aria-label="Copy permalink for line 271"
+          title="Copy permalink for line 271"
+        >271</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L272" data-git-line="272">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="272"
+          aria-label="Copy permalink for line 272"
+          title="Copy permalink for line 272"
+        >272</button>
+        <span class="git-code-text">  &lt;!-- NAV TOGGLE SCRIPT --&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L273" data-git-line="273">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="273"
+          aria-label="Copy permalink for line 273"
+          title="Copy permalink for line 273"
+        >273</button>
+        <span class="git-code-text">  &lt;script&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L274" data-git-line="274">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="274"
+          aria-label="Copy permalink for line 274"
+          title="Copy permalink for line 274"
+        >274</button>
+        <span class="git-code-text">    document.addEventListener(&#039;DOMContentLoaded&#039;, function() {</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L275" data-git-line="275">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="275"
+          aria-label="Copy permalink for line 275"
+          title="Copy permalink for line 275"
+        >275</button>
+        <span class="git-code-text">      var toggleBtn = document.querySelector(&#039;.nav-toggle&#039;);</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L276" data-git-line="276">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="276"
+          aria-label="Copy permalink for line 276"
+          title="Copy permalink for line 276"
+        >276</button>
+        <span class="git-code-text">      var headerEl = document.querySelector(&#039;header&#039;);</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L277" data-git-line="277">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="277"
+          aria-label="Copy permalink for line 277"
+          title="Copy permalink for line 277"
+        >277</button>
+        <span class="git-code-text">      if (toggleBtn) {</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L278" data-git-line="278">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="278"
+          aria-label="Copy permalink for line 278"
+          title="Copy permalink for line 278"
+        >278</button>
+        <span class="git-code-text">        toggleBtn.addEventListener(&#039;click&#039;, function() {</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L279" data-git-line="279">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="279"
+          aria-label="Copy permalink for line 279"
+          title="Copy permalink for line 279"
+        >279</button>
+        <span class="git-code-text">          headerEl.classList.toggle(&#039;nav-open&#039;);</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L280" data-git-line="280">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="280"
+          aria-label="Copy permalink for line 280"
+          title="Copy permalink for line 280"
+        >280</button>
+        <span class="git-code-text">        });</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L281" data-git-line="281">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="281"
+          aria-label="Copy permalink for line 281"
+          title="Copy permalink for line 281"
+        >281</button>
+        <span class="git-code-text">      }</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L282" data-git-line="282">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="282"
+          aria-label="Copy permalink for line 282"
+          title="Copy permalink for line 282"
+        >282</button>
+        <span class="git-code-text">    });</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L283" data-git-line="283">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="283"
+          aria-label="Copy permalink for line 283"
+          title="Copy permalink for line 283"
+        >283</button>
+        <span class="git-code-text">  &lt;/script&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L284" data-git-line="284">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="284"
+          aria-label="Copy permalink for line 284"
+          title="Copy permalink for line 284"
+        >284</button>
+        <span class="git-code-text">&lt;/body&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L285" data-git-line="285">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="285"
+          aria-label="Copy permalink for line 285"
+          title="Copy permalink for line 285"
+        >285</button>
         <span class="git-code-text">&lt;/html&gt;</span>
       </li>
     

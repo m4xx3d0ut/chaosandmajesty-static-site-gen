@@ -55,4 +55,4 @@ backup_*
 # Misc
 *.tgz
 *.tar.gz
-
+!scripts/stagit/*.tar.gz

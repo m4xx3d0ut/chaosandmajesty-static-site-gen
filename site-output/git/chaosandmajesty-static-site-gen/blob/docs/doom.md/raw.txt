@@ -30,3 +30,54 @@ runtime expects the wasm binary (`doom.wasm`) under
   redistributable shareware WAD when sharing builds.
 - The wasm port inherits the GPL/other licensing from the upstream project.
   Consult the upstream repo for details.
+
+## Source provenance & GPL compliance
+
+- Upstream engine sources come from [`diekmann/wasm-fizzbuzz`](https://github.com/diekmann/wasm-fizzbuzz)
+  (the `doom/` directory) at commit `51a7030bea563d96027301a36619c17347b9270d`.
+- Chaos & Majesty specific changes (audio worklet bridge, save-system hooks,
+  toolchain upgrades, and music playback) are recorded in
+  `static-sitegen/assets/doom/patches/0001-chaos-and-majesty-doom-wasm.patch`.
+- The repository ships the GPL text as `COPYING`. Keep that file with every
+  distribution that includes `doom.wasm`.
+
+Whenever you change the engine or supporting runtime, update the patch file and
+add a short bullet to this section noting the change and date.
+
+## Regenerating `doom.wasm` from source
+
+The build depends on Rust (with the `wasm32-unknown-unknown` target installed),
+clang/llvm 12, Binaryen’s `wasm-opt`, and the DOOM shareware WAD (not included).
+
+1. Clone the upstream repo and check out the recorded commit:
+   ```bash
+   git clone https://github.com/diekmann/wasm-fizzbuzz.git
+   cd wasm-fizzbuzz/doom
+   git checkout 51a7030bea563d96027301a36619c17347b9270d
+   ```
+2. Apply the Chaos & Majesty patch bundle:
+   ```bash
+   git apply /path/to/static-sitegen/assets/doom/patches/0001-chaos-and-majesty-doom-wasm.patch
+   ```
+3. Provide `doom1.wad` (shareware data) next to the Makefile. The patch keeps
+   the WAD unmodified; fetch it from the official shareware drop.
+4. Build:
+   ```bash
+   rustup target add wasm32-unknown-unknown
+   make doom.wasm
+   ```
+   Or run the helper script which encapsulates the steps above (including
+   Binaryen download):
+   ```bash
+   DOOM_WAD_PATH=/absolute/path/to/doom1.wad ./scripts/rebuild-doom.sh
+   ```
+5. Copy the resulting `doom.wasm` into `static-sitegen/assets/doom/` and keep
+   the patched source tree archived (e.g., `tar czf doom-source.tar.gz doom/`)
+   alongside any distributed binaries.
+
+## Release checklist
+
+- Include `COPYING` and the source archive (or a public URL that serves it) in
+  the same place you publish `doom.wasm`.
+- Update `static-sitegen/assets/doom/patches/` whenever you modify the engine.
+- Verify `docs/doom.md` references the correct commit hash and patch filename.

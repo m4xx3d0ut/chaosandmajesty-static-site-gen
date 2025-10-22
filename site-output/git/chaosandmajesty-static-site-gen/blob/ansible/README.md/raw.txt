@@ -7,6 +7,8 @@ This playbook deploys the production container image to the Linode VPS via SSH.
 - `group_vars/all.yml` – defaults (install path, image coordinates, mounts).
 - `deploy.yml` – entrypoint playbook that applies the `app_deploy` role.
 - `requirements.yml` – Ansible collections required (`community.docker`).
+- `roles/app_deploy` – renders Docker Compose configuration and deploys the site container.
+- `../config/git/manifest.txt` – repository manifest consumed by the static site generator.
 
 ## Usage
 1. Install dependencies:
@@ -39,3 +41,9 @@ The role will render a Docker Compose project in `{{ app_dir }}` (default
 `/opt/chaosandmajesty`), ensure the WebDAV directory exists on the host, pull the
 specified image, and recreate the container. A health check against
 `http://127.0.0.1:{{ healthcheck_port }}` guards against silent failures.
+
+## Git manifest
+
+The static site generator consumes `config/git/manifest.txt` to know which
+repositories to mirror locally during `./build-site.sh`. Update that manifest
+before builds so the Git page sidebar stays in sync with your catalog.

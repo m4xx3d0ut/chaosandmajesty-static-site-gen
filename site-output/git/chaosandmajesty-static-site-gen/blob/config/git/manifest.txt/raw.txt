@@ -1,0 +1,25 @@
+# Git manifest (url|branch|name|owner|description|homepage)
+# Consumed by scripts/sync-git-manifest.sh and the Git page renderer.
+# Lines beginning with '#' are ignored. Example:
+# git@lab-gitea:org/project.git|main|project|Chaos & Majesty|Project docs|https://chaosandmajesty.com/project
+
+# CM Site Prod
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git|prod|chaosandmajesty-static-site-gen|m4xx3d0ut|Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration|https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen
+
+# CM Blog Content Staging
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cm-blog-content-staging.git|dev|cm-blog-content-staging|m4xx3d0ut|Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content|https://cm.core.home.arpa/git/cm-blog-content-staging
+
+# Local Lab Platform Config
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-config.git|dev|platform-config|m4xx3d0ut|Flux GitOps platform configuration|https://cm.core.home.arpa/git/platform-config
+
+# Local Lab AI System Config
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/ai-system-config.git|dev|ai-system-config|m4xx3d0ut|Flux LlmOps system configuration|https://cm.core.home.arpa/git/ai-system-config
+
+# Local Lab Nvidia Compute Platform
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-nvidia-compute.git|dev|platform-nvidia-compute|m4xx3d0ut|Nvidia compute platform configuration|https://cm.core.home.arpa/git/platform-nvidia-compute
+
+# Actions CICD Skeleton
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cicd-dev.git|dev|cicd-dev|m4xx3d0ut|CICD Skeleton|https://cm.core.home.arpa/git/cicd-dev
+
+# RadioStatic
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/radiostatic-site-gen.git|dev|radiostatic-site-gen|m4xx3d0ut|RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal|https://cm.core.home.arpa/git/radiostatic-site-gen

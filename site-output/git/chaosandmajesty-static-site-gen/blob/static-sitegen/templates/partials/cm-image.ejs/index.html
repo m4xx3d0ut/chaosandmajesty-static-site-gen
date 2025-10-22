@@ -3,7 +3,7 @@
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">cm-image.ejs</h4>
-          <div class="git-file-meta">894 B · 15 lines · static-sitegen/templates/partials/cm-image.ejs</div>
+          <div class="git-file-meta">908 B · 15 lines · static-sitegen/templates/partials/cm-image.ejs</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/static-sitegen/templates/partials/cm-image.ejs/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -107,7 +107,7 @@
           aria-label="Copy permalink for line 8"
           title="Copy permalink for line 8"
         >8</button>
-        <span class="git-code-text">  window.cmLogoSvgPath = &#039;&lt;%= page.logoSvgPath || site.logoSvgPath || &quot;/static/img/bunny-punx.svg&quot; %&gt;&#039;;</span>
+        <span class="git-code-text">  window.cmLogoSvgPath = &lt;%- JSON.stringify(page.logoSvgPath || site.logoSvgPath || &#039;/static/img/bunny-punx.svg&#039;) %&gt;;</span>
       </li>
     
 

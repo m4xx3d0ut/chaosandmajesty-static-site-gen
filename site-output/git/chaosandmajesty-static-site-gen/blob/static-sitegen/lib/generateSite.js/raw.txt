@@ -3,6 +3,7 @@ import path from 'path';
 import { marked } from 'marked';
 import * as ejs from 'ejs';
 import yaml from 'js-yaml';
+import { ensureGitRepoArtifacts } from './gitArtifacts.js';
 
 // Default template for when no template is found
 const DEFAULT_TEMPLATE = `
@@ -67,6 +68,109 @@ const DEFAULT_TEMPLATE = `
 </body>\
 </html>
 `;
+
+const DEFAULT_LICENSE_FILE_NAME = 'LICENSE';
+const DEFAULT_LICENSE_MATCH_NAMES = ['license', 'license.txt', 'license.md', 'license.markdown'];
+
+function buildDefaultMitLicense(holder) {
+  const year = new Date().getFullYear();
+  const safeHolder = holder && holder.trim ? holder.trim() : '';
+  const copyrightHolder = safeHolder || 'Chaos & Majesty';
+  return `MIT License
+
+Copyright (c) ${year} ${copyrightHolder}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+`;
+}
+
+async function resolveLicenseOverrideConfig(rawValue, siteConfig, verbose = false) {
+  if (rawValue === false || rawValue === null) {
+    return null;
+  }
+
+  let resolvedConfig = {};
+  if (rawValue === undefined) {
+    resolvedConfig = {};
+  } else if (rawValue === true) {
+    resolvedConfig = { enabled: true };
+  } else if (typeof rawValue === 'string') {
+    resolvedConfig = { contentPath: rawValue };
+  } else if (typeof rawValue === 'object') {
+    resolvedConfig = { ...rawValue };
+  } else {
+    return null;
+  }
+
+  const enabled = resolvedConfig.enabled !== false;
+  if (!enabled) {
+    return null;
+  }
+
+  const fileName = typeof resolvedConfig.fileName === 'string' && resolvedConfig.fileName.trim().length > 0
+    ? resolvedConfig.fileName.trim()
+    : DEFAULT_LICENSE_FILE_NAME;
+
+  let content = '';
+  if (typeof resolvedConfig.content === 'string' && resolvedConfig.content.trim().length > 0) {
+    content = resolvedConfig.content;
+  } else if (typeof resolvedConfig.contentPath === 'string' && resolvedConfig.contentPath.trim().length > 0) {
+    const resolvedPath = path.resolve(process.cwd(), resolvedConfig.contentPath.trim());
+    try {
+      content = await fs.readFile(resolvedPath, 'utf8');
+    } catch (error) {
+      if (verbose) {
+        console.warn(`Unable to read license override at ${resolvedPath}: ${error.message}`);
+      }
+    }
+  }
+
+  if (!content) {
+    const holder = typeof resolvedConfig.holder === 'string' && resolvedConfig.holder.trim().length > 0
+      ? resolvedConfig.holder.trim()
+      : (siteConfig && typeof siteConfig.title === 'string' && siteConfig.title.trim().length > 0
+        ? siteConfig.title.trim()
+        : 'Chaos & Majesty');
+    content = buildDefaultMitLicense(holder);
+  }
+
+  const matchNamesInput = Array.isArray(resolvedConfig.matchNames) ? resolvedConfig.matchNames : [];
+  const matchNames = matchNamesInput
+    .map(name => (typeof name === 'string' ? name.trim().toLowerCase() : ''))
+    .filter(Boolean);
+  const fileNameLower = fileName.toLowerCase();
+  if (!matchNames.includes(fileNameLower)) {
+    matchNames.push(fileNameLower);
+  }
+  DEFAULT_LICENSE_MATCH_NAMES.forEach(defaultName => {
+    if (!matchNames.includes(defaultName)) {
+      matchNames.push(defaultName);
+    }
+  });
+
+  return {
+    enabled: true,
+    fileName,
+    matchNames,
+    content
+  };
+}
 
 /**
  * Copy directory recursively with proper error handling
@@ -155,6 +259,497 @@ async function copyStaticFiles(outputDir, verbose = false) {
   } catch (error) {
     console.error(`Error copying static files: ${error.message}`);
   }
+}
+
+const DEFAULT_GIT_DETAIL_SUFFIX = 'log.html';
+const DEFAULT_GIT_MANIFEST_PATH = path.join('config', 'git', 'manifest.txt');
+
+function deriveGitRepoPath(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  try {
+    const parsed = new URL(url, 'http://localhost');
+    const pathname = parsed.pathname || '';
+    return pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  } catch (error) {
+    return url.replace(/^https?:\/\/[^/]+/, '').replace(/^\/+/, '').replace(/\/+$/, '');
+  }
+}
+
+function buildGitRepoSearchText(record) {
+  if (!record) return '';
+  return [
+    record.label,
+    record.branch,
+    record.stage,
+    record.owner,
+    record.description,
+    record.repoPath,
+    record.detailUrl,
+    record.httpUrl
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+}
+
+function normalizeGitRepoRecord(seed, detailSuffix = DEFAULT_GIT_DETAIL_SUFFIX) {
+  if (!seed) {
+    return null;
+  }
+  const suffix = (typeof detailSuffix === 'string' && detailSuffix.trim().length > 0)
+    ? detailSuffix.trim()
+    : DEFAULT_GIT_DETAIL_SUFFIX;
+
+  const normalized = { ...seed };
+  const label =
+    normalized.label ||
+    normalized.name ||
+    normalized.id ||
+    normalized.repo ||
+    normalized.detailUrl ||
+    normalized.httpUrl ||
+    '';
+
+  let httpUrl = normalized.httpUrl || normalized.browseUrl || normalized.url || '';
+  let detailUrl = normalized.detailUrl || normalized.logUrl || normalized.url || '';
+
+  if (detailUrl && !/\.html?(?:[?#]|$)/i.test(detailUrl)) {
+    const trimmed = detailUrl.replace(/\/+$/, '');
+    detailUrl = `${trimmed}/${suffix.replace(/^\/+/, '')}`;
+  } else if (!detailUrl && httpUrl) {
+    const trimmed = httpUrl.replace(/\/+$/, '');
+    detailUrl = `${trimmed}/${suffix.replace(/^\/+/, '')}`;
+  }
+
+  if (!httpUrl && detailUrl) {
+    const detail = detailUrl.replace(/[?#].*$/, '');
+    const withoutSuffix = detail.replace(new RegExp(`${suffix.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i'), '');
+    httpUrl = withoutSuffix.replace(/\/+$/, '');
+  }
+
+  const repoPath = normalized.repoPath || normalized.relativePath || deriveGitRepoPath(httpUrl || detailUrl || '');
+  const branch = normalized.branch || normalized.defaultBranch || normalized.stage || normalized.env || '';
+  const stage = normalized.stage || normalized.env || branch || '';
+  const stageLabel = normalized.stageLabel || (stage ? stage.toUpperCase() : '');
+  const owner = normalized.owner || normalized.maintainer || '';
+  const description = normalized.description || normalized.summary || '';
+  const searchText = (normalized.searchText || buildGitRepoSearchText({
+    label,
+    branch,
+    stage,
+    owner,
+    description,
+    repoPath,
+    detailUrl,
+    httpUrl
+  })).toLowerCase();
+
+  const idSource = normalized.id || label || detailUrl || httpUrl;
+  const id = idSource
+    ? idSource.toString().trim().toLowerCase().replace(/\s+/g, '-')
+    : `repo-${Math.random().toString(36).slice(2, 8)}`;
+
+  return {
+    id,
+    label,
+    branch,
+    stage,
+    stageLabel,
+    owner,
+    description,
+    searchText,
+    repoPath,
+    detailUrl: detailUrl || '',
+    httpUrl: httpUrl || '',
+    sshUrl: normalized.sshUrl || normalized.gitUrl || '',
+    manifestSource: normalized.manifestSource || '',
+    tags: Array.isArray(normalized.tags) ? normalized.tags : (stage ? [stage.toLowerCase()] : [])
+  };
+}
+
+function dedupeGitRepos(repos) {
+  const seen = new Set();
+  const results = [];
+  for (const repo of repos) {
+    if (!repo || !repo.detailUrl) {
+      continue;
+    }
+    const key = repo.detailUrl.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    results.push(repo);
+  }
+  return results;
+}
+
+function slugifyRepoKey(value) {
+  if (!value) {
+    return '';
+  }
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+async function findFirstExistingDirectory(paths) {
+  if (!Array.isArray(paths) || paths.length === 0) {
+    return null;
+  }
+  for (const candidate of paths) {
+    if (!candidate) {
+      continue;
+    }
+    try {
+      const stats = await fs.stat(candidate);
+      if (stats.isDirectory()) {
+        return candidate;
+      }
+    } catch {
+      // Ignore missing paths
+    }
+  }
+  return null;
+}
+
+function parseGitManifestContent(content, detailSuffix, manifestSource, verbose = false) {
+  if (!content || typeof content !== 'string') {
+    return [];
+  }
+  const lines = content.split(/\r?\n/);
+  const repos = [];
+  for (const [index, rawLine] of lines.entries()) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+    const parts = line.split('|');
+    if (parts.length < 6) {
+      if (verbose) {
+        console.warn(`Skipping malformed manifest entry on line ${index + 1} in ${manifestSource || 'manifest'}`);
+      }
+      continue;
+    }
+    const [sshUrl, branchField, name, owner, description, httpUrl] = parts.map(part => part.trim());
+    const repoRecord = normalizeGitRepoRecord({
+      label: name,
+      stage: branchField,
+      branch: branchField,
+      owner,
+      description,
+      httpUrl,
+      sshUrl,
+      manifestSource: manifestSource || ''
+    }, detailSuffix);
+    if (repoRecord) {
+      repos.push(repoRecord);
+    }
+  }
+  return repos;
+}
+
+async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
+  if (!pageConfig || !pageConfig.git) {
+    return;
+  }
+
+  const gitConfig = { ...pageConfig.git };
+  const siteGitConfig = siteConfig && siteConfig.git ? siteConfig.git : {};
+  const detailSuffix = (typeof gitConfig.repoDetailSuffix === 'string' && gitConfig.repoDetailSuffix.trim().length > 0)
+    ? gitConfig.repoDetailSuffix.trim()
+    : (typeof siteGitConfig.repoDetailSuffix === 'string' && siteGitConfig.repoDetailSuffix.trim().length > 0)
+      ? siteGitConfig.repoDetailSuffix.trim()
+      : DEFAULT_GIT_DETAIL_SUFFIX;
+
+  const localOverridesRaw = {
+    ...(siteGitConfig.localRepoOverrides || {}),
+    ...(gitConfig.localRepoOverrides || {})
+  };
+
+  const localRepoOverrides = {};
+  for (const [rawKey, value] of Object.entries(localOverridesRaw)) {
+    if (!rawKey || value === undefined || value === null) {
+      continue;
+    }
+    const key = rawKey.toString().toLowerCase();
+    let pathOverride = null;
+    let branchOverride = null;
+    let depthOverride = null;
+
+    if (typeof value === 'string') {
+      pathOverride = path.resolve(process.cwd(), value);
+    } else if (typeof value === 'object') {
+      if (value.path) {
+        pathOverride = path.resolve(process.cwd(), value.path);
+      }
+      if (typeof value.branch === 'string' && value.branch.trim().length > 0) {
+        branchOverride = value.branch.trim();
+      } else if (typeof value.defaultBranch === 'string' && value.defaultBranch.trim().length > 0) {
+        branchOverride = value.defaultBranch.trim();
+      }
+      if (typeof value.depth === 'number' && Number.isFinite(value.depth) && value.depth > 0) {
+        depthOverride = Math.floor(value.depth);
+      }
+    }
+
+    localRepoOverrides[key] = {
+      path: pathOverride,
+      branch: branchOverride,
+      depth: depthOverride
+    };
+  }
+  gitConfig.localRepoOverrides = localRepoOverrides;
+
+  const manifestCandidates = [];
+  if (gitConfig.manifest) {
+    manifestCandidates.push(gitConfig.manifest);
+  }
+  if (siteGitConfig.manifest) {
+    manifestCandidates.push(siteGitConfig.manifest);
+  }
+  manifestCandidates.push(DEFAULT_GIT_MANIFEST_PATH);
+
+  let manifestContent = null;
+  let manifestResolvedPath = null;
+  for (const candidate of manifestCandidates) {
+    if (!candidate || typeof candidate !== 'string') {
+      continue;
+    }
+    const resolved = path.resolve(process.cwd(), candidate);
+    try {
+      manifestContent = await fs.readFile(resolved, 'utf8');
+      manifestResolvedPath = resolved;
+      break;
+    } catch (error) {
+      const isExplicit = candidate === gitConfig.manifest || candidate === siteGitConfig.manifest;
+      if (verbose && isExplicit) {
+        console.warn(`Unable to read git manifest at ${resolved}: ${error.message}`);
+      }
+    }
+  }
+
+  const manifestRepos = manifestContent
+    ? parseGitManifestContent(manifestContent, detailSuffix, manifestResolvedPath, verbose)
+    : [];
+
+  const manualSeeds = [];
+  if (Array.isArray(gitConfig.repos)) {
+    manualSeeds.push(...gitConfig.repos);
+  }
+  if (Array.isArray(gitConfig.fallbackRepos)) {
+    manualSeeds.push(...gitConfig.fallbackRepos);
+  }
+
+  const manualRepos = manualSeeds
+    .map(seed => normalizeGitRepoRecord(seed, detailSuffix))
+    .filter(Boolean);
+
+  let combinedRepos = dedupeGitRepos([...manifestRepos, ...manualRepos]);
+
+  const mirrorDirInputs = [
+    gitConfig.manifestMirrorDir,
+    siteGitConfig.manifestMirrorDir,
+    process.env.SITEGEN_GIT_MANIFEST_DIR,
+    process.env.SITEGEN_GIT_MIRRORS_DIR,
+    process.env.GIT_MANIFEST_MIRRORS_DIR,
+    process.env.GIT_MANIFEST_CACHE_DIR
+  ];
+  const mirrorDirs = [];
+  const seenMirrorDirs = new Set();
+  for (const input of mirrorDirInputs) {
+    if (!input || typeof input !== 'string') {
+      continue;
+    }
+    const resolvedDir = path.resolve(process.cwd(), input);
+    if (seenMirrorDirs.has(resolvedDir)) {
+      continue;
+    }
+    seenMirrorDirs.add(resolvedDir);
+    mirrorDirs.push(resolvedDir);
+  }
+  const defaultMirrorDir = path.resolve(process.cwd(), 'tmp', 'git-mirrors');
+  if (!seenMirrorDirs.has(defaultMirrorDir)) {
+    seenMirrorDirs.add(defaultMirrorDir);
+    mirrorDirs.push(defaultMirrorDir);
+  }
+  if (mirrorDirs.length > 0) {
+    gitConfig.manifestMirrorDir = mirrorDirs[0];
+  }
+
+  const licenseOverrideRaw = Object.prototype.hasOwnProperty.call(gitConfig, 'licenseOverride')
+    ? gitConfig.licenseOverride
+    : (Object.prototype.hasOwnProperty.call(siteGitConfig, 'licenseOverride')
+      ? siteGitConfig.licenseOverride
+      : undefined);
+  gitConfig.licenseOverride = await resolveLicenseOverrideConfig(licenseOverrideRaw, siteConfig, verbose);
+
+  const processedRepos = [];
+  for (const repo of combinedRepos) {
+    if (!repo) {
+      continue;
+    }
+    const nextRepo = { ...repo };
+    nextRepo.searchText = nextRepo.searchText || buildGitRepoSearchText(nextRepo);
+
+    const overrideCandidates = [
+      nextRepo.id,
+      nextRepo.label,
+      nextRepo.repoPath,
+      nextRepo.detailUrl,
+      nextRepo.httpUrl,
+      nextRepo.sshUrl
+    ];
+
+    let matchedOverride = null;
+    for (const candidate of overrideCandidates) {
+      if (!candidate) {
+        continue;
+      }
+      const key = candidate.toString().toLowerCase();
+      if (localRepoOverrides[key]) {
+        matchedOverride = localRepoOverrides[key];
+        break;
+      }
+    }
+
+    if (!matchedOverride && nextRepo.manifestSource) {
+      const manifestKey = `${nextRepo.manifestSource}:${nextRepo.label || nextRepo.id || ''}`.toLowerCase();
+      if (localRepoOverrides[manifestKey]) {
+        matchedOverride = localRepoOverrides[manifestKey];
+      }
+    }
+
+    if (matchedOverride) {
+      if (matchedOverride.path) {
+        nextRepo.localPath = matchedOverride.path;
+      }
+      if (!nextRepo.branch && matchedOverride.branch) {
+        nextRepo.branch = matchedOverride.branch;
+      }
+      if (matchedOverride.branch) {
+        nextRepo.overrideBranch = matchedOverride.branch;
+      }
+      if (matchedOverride.depth) {
+        nextRepo.overrideDepth = matchedOverride.depth;
+      }
+      nextRepo.localOverride = matchedOverride;
+    } else if (!nextRepo.localPath && mirrorDirs.length > 0) {
+      const slugSources = [
+        nextRepo.id,
+        nextRepo.label,
+        nextRepo.repoPath,
+        deriveGitRepoPath(nextRepo.detailUrl || nextRepo.httpUrl || ''),
+        nextRepo.detailUrl,
+        nextRepo.httpUrl,
+        nextRepo.sshUrl
+      ];
+      const slugCandidates = new Set();
+      const rawPathCandidates = new Set();
+      for (const source of slugSources) {
+        if (!source) {
+          continue;
+        }
+        const trimmed = source.toString().trim();
+        if (!trimmed) {
+          continue;
+        }
+        rawPathCandidates.add(trimmed);
+        const slug = slugifyRepoKey(trimmed);
+        if (slug) {
+          slugCandidates.add(slug);
+        }
+        if (trimmed.includes('/')) {
+          const tail = trimmed.split('/').pop();
+          if (tail) {
+            rawPathCandidates.add(tail);
+            const tailSlug = slugifyRepoKey(tail);
+            if (tailSlug) {
+              slugCandidates.add(tailSlug);
+            }
+          }
+        }
+      }
+
+      const candidatePaths = [];
+      for (const dir of mirrorDirs) {
+        for (const slug of slugCandidates) {
+          candidatePaths.push(path.join(dir, slug));
+        }
+        for (const rawPath of rawPathCandidates) {
+          const normalized = rawPath.replace(/^[./]+/, '');
+          if (normalized) {
+            candidatePaths.push(path.join(dir, normalized));
+          }
+        }
+      }
+
+      const resolvedMirrorPath = await findFirstExistingDirectory(candidatePaths);
+      if (resolvedMirrorPath) {
+        nextRepo.localPath = resolvedMirrorPath;
+        nextRepo.mirrorPath = resolvedMirrorPath;
+        nextRepo.manifestMirror = resolvedMirrorPath;
+      }
+    }
+
+    processedRepos.push(nextRepo);
+  }
+
+  combinedRepos = processedRepos;
+
+  combinedRepos.sort((a, b) => {
+    const stageA = (a.stageLabel || '').toLowerCase();
+    const stageB = (b.stageLabel || '').toLowerCase();
+    if (stageA && !stageB) return -1;
+    if (!stageA && stageB) return 1;
+    const stageCompare = stageA.localeCompare(stageB);
+    if (stageCompare !== 0) {
+      return stageCompare;
+    }
+    return (a.label || '').toLowerCase().localeCompare((b.label || '').toLowerCase());
+  });
+
+  const defaultLabelRaw = gitConfig.defaultRepoLabel || siteGitConfig.defaultRepoLabel || '';
+  const defaultUrlRaw = gitConfig.defaultRepoUrl || siteGitConfig.defaultRepoUrl || '';
+
+  if (!gitConfig.defaultRepoUrl && defaultLabelRaw) {
+    const matchByLabel = combinedRepos.find(repo => (repo.label || '').toLowerCase() === defaultLabelRaw.toLowerCase());
+    if (matchByLabel) {
+      gitConfig.defaultRepoUrl = matchByLabel.detailUrl;
+    }
+  }
+
+  if (!gitConfig.defaultRepoUrl && defaultUrlRaw) {
+    gitConfig.defaultRepoUrl = defaultUrlRaw;
+  }
+
+  if (!gitConfig.defaultRepoLabel && defaultLabelRaw) {
+    gitConfig.defaultRepoLabel = defaultLabelRaw;
+  }
+
+  if (!gitConfig.defaultRepoUrl && combinedRepos.length > 0) {
+    gitConfig.defaultRepoUrl = combinedRepos[0].detailUrl;
+    if (!gitConfig.defaultRepoLabel) {
+      gitConfig.defaultRepoLabel = combinedRepos[0].label;
+    }
+  } else if (!gitConfig.defaultRepoLabel && gitConfig.defaultRepoUrl) {
+    const matchByUrl = combinedRepos.find(repo => repo.detailUrl === gitConfig.defaultRepoUrl);
+    if (matchByUrl) {
+      gitConfig.defaultRepoLabel = matchByUrl.label;
+    }
+  }
+
+  gitConfig.repoDetailSuffix = detailSuffix;
+  gitConfig.generatedRepos = manifestRepos;
+  gitConfig.resolvedRepos = combinedRepos;
+  gitConfig.manifestResolvedPath = manifestResolvedPath;
+
+  pageConfig.git = gitConfig;
 }
 
 async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) {
@@ -585,6 +1180,12 @@ export async function generateSite(config, outputDir, verbose = false) {
         }
       });
     }
+
+    const templatesDirAbsolute = path.resolve(
+      process.cwd(),
+      updatedConfig.templates || 'templates'
+    );
+    const gitArtifactsContext = { generated: new Set() };
     
     let indexPageConfigData;
     if (updatedConfig.index) {
@@ -725,6 +1326,21 @@ export async function generateSite(config, outputDir, verbose = false) {
         const pageCopy = { ...page, sectionMap };
         if (typeof pageCopy.baseDepth !== 'number') {
           pageCopy.baseDepth = 0;
+        }
+
+        if (pageCopy.git) {
+          await hydrateGitPageConfig(pageCopy, updatedConfig, verbose);
+          if (pageCopy.git && Array.isArray(pageCopy.git.resolvedRepos) && pageCopy.git.resolvedRepos.length > 0) {
+            await ensureGitRepoArtifacts({
+              repos: pageCopy.git.resolvedRepos,
+              siteConfig: updatedConfig,
+              pageConfig: pageCopy,
+              outputDir,
+              templatesDir: templatesDirAbsolute,
+              verbose,
+              context: gitArtifactsContext
+            });
+          }
         }
         
         // Process markdown content if it exists

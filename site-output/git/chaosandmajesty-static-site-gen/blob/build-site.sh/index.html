@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/build-site.sh/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/build-site.sh/raw.txt" data-git-line-count="41">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/build-site.sh/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/build-site.sh/raw.txt" data-git-line-count="59">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">build-site.sh</h4>
-          <div class="git-file-meta">1.1 KB · 41 lines · build-site.sh</div>
+          <div class="git-file-meta">1.9 KB · 59 lines · build-site.sh</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/build-site.sh/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -227,7 +227,7 @@
           aria-label="Copy permalink for line 18"
           title="Copy permalink for line 18"
         >18</button>
-        <span class="git-code-text"># Check if config file exists</span>
+        <span class="git-code-text"># Prepare Git manifest mirrors so the Git page has local data to render.</span>
       </li>
     
 
@@ -239,7 +239,7 @@
           aria-label="Copy permalink for line 19"
           title="Copy permalink for line 19"
         >19</button>
-        <span class="git-code-text">if [ ! -f &quot;smoke-test.yaml&quot; ]; then</span>
+        <span class="git-code-text">MANIFEST_PATH=&quot;${GIT_MANIFEST_PATH:-config/git/manifest.txt}&quot;</span>
       </li>
     
 
@@ -251,7 +251,7 @@
           aria-label="Copy permalink for line 20"
           title="Copy permalink for line 20"
         >20</button>
-        <span class="git-code-text">    echo &quot;Error: smoke-test.yaml not found&quot;</span>
+        <span class="git-code-text">SITEGEN_GIT_MIRRORS_DIR=&quot;${SITEGEN_GIT_MIRRORS_DIR:-tmp/git-mirrors}&quot;</span>
       </li>
     
 
@@ -263,7 +263,7 @@
           aria-label="Copy permalink for line 21"
           title="Copy permalink for line 21"
         >21</button>
-        <span class="git-code-text">    exit 1</span>
+        <span class="git-code-text">export SITEGEN_GIT_MIRRORS_DIR</span>
       </li>
     
 
@@ -275,7 +275,7 @@
           aria-label="Copy permalink for line 22"
           title="Copy permalink for line 22"
         >22</button>
-        <span class="git-code-text">fi</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -287,7 +287,7 @@
           aria-label="Copy permalink for line 23"
           title="Copy permalink for line 23"
         >23</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">if [ &quot;${SKIP_GIT_MANIFEST_SYNC:-0}&quot; != &quot;1&quot; ]; then</span>
       </li>
     
 
@@ -299,7 +299,7 @@
           aria-label="Copy permalink for line 24"
           title="Copy permalink for line 24"
         >24</button>
-        <span class="git-code-text"># Run the site generator</span>
+        <span class="git-code-text">    if [ -f &quot;$MANIFEST_PATH&quot; ]; then</span>
       </li>
     
 
@@ -311,7 +311,7 @@
           aria-label="Copy permalink for line 25"
           title="Copy permalink for line 25"
         >25</button>
-        <span class="git-code-text">./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o site-output -v</span>
+        <span class="git-code-text">        echo &quot;Syncing Git manifest repositories...&quot;</span>
       </li>
     
 
@@ -323,7 +323,7 @@
           aria-label="Copy permalink for line 26"
           title="Copy permalink for line 26"
         >26</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        if ! ./scripts/sync-git-manifest.sh -m &quot;$MANIFEST_PATH&quot; -o &quot;$SITEGEN_GIT_MIRRORS_DIR&quot;; then</span>
       </li>
     
 
@@ -335,7 +335,7 @@
           aria-label="Copy permalink for line 27"
           title="Copy permalink for line 27"
         >27</button>
-        <span class="git-code-text"># Validate critical files exist</span>
+        <span class="git-code-text">            echo &quot;Warning: Unable to fully sync Git manifest repositories; continuing with available data.&quot; &gt;&amp;2</span>
       </li>
     
 
@@ -347,7 +347,7 @@
           aria-label="Copy permalink for line 28"
           title="Copy permalink for line 28"
         >28</button>
-        <span class="git-code-text">echo &quot;Validating build output...&quot;</span>
+        <span class="git-code-text">        fi</span>
       </li>
     
 
@@ -359,7 +359,7 @@
           aria-label="Copy permalink for line 29"
           title="Copy permalink for line 29"
         >29</button>
-        <span class="git-code-text">if [ ! -f &quot;site-output/index.html&quot; ]; then</span>
+        <span class="git-code-text">    else</span>
       </li>
     
 
@@ -371,7 +371,7 @@
           aria-label="Copy permalink for line 30"
           title="Copy permalink for line 30"
         >30</button>
-        <span class="git-code-text">    echo &quot;Error: index.html not generated&quot;</span>
+        <span class="git-code-text">        echo &quot;Warning: Git manifest not found at ${MANIFEST_PATH}; skipping repository sync.&quot; &gt;&amp;2</span>
       </li>
     
 
@@ -383,7 +383,7 @@
           aria-label="Copy permalink for line 31"
           title="Copy permalink for line 31"
         >31</button>
-        <span class="git-code-text">    exit 1</span>
+        <span class="git-code-text">    fi</span>
       </li>
     
 
@@ -395,7 +395,7 @@
           aria-label="Copy permalink for line 32"
           title="Copy permalink for line 32"
         >32</button>
-        <span class="git-code-text">fi</span>
+        <span class="git-code-text">else</span>
       </li>
     
 
@@ -407,7 +407,7 @@
           aria-label="Copy permalink for line 33"
           title="Copy permalink for line 33"
         >33</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    echo &quot;Skipping Git manifest sync (SKIP_GIT_MANIFEST_SYNC=${SKIP_GIT_MANIFEST_SYNC}).&quot;</span>
       </li>
     
 
@@ -419,7 +419,7 @@
           aria-label="Copy permalink for line 34"
           title="Copy permalink for line 34"
         >34</button>
-        <span class="git-code-text">if [ ! -d &quot;site-output/assets&quot; ]; then</span>
+        <span class="git-code-text">fi</span>
       </li>
     
 
@@ -431,7 +431,7 @@
           aria-label="Copy permalink for line 35"
           title="Copy permalink for line 35"
         >35</button>
-        <span class="git-code-text">    echo &quot;Error: assets directory not copied&quot;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -443,7 +443,7 @@
           aria-label="Copy permalink for line 36"
           title="Copy permalink for line 36"
         >36</button>
-        <span class="git-code-text">    exit 1</span>
+        <span class="git-code-text"># Check if config file exists</span>
       </li>
     
 
@@ -455,7 +455,7 @@
           aria-label="Copy permalink for line 37"
           title="Copy permalink for line 37"
         >37</button>
-        <span class="git-code-text">fi</span>
+        <span class="git-code-text">if [ ! -f &quot;smoke-test.yaml&quot; ]; then</span>
       </li>
     
 
@@ -467,7 +467,7 @@
           aria-label="Copy permalink for line 38"
           title="Copy permalink for line 38"
         >38</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    echo &quot;Error: smoke-test.yaml not found&quot;</span>
       </li>
     
 
@@ -479,7 +479,7 @@
           aria-label="Copy permalink for line 39"
           title="Copy permalink for line 39"
         >39</button>
-        <span class="git-code-text">echo &quot;Site build completed successfully!&quot;</span>
+        <span class="git-code-text">    exit 1</span>
       </li>
     
 
@@ -491,7 +491,7 @@
           aria-label="Copy permalink for line 40"
           title="Copy permalink for line 40"
         >40</button>
-        <span class="git-code-text">echo &quot;Generated files:&quot;</span>
+        <span class="git-code-text">fi</span>
       </li>
     
 
@@ -503,6 +503,222 @@
           aria-label="Copy permalink for line 41"
           title="Copy permalink for line 41"
         >41</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L42" data-git-line="42">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="42"
+          aria-label="Copy permalink for line 42"
+          title="Copy permalink for line 42"
+        >42</button>
+        <span class="git-code-text"># Run the site generator</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L43" data-git-line="43">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="43"
+          aria-label="Copy permalink for line 43"
+          title="Copy permalink for line 43"
+        >43</button>
+        <span class="git-code-text">./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o site-output -v</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L44" data-git-line="44">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="44"
+          aria-label="Copy permalink for line 44"
+          title="Copy permalink for line 44"
+        >44</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L45" data-git-line="45">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="45"
+          aria-label="Copy permalink for line 45"
+          title="Copy permalink for line 45"
+        >45</button>
+        <span class="git-code-text"># Validate critical files exist</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L46" data-git-line="46">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="46"
+          aria-label="Copy permalink for line 46"
+          title="Copy permalink for line 46"
+        >46</button>
+        <span class="git-code-text">echo &quot;Validating build output...&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L47" data-git-line="47">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="47"
+          aria-label="Copy permalink for line 47"
+          title="Copy permalink for line 47"
+        >47</button>
+        <span class="git-code-text">if [ ! -f &quot;site-output/index.html&quot; ]; then</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L48" data-git-line="48">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="48"
+          aria-label="Copy permalink for line 48"
+          title="Copy permalink for line 48"
+        >48</button>
+        <span class="git-code-text">    echo &quot;Error: index.html not generated&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L49" data-git-line="49">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="49"
+          aria-label="Copy permalink for line 49"
+          title="Copy permalink for line 49"
+        >49</button>
+        <span class="git-code-text">    exit 1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L50" data-git-line="50">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="50"
+          aria-label="Copy permalink for line 50"
+          title="Copy permalink for line 50"
+        >50</button>
+        <span class="git-code-text">fi</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L51" data-git-line="51">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="51"
+          aria-label="Copy permalink for line 51"
+          title="Copy permalink for line 51"
+        >51</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L52" data-git-line="52">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="52"
+          aria-label="Copy permalink for line 52"
+          title="Copy permalink for line 52"
+        >52</button>
+        <span class="git-code-text">if [ ! -d &quot;site-output/assets&quot; ]; then</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L53" data-git-line="53">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="53"
+          aria-label="Copy permalink for line 53"
+          title="Copy permalink for line 53"
+        >53</button>
+        <span class="git-code-text">    echo &quot;Error: assets directory not copied&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L54" data-git-line="54">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="54"
+          aria-label="Copy permalink for line 54"
+          title="Copy permalink for line 54"
+        >54</button>
+        <span class="git-code-text">    exit 1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L55" data-git-line="55">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="55"
+          aria-label="Copy permalink for line 55"
+          title="Copy permalink for line 55"
+        >55</button>
+        <span class="git-code-text">fi</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L56" data-git-line="56">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="56"
+          aria-label="Copy permalink for line 56"
+          title="Copy permalink for line 56"
+        >56</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L57" data-git-line="57">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="57"
+          aria-label="Copy permalink for line 57"
+          title="Copy permalink for line 57"
+        >57</button>
+        <span class="git-code-text">echo &quot;Site build completed successfully!&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L58" data-git-line="58">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="58"
+          aria-label="Copy permalink for line 58"
+          title="Copy permalink for line 58"
+        >58</button>
+        <span class="git-code-text">echo &quot;Generated files:&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L59" data-git-line="59">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="59"
+          aria-label="Copy permalink for line 59"
+          title="Copy permalink for line 59"
+        >59</button>
         <span class="git-code-text">find site-output -type f | head -10</span>
       </li>
     

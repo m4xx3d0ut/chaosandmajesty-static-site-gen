@@ -170,10 +170,10 @@
                 data-git-files="git/chaosandmajesty-static-site-gen/files.html"
                 data-git-refs="git/chaosandmajesty-static-site-gen/refs.html"
                 data-git-readme="git/chaosandmajesty-static-site-gen/readme.html"
-                data-git-full-log="git/chaosandmajesty-static-site-gen/full.html"
+                data-git-full-log="git/chaosandmajesty-static-site-gen/index.html"
                 data-git-limited-log="git/chaosandmajesty-static-site-gen/index.html"
-                data-git-log-limit="10"
-                data-git-log-total="40"
+                data-git-log-limit="8"
+                data-git-log-total="8"
               >
                 <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
                 <div class="git-repo-button-meta">
@@ -211,8 +211,8 @@
                 data-git-readme="git/ai-system-config/readme.html"
                 data-git-full-log="git/ai-system-config/index.html"
                 data-git-limited-log="git/ai-system-config/index.html"
-                data-git-log-limit="10"
-                data-git-log-total="7"
+                data-git-log-limit="5"
+                data-git-log-total="5"
               >
                 <span class="git-repo-button-title">ai-system-config</span>
                 <div class="git-repo-button-meta">
@@ -250,7 +250,7 @@
                 data-git-readme="git/cicd-dev/readme.html"
                 data-git-full-log="git/cicd-dev/index.html"
                 data-git-limited-log="git/cicd-dev/index.html"
-                data-git-log-limit="10"
+                data-git-log-limit="5"
                 data-git-log-total="2"
               >
                 <span class="git-repo-button-title">cicd-dev</span>
@@ -289,7 +289,7 @@
                 data-git-readme="git/cm-blog-content-staging/readme.html"
                 data-git-full-log="git/cm-blog-content-staging/index.html"
                 data-git-limited-log="git/cm-blog-content-staging/index.html"
-                data-git-log-limit="10"
+                data-git-log-limit="5"
                 data-git-log-total="5"
               >
                 <span class="git-repo-button-title">cm-blog-content-staging</span>
@@ -326,10 +326,10 @@
                 data-git-files="git/platform-config/files.html"
                 data-git-refs="git/platform-config/refs.html"
                 data-git-readme="git/platform-config/readme.html"
-                data-git-full-log="git/platform-config/full.html"
+                data-git-full-log="git/platform-config/index.html"
                 data-git-limited-log="git/platform-config/index.html"
-                data-git-log-limit="10"
-                data-git-log-total="40"
+                data-git-log-limit="5"
+                data-git-log-total="5"
               >
                 <span class="git-repo-button-title">platform-config</span>
                 <div class="git-repo-button-meta">
@@ -367,7 +367,7 @@
                 data-git-readme="git/platform-nvidia-compute/readme.html"
                 data-git-full-log="git/platform-nvidia-compute/index.html"
                 data-git-limited-log="git/platform-nvidia-compute/index.html"
-                data-git-log-limit="10"
+                data-git-log-limit="5"
                 data-git-log-total="2"
               >
                 <span class="git-repo-button-title">platform-nvidia-compute</span>
@@ -404,10 +404,10 @@
                 data-git-files="git/radiostatic-site-gen/files.html"
                 data-git-refs="git/radiostatic-site-gen/refs.html"
                 data-git-readme="git/radiostatic-site-gen/readme.html"
-                data-git-full-log="git/radiostatic-site-gen/full.html"
+                data-git-full-log="git/radiostatic-site-gen/index.html"
                 data-git-limited-log="git/radiostatic-site-gen/index.html"
-                data-git-log-limit="10"
-                data-git-log-total="40"
+                data-git-log-limit="5"
+                data-git-log-total="5"
               >
                 <span class="git-repo-button-title">radiostatic-site-gen</span>
                 <div class="git-repo-button-meta">
@@ -474,8 +474,8 @@
               data-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
               data-default-name="chaosandmajesty-static-site-gen"
               data-default-limited-log="git/chaosandmajesty-static-site-gen/index.html"
-              data-default-full-log="git/chaosandmajesty-static-site-gen/full.html"
-              data-default-log-limit="10"
+              data-default-full-log="git/chaosandmajesty-static-site-gen/index.html"
+              data-default-log-limit="8"
               data-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
               data-default-files="git/chaosandmajesty-static-site-gen/files.html"
               data-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
@@ -875,8 +875,6 @@
       var linkHtml = '';
       if (entry && entry.detailUrl && tab === 'log') {
         linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
-      } else if (entry && entry.detailUrl) {
-        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">View on origin</a>.';
       }
       var message = 'No ' + escapeHtml(label) + ' is available for this repository.' + linkHtml;
       setPanelContent(renderPanelMessage('empty', message), tab);

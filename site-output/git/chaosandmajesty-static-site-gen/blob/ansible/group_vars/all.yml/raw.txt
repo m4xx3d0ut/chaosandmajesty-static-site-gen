@@ -47,3 +47,5 @@ auth_file_container_path: /etc/nginx/auth
 
 # Healthcheck path exposed by the container
 healthcheck_path: /health
+
+# Git frontend artifacts ship with the static site build; no external mirror required.

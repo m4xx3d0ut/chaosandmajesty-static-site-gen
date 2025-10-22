@@ -462,4 +462,63 @@ body.dark-mode * {
   scrollbar-color: var(--primary-color) var(--surface-color);
 }
 
+/* Git orientation overlay */
+body[data-page-slug="git"].git-orientation-locked {
+  overflow-y: auto;
+}
 
+body[data-page-slug="git"] header,
+body[data-page-slug="git"] footer {
+  position: relative;
+  z-index: 1400;
+}
+
+body[data-page-slug="git"] .git-orientation-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 8vw, 3rem);
+  background: rgba(15, 17, 23, 0.9);
+  backdrop-filter: blur(0.35rem);
+  z-index: 1200;
+  text-align: center;
+  transition: opacity 0.18s ease-in-out, visibility 0.18s ease-in-out;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  touch-action: manipulation;
+}
+
+body[data-page-slug="git"] .git-orientation-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+body[data-page-slug="git"] .git-orientation-card {
+  width: min(90vw, 24rem);
+  background: rgba(25, 27, 36, 0.95);
+  border: 1px solid rgba(20, 241, 149, 0.4);
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 6vw, 2rem);
+  box-shadow: 0 18px 42px rgba(14, 25, 35, 0.45);
+  color: #f1f5f9;
+}
+
+body[data-page-slug="git"] .git-orientation-title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.25rem, 4vw, 1.6rem);
+  color: #14f195;
+}
+
+body[data-page-slug="git"] .git-orientation-message {
+  margin: 0;
+  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  line-height: 1.45;
+}
+
+body[data-page-slug="git"] .git-page {
+  position: relative;
+}
