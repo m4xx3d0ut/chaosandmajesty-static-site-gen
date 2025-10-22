@@ -1,0 +1,15 @@
+<% if (page.use3DLogo || site.use3DLogo) { %>
+<div id="cm-logo-container" class="center" style="width:100%; height:300px; position:relative; z-index:1;"></div>
+<!-- Use the same CDN sources as in the test page -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/SVGLoader.js"></script>
+<script>
+  // Pass the SVG path to the script
+  window.cmLogoSvgPath = <%- JSON.stringify(page.logoSvgPath || site.logoSvgPath || '/static/img/bunny-punx.svg') %>;
+</script>
+<script src="<%= isSection ? '../' : '' %>assets/static/js/cmLogo.js"></script>
+<% } else if (page.cmImage || site.cmImage) { %>
+<div>
+  <img src="<%= isSection ? '../' + (page.cmImage || site.cmImage) : (page.cmImage || site.cmImage) %>" alt="<%= page.cmImageAlt || site.cmImageAlt || 'Main image' %>" class="center">
+</div>
+<% } %>

@@ -105,38 +105,6 @@
       "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/ai-system-config/commit/b9f52986abd7d3205d072e03e41aa380cb3ba3ea.html",
       "treeUrl": "https://cm.core.home.arpa/git/ai-system-config/tree/dev/b9f52986abd7d3205d072e03e41aa380cb3ba3ea/"
-    },
-    {
-      "sha": "c1976892e1c69950f65a1785f7566d1310e9937f",
-      "shortSha": "c197689",
-      "subject": "feat: implement AI system Kubernetes manifests with GitOps structure",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-09-15T17:05:53+00:00",
-      "authoredEpochMs": 1757955953000,
-      "authoredDisplay": "Sep 15, 2025, 5:05 PM",
-      "relativeTime": "last month",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/ai-system-config/commit/c1976892e1c69950f65a1785f7566d1310e9937f.html",
-      "treeUrl": "https://cm.core.home.arpa/git/ai-system-config/tree/dev/c1976892e1c69950f65a1785f7566d1310e9937f/"
-    },
-    {
-      "sha": "5c42ddbbfefbba2c5aa2474e42a58863521e6095",
-      "shortSha": "5c42ddb",
-      "subject": "Initial commit.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-09-15T16:23:23+00:00",
-      "authoredEpochMs": 1757953403000,
-      "authoredDisplay": "Sep 15, 2025, 4:23 PM",
-      "relativeTime": "last month",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/ai-system-config/commit/5c42ddbbfefbba2c5aa2474e42a58863521e6095.html",
-      "treeUrl": "https://cm.core.home.arpa/git/ai-system-config/tree/dev/5c42ddbbfefbba2c5aa2474e42a58863521e6095/"
     }
   ]
 }

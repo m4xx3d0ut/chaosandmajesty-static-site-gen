@@ -1,0 +1,426 @@
+title: Core
+
+description: All your base are belong to us.
+
+# CM-specific settings
+cmTitle: Core
+cmTagline: These are not the droids you are looking for...
+cmFooterText: Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+
+parallaxImage: assets/template/logo-sitegen-parallax.png
+parallaxPush: "10vh"
+
+assets: static-sitegen/assets
+templates: static-sitegen/templates
+
+pages:
+  - title: Git
+    slug: git
+    template: git.ejs
+    useCmHead: true
+    useCmFooter: true
+    hideTitle: true
+    git:
+      intro: |
+        <p>Browse the Core Git currated mirrors. Pick a repository on the left; the activity feed loads on the right.</p>
+      manifest: "config/git/manifest.txt"
+      defaultRepoLabel: "chaosandmajesty-static-site-gen"
+      repoDetailSuffix: "log.html"
+      leftPaneTitle: "Core Git"
+      leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt)."
+      rightPaneTitle: "Repository Activity"
+      rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
+      localRepoOverrides:
+        chaosandmajesty-static-site-gen: .
+
+  - title: Privacy Policy
+    slug: privacy
+    template: page.ejs
+    useCmHead: true
+    useCmFooter: true
+    hideTitle: true
+    content: |
+      ## Privacy Policy
+      _Last updated: October 21, 2025_
+
+      Chaos & Majesty values your privacy and keeps the data we collect to the minimum required to keep this site operational.
+
+      ### Information We Collect
+      - **Server logs:** Our hosting provider may capture standard HTTP logs (IP address, user agent, timestamp) to protect the service and diagnose outages.
+      - **User submissions:** If you send us a message or opt in to a feature that clearly asks for information, we keep only what is necessary to respond.
+      - **Local browser storage:** We remember visual preferences (like theme selections) on your device. These values never leave your browser.
+
+      ### How We Use Information
+      - Provide the static site experience and related content you request.
+      - Protect, debug, and improve the reliability of the Chaos & Majesty platform.
+      - Respond to inquiries you initiate.
+
+      We do **not** sell personal information, profile visitors, or run third-party advertising trackers.
+
+      ### Cookies and Local Storage
+      We do not place tracking cookies. Limited settings (for example, theme preferences) persist in `localStorage` or similar session-scoped storage so the site can remember your choices between visits on the same device. Clearing your browser data removes these values.
+
+      ### Data Retention
+      We keep server logs no longer than 30 days unless they are needed to investigate security issues. Messages you send may be retained while we work an open request and archived afterward to meet legal obligations.
+
+      ### Your Choices
+      - Disable or clear local storage in your browser settings at any time.
+      - Contact us to request corrections or deletion of information you previously provided.
+
+      ### Updates
+      We may revise this policy when our practices change. New versions replace prior ones when posted to this page. Material updates will include a clear notice on the site or via the communication channel you provided.
+
+  - title: Terms of Service
+    slug: terms
+    template: page.ejs
+    useCmHead: true
+    useCmFooter: true
+    hideTitle: true
+    content: |
+      ## Terms of Service
+      _Last updated: October 21, 2025_
+
+      Please read these Terms of Service (“Terms”) carefully before using the Chaos & Majesty site or any related content (collectively, the “Services”). By accessing or using the Services you agree to be bound by these Terms.
+
+      ### 1. Who We Are
+      Chaos & Majesty operates a curated static experience that showcases our work, writing, and projects. References to “we,” “us,” or “our” mean Chaos & Majesty.
+
+      ### 2. Eligibility and Acceptance
+      - You must be capable of entering a binding agreement in your jurisdiction.
+      - If you access the Services on behalf of an organization, you confirm you have authority to bind that organization.
+      - Your continued use of the Services after updates to these Terms constitutes acceptance of the revised Terms.
+
+      ### 3. Use of the Services
+      - You may browse, link to, and share the publicly available portions of the site for personal or internal business use.
+      - Do not misuse the Services, attempt to gain unauthorized access, or disrupt the infrastructure.
+      - Respect applicable laws and the intellectual property rights of Chaos & Majesty and third parties.
+
+      ### 4. Intellectual Property
+      Unless otherwise noted, the content, branding, and code provided via the Services are either proprietary to Chaos & Majesty or shared under a stated open-source license. You must follow any license terms associated with repository mirrors or downloadable assets linked from the site.
+
+      ### 5. Feedback
+      If you send feedback, suggestions, or feature ideas, you grant us a perpetual, worldwide, royalty-free right to use that input without obligation to you.
+
+      ### 6. Third-Party Links
+      External links (including curated mirrors) are provided for convenience. We are not responsible for the content, security, or practices of third-party sites. Use them at your own risk and review their policies.
+
+      ### 7. Disclaimers
+      The Services are provided “as is” without warranties of any kind, express or implied. We do not guarantee uninterrupted availability, error-free operation, or that the Services are free of harmful components.
+
+      ### 8. Limitation of Liability
+      To the fullest extent permitted by law, Chaos & Majesty is not liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, arising from your use of the Services.
+
+      ### 9. Indemnification
+      You agree to indemnify and hold Chaos & Majesty and its contributors harmless from any claims, damages, or expenses arising from your misuse of the Services or violation of these Terms.
+
+      ### 10. Governing Law
+      These Terms are governed by the laws of the State of Washington, USA, without regard to conflict-of-law principles. Venue for disputes lies in the courts located in King County, Washington, unless applicable law requires otherwise.
+
+      ### 11. Termination
+      We may suspend or terminate access to the Services at any time, with or without notice, if we believe you have violated these Terms or to protect the platform.
+
+      ### 12. Contact
+      Questions about these Terms may be sent to `legal@chaosandmajesty.com`.
+
+      ### 13. Changes to These Terms
+      We will post the effective date at the top of this page whenever the Terms change. Continued use after changes take effect signifies your agreement to the updated Terms.
+
+  # - title: About
+  #   slug: about
+  #   content: |
+  #     ## About SiteGen
+  #
+  #     **Welcome to SiteGen!**  
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus blandit, lorem non dictum dictum, arcu risus tincidunt justo, in euismod eros justo in metus. 
+  #
+  #     ### Meet the Team
+  #     
+  #     SiteGen was founded by Jane Doe and John Smith.
+  #
+  #     <div style="text-align: center;">
+  #       <img src="assets/template/stick-fig-template.jpg" alt="Team" style="width: 200px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);" />
+  #       <p style="font-size: 1.1em; color: var(--text-secondary); margin-top: 0.5em;">Our dedicated team at SiteGen</p>
+  #     </div>
+  #
+  #     ### Our Contributors
+  #
+  #     * Alice Example (Lead Developer)
+  #     * Bob Sample (UX Designer)
+  #     * Charlie Placeholder (Content Writer)
+  #
+  #     ---
+  #
+  #     ### Why Use SiteGen?
+  #
+  #     - **Easy configuration** via YAML  
+  #     - Supports *Markdown* and **HTML**  
+  #     - Modern responsive design  
+  #     - Built-in theming and parallax backgrounds  
+  #     - Simple asset management
+  #
+  #     > “SiteGen made building our static site a breeze!”  
+  #     > — *Jane Doe, Founder*
+  #
+  #     ### Example Markdown
+  #
+  #     Here’s an example code block:
+  #
+  #     ```yaml
+  #     theme:
+  #       mode: dark
+  #       primary_color: "#1e40af"
+  #       secondary_color: "#f59e42"
+  #     ```
+  #
+  #     Or inline code: ``sitegen ./your-config.yaml ./output_dir``
+  #
+  #     ### Parallax Background Demo
+  #
+  #     ![Sample Parallax](assets/template/logo-sitegen-parallax.png)
+  #
+  #     The background above uses our parallax feature—customizable via config!
+  #
+  #   image: assets/template/logo-template.png
+  #   fullWidthImage: false
+  #   hideTitle: false
+  #
+    # - title: Features
+  #   slug: features
+  #   content: |
+  #     ## Site Features
+  #
+  #     - Easy to use and highly customizable
+  #     - Responsive design out of the box
+  #     - Markdown and HTML content support
+  #     - Powered by YAML configuration
+  #
+  #     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse gravida pretium magna, vel pretium massa feugiat id.
+  #   
+  # - title: Contact
+  #   slug: contact
+  #   hideTitle: false
+  #   content: |
+  #     ## Contact Us
+  #
+  #     Reach out to us via email!
+  #
+  #     For general inquiries: [info@example.com](mailto:info@example.com)
+  #
+  #     Or use our contact form (coming soon!).
+
+styles: ["assets/modern.css"]
+
+blog:
+  enabled: true
+  title: "Chaos & Majesty Journal"
+  description: "Dispatches from the underground console."
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    heroTitle: "Chaos & Majesty Journal"
+    heroTagline: "Dispatches from the underground console"
+    intro: |
+      Terminal-born perspectives on building the experience.
+      Read the latest dispatches from Chaos and Majesty without leaving the console.
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+
+  authors:
+    - id: m4xx3d0ut
+      name: "m4xx3d0ut"
+      title: "Chaos Operator"
+      avatar: "assets/static/img/bunny-punx.webp"
+      bio: "Architect of the Neon Terminal Core and Professional Technologist."
+      social:
+        - label: "@m4xx3d0ut"
+          href: "https://www.linkedin.com/in/paul-k-a3a18196/"
+    - id: reneerules
+      name: "ReneéRules"
+      title: "Majesty Orchestrator"
+      avatar: "assets/static/img/bunny-punx.svg"
+      bio: "Curates the Majesty and keeps the interface vibrations high."
+      social:
+        - label: "@ReneeRules"
+          href: "https://www.linkedin.com/in/rene%C3%A9-k-025083bb/"
+
+index: 
+  title: Home
+
+  # Use CM console on home page
+  useCmHead: true
+  useCmConsole: true
+  useCmFooter: true
+  # cmImage: "assets/static/img/bunny-punx.webp"
+  use3DLogo: true
+  hideTitle: true
+
+  # Content styling
+  contentFont: "modern-mono" # Options: terminal, modern-mono, system-mono
+  terminalStyle: true # Adds terminal-like styling with cursor and scanlines
+
+  tagline: "These are not the droids you are looking for..."
+  # mainImage: "assets/static/img/bunny-punx.webp"
+  # mainImageAlt: "Punks not dead"
+  footerText: "Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR."
+
+  content: |
+
+    <br>
+
+    ## Welcome to Chaos & Majesty!
+
+    <br>
+
+    Gather round, denizens of the internet, for we have something to share.
+    A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
+    Fellow denizians, this is our place, welcome to our home.
+
+    <br>
+
+    Enjoy browsing some of our code on the site's Git mirror, the site itself is open source and available.  There is also a
+    base static site generator project that powers the site, which is also open source and available.  I encourage you to
+    build off of these projects.  The "RadioStatic" site generator leans heavily into HTMX for responsive, dynamic content,
+    while still serving only static content reducing potential attack vectors.  The git mirrors can be configured to mirror
+    single or multiple branches and can be configured to mirror curated branches of private repositories through CI/CD.
+
+    <br>
+
+    Every page is pre-rendered, every payload is deterministic, and every UI flourish is layered on top of static assets.
+    By keeping runtime dependencies out of production we minimize the attack surface, shrink the footprint exposed to bots,
+    and keep the trust boundary easy to reason about.  The HTMX flows that power our blog and Git explorers are compiled into
+    static fragments, so browsers only ever fetch first-party HTML, CSS, and JSON from the same origin.
+
+    <br>
+
+    For teams with compliance needs, the generator can be wired into CI to lint third-party resources, diff security headers,
+    or snapshot the final HTML for offline review.  Shipping static artifacts also means you can front the entire site with
+    a CDN + WAF combo, disable origin server scripting entirely, and rotate mirrors or keys without redeploying the UI
+    shell.  If you fork this project, you inherit a hardened baseline that assumes a hostile network and keeps the
+    surface lean.
+
+    ...and you can play DOOM on it!
+
+    <br>
+
+    \- ***m4xx3d0ut*** & ***ReneéRules***
+
+    <br>
+
+  cta:
+    label: Visit the Blog
+    href: "blog.html"
+
+  # image: assets/template/logo-template.png
+  # fullWidthImage: true
+
+sections:
+  - id: chaos
+    heading: Chaos Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    content: |
+      ## Chaos Blog
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.  
+      Pellentesque sed turpis id urna convallis maximus.  
+      Proin tincidunt, purus nec tincidunt cursus, urna mi vehicula urna, eget consequat sem augue vel ligula.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Majesty](majesty.html)
+      rightContent: |
+        ## Chaos Theory in Practice
+        Full blog post content here...
+
+  - id: majesty
+    heading: Majesty Blog
+    useCmHead: true
+    useCmFooter: true
+    cmImage: "assets/static/img/bunny-punx.webp"
+    content: |
+      ## Majesty Blog
+
+      Etiam scelerisque, lorem eget pulvinar dictum, nisi sem dictum dui, id mattis neque nulla at lectus.  
+      Suspendisse potenti. Curabitur ultricies nibh a ex pretium, non hendrerit urna dignissim.
+
+      ```html
+      <!-- HTML is supported inside markdown content! -->
+      <button>Click me</button>
+      ```
+
+      > You can mix markdown and HTML for advanced layouts.
+
+    # image: ../assets/template/logo-template.png
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Navigation
+        - [All Posts](../blog.html)
+        - [Chaos](chaos.html)
+      rightContent: |
+        ## Behold the Majesty
+        Full blog post content here...
+
+sitemap:
+  useCmHead: true
+  useCmFooter: true
+  cmImage: "assets/static/img/bunny-punx.webp"
+  hideTitle: true
+
+header:
+  links:
+    - label: Home
+      href: "index.html"
+    # - label: About
+    #   href: "about.html"
+    # - label: Features
+    #   href: "features.html"
+    # - label: Contact
+    #   href: "contact.html"
+    - label: Blog
+      href: "blog.html"
+    - label: Git
+      href: "git.html"
+    # - label: Sitemap
+    #   href: "sitemap.html"
+
+footer:
+  text: © 2025 CM Site. All rights reserved.
+  links:
+    - label: Privacy Policy
+      href: "privacy.html"
+    - label: Terms of Service
+      href: "terms.html"
+    # - label: Sitemap
+    #   href: "sitemap.html"
+
+domain: chaosandmajesty.com
+page_title: Chaos & Majesty
+logo: assets/static/img/not-dead.webp
+
+theme:
+  mode: dark
+  primary_color: "#1e40af"
+  secondary_color: "#f59e42"
+
+analytics_id: UA-XXXXXXXX-X
+social_preview_image: assets/social-preview.jpg
+
+meta:
+  description: All your base are belong to us.  Welcome to the Chaos and Majesty home!
+  keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker

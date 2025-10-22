@@ -1,0 +1,1791 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Core – Git</title>
+
+  
+    <meta name="description" content="All your base are belong to us.  Welcome to the Chaos and Majesty home!">
+  
+  
+    <meta name="keywords" content="development, programming, python, react, typescript, node, javascript, maker, white hat, hacker">
+  
+
+  <!-- Include CM head content if specified -->
+  
+    <!-- head partial (auto-generated) -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="stylesheet" type="text/css" href="assets/static/style/cm.css">
+<script type="text/javascript" src="assets/static/js/cm.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<link rel="manifest" href="site.webmanifest"/>
+<link rel="icon" type="image/x-icon" href="assets/static/img/favicon.ico">
+
+  
+
+  <!-- Stylesheets: use CM styles if CM is enabled, otherwise use provided styles -->
+  
+    <!-- CM styles are already included in cm-head.ejs -->
+  
+</head>
+
+<body
+  class="
+    dark-mode
+     with-parallax
+    cm-body
+  "
+  data-theme="dark"
+  data-page-slug="git"
+  
+    style="--parallax-push:10vh;"
+  
+>
+
+  <!-- Optional Parallax Background DIV -->
+  
+    <div
+      class="parallax-bg"
+      style="background-image: url(
+        'assets/template/logo-sitegen-parallax.png'
+      );"
+    ></div>
+  
+
+  <!-- HEADER -->
+  <header>
+    <div class="container header-container">
+      
+        <a href="index.html" class="logo-link">
+          <img
+            src="assets/static/img/not-dead.webp"
+            alt="Core Logo"
+            class="logo"
+          >
+        </a>
+      
+
+      
+
+      
+        <!-- Hamburger toggle (only visible on ≤768px) -->
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="index.html">Home</a></li>
+            
+              <li><a href="blog.html">Blog</a></li>
+            
+              <li><a href="git.html">Git</a></li>
+            
+            <li><button type="button" class="theme-toggle" aria-label="Toggle 1337 Mode" title="1337 Mode">1337</button></li>
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    
+
+    
+
+    <!-- Include 3D Logo if specified -->
+    
+
+    <!-- Include CM console if specified -->
+    
+
+    <div class="page-content
+      
+      ">
+      
+<section class="git-page">
+  <div
+    class="git-orientation-overlay"
+    id="git-orientation-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="git-orientation-title"
+    aria-describedby="git-orientation-copy"
+    aria-hidden="true"
+  >
+    <div class="git-orientation-card">
+      <h2 class="git-orientation-title" id="git-orientation-title">Rotate to landscape</h2>
+      <p class="git-orientation-message" id="git-orientation-copy">For the best Git activity view, rotate your device to landscape.</p>
+    </div>
+  </div>
+  <div class="git-shell">
+    
+      <div class="git-hero">
+        <p>Browse the Core Git currated mirrors. Pick a repository on the left; the activity feed loads on the right.</p>
+
+      </div>
+    
+
+    <div class="git-grid">
+      <aside class="git-sidebar" id="git-sidebar" aria-labelledby="git-sidebar-title">
+        <header class="git-sidebar-header">
+          <h3 class="git-sidebar-title" id="git-sidebar-title">Core Git</h3>
+          <p class="git-sidebar-subtitle">Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt).</p>
+        </header>
+
+        <div class="git-sidebar-search">
+          <label class="visually-hidden" for="git-search-input">Search repositories</label>
+          <input
+            id="git-search-input"
+            class="git-search-input"
+            type="search"
+            placeholder="Search repositories..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+
+        <ul class="git-repo-list" id="git-repo-list" role="listbox" aria-label="Repository list">
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="chaosandmajesty-static-site-gen"
+                data-git-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+                data-git-label="chaosandmajesty-static-site-gen"
+                data-git-search="chaosandmajesty-static-site-gen prod prod m4xx3d0ut chaosandmajesty.com static site gen project with wasm32 doom shareware integration git/chaosandmajesty-static-site-gen https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen"
+                data-git-stage="prod"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/chaosandmajesty-static-site-gen"
+                data-git-fragment="git/chaosandmajesty-static-site-gen/index.html"
+                data-git-commits="git/chaosandmajesty-static-site-gen/commits.json"
+                data-git-files="git/chaosandmajesty-static-site-gen/files.html"
+                data-git-refs="git/chaosandmajesty-static-site-gen/refs.html"
+                data-git-readme="git/chaosandmajesty-static-site-gen/readme.html"
+                data-git-full-log="git/chaosandmajesty-static-site-gen/index.html"
+                data-git-limited-log="git/chaosandmajesty-static-site-gen/index.html"
+                data-git-log-limit="8"
+                data-git-log-total="8"
+              >
+                <span class="git-repo-button-title">chaosandmajesty-static-site-gen</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">PROD</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration</p>
+                
+                
+                  <p class="git-repo-button-path">git/chaosandmajesty-static-site-gen</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="ai-system-config"
+                data-git-url="https://cm.core.home.arpa/git/ai-system-config/log.html"
+                data-git-label="ai-system-config"
+                data-git-search="ai-system-config dev dev m4xx3d0ut flux llmops system configuration git/ai-system-config https://cm.core.home.arpa/git/ai-system-config/log.html https://cm.core.home.arpa/git/ai-system-config"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/ai-system-config"
+                data-git-fragment="git/ai-system-config/index.html"
+                data-git-commits="git/ai-system-config/commits.json"
+                data-git-files="git/ai-system-config/files.html"
+                data-git-refs="git/ai-system-config/refs.html"
+                data-git-readme="git/ai-system-config/readme.html"
+                data-git-full-log="git/ai-system-config/index.html"
+                data-git-limited-log="git/ai-system-config/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="5"
+              >
+                <span class="git-repo-button-title">ai-system-config</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Flux LlmOps system configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/ai-system-config</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="cicd-dev"
+                data-git-url="https://cm.core.home.arpa/git/cicd-dev/log.html"
+                data-git-label="cicd-dev"
+                data-git-search="cicd-dev dev dev m4xx3d0ut cicd skeleton git/cicd-dev https://cm.core.home.arpa/git/cicd-dev/log.html https://cm.core.home.arpa/git/cicd-dev"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/cicd-dev"
+                data-git-fragment="git/cicd-dev/index.html"
+                data-git-commits="git/cicd-dev/commits.json"
+                data-git-files="git/cicd-dev/files.html"
+                data-git-refs="git/cicd-dev/refs.html"
+                data-git-readme="git/cicd-dev/readme.html"
+                data-git-full-log="git/cicd-dev/index.html"
+                data-git-limited-log="git/cicd-dev/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="2"
+              >
+                <span class="git-repo-button-title">cicd-dev</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">CICD Skeleton</p>
+                
+                
+                  <p class="git-repo-button-path">git/cicd-dev</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="cm-blog-content-staging"
+                data-git-url="https://cm.core.home.arpa/git/cm-blog-content-staging/log.html"
+                data-git-label="cm-blog-content-staging"
+                data-git-search="cm-blog-content-staging dev dev m4xx3d0ut helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content git/cm-blog-content-staging https://cm.core.home.arpa/git/cm-blog-content-staging/log.html https://cm.core.home.arpa/git/cm-blog-content-staging"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/cm-blog-content-staging"
+                data-git-fragment="git/cm-blog-content-staging/index.html"
+                data-git-commits="git/cm-blog-content-staging/commits.json"
+                data-git-files="git/cm-blog-content-staging/files.html"
+                data-git-refs="git/cm-blog-content-staging/refs.html"
+                data-git-readme="git/cm-blog-content-staging/readme.html"
+                data-git-full-log="git/cm-blog-content-staging/index.html"
+                data-git-limited-log="git/cm-blog-content-staging/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="5"
+              >
+                <span class="git-repo-button-title">cm-blog-content-staging</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content</p>
+                
+                
+                  <p class="git-repo-button-path">git/cm-blog-content-staging</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="platform-config"
+                data-git-url="https://cm.core.home.arpa/git/platform-config/log.html"
+                data-git-label="platform-config"
+                data-git-search="platform-config dev dev m4xx3d0ut flux gitops platform configuration git/platform-config https://cm.core.home.arpa/git/platform-config/log.html https://cm.core.home.arpa/git/platform-config"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/platform-config"
+                data-git-fragment="git/platform-config/index.html"
+                data-git-commits="git/platform-config/commits.json"
+                data-git-files="git/platform-config/files.html"
+                data-git-refs="git/platform-config/refs.html"
+                data-git-readme="git/platform-config/readme.html"
+                data-git-full-log="git/platform-config/index.html"
+                data-git-limited-log="git/platform-config/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="5"
+              >
+                <span class="git-repo-button-title">platform-config</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Flux GitOps platform configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/platform-config</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="platform-nvidia-compute"
+                data-git-url="https://cm.core.home.arpa/git/platform-nvidia-compute/log.html"
+                data-git-label="platform-nvidia-compute"
+                data-git-search="platform-nvidia-compute dev dev m4xx3d0ut nvidia compute platform configuration git/platform-nvidia-compute https://cm.core.home.arpa/git/platform-nvidia-compute/log.html https://cm.core.home.arpa/git/platform-nvidia-compute"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/platform-nvidia-compute"
+                data-git-fragment="git/platform-nvidia-compute/index.html"
+                data-git-commits="git/platform-nvidia-compute/commits.json"
+                data-git-files="git/platform-nvidia-compute/files.html"
+                data-git-refs="git/platform-nvidia-compute/refs.html"
+                data-git-readme="git/platform-nvidia-compute/readme.html"
+                data-git-full-log="git/platform-nvidia-compute/index.html"
+                data-git-limited-log="git/platform-nvidia-compute/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="2"
+              >
+                <span class="git-repo-button-title">platform-nvidia-compute</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">Nvidia compute platform configuration</p>
+                
+                
+                  <p class="git-repo-button-path">git/platform-nvidia-compute</p>
+                
+              </button>
+            </li>
+          
+            <li class="git-repo-list-item">
+              <button
+                type="button"
+                class="git-repo-button"
+                data-git-id="radiostatic-site-gen"
+                data-git-url="https://cm.core.home.arpa/git/radiostatic-site-gen/log.html"
+                data-git-label="radiostatic-site-gen"
+                data-git-search="radiostatic-site-gen dev dev m4xx3d0ut radiostatic - static site generator with blog, git mirror, and a wonky mini-terminal git/radiostatic-site-gen https://cm.core.home.arpa/git/radiostatic-site-gen/log.html https://cm.core.home.arpa/git/radiostatic-site-gen"
+                data-git-stage="dev"
+                data-git-owner="m4xx3d0ut"
+                data-git-path="git/radiostatic-site-gen"
+                data-git-fragment="git/radiostatic-site-gen/index.html"
+                data-git-commits="git/radiostatic-site-gen/commits.json"
+                data-git-files="git/radiostatic-site-gen/files.html"
+                data-git-refs="git/radiostatic-site-gen/refs.html"
+                data-git-readme="git/radiostatic-site-gen/readme.html"
+                data-git-full-log="git/radiostatic-site-gen/index.html"
+                data-git-limited-log="git/radiostatic-site-gen/index.html"
+                data-git-log-limit="5"
+                data-git-log-total="5"
+              >
+                <span class="git-repo-button-title">radiostatic-site-gen</span>
+                <div class="git-repo-button-meta">
+                  
+                    <span class="git-repo-pill">DEV</span>
+                  
+                  
+                    <span class="git-repo-owner">@m4xx3d0ut</span>
+                  
+                </div>
+                
+                  <p class="git-repo-button-desc">RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal</p>
+                
+                
+                  <p class="git-repo-button-path">git/radiostatic-site-gen</p>
+                
+              </button>
+            </li>
+          
+        </ul>
+
+        <p class="git-empty" id="git-empty" hidden>No repositories match your search.</p>
+
+      </aside>
+
+      <section class="git-content" aria-labelledby="git-content-title">
+        <header class="git-content-header">
+          <div class="git-content-meta">
+            <h3 class="git-content-title" id="git-content-title">Repository Activity</h3>
+            <p class="git-content-subtitle">
+              <span id="git-active-repo-label">chaosandmajesty-static-site-gen</span>
+            </p>
+          </div>
+          <div class="git-content-actions">
+            <button
+              type="button"
+              class="git-sidebar-toggle"
+              id="git-sidebar-toggle"
+              aria-expanded="true"
+              aria-controls="git-sidebar"
+            >
+              Hide repos
+            </button>
+          </div>
+        </header>
+
+        <p class="git-content-description">Commit history, files, README, and refs render inline from the build-time mirrors.</p>
+
+        <div class="git-content-body">
+          
+            <div class="git-loading" id="git-detail-indicator" role="status" aria-live="polite">
+              Loading chaosandmajesty-static-site-gen…
+            </div>
+            <nav class="git-panel-tabs" id="git-panel-tabs" aria-label="Repository views">
+              <button type="button" class="git-tab-button" data-git-tab="log" aria-pressed="false">Log</button>
+              <button type="button" class="git-tab-button" data-git-tab="files" aria-pressed="false">Files</button>
+              <button type="button" class="git-tab-button" data-git-tab="readme" aria-pressed="false">README</button>
+              <button type="button" class="git-tab-button" data-git-tab="refs" aria-pressed="false">Refs</button>
+            </nav>
+            <div
+              class="git-panel-container"
+              id="git-panel-container"
+              data-default-fragment="git/chaosandmajesty-static-site-gen/index.html"
+              data-default-url="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html"
+              data-default-name="chaosandmajesty-static-site-gen"
+              data-default-limited-log="git/chaosandmajesty-static-site-gen/index.html"
+              data-default-full-log="git/chaosandmajesty-static-site-gen/index.html"
+              data-default-log-limit="8"
+              data-default-commits="git/chaosandmajesty-static-site-gen/commits.json"
+              data-default-files="git/chaosandmajesty-static-site-gen/files.html"
+              data-default-refs="git/chaosandmajesty-static-site-gen/refs.html"
+              data-default-readme="git/chaosandmajesty-static-site-gen/readme.html"
+            >
+              <div class="git-panel-slot" id="git-panel-slot">
+                <p class="git-panel-placeholder">Select a repository to load activity.</p>
+              </div>
+            </div>
+            <noscript>
+              <p>
+                Enable JavaScript to view repository activity inline. You can open the full log at
+                
+                  <a href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html" target="_blank" rel="noopener">https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/log.html</a>.
+                
+              </p>
+            </noscript>
+          
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<button type="button" class="blog-back-to-top git-back-to-top" aria-label="Back to top">
+  ▲
+</button>
+
+<script>
+  (function() {
+    if (typeof window === 'undefined' || !window.document) {
+      return;
+    }
+
+    var TAB_ORDER = ['log', 'readme', 'files', 'refs'];
+    var TAB_LABELS = {
+      log: 'Log',
+      files: 'Files',
+      readme: 'README',
+      refs: 'Refs'
+    };
+
+    var repoButtons = Array.prototype.slice.call(document.querySelectorAll('.git-repo-button'));
+    var repoItems = repoButtons.map(function(button) {
+      var detailUrl = button.getAttribute('data-git-url') || '';
+      var label = button.getAttribute('data-git-label') || detailUrl;
+      var searchText = button.getAttribute('data-git-search') || (label + ' ' + detailUrl);
+      var fullLogFragment = button.getAttribute('data-git-full-log') || '';
+      var limitedLogFragment = button.getAttribute('data-git-limited-log') || (button.getAttribute('data-git-fragment') || '');
+      var logLimitAttr = button.getAttribute('data-git-log-limit') || '';
+      var logTotalAttr = button.getAttribute('data-git-log-total') || '';
+      var parsedLogLimit = parseInt(logLimitAttr, 10);
+      var parsedLogTotal = parseInt(logTotalAttr, 10);
+      var logInitialLimit = Number.isFinite(parsedLogLimit) ? parsedLogLimit : null;
+      var logTotalCommits = Number.isFinite(parsedLogTotal) ? parsedLogTotal : null;
+      return {
+        id: button.getAttribute('data-git-id') || '',
+        button: button,
+        detailUrl: detailUrl,
+        fragmentPath: button.getAttribute('data-git-fragment') || '',
+        filesFragment: button.getAttribute('data-git-files') || '',
+        refsFragment: button.getAttribute('data-git-refs') || '',
+        readmeFragment: button.getAttribute('data-git-readme') || '',
+        commitsJsonPath: button.getAttribute('data-git-commits') || '',
+        fullLogFragment: fullLogFragment,
+        limitedLogFragment: limitedLogFragment,
+        logInitialLimit: logInitialLimit,
+        logTotalCommits: logTotalCommits,
+        logFragmentOverride: '',
+        label: label,
+        searchText: searchText.toLowerCase()
+      };
+    });
+
+    var repoListEl = document.getElementById('git-repo-list');
+    var emptyStateEl = document.getElementById('git-empty');
+    var searchInput = document.getElementById('git-search-input');
+    var panelContainer = document.getElementById('git-panel-container');
+    var panelSlot = document.getElementById('git-panel-slot');
+    var detailIndicator = document.getElementById('git-detail-indicator');
+    var activeLabel = document.getElementById('git-active-repo-label');
+
+    var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.git-tab-button'));
+    var tabMap = {};
+    tabButtons.forEach(function(button) {
+      var tab = button.getAttribute('data-git-tab');
+      if (!tab) {
+        return;
+      }
+      tabMap[tab] = button;
+    });
+
+    var gitShell = document.querySelector('.git-shell');
+    var sidebar = document.getElementById('git-sidebar');
+    var sidebarToggle = document.getElementById('git-sidebar-toggle');
+    var orientationOverlay = document.getElementById('git-orientation-overlay');
+    var orientationMobileQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 1024px)')
+      : null;
+    var orientationPortraitQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(orientation: portrait)')
+      : null;
+    var orientationOverlayVisible = false;
+    var orientationOverlayLockClass = 'git-orientation-locked';
+    var orientationOverlayVisibleClass = 'is-visible';
+    var orientationBypassTapCount = 0;
+    var orientationBypassTapThreshold = 7;
+    var orientationBypassResetDelay = 2200;
+    var orientationBypassResetTimer = null;
+    var orientationBypassActive = false;
+    var orientationOverlaySupportsPointer = typeof window !== 'undefined' && typeof window.PointerEvent === 'function';
+
+    var activeEntry = null;
+    var activeButton = null;
+    var activeTab = 'log';
+    var pendingController = null;
+    var pendingFileController = null;
+    var activeFileButton = null;
+    var sidebarCollapsed = false;
+    var sidebarAutoCollapsed = false;
+    var pendingPermalinkState = null;
+
+    function attachMediaQueryListener(query, handler) {
+      if (!query || typeof handler !== 'function') {
+        return;
+      }
+      if (typeof query.addEventListener === 'function') {
+        query.addEventListener('change', handler);
+      } else if (typeof query.addListener === 'function') {
+        query.addListener(handler);
+      }
+    }
+
+    function setOrientationOverlayVisible(visible) {
+      if (!orientationOverlay) {
+        return;
+      }
+      if (visible === orientationOverlayVisible) {
+        return;
+      }
+      orientationOverlayVisible = visible;
+      var body = document.body || document.documentElement;
+      orientationOverlay.classList.toggle(orientationOverlayVisibleClass, visible);
+      orientationOverlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (body) {
+        body.classList.toggle(orientationOverlayLockClass, visible);
+      }
+      if (!visible) {
+        resetOrientationBypassCounter();
+      }
+    }
+
+    function clearOrientationBypassReset() {
+      if (orientationBypassResetTimer) {
+        window.clearTimeout(orientationBypassResetTimer);
+        orientationBypassResetTimer = null;
+      }
+    }
+
+    function resetOrientationBypassCounter() {
+      orientationBypassTapCount = 0;
+      clearOrientationBypassReset();
+    }
+
+    function scheduleOrientationBypassReset() {
+      clearOrientationBypassReset();
+      orientationBypassResetTimer = window.setTimeout(function() {
+        resetOrientationBypassCounter();
+      }, orientationBypassResetDelay);
+    }
+
+    function handleOrientationOverlayTap(event) {
+      if (!orientationOverlayVisible || orientationBypassActive) {
+        return;
+      }
+      if (event && (event.isPrimary === false || (event.type === 'pointerup' && event.button !== 0))) {
+        return;
+      }
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      orientationBypassTapCount += 1;
+      if (orientationBypassTapCount >= orientationBypassTapThreshold) {
+        resetOrientationBypassCounter();
+        orientationBypassActive = true;
+        setOrientationOverlayVisible(false);
+        return;
+      }
+      scheduleOrientationBypassReset();
+    }
+
+    function evaluateOrientationOverlay() {
+      if (!orientationOverlay) {
+        return;
+      }
+      if (orientationBypassActive) {
+        setOrientationOverlayVisible(false);
+        return;
+      }
+      var isMobileViewport = orientationMobileQuery ? orientationMobileQuery.matches : window.innerWidth <= 1024;
+      var isPortraitOrientation = orientationPortraitQuery ? orientationPortraitQuery.matches : window.innerHeight >= window.innerWidth;
+      setOrientationOverlayVisible(isMobileViewport && isPortraitOrientation);
+    }
+
+    function escapeHtml(value) {
+      if (value == null) {
+        return '';
+      }
+      return value
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function buildEntryKey(entry) {
+      if (!entry) {
+        return '';
+      }
+      return entry.id || entry.detailUrl || entry.label || '';
+    }
+
+    function resolveRelative(pathValue) {
+      if (!pathValue) return '';
+      if (/^(?:[a-z]+:)?\/\//i.test(pathValue)) {
+        return pathValue;
+      }
+      if (pathValue.startsWith('/')) {
+        return pathValue;
+      }
+      if (pathValue.startsWith('./') || pathValue.startsWith('../')) {
+        return pathValue;
+      }
+      return './' + pathValue;
+    }
+
+    function fallbackCopyText(text) {
+      return new Promise(function(resolve) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('aria-hidden', 'true');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        var succeeded = false;
+        try {
+          succeeded = document.execCommand('copy');
+        } catch (copyError) {
+          console.warn('Copy failed', copyError);
+        }
+        document.body.removeChild(textarea);
+        resolve(!!succeeded);
+      });
+    }
+
+    function copyTextToClipboard(text) {
+      if (!text) {
+        return Promise.resolve(false);
+      }
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        return navigator.clipboard.writeText(text).then(function() {
+          return true;
+        }).catch(function() {
+          return fallbackCopyText(text);
+        });
+      }
+      return fallbackCopyText(text);
+    }
+
+    function flashCopyFeedback(target, message, duration) {
+      if (!target) {
+        return;
+      }
+      if (typeof document === 'undefined') {
+        return;
+      }
+      var bubble = target.__gitCopyBubble;
+      if (!bubble || !document.body.contains(bubble)) {
+        bubble = document.createElement('span');
+        bubble.className = 'git-copy-feedback';
+        bubble.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(bubble);
+        target.__gitCopyBubble = bubble;
+      }
+      var rect = target.getBoundingClientRect();
+      bubble.textContent = message || 'Copied!';
+      bubble.classList.remove('is-visible');
+      if (bubble.__gitHideTimer) {
+        window.clearTimeout(bubble.__gitHideTimer);
+      }
+      var schedule =
+        typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+          ? window.requestAnimationFrame.bind(window)
+          : function(callback) {
+              return setTimeout(callback, 16);
+            };
+      var top = Math.max(rect.top, 0);
+      var left = rect.left + rect.width / 2;
+      bubble.style.top = top + 'px';
+      bubble.style.left = left + 'px';
+      schedule(function() {
+        bubble.classList.add('is-visible');
+      });
+      var timeout = Number.isFinite(duration) ? duration : 1600;
+      bubble.__gitHideTimer = window.setTimeout(function() {
+        bubble.classList.remove('is-visible');
+      }, timeout);
+    }
+
+    function buildBlobPermalink(fragmentPath, lineNumber) {
+      if (!fragmentPath || !lineNumber) {
+        return '';
+      }
+      var baseHref = window.location.href.split('#')[0];
+      var repoKey = panelSlot
+        ? (panelSlot.getAttribute('data-git-active-entry-key') || panelSlot.getAttribute('data-git-active-entry') || '')
+        : '';
+      if (!repoKey) {
+        var slugMatch = fragmentPath.match(/^git\/([^/]+)/);
+        if (slugMatch && slugMatch[1]) {
+          repoKey = slugMatch[1];
+        }
+      }
+      var activeTab = panelSlot ? (panelSlot.getAttribute('data-git-active-tab') || '') : '';
+      if (!activeTab) {
+        activeTab = 'files';
+      }
+      var params = new URLSearchParams();
+      if (repoKey) {
+        params.set('repo', repoKey);
+      }
+      if (activeTab) {
+        params.set('tab', activeTab);
+      }
+      params.set('blob', fragmentPath);
+      params.set('line', lineNumber);
+      return baseHref + '#' + params.toString();
+    }
+
+    function showIndicator(message) {
+      if (!detailIndicator) return;
+      detailIndicator.hidden = false;
+      detailIndicator.removeAttribute('aria-hidden');
+      detailIndicator.classList.remove('is-hidden');
+      detailIndicator.textContent = message || 'Loading…';
+    }
+
+    function hideIndicator() {
+      if (!detailIndicator) return;
+      detailIndicator.hidden = true;
+      detailIndicator.setAttribute('aria-hidden', 'true');
+      detailIndicator.classList.add('is-hidden');
+    }
+
+    function renderPanelMessage(kind, htmlMessage) {
+      return '<div class="git-panel-message git-panel-message--' + kind + '">' + htmlMessage + '</div>';
+    }
+
+    function setPanelMetadata(entry, tab, fragment) {
+      if (!panelSlot) {
+        return;
+      }
+      var entryKey = buildEntryKey(entry);
+      var entryLabel = entry && entry.label ? entry.label : '';
+      var entryUrl = entry && entry.detailUrl ? entry.detailUrl : '';
+      panelSlot.setAttribute('data-git-active-entry', entryKey);
+      panelSlot.setAttribute('data-git-active-entry-key', entryKey);
+      panelSlot.setAttribute('data-git-active-entry-label', entryLabel);
+      panelSlot.setAttribute('data-git-active-entry-url', entryUrl);
+      panelSlot.setAttribute('data-git-active-tab', tab || '');
+      panelSlot.setAttribute('data-git-active-fragment', fragment || '');
+    }
+
+    function setPanelContent(html, tab) {
+      if (!panelSlot) {
+        return;
+      }
+      panelSlot.innerHTML = html;
+      enhancePanel(tab);
+      enableCloneCopy(panelSlot);
+    }
+
+    function setPanelError(entry, tab, error) {
+      var message = error && error.message ? error.message : 'Unable to load this view.';
+      var linkHtml = '';
+      if (entry && entry.detailUrl && tab === 'log') {
+        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
+      }
+      setPanelContent(renderPanelMessage('error', escapeHtml(message) + linkHtml), tab);
+    }
+
+    function setPanelUnavailable(entry, tab) {
+      var label = TAB_LABELS[tab] || 'view';
+      var linkHtml = '';
+      if (entry && entry.detailUrl && tab === 'log') {
+        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
+      }
+      var message = 'No ' + escapeHtml(label) + ' is available for this repository.' + linkHtml;
+      setPanelContent(renderPanelMessage('empty', message), tab);
+    }
+
+    function setActiveButton(button) {
+      if (activeButton && activeButton !== button) {
+        activeButton.classList.remove('git-link-active');
+      }
+      activeButton = button || null;
+      if (activeButton) {
+        activeButton.classList.add('git-link-active');
+      }
+    }
+
+    function enableCloneCopy(root) {
+      if (!root || typeof window === 'undefined') {
+        return;
+      }
+      var buttons = Array.prototype.slice.call(root.querySelectorAll('.git-clone-copy'));
+      buttons.forEach(function(button) {
+        if (button.getAttribute('data-copy-bound') === 'true') {
+          return;
+        }
+        button.setAttribute('data-copy-bound', 'true');
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var commandElement = null;
+          if (button.getAttribute('data-copy-source') === 'previous') {
+            var previous = button.previousElementSibling;
+            if (previous && previous.classList.contains('git-clone-command')) {
+              commandElement = previous;
+            }
+          }
+          if (!commandElement) {
+            var cloneRoot = button.closest('.git-panel-clone');
+            if (cloneRoot) {
+              commandElement = cloneRoot.querySelector('.git-clone-command');
+            }
+          }
+          var commandText = commandElement ? commandElement.textContent.trim() : '';
+          if (!commandText) {
+            return;
+          }
+          copyTextToClipboard(commandText).then(function(success) {
+            if (!success) {
+              return;
+            }
+            button.classList.add('is-copied');
+            flashCopyFeedback(button, 'Copied!');
+            window.setTimeout(function() {
+              button.classList.remove('is-copied');
+            }, 1600);
+          });
+        });
+      });
+    }
+
+    function filterList(query) {
+      var needle = (query || '').trim().toLowerCase();
+      var matches = 0;
+      repoItems.forEach(function(entry) {
+        var li = entry.button.closest('.git-repo-list-item');
+        if (!li) {
+          return;
+        }
+        var isMatch = !needle || entry.searchText.indexOf(needle) !== -1;
+        li.hidden = !isMatch;
+        if (isMatch) {
+          matches += 1;
+        }
+      });
+      if (emptyStateEl) {
+        emptyStateEl.hidden = matches > 0;
+      }
+    }
+
+    function findEntry(predicate) {
+      for (var i = 0; i < repoItems.length; i += 1) {
+        if (predicate(repoItems[i])) {
+          return repoItems[i];
+        }
+      }
+      return null;
+    }
+
+    function findEntryByUrl(url) {
+      if (!url) return null;
+      return findEntry(function(entry) {
+        return entry.detailUrl === url;
+      });
+    }
+
+    function findEntryByLabel(label) {
+      if (!label) return null;
+      var target = label.toLowerCase();
+      return findEntry(function(entry) {
+        return (entry.label || '').toLowerCase() === target;
+      });
+    }
+
+    function findEntryByFragment(fragment) {
+      if (!fragment) return null;
+      return findEntry(function(entry) {
+        return entry.fragmentPath === fragment || entry.fullLogFragment === fragment;
+      });
+    }
+
+    function getFragmentForTab(entry, tab) {
+      if (!entry) return '';
+      if (tab === 'log') {
+        return entry.fragmentPath || '';
+      }
+      if (tab === 'files') {
+        return entry.filesFragment || '';
+      }
+      if (tab === 'refs') {
+        return entry.refsFragment || '';
+      }
+      if (tab === 'readme') {
+        return entry.readmeFragment || '';
+      }
+      return '';
+    }
+
+    function updateTabAvailability(entry) {
+      TAB_ORDER.forEach(function(tab) {
+        var button = tabMap[tab];
+        if (!button) {
+          return;
+        }
+        var fragment = getFragmentForTab(entry, tab);
+        var isAvailable = tab === 'log' ? true : !!fragment;
+        button.disabled = !isAvailable;
+        button.classList.toggle('is-disabled', !isAvailable);
+      });
+    }
+
+    function setActiveTab(tab) {
+      Object.keys(tabMap).forEach(function(key) {
+        var button = tabMap[key];
+        if (!button) return;
+        var isActive = key === tab;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function abortPendingFileRequest() {
+      if (pendingFileController && typeof pendingFileController.abort === 'function') {
+        pendingFileController.abort();
+      }
+      pendingFileController = null;
+    }
+
+    function abortPendingRequest() {
+      if (pendingController && typeof pendingController.abort === 'function') {
+        pendingController.abort();
+      }
+      pendingController = null;
+      abortPendingFileRequest();
+    }
+
+    function setSidebarCollapsed(collapsed, options) {
+      options = options || {};
+      sidebarCollapsed = collapsed;
+      if (options.reason === 'auto') {
+        sidebarAutoCollapsed = collapsed;
+      } else if (options.reason === 'manual') {
+        sidebarAutoCollapsed = false;
+      } else if (!collapsed) {
+        sidebarAutoCollapsed = false;
+      }
+      if (gitShell) {
+        gitShell.classList.toggle('is-sidebar-collapsed', collapsed);
+      }
+      if (sidebar) {
+        sidebar.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+      }
+      if (sidebarToggle) {
+        sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        sidebarToggle.textContent = collapsed ? 'Show repos' : 'Hide repos';
+      }
+    }
+
+    function enhancePanel(tab) {
+      if (tab === 'files') {
+        activeFileButton = null;
+        initFilesPanel();
+      } else {
+        activeFileButton = null;
+      }
+      if (tab === 'log') {
+        initLogPanel();
+      }
+    }
+
+    function setActiveFileButton(button) {
+      if (activeFileButton && activeFileButton !== button) {
+        activeFileButton.classList.remove('is-active');
+      }
+      activeFileButton = button || null;
+      if (activeFileButton) {
+        activeFileButton.classList.add('is-active');
+      }
+    }
+
+    function expandTreeAncestors(element) {
+      if (!element) {
+        return;
+      }
+      var current = element.parentElement;
+      while (current) {
+        if (current.tagName && current.tagName.toLowerCase() === 'details') {
+          current.open = true;
+        }
+        current = current.parentElement;
+      }
+    }
+
+    function loadBlobPreview(blobPath, sourceButton) {
+      if (!panelSlot) {
+        return;
+      }
+      var preview = panelSlot.querySelector('[data-git-file-preview]');
+      if (!preview) {
+        return;
+      }
+      if (panelSlot) {
+        panelSlot.setAttribute('data-git-active-blob', blobPath || '');
+      }
+      abortPendingFileRequest();
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      if (controller) {
+        pendingFileController = controller;
+      }
+      preview.innerHTML = renderPanelMessage('loading', 'Loading file…');
+      var requestUrl = resolveRelative(blobPath);
+      fetch(requestUrl, controller ? { signal: controller.signal } : {})
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          return response.text();
+        })
+        .then(function(html) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          preview.innerHTML = html;
+          enableCloneCopy(preview);
+          enhanceBlobPreview(preview);
+        })
+        .catch(function(error) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          preview.innerHTML = renderPanelMessage('error', escapeHtml(error.message || 'Unable to load file preview.'));
+        })
+        .finally(function() {
+          if (pendingFileController === controller) {
+            pendingFileController = null;
+          }
+        });
+      setActiveFileButton(sourceButton || null);
+    }
+
+    function initFilesPanel() {
+      if (!panelSlot) {
+        return;
+      }
+      var activeEntryKey = panelSlot.getAttribute('data-git-active-entry-key') || '';
+      var treeButtons = Array.prototype.slice.call(panelSlot.querySelectorAll('.git-tree-entry'));
+      if (treeButtons.length === 0) {
+        return;
+      }
+      treeButtons.forEach(function(button) {
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var blobPath = button.getAttribute('data-git-blob') || '';
+          if (!blobPath) {
+            return;
+          }
+          loadBlobPreview(blobPath, button);
+        });
+      });
+      if (
+        pendingPermalinkState &&
+        pendingPermalinkState.repoKey &&
+        pendingPermalinkState.repoKey === activeEntryKey &&
+        pendingPermalinkState.blob
+      ) {
+        var targetBlobPath = pendingPermalinkState.blob;
+        var targetButton = null;
+        treeButtons.forEach(function(button) {
+          if (targetButton) {
+            return;
+          }
+          if ((button.getAttribute('data-git-blob') || '') === targetBlobPath) {
+            targetButton = button;
+          }
+        });
+        if (targetButton) {
+          expandTreeAncestors(targetButton);
+          loadBlobPreview(targetBlobPath, targetButton);
+        }
+      }
+      var preview = panelSlot.querySelector('[data-git-file-preview]');
+      if (preview) {
+        preview.setAttribute('tabindex', '-1');
+      }
+    }
+
+    function initLogPanel() {
+      if (!panelSlot) {
+        return;
+      }
+      var panel = panelSlot.querySelector('.git-panel');
+      if (!panel) {
+        return;
+      }
+      var expandLink = panel.querySelector('[data-git-log-action="expand"]');
+      if (expandLink && expandLink.getAttribute('data-git-bound') !== 'true') {
+        expandLink.setAttribute('data-git-bound', 'true');
+        expandLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = expandLink.getAttribute('href') || panel.getAttribute('data-git-full-fragment') || '';
+          if (!fragment && activeEntry.fullLogFragment) {
+            fragment = activeEntry.fullLogFragment;
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: true
+          });
+        });
+      }
+      var collapseLink = panel.querySelector('[data-git-log-action="collapse"]');
+      if (collapseLink && collapseLink.getAttribute('data-git-bound') !== 'true') {
+        collapseLink.setAttribute('data-git-bound', 'true');
+        collapseLink.addEventListener('click', function(event) {
+          event.preventDefault();
+          if (!activeEntry) {
+            return;
+          }
+          var fragment = collapseLink.getAttribute('href') || panel.getAttribute('data-git-limited-fragment') || '';
+          if (!fragment) {
+            fragment = activeEntry.limitedLogFragment || activeEntry.fragmentPath || '';
+          }
+          if (!fragment) {
+            fragment = getFragmentForTab(activeEntry, 'log');
+          }
+          if (!fragment) {
+            return;
+          }
+          loadPanel(activeEntry, 'log', {
+            forceReload: true,
+            fragmentOverride: fragment,
+            rememberFragment: false
+          });
+        });
+      }
+    }
+
+    function enhanceBlobPreview(root) {
+      if (!root) {
+        return;
+      }
+      var panel = root.querySelector('[data-git-panel-section="blob"]');
+      if (!panel) {
+        return;
+      }
+
+      var rawPath = panel.getAttribute('data-git-raw-path') || '';
+      var fragmentPath = panel.getAttribute('data-git-fragment-path') || '';
+
+      var copyButton = panel.querySelector('[data-git-file-copy]');
+      if (copyButton && copyButton.getAttribute('data-copy-bound') !== 'true') {
+        copyButton.setAttribute('data-copy-bound', 'true');
+        if (!rawPath) {
+          copyButton.disabled = true;
+        } else {
+          copyButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            if (copyButton.getAttribute('data-copy-loading') === 'true') {
+              return;
+            }
+            var cached = copyButton.__gitRawCache;
+            var handleCopy = function(text) {
+              if (!text) {
+                return;
+              }
+              copyTextToClipboard(text).then(function(success) {
+                if (!success) {
+                  return;
+                }
+                copyButton.classList.add('is-copied');
+                flashCopyFeedback(copyButton, 'Copied!');
+                window.setTimeout(function() {
+                  copyButton.classList.remove('is-copied');
+                }, 1600);
+              });
+            };
+            if (typeof cached === 'string') {
+              handleCopy(cached);
+              return;
+            }
+            copyButton.setAttribute('data-copy-loading', 'true');
+            copyButton.classList.add('is-loading');
+            var requestUrl = resolveRelative(rawPath);
+            fetch(requestUrl)
+              .then(function(response) {
+                if (!response.ok) {
+                  throw new Error('Request failed with status ' + response.status);
+                }
+                return response.text();
+              })
+              .then(function(text) {
+                copyButton.__gitRawCache = text;
+                handleCopy(text);
+              })
+              .catch(function(error) {
+                console.warn('Unable to copy file contents', error);
+              })
+              .finally(function() {
+                copyButton.classList.remove('is-loading');
+                copyButton.removeAttribute('data-copy-loading');
+              });
+          });
+        }
+      }
+
+      var highlightedLine = null;
+      var highlightedButton = null;
+
+      function setHighlightedLine(lineNumber, sourceButton) {
+        if (highlightedLine) {
+          highlightedLine.classList.remove('is-highlighted');
+        }
+        if (highlightedButton) {
+          highlightedButton.classList.remove('is-highlighted');
+        }
+        var targetLine = panel.querySelector('#L' + lineNumber);
+        if (targetLine) {
+          targetLine.classList.add('is-highlighted');
+          try {
+            targetLine.scrollIntoView({ block: 'nearest' });
+          } catch (scrollError) {
+            // noop
+          }
+          highlightedLine = targetLine;
+        } else {
+          highlightedLine = null;
+        }
+        if (sourceButton) {
+          sourceButton.classList.add('is-highlighted');
+          highlightedButton = sourceButton;
+        } else {
+          highlightedButton = null;
+        }
+      }
+
+      var lineButtons = Array.prototype.slice.call(panel.querySelectorAll('[data-git-line-anchor]'));
+      lineButtons.forEach(function(button) {
+        if (button.getAttribute('data-copy-bound') === 'true') {
+          return;
+        }
+        button.setAttribute('data-copy-bound', 'true');
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          var lineNumber = button.getAttribute('data-git-line-anchor');
+          if (!lineNumber) {
+            return;
+          }
+          setHighlightedLine(lineNumber, button);
+          if (!fragmentPath) {
+            return;
+          }
+          var permalink = buildBlobPermalink(fragmentPath, lineNumber);
+          if (!permalink) {
+            return;
+          }
+          copyTextToClipboard(permalink).then(function(success) {
+            if (!success) {
+              return;
+            }
+            button.classList.add('is-copied');
+            flashCopyFeedback(button, 'Permalink copied!');
+            window.setTimeout(function() {
+              button.classList.remove('is-copied');
+            }, 1600);
+          });
+        });
+      });
+
+      if (pendingPermalinkState) {
+        var activeEntryKey = panelSlot ? panelSlot.getAttribute('data-git-active-entry-key') : '';
+        var targetRepoKey = pendingPermalinkState.repoKey || '';
+        var targetBlobPath = pendingPermalinkState.blob || '';
+        var targetLine = pendingPermalinkState.line || '';
+        var panelBlobPath = panel.getAttribute('data-git-fragment-path') || '';
+        if (
+          activeEntryKey &&
+          targetRepoKey &&
+          activeEntryKey === targetRepoKey &&
+          panelBlobPath &&
+          targetBlobPath &&
+          panelBlobPath === targetBlobPath
+        ) {
+          if (targetLine) {
+            var targetButton = panel.querySelector('[data-git-line-anchor="' + targetLine + '"]');
+            setHighlightedLine(targetLine, targetButton);
+          }
+          pendingPermalinkState = null;
+        }
+      }
+    }
+
+    function parseLocationHash() {
+      if (typeof window === 'undefined') {
+        return null;
+      }
+      var hash = window.location.hash || '';
+      if (!hash || hash.length <= 1) {
+        return null;
+      }
+      var params = new URLSearchParams(hash.slice(1));
+      var state = {};
+      var hasValue = false;
+      ['repo', 'tab', 'blob', 'line'].forEach(function(key) {
+        var value = params.get(key);
+        if (value != null && value !== '') {
+          state[key] = value;
+          hasValue = true;
+        }
+      });
+      return hasValue ? state : null;
+    }
+
+    function restoreLocationState() {
+      var state = parseLocationHash();
+      if (!state) {
+        pendingPermalinkState = null;
+        return false;
+      }
+      var repoKey = state.repo || '';
+      var blobPath = state.blob || '';
+      var tab = state.tab || (blobPath ? 'files' : '');
+      var lineRaw = state.line || '';
+      var line = lineRaw.replace(/[^\d]/g, '');
+
+      var targetEntry = null;
+      if (repoKey) {
+        targetEntry = findEntry(function(entry) {
+          return buildEntryKey(entry) === repoKey;
+        });
+      }
+      if (!targetEntry && blobPath) {
+        var slugMatch = blobPath.match(/^git\/([^/]+)/);
+        if (slugMatch && slugMatch[1]) {
+          var slugId = slugMatch[1];
+          targetEntry = findEntry(function(entry) {
+            return (entry.id && entry.id === slugId) || buildEntryKey(entry) === slugId;
+          });
+        }
+      }
+      if (!targetEntry && blobPath) {
+        targetEntry = findEntryByFragment(blobPath);
+      }
+      if (!targetEntry) {
+        pendingPermalinkState = null;
+        return false;
+      }
+
+      var resolvedTab = tab || 'readme';
+      if (blobPath) {
+        resolvedTab = 'files';
+      }
+
+      if (
+        activeEntry === targetEntry &&
+        blobPath &&
+        panelSlot &&
+        (panelSlot.getAttribute('data-git-active-blob') || '') === blobPath
+      ) {
+        pendingPermalinkState = {
+          repoKey: buildEntryKey(targetEntry),
+          blob: blobPath,
+          line: line,
+          tab: resolvedTab
+        };
+        enhanceBlobPreview(panelSlot);
+        return true;
+      }
+
+      pendingPermalinkState = {
+        repoKey: buildEntryKey(targetEntry),
+        blob: blobPath,
+        line: line,
+        tab: resolvedTab
+      };
+
+      activateEntry(targetEntry, { tab: resolvedTab, forceReload: true });
+      return true;
+    }
+
+    function loadPanel(entry, tab, options) {
+      if (!entry) {
+        return;
+      }
+      options = options || {};
+      if (tab === 'files' && !sidebarCollapsed) {
+        setSidebarCollapsed(true, { reason: 'auto' });
+      } else if (tab !== 'files' && sidebarAutoCollapsed && sidebarCollapsed) {
+        setSidebarCollapsed(false, { reason: 'auto' });
+      }
+
+      var fragmentOverride = options.fragmentOverride || '';
+      if (!fragmentOverride && tab === 'log' && entry.logFragmentOverride) {
+        fragmentOverride = entry.logFragmentOverride;
+      }
+      if (tab === 'log' && !entry.limitedLogFragment) {
+        entry.limitedLogFragment = entry.fragmentPath || '';
+      }
+      var fragment = fragmentOverride || getFragmentForTab(entry, tab);
+      if (tab === 'log') {
+        if (options.rememberFragment === true && fragmentOverride) {
+          entry.logFragmentOverride = fragmentOverride;
+        } else if (options.rememberFragment === false) {
+          entry.logFragmentOverride = '';
+        }
+      }
+      setPanelMetadata(entry, tab, fragment);
+      if (!fragment) {
+        hideIndicator();
+        setActiveTab(tab);
+        setPanelUnavailable(entry, tab);
+        activeTab = tab;
+        return;
+      }
+
+      abortPendingRequest();
+      setActiveTab(tab);
+      activeTab = tab;
+      var label = entry.label || entry.detailUrl || 'Repository';
+      showIndicator('Loading ' + label + ' · ' + (TAB_LABELS[tab] || 'view') + '…');
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      if (controller) {
+        pendingController = controller;
+      }
+      var requestUrl = resolveRelative(fragment);
+      if (options.forceReload) {
+        var separator = requestUrl.indexOf('?') === -1 ? '?' : '&';
+        requestUrl = requestUrl + separator + 'ts=' + Date.now();
+      }
+      fetch(requestUrl, controller ? { signal: controller.signal } : {})
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Request failed with status ' + response.status);
+          }
+          return response.text();
+        })
+        .then(function(html) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          hideIndicator();
+          setPanelContent(html, tab);
+        })
+        .catch(function(error) {
+          if (controller && controller.signal.aborted) {
+            return;
+          }
+          hideIndicator();
+          setPanelError(entry, tab, error);
+        })
+        .finally(function() {
+          if (pendingController === controller) {
+            pendingController = null;
+          }
+        });
+    }
+
+    function resolveTab(entry, desired) {
+      var order = [];
+      if (desired) {
+        order.push(desired);
+      }
+      TAB_ORDER.forEach(function(tab) {
+        if (order.indexOf(tab) === -1) {
+          order.push(tab);
+        }
+      });
+      for (var i = 0; i < order.length; i += 1) {
+        var candidate = order[i];
+        if (candidate === 'log') {
+          return 'log';
+        }
+        if (getFragmentForTab(entry, candidate)) {
+          return candidate;
+        }
+      }
+      return 'log';
+    }
+
+    function activateEntry(entry, options) {
+      if (!entry) {
+        return;
+      }
+      options = options || {};
+      var forceReload = !!options.forceReload;
+      var requestedTab = typeof options.tab === 'string' ? options.tab : null;
+      var previousEntry = activeEntry;
+      var isSameEntry = previousEntry === entry;
+
+      if (isSameEntry && !forceReload && !requestedTab) {
+        return;
+      }
+
+      activeEntry = entry;
+      setActiveButton(entry.button);
+      if (activeLabel) {
+        activeLabel.textContent = entry.label || entry.detailUrl || 'selected repository';
+      }
+
+      updateTabAvailability(entry);
+
+      var targetTab;
+      if (requestedTab) {
+        targetTab = requestedTab;
+      } else if (!isSameEntry) {
+        targetTab = 'log';
+      } else {
+        targetTab = activeTab;
+      }
+
+      var nextTab = resolveTab(entry, targetTab);
+      loadPanel(entry, nextTab, { forceReload: forceReload });
+    }
+
+    repoButtons.forEach(function(button) {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        var entry = findEntry(function(candidate) {
+          return candidate.button === button;
+        });
+        activateEntry(entry, {});
+      });
+    });
+
+    tabButtons.forEach(function(button) {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        var tab = button.getAttribute('data-git-tab');
+        if (!tab || button.disabled) {
+          return;
+        }
+        if (!activeEntry) {
+          return;
+        }
+        if (tab === activeTab && !button.classList.contains('is-disabled')) {
+          return;
+        }
+        loadPanel(activeEntry, tab, { forceReload: false });
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function(event) {
+        filterList(event.target.value || '');
+      });
+    }
+
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function(event) {
+        event.preventDefault();
+        var nextCollapsed = !sidebarCollapsed;
+        setSidebarCollapsed(nextCollapsed, { reason: 'manual' });
+      });
+    }
+
+    setSidebarCollapsed(false);
+    filterList('');
+
+    var initialFragment = panelContainer ? panelContainer.getAttribute('data-default-fragment') : '';
+    var initialUrl = panelContainer ? panelContainer.getAttribute('data-default-url') : '';
+    var initialName = panelContainer ? panelContainer.getAttribute('data-default-name') : '';
+    var initialEntry =
+      findEntryByFragment(initialFragment) ||
+      findEntryByUrl(initialUrl) ||
+      findEntryByLabel(initialName) ||
+      repoItems[0] ||
+      null;
+
+    var locationStateApplied = restoreLocationState();
+    if (!locationStateApplied) {
+      if (initialEntry) {
+        activateEntry(initialEntry, {});
+      } else {
+        hideIndicator();
+      }
+    }
+
+    if (orientationOverlay) {
+      if (orientationOverlaySupportsPointer) {
+        orientationOverlay.addEventListener('pointerup', handleOrientationOverlayTap);
+      } else {
+        orientationOverlay.addEventListener('click', handleOrientationOverlayTap);
+      }
+      evaluateOrientationOverlay();
+      attachMediaQueryListener(orientationMobileQuery, evaluateOrientationOverlay);
+      attachMediaQueryListener(orientationPortraitQuery, evaluateOrientationOverlay);
+      window.addEventListener('resize', evaluateOrientationOverlay);
+      window.addEventListener('orientationchange', evaluateOrientationOverlay);
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          evaluateOrientationOverlay();
+        }
+      });
+    }
+
+    window.addEventListener('hashchange', restoreLocationState);
+  })();
+</script>
+
+    </div>
+
+    <!-- Column Layout Support -->
+    
+
+    
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <!-- Include CM footer if specified -->
+    
+      <!-- footer partial (auto-generated) -->
+<div id="foot">
+  <p>
+    <center>
+      Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.
+    </center>
+  </p>
+</div>
+
+    
+    
+    <div class="container footer-container">
+      
+        <nav>
+          <ul class="footer-links">
+            
+              <li>
+                <a href="privacy.html">
+                  Privacy Policy
+                </a>
+              </li>
+            
+              <li>
+                <a href="terms.html">
+                  Terms of Service
+                </a>
+              </li>
+            
+          </ul>
+        </nav>
+      
+      <p class="footer-copy">
+        &copy; 2025 Core
+      </p>
+    </div>
+  </footer>
+
+  
+  
+
+  
+  
+
+  
+  <script>
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = 'assets/doom/';
+      }
+    })();
+  </script>
+
+  <!-- NAV TOGGLE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

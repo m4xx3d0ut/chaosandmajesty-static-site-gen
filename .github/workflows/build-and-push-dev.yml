@@ -27,7 +27,6 @@ jobs:
       DEFAULT_SHA: ${{ github.sha }}
       FALLBACK_REF: ${{ github.ref }}
       TARGET_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
-      NODE_OPTIONS: --max-old-space-size=8192
 
     steps:
       - name: Install SSH client (if missing)

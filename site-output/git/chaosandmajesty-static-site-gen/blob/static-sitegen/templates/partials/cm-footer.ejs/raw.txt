@@ -1,0 +1,8 @@
+<!-- footer partial (auto-generated) -->
+<div id="foot">
+  <p>
+    <center>
+      <%= page.cmFooterText || site.cmFooterText || 'Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR.' %>
+    </center>
+  </p>
+</div>

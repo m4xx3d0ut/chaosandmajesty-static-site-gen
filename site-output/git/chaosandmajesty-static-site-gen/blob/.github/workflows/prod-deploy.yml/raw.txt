@@ -17,6 +17,7 @@ env:
   REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   IMAGE_TAG: prod
+  NODE_OPTIONS: --max-old-space-size=8192
 
 jobs:
   build:
