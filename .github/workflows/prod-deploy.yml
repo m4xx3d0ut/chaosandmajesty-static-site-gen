@@ -155,7 +155,7 @@ jobs:
           file: Dockerfile
           no-cache: true
           ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
+            default
           build-args: |
             SYNC_GIT_MANIFEST_URL_REWRITE=ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
           push: true
