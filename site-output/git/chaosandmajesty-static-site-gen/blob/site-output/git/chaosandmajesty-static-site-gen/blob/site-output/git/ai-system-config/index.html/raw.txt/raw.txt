@@ -1,0 +1,174 @@
+
+<article
+  class="git-panel"
+  data-git-panel="ai-system-config"
+  data-git-log-mode="full"
+  data-git-full-fragment=""
+  data-git-limited-fragment="git/ai-system-config/index.html"
+  data-git-log-total="7"
+  data-git-log-initial-limit="10"
+>
+  <header class="git-panel-header">
+    <div class="git-panel-lead">
+      <h4 class="git-panel-title">ai-system-config</h4>
+      <p class="git-panel-meta">
+        
+          <span class="git-panel-owner">@m4xx3d0ut</span>
+        
+        
+          <span class="git-panel-branch">
+            branch <strong>dev</strong>
+          </span>
+        
+      </p>
+      
+        <p class="git-panel-description">Flux LlmOps system configuration</p>
+      
+    </div>
+    <div class="git-panel-clone">
+      <span class="git-clone-label">Clone repository (read-only)</span>
+      <code class="git-clone-command" data-git-command="git clone https://cm.core.home.arpa/git/ai-system-config.git">git clone https://cm.core.home.arpa/git/ai-system-config.git</code>
+      <button type="button" class="git-clone-copy" data-copy-source="previous">Copy</button>
+      
+        <a class="git-panel-log-link" href="https://cm.core.home.arpa/git/ai-system-config/log.html" target="_blank" rel="noopener">View on origin</a>
+      
+    </div>
+  </header>
+
+  <section class="git-activity">
+    <header class="git-activity-header">
+      <h5 class="git-activity-title">Recent commits</h5>
+      
+        <span class="git-activity-count">
+          7 shown
+          
+        </span>
+      
+    </header>
+
+    
+      <ul class="git-commit-list">
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/958c87c96257327737e7e8632aa181df87a38c1c.html" target="_blank" rel="noopener">wip: multi model ai system.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">958c87c</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-26T02:10:09+00:00">
+                Sep 26, 2025, 2:10 AM
+                 · 4 weeks ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/0a22dfb7cb5f3d2b0ed34ee6d435c60924cb9300.html" target="_blank" rel="noopener">Implement vLLM multi-model serving with hot-loading gateway</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">0a22dfb</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-19T16:03:50+00:00">
+                Sep 19, 2025, 4:03 PM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/5a9301f0b315ba1f765403afb7aaa32abc06dcd5.html" target="_blank" rel="noopener">Removed loadtester.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">5a9301f</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-16T14:33:27+00:00">
+                Sep 16, 2025, 2:33 PM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/9acc80d9fc02a00c926fe931ed9d2114339768fe.html" target="_blank" rel="noopener">Clean up Flagger canary configuration formatting</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">9acc80d</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-16T02:49:17+00:00">
+                Sep 16, 2025, 2:49 AM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/b9f52986abd7d3205d072e03e41aa380cb3ba3ea.html" target="_blank" rel="noopener">Added .gitignore</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">b9f5298</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-16T01:08:43+00:00">
+                Sep 16, 2025, 1:08 AM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/c1976892e1c69950f65a1785f7566d1310e9937f.html" target="_blank" rel="noopener">feat: implement AI system Kubernetes manifests with GitOps structure</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">c197689</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-15T17:05:53+00:00">
+                Sep 15, 2025, 5:05 PM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/ai-system-config/commit/5c42ddbbfefbba2c5aa2474e42a58863521e6095.html" target="_blank" rel="noopener">Initial commit.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">5c42ddb</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-09-15T16:23:23+00:00">
+                Sep 15, 2025, 4:23 PM
+                 · last month
+              </span>
+            </div>
+          </li>
+        
+      </ul>
+    
+  </section>
+</article>

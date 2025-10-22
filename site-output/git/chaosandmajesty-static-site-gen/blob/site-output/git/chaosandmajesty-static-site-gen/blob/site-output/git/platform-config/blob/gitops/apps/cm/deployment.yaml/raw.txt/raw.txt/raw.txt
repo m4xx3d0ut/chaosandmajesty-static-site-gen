@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cm
+  namespace: web
+  labels:
+    app: cm
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cm
+  template:
+    metadata:
+      labels:
+        app: cm
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: cm
+          image: reg.microk8s.core.home.arpa:32000/cm:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi

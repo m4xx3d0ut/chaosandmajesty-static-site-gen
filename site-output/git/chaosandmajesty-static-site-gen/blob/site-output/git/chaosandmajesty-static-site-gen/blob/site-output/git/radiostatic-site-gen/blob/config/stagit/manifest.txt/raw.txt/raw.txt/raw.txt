@@ -1,0 +1,16 @@
+# Managed stagit manifest (url|branch|name|owner|description|homepage)
+# Populate with the repositories you wish to mirror. Lines beginning with '#'
+# are ignored. Example:
+# git@lab-gitea:org/project.git|main|project|RadioStatic|Project docs|https://radiostatic.example/project
+
+# RadioStatic Site (production)
+ssh://git@gitea.core.home.arpa:32222/radiostatic/radiostatic-site.git|prod|radiostatic-site|radiostatic|RadioStatic demo static site|https://radiostatic.example/git/radiostatic-site
+
+# RadioStatic Blog Content
+ssh://git@gitea.core.home.arpa:32222/radiostatic/blog-content.git|main|blog-content|radiostatic|Markdown sources for the RadioStatic demo blog|https://radiostatic.example/git/blog-content
+
+# Infrastructure Config
+ssh://git@gitea.core.home.arpa:32222/radiostatic/platform-config.git|main|platform-config|radiostatic|GitOps platform configuration used in the demo|https://radiostatic.example/git/platform-config
+
+# Sample CICD Workflows
+ssh://git@gitea.core.home.arpa:32222/radiostatic/pipeline-examples.git|main|pipeline-examples|radiostatic|CI/CD skeleton used in documentation|https://radiostatic.example/git/pipeline-examples

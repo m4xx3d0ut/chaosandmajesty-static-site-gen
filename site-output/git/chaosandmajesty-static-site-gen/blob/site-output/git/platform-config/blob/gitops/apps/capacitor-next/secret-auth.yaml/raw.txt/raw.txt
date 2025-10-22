@@ -1,0 +1,24 @@
+# gitops/apps/capacitor-next/secret-auth.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: capacitor-next-auth
+    namespace: flux-system
+type: Opaque
+stringData:
+    auth: ENC[AES256_GCM,data:XdTEU09yvSpcRC9nf+0wT7aOgk73w1vEt8xszPWTifnPL0+0pVlKWS2N9z391AMBUqKI49JPsdfGvEBWX3ML97g78gDWgpE=,iv:7iLFZ7e5KH4WDZvwM2CB5RCLvL2cknG75+udBHFubCs=,tag:O8HXHAoXh3KLcRTuCfBi6g==,type:str]
+sops:
+    age:
+        - recipient: age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA5Rm8wQjc1dm00QnNlT2FF
+            QjFqWlRrbWN3MEtJSDIxY2tiZjRCalQ3MWhFCmw1YUk3TXhLZ3Q3L0M1MkdDbWt5
+            MUpNVWZSRXJDbWRnMTBIS2I4TFdMUHcKLS0tIEtoZmZCVkVHSUp0NERrcENnYXZ1
+            ZFlFajQzdko3YjgvWUQ4Z3VCejlwNmcKGbvfgzepqoNgj5WWzHWLdH8E5Csp0qqT
+            1e1pSsTtRHmPu/1VBf4ev11+frncnZtFK1S37+AaxFX+NI1YdPqjmw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-03T17:06:13Z"
+    mac: ENC[AES256_GCM,data:XSSifkh49HB3TMqBVUz6sgH5b4pCQpS0U20tjog4pgEuk8J+9VNcxLzf5ss93Vs5VzaYSva1V0CkL62GtguXzQiNdMAsFwiwFdG0ASOq/4Tj4SM0BAnPv3wOhWihYFVcTuO34fYaOQtjgeSOMaeqhIWjldtoPmHOt9cQyyanPe4=,iv:CTymxF1+KicZ4hV9B1zqO8vJCGAoHDwrNzfqTXJxO+Q=,tag:EFs8ng0r2aBBVTxe3lmd6w==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

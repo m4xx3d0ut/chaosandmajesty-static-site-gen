@@ -1,0 +1,19 @@
+Chaos & Majesty DOOM WebAssembly Port – Modification Notice
+===========================================================
+
+Upstream project: diekmann/wasm-fizzbuzz (doom/) commit 51a7030bea563d96027301a36619c17347b9270d.
+Downstream maintainer: Chaos & Majesty static site (console minigame).
+Notice date: 2025-10-21.
+
+Summary of changes relative to upstream:
+- Switched the build pipeline to clang/LLVM 12 with release LTO settings and tightened Cargo release profile options for smaller wasm output.
+- Added WebAudio-compatible music playback (`doom_music.c`/`doom_music.h`) and extended `i_sound.c` to stream decoded audio to the browser runtime.
+- Raised the default zone allocator size and clamped `-mb` arguments to keep wasm heaps stable (`i_system.c`).
+- Altered demo sequencing in `d_main.c` to skip unavailable demo lumps in the shareware build.
+- Extended save/config handling (`m_misc.c`) to cooperate with the browser storage bridge.
+- Updated menu text handling for console UX tweaks and shortcut labels (`m_menu.c`).
+- Added wasm-facing bindings and exports (`src/lib.rs`, `src/js_imports.rs`) so the browser can drive the main loop, audio, and persistence.
+- Introduced helper hooks for heap allocation and libc shims inside the Rust runtime (`src/malloc.rs`, `src/unimplemented_libc.rs`).
+- Miscellaneous makefile updates across `clang_compiler_rt/`, `linuxdoom-1.10/`, and `musl-1.2.2/` to align with the newer toolchain.
+
+See patches/0001-chaos-and-majesty-doom-wasm.patch for complete diffs.

@@ -1,0 +1,21 @@
+---
+title: "Kickstart Your First Build"
+slug: kickstart-your-first-build
+author: your-name
+summary: "Follow this quick workflow to move from cloning the repo to your first successful build."
+publishedAt: 2024-04-12
+heroImage: assets/static/img/hero-blog-card.svg
+readingMinutes: 4
+seoDescription: "Step-by-step instructions for running the RadioStatic demo locally and exploring the output directory."
+tags:
+  - workflow
+  - getting-started
+---
+
+Ready to see RadioStatic in action? Start here:
+
+1. Install dependencies with `npm install` (already done for the demo branch).
+2. Run `./build-site.sh` to compile the demo configuration and generate HTML under `site-output/`.
+3. Launch `make serve-local` to view the pages at [http://localhost:8080](http://localhost:8080).
+
+From there you can swap the YAML file, edit Markdown content, and rebuild. The entire flow runs offline so you can iterate quickly and keep your broadcast secure.

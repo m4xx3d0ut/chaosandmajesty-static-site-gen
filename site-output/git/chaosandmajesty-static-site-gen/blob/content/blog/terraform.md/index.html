@@ -1,0 +1,171 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/content/blog/terraform.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/content/blog/terraform.md/raw.txt" data-git-line-count="229">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">terraform.md</h4>
+          <div class="git-file-meta">5.4 KB · 229 lines · content/blog/terraform.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/content/blog/terraform.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<p>title: Terraform
+slug: terraform
+author: m4xx3d0ut
+summary: Terraform cheat sheet covering fmt/validate, init/plan/apply, imports, workspaces,
+  and state management best practices.
+tags:</p>
+<ul>
+<li>m4xx3d
+publishedAt: 2025-02-06
+updatedAt: 2025-02-06
+readingMinutes: 5</li>
+</ul>
+<hr>
+<p><a href="https://developer.hashicorp.com/terraform/language">Terraform Docs</a></p>
+<h2>General Usage</h2>
+<h3>Format and validate the configuration</h3>
+<p>Format your configuration. Terraform will print out the names of the files it modified, if any. In this case, your configuration file was already formatted correctly, so Terraform won&#39;t return any file names.</p>
+<pre><code>terraform fmt
+</code></pre>
+<p>Validate your configuration. The example configuration provided above is valid, so Terraform will return a success message.</p>
+<pre><code>terraform validate
+</code></pre>
+<h3>Create infrastructure</h3>
+<p>Apply the configuration now with the terraform apply command. Terraform will print output similar to what is shown below. We have truncated some of the output to save space.</p>
+<pre><code>terraform apply
+</code></pre>
+<h3>Inspect state</h3>
+<p>Inspect the current state using terraform show.</p>
+<pre><code>terraform show
+</code></pre>
+<h3>Manually Managing State</h3>
+<p>Terraform has a built-in command called terraform state for advanced state management. Use the list subcommand to list of the resources in your project&#39;s state.</p>
+<pre><code>terraform state list
+</code></pre>
+<h3>Destroy</h3>
+<p>Destroy the resources you created.</p>
+<pre><code>terraform destroy
+</code></pre>
+<h2>Define input variables</h2>
+<h3>Set the container name with a variable</h3>
+<p>Create a new file called variables.tf with a block defining a new container_name variable.</p>
+<pre><code>variable &quot;container_name&quot; {
+  description = &quot;Value of the name for the Docker container&quot;
+  type        = string
+  default     = &quot;ExampleNginxContainer&quot;
+}
+</code></pre>
+<p>In main.tf, update the docker_container resource block to use the new variable. The container_name variable block will default to its default value (&quot;ExampleNginxContainer&quot;) unless you declare a different value.</p>
+<pre><code>resource &quot;docker_container&quot; &quot;nginx&quot; {
+  image = docker_image.nginx.image_id
+  name  = var.container_name
+  ports {
+    internal = 80
+    external = 8080
+  }
+}
+</code></pre>
+<p>Apply the configuration. Respond to the confirmation prompt with a yes.</p>
+<pre><code>terraform apply
+</code></pre>
+<p>Now apply the configuration again, this time overriding the default container name by passing in a variable using the -var flag. Terraform will update the container&#39;s name attribute with the new name. Respond to the confirmation prompt with yes.</p>
+<pre><code>terraform apply -var &quot;container_name=YetAnotherName&quot;
+</code></pre>
+<hr>
+<h2>Docker</h2>
+<p><a href="https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs">Provider Reference</a></p>
+<h3>Build</h3>
+<p>Simple example to create a Nginx Docker container.</p>
+<p>Create a <code>main.tf</code></p>
+<pre><code>terraform {
+  required_providers {
+    docker = {
+      source  = &quot;kreuzwerker/docker&quot;
+      version = &quot;~&gt; 3.0.1&quot;
+    }
+  }
+}
+
+provider &quot;docker&quot; {}
+
+resource &quot;docker_image&quot; &quot;nginx&quot; {
+  name         = &quot;nginx&quot;
+  keep_locally = false
+}
+
+resource &quot;docker_container&quot; &quot;nginx&quot; {
+  image = docker_image.nginx.image_id
+  name  = &quot;tutorial&quot;
+
+  ports {
+    internal = 80
+    external = 8000
+  }
+}
+</code></pre>
+<p>Initialize the directory.</p>
+<pre><code>terraform init
+</code></pre>
+<p>Terraform downloads the docker provider and installs it in a hidden subdirectory of your current working directory, named .terraform. The terraform init command prints out which version of the provider was installed. Terraform also creates a lock file named .terraform.lock.hcl which specifies the exact provider versions used, so that you can control when you want to update the providers used for your project.</p>
+<h3>Output Docker container configuration</h3>
+<p>Add the configuration below to outputs.tf to define outputs for your container&#39;s ID and the image ID.</p>
+<pre><code>output &quot;container_id&quot; {
+  description = &quot;ID of the Docker container&quot;
+  value       = docker_container.nginx.id
+}
+
+output &quot;image_id&quot; {
+  description = &quot;ID of the Docker image&quot;
+  value       = docker_image.nginx.id
+}
+</code></pre>
+<p>You must apply this configuration before you can use these output values. Apply your configuration now. Respond to the confirmation prompt with yes.</p>
+<pre><code>terraform apply
+</code></pre>
+<p>Terraform prints output values to the screen when you apply your configuration. Query the outputs with the terraform output command.</p>
+<pre><code class="language-bash">$ terraform output
+container_id = &quot;e5fff27c62e26dc9504d21980543f21161225ab483a1e534a98311a677b9453a&quot;
+image_id = &quot;sha256:d1a364dc548d5357f0da3268c888e1971bbdb957ee3f028fe7194f1d61c6fdeenginx:latest&quot;
+</code></pre>
+<p>More detail on <a href="https://developer.hashicorp.com/terraform/tutorials/configuration-language/outputs">outputs</a></p>
+<hr>
+<h2>AWS</h2>
+<p><a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs">Provider Reference</a></p>
+<h3>Build</h3>
+<p>Create a <code>main.tf</code></p>
+<pre><code>terraform {
+  required_providers {
+    aws = {
+      source  = &quot;hashicorp/aws&quot;
+      version = &quot;~&gt; 4.16&quot;
+    }
+  }
+
+  required_version = &quot;&gt;= 1.2.0&quot;
+}
+
+provider &quot;aws&quot; {
+  region  = &quot;us-west-2&quot;
+}
+
+resource &quot;aws_instance&quot; &quot;app_server&quot; {
+  ami           = &quot;ami-830c94e3&quot;
+  instance_type = &quot;t2.micro&quot;
+
+  tags = {
+    Name = &quot;ExampleAppServerInstance&quot;
+  }
+}
+</code></pre>
+<p>Initialize the directory.</p>
+<pre><code>terraform init
+</code></pre>
+<p>Terraform downloads the aws provider and installs it in a hidden subdirectory of your current working directory, named .terraform. The terraform init command prints out which version of the provider was installed. Terraform also creates a lock file named .terraform.lock.hcl which specifies the exact provider versions used, so that you can control when you want to update the providers used for your project.</p>
+
+      </div>
+    </article>
+  

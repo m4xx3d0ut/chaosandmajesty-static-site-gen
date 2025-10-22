@@ -1,0 +1,104 @@
+
+
+
+
+<article class="blog-article-body" data-slug="introducing-the-demo-site">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Introducing the Demo Site</h1>
+    <p class="blog-article-meta">
+      
+        <span>Mar 12, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>4 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>Your Name</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="assets/static/img/hero-cards.svg" alt="Introducing the Demo Site hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <p>The demo project is built to be minimal yet complete so you can remix it quickly. Here is how each piece participates in the build:</p>
+<h3>Configuration</h3>
+<p>The <code>smoke-test.yaml</code> file describes the overall site metadata, sections, and blog settings. Swap in your own YAML file by running <code>./build-site.sh path/to/config.yaml</code> and RadioStatic will generate the output accordingly.</p>
+<h3>Content</h3>
+<p>Blog posts live in <code>content/blog/</code> and may include <a href="https://www.markdownguide.org/basic-syntax/">Markdown</a> or inline HTML. Each file uses YAML front matter to describe metadata and the <code>author</code> field maps to an entry defined in the main configuration file.</p>
+<h3>Assets</h3>
+<p>Place CSS, JavaScript, and image files under the directory referenced by the <code>assets</code> key in the YAML file. In the demo we use <code>examples/demo-site/assets/</code>, but you can point to any folder.</p>
+<h3>Templates</h3>
+<p>EJS templates under <code>static-sitegen/templates/</code> render the pages. Most projects can stick with the defaults; advanced users can copy and customize them.</p>
+<blockquote>
+<p>Tip: Run <code>make serve-local</code> to host the <code>site-output/</code> directory at <code>http://localhost:8080</code> for quick previews.</p>
+</blockquote>
+<p>Happy building!</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/avatar-alex.svg" alt="Your Name avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">Your Name</strong>
+        
+          <div class="blog-author-title">Signal Keeper</div>
+        
+        
+          <p class="blog-author-bio">Introduce yourself or your crew with a quick sentence about why you broadcast.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/you" target="_blank" rel="noopener">@yourhandle</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="blog/styling-your-pages.html"
+        data-default-href="blog/styling-your-pages.html"
+        data-default-fragment="blog/fragments/styling-your-pages.html"
+        data-fragment-href="blog/fragments/styling-your-pages.html"
+        data-target-slug="styling-your-pages"
+        data-post-slug="styling-your-pages"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">Styling Your Pages</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link is-disabled"
+        data-blog-nav="next"
+        aria-disabled=&#34;true&#34; tabindex=&#34;-1&#34;
+        href="#"
+        data-default-href=""
+        data-default-fragment=""
+        data-fragment-href=""
+        data-target-slug=""
+        data-post-slug=""
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">No older posts</span>
+      </a>
+    </nav>
+  
+</article>
+

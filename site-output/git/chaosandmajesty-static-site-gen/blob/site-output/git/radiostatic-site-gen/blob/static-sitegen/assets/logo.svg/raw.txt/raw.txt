@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="70" viewBox="0 0 220 70">
+  <defs>
+    <linearGradient id="rs-bar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2125"/>
+      <stop offset="100%" stop-color="#101114"/>
+    </linearGradient>
+  </defs>
+  <rect width="220" height="70" rx="14" fill="url(#rs-bar)"/>
+  <g transform="translate(20 14)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 36c6-5 10-5 16 0s12 5 18 0 12-5 18 0 12 5 18 0 12-5 18 0" stroke="#2c3036" stroke-width="8" opacity="0.45"/>
+    <path d="M0 26c9-9 13-9 19 0s10 9 16 0 12-9 18 0 12 9 18 0 12-9 18 0" stroke="#ff436e" stroke-width="6"/>
+    <path d="M2 4c7 0 11 8 17 8s10-8 16-8 11 8 17 8 11-8 17-8 11 8 17 8" stroke="#f4f4f5" stroke-width="4" stroke-opacity="0.7"/>
+  </g>
+  <text x="120" y="42" font-family="'Space Grotesk','Inter',sans-serif" font-size="30" fill="#f5f5f6" font-weight="600" letter-spacing="0.8">RadioStatic</text>
+  <text x="122" y="56" font-family="'Share Tech Mono','Fira Mono',monospace" font-size="12" fill="#ff6f8f" letter-spacing="0.32em">STATIC SIGNAL</text>
+</svg>

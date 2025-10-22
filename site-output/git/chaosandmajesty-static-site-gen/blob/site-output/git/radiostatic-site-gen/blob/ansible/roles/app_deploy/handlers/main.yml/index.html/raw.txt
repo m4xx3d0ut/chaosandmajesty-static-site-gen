@@ -1,0 +1,46 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/ansible/roles/app_deploy/handlers/main.yml/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/ansible/roles/app_deploy/handlers/main.yml/raw.txt" data-git-line-count="2">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">main.yml</h4>
+          <div class="git-file-meta">77 B · 2 lines · ansible/roles/app_deploy/handlers/main.yml</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/ansible/roles/app_deploy/handlers/main.yml/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">---</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text"># Handlers intentionally left blank; docker_compose_v2 handles restarts.</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

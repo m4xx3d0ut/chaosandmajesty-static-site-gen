@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schemas
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: schemas
+
+data:
+  tool.search.jsonschema: |
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://example.ai/schemas/tool.search.json",
+      "title": "SearchToolResult",
+      "type": "object",
+      "required": ["results"],
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["doc_id", "score", "title", "url"],
+            "properties": {
+              "doc_id": {"type": "string"},
+              "score": {"type": "number", "minimum": 0},
+              "title": {"type": "string"},
+              "url": {"type": "string", "format": "uri"}
+            }
+          },
+          "minItems": 1,
+          "maxItems": 10
+        }
+      }
+    }
+  response.answer.jsonschema: |
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://example.ai/schemas/response.answer.json",
+      "title": "Answer",
+      "type": "object",
+      "required": ["final", "citations", "trace_id", "schema_valid"],
+      "properties": {
+        "final": {"type": "string"},
+        "citations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "trace_id": {"type": "string"},
+        "schema_valid": {"type": "boolean"},
+        "safety_flags": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+

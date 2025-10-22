@@ -1,0 +1,490 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/radiostatic-site-gen/blob/scripts/stagit/src/reallocarray.c/raw.txt/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/radiostatic-site-gen/blob/scripts/stagit/src/reallocarray.c/raw.txt/raw.txt" data-git-line-count="39">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">raw.txt</h4>
+          <div class="git-file-meta">1.3 KB · 39 lines · site-output/git/radiostatic-site-gen/blob/scripts/stagit/src/reallocarray.c/raw.txt</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/site-output/git/radiostatic-site-gen/blob/scripts/stagit/src/reallocarray.c/raw.txt/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">/*</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text"> * Copyright (c) 2008 Otto Moerbeek &lt;otto@drijf.net&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text"> *</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text"> * Permission to use, copy, modify, and distribute this software for any</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text"> * purpose with or without fee is hereby granted, provided that the above</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text"> * copyright notice and this permission notice appear in all copies.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text"> *</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text"> * THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL WARRANTIES</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L9" data-git-line="9">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="9"
+          aria-label="Copy permalink for line 9"
+          title="Copy permalink for line 9"
+        >9</button>
+        <span class="git-code-text"> * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L10" data-git-line="10">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="10"
+          aria-label="Copy permalink for line 10"
+          title="Copy permalink for line 10"
+        >10</button>
+        <span class="git-code-text"> * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L11" data-git-line="11">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="11"
+          aria-label="Copy permalink for line 11"
+          title="Copy permalink for line 11"
+        >11</button>
+        <span class="git-code-text"> * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L12" data-git-line="12">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="12"
+          aria-label="Copy permalink for line 12"
+          title="Copy permalink for line 12"
+        >12</button>
+        <span class="git-code-text"> * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L13" data-git-line="13">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="13"
+          aria-label="Copy permalink for line 13"
+          title="Copy permalink for line 13"
+        >13</button>
+        <span class="git-code-text"> * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L14" data-git-line="14">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="14"
+          aria-label="Copy permalink for line 14"
+          title="Copy permalink for line 14"
+        >14</button>
+        <span class="git-code-text"> * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L15" data-git-line="15">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="15"
+          aria-label="Copy permalink for line 15"
+          title="Copy permalink for line 15"
+        >15</button>
+        <span class="git-code-text"> */</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L16" data-git-line="16">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="16"
+          aria-label="Copy permalink for line 16"
+          title="Copy permalink for line 16"
+        >16</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L17" data-git-line="17">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="17"
+          aria-label="Copy permalink for line 17"
+          title="Copy permalink for line 17"
+        >17</button>
+        <span class="git-code-text">#include &lt;sys/types.h&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L18" data-git-line="18">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="18"
+          aria-label="Copy permalink for line 18"
+          title="Copy permalink for line 18"
+        >18</button>
+        <span class="git-code-text">#include &lt;errno.h&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L19" data-git-line="19">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="19"
+          aria-label="Copy permalink for line 19"
+          title="Copy permalink for line 19"
+        >19</button>
+        <span class="git-code-text">#include &lt;stdint.h&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L20" data-git-line="20">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="20"
+          aria-label="Copy permalink for line 20"
+          title="Copy permalink for line 20"
+        >20</button>
+        <span class="git-code-text">#include &lt;stdlib.h&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L21" data-git-line="21">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="21"
+          aria-label="Copy permalink for line 21"
+          title="Copy permalink for line 21"
+        >21</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L22" data-git-line="22">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="22"
+          aria-label="Copy permalink for line 22"
+          title="Copy permalink for line 22"
+        >22</button>
+        <span class="git-code-text">#include &quot;compat.h&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L23" data-git-line="23">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="23"
+          aria-label="Copy permalink for line 23"
+          title="Copy permalink for line 23"
+        >23</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L24" data-git-line="24">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="24"
+          aria-label="Copy permalink for line 24"
+          title="Copy permalink for line 24"
+        >24</button>
+        <span class="git-code-text">/*</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L25" data-git-line="25">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="25"
+          aria-label="Copy permalink for line 25"
+          title="Copy permalink for line 25"
+        >25</button>
+        <span class="git-code-text"> * This is sqrt(SIZE_MAX+1), as s1*s2 &lt;= SIZE_MAX</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L26" data-git-line="26">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="26"
+          aria-label="Copy permalink for line 26"
+          title="Copy permalink for line 26"
+        >26</button>
+        <span class="git-code-text"> * if both s1 &lt; MUL_NO_OVERFLOW and s2 &lt; MUL_NO_OVERFLOW</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L27" data-git-line="27">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="27"
+          aria-label="Copy permalink for line 27"
+          title="Copy permalink for line 27"
+        >27</button>
+        <span class="git-code-text"> */</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L28" data-git-line="28">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="28"
+          aria-label="Copy permalink for line 28"
+          title="Copy permalink for line 28"
+        >28</button>
+        <span class="git-code-text">#define MUL_NO_OVERFLOW	(1UL &lt;&lt; (sizeof(size_t) * 4))</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L29" data-git-line="29">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="29"
+          aria-label="Copy permalink for line 29"
+          title="Copy permalink for line 29"
+        >29</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L30" data-git-line="30">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="30"
+          aria-label="Copy permalink for line 30"
+          title="Copy permalink for line 30"
+        >30</button>
+        <span class="git-code-text">void *</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L31" data-git-line="31">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="31"
+          aria-label="Copy permalink for line 31"
+          title="Copy permalink for line 31"
+        >31</button>
+        <span class="git-code-text">reallocarray(void *optr, size_t nmemb, size_t size)</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L32" data-git-line="32">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="32"
+          aria-label="Copy permalink for line 32"
+          title="Copy permalink for line 32"
+        >32</button>
+        <span class="git-code-text">{</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L33" data-git-line="33">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="33"
+          aria-label="Copy permalink for line 33"
+          title="Copy permalink for line 33"
+        >33</button>
+        <span class="git-code-text">	if ((nmemb &gt;= MUL_NO_OVERFLOW || size &gt;= MUL_NO_OVERFLOW) &amp;&amp;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L34" data-git-line="34">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="34"
+          aria-label="Copy permalink for line 34"
+          title="Copy permalink for line 34"
+        >34</button>
+        <span class="git-code-text">	    nmemb &gt; 0 &amp;&amp; SIZE_MAX / nmemb &lt; size) {</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L35" data-git-line="35">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="35"
+          aria-label="Copy permalink for line 35"
+          title="Copy permalink for line 35"
+        >35</button>
+        <span class="git-code-text">		errno = ENOMEM;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L36" data-git-line="36">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="36"
+          aria-label="Copy permalink for line 36"
+          title="Copy permalink for line 36"
+        >36</button>
+        <span class="git-code-text">		return NULL;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L37" data-git-line="37">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="37"
+          aria-label="Copy permalink for line 37"
+          title="Copy permalink for line 37"
+        >37</button>
+        <span class="git-code-text">	}</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L38" data-git-line="38">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="38"
+          aria-label="Copy permalink for line 38"
+          title="Copy permalink for line 38"
+        >38</button>
+        <span class="git-code-text">	return realloc(optr, size * nmemb);</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L39" data-git-line="39">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="39"
+          aria-label="Copy permalink for line 39"
+          title="Copy permalink for line 39"
+        >39</button>
+        <span class="git-code-text">}</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

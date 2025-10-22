@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Polish markdown bullet lists for readability."""
+from __future__ import annotations
+
+from pathlib import Path
+
+TARGET_DIRS = [Path("content/offsec"), Path("blog")]
+
+END_PUNCT = ".!?;:)]`"  # trailing chars that should avoid extra period
+
+
+def polish_file(path: Path) -> bool:
+    original = path.read_text()
+    lines = original.splitlines()
+    changed = False
+    inside_code = False
+    for idx, line in enumerate(lines):
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            inside_code = not inside_code
+            continue
+        if inside_code:
+            continue
+        if stripped.startswith('- ```'):
+            lines[idx] = line.replace('- ```', '```', 1)
+            changed = True
+            continue
+        if stripped.startswith(('- ', '* ')):
+            indent = len(line) - len(stripped)
+            prefix = stripped[:2]
+            content = stripped[2:]
+            if not content:
+                continue
+            new_content = content
+            if content[0].islower():
+                new_content = content[0].upper() + content[1:]
+            if new_content[-1] not in END_PUNCT:
+                new_content = new_content + '.'
+            if new_content != content:
+                lines[idx] = ' ' * indent + prefix + new_content
+                changed = True
+    if changed:
+        path.write_text("\n".join(lines) + ("\n" if original.endswith('\n') else ""))
+    return changed
+
+
+if __name__ == "__main__":
+    total = 0
+    for directory in TARGET_DIRS:
+        if not directory.exists():
+            continue
+        for md_file in directory.rglob("*.md"):
+            if polish_file(md_file):
+                total += 1
+    print(f"Polished {total} files")

@@ -1,0 +1,262 @@
+---
+title: LV VG Management
+updated: 2024-10-20 21:35:34Z
+created: 2024-10-20 21:34:45Z
+latitude: 33.86889000
+longitude: -118.38258000
+altitude: 13.2000
+---
+
+To format an SSD to ext4 and include it as part of the root volume (`ubuntu--vg-ubuntu--lv`) in Ubuntu Server from the command line, you can follow these steps:
+
+1. **Check Available Disks and Partitions:**
+
+   First, list the available disks and logical volumes to identify the correct device for the SSD:
+
+   ```bash
+   lsblk
+   ```
+
+   This will show a tree of block devices, making it easier to locate your SSD and logical volume.
+
+2. **Check Current LVM Configuration:**
+
+   Since you want to extend `ubuntu--vg-ubuntu--lv`, check your LVM setup:
+
+   ```bash
+   sudo vgdisplay
+   sudo lvdisplay
+   ```
+
+   This will show you the volume group and logical volumes. Ensure you note the correct paths for the volume group (`ubuntu-vg`) and logical volume (`ubuntu-lv`).
+
+3. **Partition the SSD (if not already done):**
+
+   If the SSD is unpartitioned, create a partition using `fdisk` or `parted`. Here's an example using `fdisk`:
+
+   ```bash
+   sudo fdisk /dev/sdX  # Replace X with the correct letter for your SSD
+   ```
+
+   Inside `fdisk`, create a new partition:
+   - Press `n` to create a new partition.
+   - Choose defaults for partition number and sector start/end.
+   - Press `w` to write changes.
+
+4. **Create a Physical Volume (PV):**
+
+   If the SSD is now partitioned, you'll need to turn it into an LVM physical volume:
+
+   ```bash
+   sudo pvcreate /dev/sdX1  # Replace sdX1 with the partition path of the SSD
+   ```
+
+5. **Extend the Volume Group (VG):**
+
+   Add the new physical volume to the existing volume group:
+
+   ```bash
+   sudo vgextend ubuntu-vg /dev/sdX1  # Replace ubuntu-vg and sdX1 with your VG and partition
+   ```
+
+6. **Extend the Logical Volume (LV):**
+
+   Now extend the logical volume to use the space from the SSD:
+
+   ```bash
+   sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+   ```
+
+   This command extends the logical volume (`ubuntu-lv`) to use all the available space from the volume group (`ubuntu-vg`).
+
+7. **Resize the Filesystem:**
+
+   After extending the logical volume, resize the filesystem to occupy the new space:
+
+   ```bash
+   sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+   ```
+
+8. **Verify the Changes:**
+
+   Finally, check that the logical volume has been extended:
+
+   ```bash
+   df -h
+   ```
+
+   This should show that your root volume has increased, and the SSD's space has been added.
+
+By following these steps, you'll format the SSD as ext4, add it to your existing volume group, and extend the root volume (`ubuntu--vg-ubuntu--lv`) on an Ubuntu Server.
+
+---
+
+To delete an old Cinder volume from the disk on an Ubuntu server, you can follow these steps to safely remove it before formatting the disk. Assuming you are no longer using the volume in OpenStack's Cinder, proceed with the steps below.
+
+### Steps to Remove the Old Cinder Volume:
+
+1. **Identify the Cinder Volume:**
+
+   First, you need to identify the Cinder volume that is occupying the disk. You can list the volumes using `lsblk` or `fdisk`:
+
+   ```bash
+   lsblk
+   ```
+
+   You may also want to check the volume information with `pvdisplay` (if it's part of an LVM setup used by Cinder):
+
+   ```bash
+   sudo pvdisplay
+   ```
+
+2. **Stop OpenStack Cinder (if running):**
+
+   If you're still running OpenStack Cinder services and the volume is managed by Cinder, you should stop them before making changes to the volume:
+
+   ```bash
+   sudo systemctl stop cinder-volume
+   sudo systemctl stop cinder-api
+   ```
+
+   Alternatively, if you're using containers, stop the relevant container.
+
+3. **Delete the Cinder Volume from OpenStack (if applicable):**
+
+   If the Cinder volume is still active in OpenStack, delete it using the OpenStack CLI:
+
+   ```bash
+   openstack volume delete <volume-id>
+   ```
+
+   This will remove the volume from Cinder's management. To list the volumes before deletion:
+
+   ```bash
+   openstack volume list
+   ```
+
+4. **Wipe the Partition Table:**
+
+   Once you have confirmed that the Cinder volume is no longer in use, you can wipe the disk or partition. To remove all existing partitions and any LVM metadata on the disk, use `wipefs` or `dd`:
+
+   ```bash
+   sudo wipefs -a /dev/sdX  # Replace 'sdX' with the correct disk
+   ```
+
+   If `wipefs` doesn’t work or you want to fully zero out the beginning of the disk, use:
+
+   ```bash
+   sudo dd if=/dev/zero of=/dev/sdX bs=512 count=1
+   ```
+
+   **Caution:** This will wipe all data on the disk. Ensure that you're targeting the correct device.
+
+5. **Remove LVM (if applicable):**
+
+   If the disk was part of an LVM setup, remove it from the volume group and physical volume:
+
+   - Deactivate the volume (if active):
+     ```bash
+     sudo lvchange -an /dev/<vg-name>/<lv-name>
+     ```
+
+   - Remove the logical volume:
+     ```bash
+     sudo lvremove /dev/<vg-name>/<lv-name>
+     ```
+
+   - Remove the physical volume:
+     ```bash
+     sudo pvremove /dev/sdX
+     ```
+
+6. **Partition and Format the Disk:**
+
+   Now that the Cinder volume is deleted, you can proceed to partition and format the disk as ext4 (or any filesystem of your choice). Use `fdisk` or `parted` to create new partitions, then format them:
+
+   ```bash
+   sudo mkfs.ext4 /dev/sdX1
+   ```
+
+   Replace `/dev/sdX1` with the partition of the SSD you want to format.
+
+After performing these steps, the disk should be free of the old Cinder volume and ready to be used as part of your new setup.
+
+---
+
+Now that the drive has been cleared, you can add it to the existing volume group (`ubuntu-vg`) and extend the logical volume (`ubuntu-lv`). Below are the steps to complete this process.
+
+### Steps to Add the Cleared Drive to the Existing Volume Group and Extend the Logical Volume:
+
+1. **Create a Physical Volume (PV) on the Drive:**
+
+   First, turn the cleared drive into an LVM physical volume (PV). Replace `/dev/sdX` with the appropriate disk identifier:
+
+   ```bash
+   sudo pvcreate /dev/sdX
+   ```
+
+   This command initializes the drive to be used by LVM.
+
+2. **Extend the Volume Group (VG):**
+
+   Now, add the new physical volume to your existing volume group (`ubuntu-vg`):
+
+   ```bash
+   sudo vgextend ubuntu-vg /dev/sdX
+   ```
+
+   This command adds the cleared disk to the `ubuntu-vg` volume group.
+
+3. **Check the Volume Group:**
+
+   Verify that the new physical volume has been added to the volume group:
+
+   ```bash
+   sudo vgdisplay
+   ```
+
+   This should show the increased size of the volume group.
+
+4. **Extend the Logical Volume (LV):**
+
+   Now extend the logical volume (`ubuntu-lv`) to use the free space from the newly added physical volume:
+
+   ```bash
+   sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+   ```
+
+   This command extends the logical volume to use all available space in the volume group. If you want to extend the logical volume by a specific size (e.g., 50GB), you can use this command instead:
+
+   ```bash
+   sudo lvextend -L +50G /dev/ubuntu-vg/ubuntu-lv
+   ```
+
+5. **Resize the Filesystem:**
+
+   After extending the logical volume, resize the filesystem to take advantage of the new space:
+
+   For ext4 filesystems:
+
+   ```bash
+   sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+   ```
+
+   This resizes the filesystem on the logical volume so that it uses the newly extended space.
+
+6. **Verify the Changes:**
+
+   Finally, confirm that the root volume has been extended and that the additional space is available:
+
+   ```bash
+   df -h
+   ```
+
+   This should display the updated size of the root volume with the newly added space from the cleared drive.
+
+### Summary
+- You created a physical volume with `pvcreate`.
+- Added the new drive to the volume group using `vgextend`.
+- Extended the logical volume with `lvextend`.
+- Resized the filesystem with `resize2fs`.
+
+Now the space from the cleared drive should be part of your root volume (`ubuntu--vg-ubuntu--lv`).

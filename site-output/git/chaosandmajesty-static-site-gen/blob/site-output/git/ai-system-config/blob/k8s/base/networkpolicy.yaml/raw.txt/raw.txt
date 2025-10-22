@@ -1,0 +1,147 @@
+# ai-system-config/k8s/base/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Allow DNS egress to CoreDNS (both UDP/TCP 53)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchExpressions:
+              - key: k8s-app
+                operator: In
+                values: ["kube-dns","coredns"]
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+# Gateway ingress from ingress-nginx only (HTTP 8080)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-from-ingress
+  namespace: ai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - { protocol: TCP, port: 8080 }
+---
+# OTLP egress to monitoring (4317/4318)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-otlp-to-monitoring
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - { protocol: TCP, port: 4317 }  # OTLP gRPC
+        - { protocol: TCP, port: 4318 }  # OTLP HTTP
+---
+# Allow all pods in ai to talk to each other (east–west)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-eastwest
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: {}   # same namespace
+  egress:
+    - to:
+        - podSelector: {}   # same namespace
+---
+# Allow vLLM/TGI & gateway to reach the Internet for model/API traffic (443/80)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-internet-for-ai
+  namespace: ai
+spec:
+  podSelector:
+    matchExpressions:
+      - key: ai.zlabs.dev/component
+        operator: In
+        values: ["vllm", "tgi", "gateway"]
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 80 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-kubeapi
+  namespace: ai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  policyTypes: ["Egress"]
+  egress:
+    # Service IP (classic path)
+    - to:
+        - ipBlock: { cidr: 10.152.183.1/32 }
+      ports:
+        - { protocol: TCP, port: 443 }
+    # Node IP for MicroK8s apiserver (eBPF/DSR path)
+    - to:
+        - ipBlock: { cidr: 192.168.29.111/32 }
+      ports:
+        - { protocol: TCP, port: 16443 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-admin-from-ai
+  namespace: ai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ai
+      ports:
+        - protocol: TCP
+          port: 8080
+

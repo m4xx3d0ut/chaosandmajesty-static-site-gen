@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-resource
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: otel-resource
+# Shared OTel env to project consistent resource attributes
+# Mount as envFrom in workloads
+# Assumes Grafana Alloy as OTLP collector in monitoring ns
+# Change endpoint if you send direct to Tempo/Prom
+
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy.monitoring.svc.cluster.local:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_RESOURCE_ATTRIBUTES: "service.namespace=ai,telemetry.distro=opentelemetry,k8s.cluster.name=microk8s,deployment.environment=prod"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "otlp"
+

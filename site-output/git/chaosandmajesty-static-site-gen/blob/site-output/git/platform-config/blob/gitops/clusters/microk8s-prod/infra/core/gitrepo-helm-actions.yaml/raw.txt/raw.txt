@@ -1,0 +1,14 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: helm-actions
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://gitea.com/gitea/helm-actions.git
+  ref:
+    branch: main
+  # Use a deploy key/secret that has read access to that repo.
+  # Re-use flux-git if you’ve added its public key as a deploy key to the repo:
+  # secretRef:
+  #   name: flux-git

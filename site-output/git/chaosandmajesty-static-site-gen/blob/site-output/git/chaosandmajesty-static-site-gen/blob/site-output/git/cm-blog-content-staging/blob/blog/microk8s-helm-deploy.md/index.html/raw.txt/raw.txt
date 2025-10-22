@@ -1,0 +1,345 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/blog/microk8s-helm-deploy.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/blog/microk8s-helm-deploy.md/raw.txt" data-git-line-count="379">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">microk8s-helm-deploy.md</h4>
+          <div class="git-file-meta">8.0 KB · 379 lines · blog/microk8s-helm-deploy.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/blog/microk8s-helm-deploy.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<p>title: Deploying a Custom Helm Chart on MicroK8s
+slug: microk8s-helm-deploy
+author: m4xx3d0ut
+summary: Step-by-step workflow for packaging a Helm chart, wiring MetalLB and ingress,
+  and exposing the service on MicroK8s.
+publishedAt: &#39;2025-01-31&#39;
+updatedAt: &#39;2025-01-31&#39;
+readingMinutes: 6
+tags:</p>
+<ul>
+<li>m4xx3d</li>
+<li>kubernetes</li>
+<li>microk8s</li>
+<li>helm</li>
+<li>devops</li>
+</ul>
+<hr>
+<h2>TLDR;</h2>
+<ul>
+<li>Enable the <code>helm3</code>, <code>metallb</code>, <code>ingress</code>, and <code>dns</code> addons, and point your chart’s image repository at a local registry address.</li>
+<li>Parameterize <code>values.yaml</code> for service type, ingress hosts, and image metadata so you can redeploy with simple overrides.</li>
+<li>Package the chart, install it with <code>microk8s helm3 install</code>, then validate pods, services, ingress, and MetalLB IP assignment before curling the app.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h2><strong>Deploying a Custom Helm Chart in MicroK8s with MetalLB and Ingress</strong></h2>
+<h3><strong>Custom Helm Chart</strong></h3>
+<p>Ensure you have the following setup:</p>
+<ul>
+<li>MicroK8s installed with <code>helm3</code>, <code>ingress</code>, <code>dns</code>, and <code>metallb</code> enabled.</li>
+<li>A local container registry accessible from MicroK8s.</li>
+<li>MetalLB configured to allocate an IP range.</li>
+<li>A working <code>kubectl</code> context for MicroK8s (<code>microk8s.kubectl</code> or alias to <code>kubectl</code>).</li>
+</ul>
+<hr>
+<h3><strong>Step 1: Create a Helm Chart</strong></h3>
+<p>Run the following command to scaffold a new Helm chart:</p>
+<pre><code>sh
+microk8s helm3 create mychart
+cd mychart
+</code></pre>
+<p>This creates a <code>mychart/</code> directory with the default Helm chart structure.</p>
+<hr>
+<h3><strong>Step 2: Customize <code>values.yaml</code></strong></h3>
+<p>Edit <code>values.yaml</code> to define the service, container image, and Ingress settings.</p>
+<h4><strong>Modify the Image Settings</strong></h4>
+<p>Ensure the container image references your local registry:</p>
+<pre><code>yaml
+image:
+  repository: my-registry.local:32000/myapp
+  tag: latest
+  pullPolicy: IfNotPresent
+</code></pre>
+<p>Replace <code>my-registry.local:32000</code> with your registry&#39;s address.</p>
+<h4><strong>Define a Service</strong></h4>
+<p>By default, the chart defines a ClusterIP service. Change it to a <code>LoadBalancer</code> type if using MetalLB:</p>
+<pre><code>yaml
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+</code></pre>
+<p>Ensure your app listens on port <code>8080</code>.</p>
+<h4><strong>Enable Ingress</strong></h4>
+<p>Modify <code>values.yaml</code> to define an Ingress resource:</p>
+<pre><code>yaml
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: myapp.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+</code></pre>
+<p>Ensure your <code>/etc/hosts</code> maps <code>myapp.local</code> to the MetalLB-assigned IP.</p>
+<hr>
+<h3><strong>Step 3: Update <code>templates/ingress.yaml</code></strong></h3>
+<p>Modify <code>templates/ingress.yaml</code> to match <code>values.yaml</code>:</p>
+<pre><code>yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: {{ .Values.ingress.hosts[0].host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.hosts[0].paths[0].path }}
+        pathType: {{ .Values.ingress.hosts[0].paths[0].pathType }}
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}
+</code></pre>
+<hr>
+<h3><strong>Step 4: Package and Install the Chart</strong></h3>
+<p>Run:</p>
+<pre><code>sh
+microk8s helm3 package .
+</code></pre>
+<p>This creates <code>mychart-0.1.0.tgz</code>.</p>
+<p>Install it using:</p>
+<pre><code>sh
+microk8s helm3 install myapp ./mychart-0.1.0.tgz
+</code></pre>
+<hr>
+<h3><strong>Step 5: Verify the Deployment</strong></h3>
+<h4><strong>Check Pods and Services</strong></h4>
+<pre><code>sh
+microk8s kubectl get pods
+microk8s kubectl get svc
+</code></pre>
+<p>Ensure the service has an external IP from MetalLB.</p>
+<h4><strong>Check Ingress</strong></h4>
+<pre><code>sh
+microk8s kubectl get ingress
+</code></pre>
+<p>Verify the host matches <code>myapp.local</code>.</p>
+<hr>
+<h3><strong>Step 6: Test Access</strong></h3>
+<p>Add an entry to <code>/etc/hosts</code>:</p>
+<pre><code>sh
+&lt;metallb-ip&gt; myapp.local
+</code></pre>
+<p>Then, test access:</p>
+<pre><code>sh
+curl http://myapp.local
+</code></pre>
+<p>If your app serves HTTP, you should get a response.</p>
+<hr>
+<h3><strong>Troubleshooting</strong></h3>
+<ul>
+<li>Check logs:<pre><code>
+</code></pre>
+</li>
+</ul>
+<p>sh
+  microk8s kubectl logs -l app=myapp</p>
+<pre><code>- Describe resources:
+</code></pre>
+<p>sh
+  microk8s kubectl describe pod <pod-name>
+  microk8s kubectl describe ingress myapp</p>
+<pre><code>- Ensure MetalLB assigned an IP:
+</code></pre>
+<p>sh
+  microk8s kubectl get svc</p>
+<pre><code>
+
+---
+
+### MetalLB Troubleshooting
+
+#### **1. Check if MetalLB is Running**
+Run:
+</code></pre>
+<p>sh
+microk8s kubectl get pods -n metallb-system</p>
+<pre><code>Expected output should show MetalLB components like `controller` and `speaker` running:
+</code></pre>
+<p>NAME                          READY   STATUS    RESTARTS   AGE
+metallb-controller-xxxxx      1/1     Running   0          3d
+metallb-speaker-xxxxx         1/1     Running   0          3d</p>
+<pre><code>If MetalLB is not running, try:
+</code></pre>
+<p>sh
+microk8s enable metallb</p>
+<pre><code>It will prompt you to enter an IP range.
+
+---
+
+#### **2. Check for MetalLB Resources**
+MicroK8s may be using a `Custom Resource Definition (CRD)` instead of the old `ConfigMap`. Check for `IPAddressPools`:
+</code></pre>
+<p>sh
+microk8s kubectl get ipaddresspools.metallb.io -A</p>
+<pre><code>If an IP address pool exists, describe it:
+</code></pre>
+<p>sh
+microk8s kubectl describe ipaddresspools.metallb.io default-addresspool -n metallb-system</p>
+<pre><code>
+---
+
+#### **3. Reconfigure MetalLB (If CRD is Used)**
+If the `ConfigMap` is missing but `IPAddressPools` exists, update the IP range by editing the `IPAddressPool` resource:
+</code></pre>
+<p>sh
+microk8s kubectl edit ipaddresspools.metallb.io <pool-name> -n metallb-system</p>
+<pre><code>Modify the `addresses` section:
+</code></pre>
+<p>yaml
+spec:
+  addresses:
+    - 192.168.1.100-192.168.1.200</p>
+<pre><code>Save and exit.
+
+---
+
+#### **4. Manually Create an IP Pool (If None Exists)**
+If there is no existing `IPAddressPool`, create one:
+</code></pre>
+<h2>yaml
+cat &lt;&lt;EOF | microk8s kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: my-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.1.100-192.168.1.200</h2>
+<p>apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: my-l2-advert
+  namespace: metallb-system
+EOF</p>
+<pre><code>This defines an IP pool and advertises it to the cluster.
+
+---
+
+#### **5. Verify New Configuration**
+After making changes, check:
+</code></pre>
+<p>sh
+microk8s kubectl get ipaddresspools.metallb.io -n metallb-system
+microk8s kubectl get svc -A | grep LoadBalancer</p>
+<pre><code>
+
+---
+
+
+### MetalLB Static IP Assignment
+
+#### **1. Define a `IPAddressPool` for a Static IP Range**
+Ensure your MetalLB IP pool includes the static IPs you want to assign. If you haven&#39;t already, create or edit an `IPAddressPool` to include `192.168.29.16` and `192.168.29.17`:
+</code></pre>
+<h2>sh
+microk8s kubectl edit ipaddresspools.metallb.io my-ip-pool -n metallb-system
+<code>Modify or add:</code>
+yaml
+spec:
+  addresses:
+    - 192.168.29.16-192.168.29.17
+<code>If an `IPAddressPool` doesn’t exist, create one:</code>
+sh
+cat &lt;&lt;EOF | microk8s kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: my-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.29.16-192.168.29.17</h2>
+<p>apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: my-l2-advert
+  namespace: metallb-system
+EOF</p>
+<pre><code>
+---
+
+#### **2. Assign a Static IP in Your Helm Chart**
+Modify your Helm chart&#39;s `values.yaml` to request a specific IP from MetalLB:
+</code></pre>
+<p>yaml
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.16
+  port: 80
+  targetPort: 8000</p>
+<pre><code>For the next service, assign `192.168.29.17`:
+</code></pre>
+<p>yaml
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.17
+  port: 80
+  targetPort: 8080</p>
+<pre><code>
+---
+
+#### **3. Deploy the Helm Chart**
+After modifying `values.yaml`, deploy (or upgrade) the chart:
+</code></pre>
+<p>sh
+microk8s helm3 upgrade --install youtube-integ ./youtube-integ-chart</p>
+<pre><code>Then, verify the assigned IP:
+</code></pre>
+<p>sh
+microk8s kubectl get svc -A | grep LoadBalancer</p>
+<pre><code>It should show `192.168.29.16` assigned persistently.
+
+---
+
+#### **4. Configure Local DNS**
+Now, map the static IP to `youtube-integ.local` in your local DNS or `/etc/hosts`:
+</code></pre>
+<p>sh
+echo &quot;192.168.29.16 youtube-integ.local&quot; | sudo tee -a /etc/hosts</p>
+<pre><code>Test with:
+</code></pre>
+<p>sh
+curl <a href="http://youtube-integ.local">http://youtube-integ.local</a></p>
+<pre><code>
+---
+
+#### **5. Repeat for Other Services**
+For the next service, ensure `values.yaml` specifies:
+</code></pre>
+<p>yaml
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.29.17</p>
+<pre><code>Then, deploy it and map `192.168.29.17` in DNS.
+
+Now, your services will always get the correct IPs even after uninstalling/reinstalling! 🚀
+</code></pre>
+
+      </div>
+    </article>
+  

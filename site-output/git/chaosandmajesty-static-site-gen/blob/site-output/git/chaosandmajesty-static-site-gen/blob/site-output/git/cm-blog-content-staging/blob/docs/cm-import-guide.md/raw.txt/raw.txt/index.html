@@ -1,0 +1,838 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt/raw.txt/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt/raw.txt/raw.txt" data-git-line-count="68">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">raw.txt</h4>
+          <div class="git-file-meta">2.8 KB · 68 lines · site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt/raw.txt</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt/raw.txt/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text"># Chaos &amp; Majesty Sitegen Import Guide</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">Use this checklist whenever we promote fresh posts from `blog/` into the Chaos &amp; Majesty site generator tree at `../../sshfs-mnt/chaosandmajesty-static-site-gen`. You can run `scripts/sync_cm_blog.py &lt;posts-root&gt; &lt;cm-root&gt;` to automate steps 2–4; the manual commands below describe what the script performs.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text">## 1. Prep the Source Material</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text">- Regenerate publishable files so every markdown file contains the `## TLDR;` and `## Working Notes...` sections: `python3 scripts/apply_offsec_tldr.py &amp;&amp; python3 scripts/format_blog.py --force`.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text">- Keep the sanitized hero assets under `blog/assets/&lt;slug&gt;/`. Only posts that declare `heroImage` need assets.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text">- Confirm the front matter uses one of the configured author IDs (`m4xx3d0ut`, `reneerules`, …) from `docs/blog-model.md`.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L9" data-git-line="9">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="9"
+          aria-label="Copy permalink for line 9"
+          title="Copy permalink for line 9"
+        >9</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L10" data-git-line="10">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="10"
+          aria-label="Copy permalink for line 10"
+          title="Copy permalink for line 10"
+        >10</button>
+        <span class="git-code-text">## 2. Copy Markdown into the Sitegen Repo</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L11" data-git-line="11">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="11"
+          aria-label="Copy permalink for line 11"
+          title="Copy permalink for line 11"
+        >11</button>
+        <span class="git-code-text">From the root of this repo:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L12" data-git-line="12">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="12"
+          aria-label="Copy permalink for line 12"
+          title="Copy permalink for line 12"
+        >12</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L13" data-git-line="13">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="13"
+          aria-label="Copy permalink for line 13"
+          title="Copy permalink for line 13"
+        >13</button>
+        <span class="git-code-text">```bash</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L14" data-git-line="14">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="14"
+          aria-label="Copy permalink for line 14"
+          title="Copy permalink for line 14"
+        >14</button>
+        <span class="git-code-text">rsync -av blog/*.md ../../sshfs-mnt/chaosandmajesty-static-site-gen/content/blog/</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L15" data-git-line="15">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="15"
+          aria-label="Copy permalink for line 15"
+          title="Copy permalink for line 15"
+        >15</button>
+        <span class="git-code-text">```</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L16" data-git-line="16">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="16"
+          aria-label="Copy permalink for line 16"
+          title="Copy permalink for line 16"
+        >16</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L17" data-git-line="17">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="17"
+          aria-label="Copy permalink for line 17"
+          title="Copy permalink for line 17"
+        >17</button>
+        <span class="git-code-text">The generator reads straight from `content/blog/`, so no additional conversion is required.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L18" data-git-line="18">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="18"
+          aria-label="Copy permalink for line 18"
+          title="Copy permalink for line 18"
+        >18</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L19" data-git-line="19">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="19"
+          aria-label="Copy permalink for line 19"
+          title="Copy permalink for line 19"
+        >19</button>
+        <span class="git-code-text">## 3. Move Supporting Assets</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L20" data-git-line="20">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="20"
+          aria-label="Copy permalink for line 20"
+          title="Copy permalink for line 20"
+        >20</button>
+        <span class="git-code-text">For each folder under `blog/assets/` copy the files into the site generator’s blog asset tree (create the destination if it does not exist):</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L21" data-git-line="21">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="21"
+          aria-label="Copy permalink for line 21"
+          title="Copy permalink for line 21"
+        >21</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L22" data-git-line="22">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="22"
+          aria-label="Copy permalink for line 22"
+          title="Copy permalink for line 22"
+        >22</button>
+        <span class="git-code-text">```bash</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L23" data-git-line="23">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="23"
+          aria-label="Copy permalink for line 23"
+          title="Copy permalink for line 23"
+        >23</button>
+        <span class="git-code-text">for dir in blog/assets/*; do</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L24" data-git-line="24">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="24"
+          aria-label="Copy permalink for line 24"
+          title="Copy permalink for line 24"
+        >24</button>
+        <span class="git-code-text">  slug=&quot;$(basename &quot;$dir&quot;)&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L25" data-git-line="25">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="25"
+          aria-label="Copy permalink for line 25"
+          title="Copy permalink for line 25"
+        >25</button>
+        <span class="git-code-text">  rsync -av &quot;$dir&quot;/ \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L26" data-git-line="26">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="26"
+          aria-label="Copy permalink for line 26"
+          title="Copy permalink for line 26"
+        >26</button>
+        <span class="git-code-text">    ../../sshfs-mnt/chaosandmajesty-static-site-gen/static-sitegen/assets/static/img/blog/$slug/</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L27" data-git-line="27">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="27"
+          aria-label="Copy permalink for line 27"
+          title="Copy permalink for line 27"
+        >27</button>
+        <span class="git-code-text">done</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L28" data-git-line="28">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="28"
+          aria-label="Copy permalink for line 28"
+          title="Copy permalink for line 28"
+        >28</button>
+        <span class="git-code-text">```</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L29" data-git-line="29">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="29"
+          aria-label="Copy permalink for line 29"
+          title="Copy permalink for line 29"
+        >29</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L30" data-git-line="30">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="30"
+          aria-label="Copy permalink for line 30"
+          title="Copy permalink for line 30"
+        >30</button>
+        <span class="git-code-text">If you also curate the design source (`cm-source/`) keep it in sync so `prepare-cm-files.sh` can be re-run later:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L31" data-git-line="31">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="31"
+          aria-label="Copy permalink for line 31"
+          title="Copy permalink for line 31"
+        >31</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L32" data-git-line="32">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="32"
+          aria-label="Copy permalink for line 32"
+          title="Copy permalink for line 32"
+        >32</button>
+        <span class="git-code-text">```bash</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L33" data-git-line="33">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="33"
+          aria-label="Copy permalink for line 33"
+          title="Copy permalink for line 33"
+        >33</button>
+        <span class="git-code-text">rsync -av blog/assets/ \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L34" data-git-line="34">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="34"
+          aria-label="Copy permalink for line 34"
+          title="Copy permalink for line 34"
+        >34</button>
+        <span class="git-code-text">  ../../sshfs-mnt/chaosandmajesty-static-site-gen/cm-source/static/img/blog/</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L35" data-git-line="35">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="35"
+          aria-label="Copy permalink for line 35"
+          title="Copy permalink for line 35"
+        >35</button>
+        <span class="git-code-text">```</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L36" data-git-line="36">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="36"
+          aria-label="Copy permalink for line 36"
+          title="Copy permalink for line 36"
+        >36</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L37" data-git-line="37">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="37"
+          aria-label="Copy permalink for line 37"
+          title="Copy permalink for line 37"
+        >37</button>
+        <span class="git-code-text">The build step copies everything from `static-sitegen/assets/` to `site-output/`, so a manual copy there is unnecessary.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L38" data-git-line="38">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="38"
+          aria-label="Copy permalink for line 38"
+          title="Copy permalink for line 38"
+        >38</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L39" data-git-line="39">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="39"
+          aria-label="Copy permalink for line 39"
+          title="Copy permalink for line 39"
+        >39</button>
+        <span class="git-code-text">## 4. Normalize `heroImage` Paths</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L40" data-git-line="40">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="40"
+          aria-label="Copy permalink for line 40"
+          title="Copy permalink for line 40"
+        >40</button>
+        <span class="git-code-text">Update each markdown file that references a hero image so the path matches the static asset location. Example replacement:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L41" data-git-line="41">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="41"
+          aria-label="Copy permalink for line 41"
+          title="Copy permalink for line 41"
+        >41</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L42" data-git-line="42">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="42"
+          aria-label="Copy permalink for line 42"
+          title="Copy permalink for line 42"
+        >42</button>
+        <span class="git-code-text">```yaml</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L43" data-git-line="43">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="43"
+          aria-label="Copy permalink for line 43"
+          title="Copy permalink for line 43"
+        >43</button>
+        <span class="git-code-text">heroImage: assets/rnd-methods-madness/freedom-glider-trash-panda.png</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L44" data-git-line="44">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="44"
+          aria-label="Copy permalink for line 44"
+          title="Copy permalink for line 44"
+        >44</button>
+        <span class="git-code-text"># becomes</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L45" data-git-line="45">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="45"
+          aria-label="Copy permalink for line 45"
+          title="Copy permalink for line 45"
+        >45</button>
+        <span class="git-code-text">heroImage: assets/static/img/blog/rnd-methods-madness/freedom-glider-trash-panda.png</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L46" data-git-line="46">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="46"
+          aria-label="Copy permalink for line 46"
+          title="Copy permalink for line 46"
+        >46</button>
+        <span class="git-code-text">```</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L47" data-git-line="47">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="47"
+          aria-label="Copy permalink for line 47"
+          title="Copy permalink for line 47"
+        >47</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L48" data-git-line="48">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="48"
+          aria-label="Copy permalink for line 48"
+          title="Copy permalink for line 48"
+        >48</button>
+        <span class="git-code-text">Use `sed -i` for bulk edits or update manually before committing in the sitegen repo.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L49" data-git-line="49">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="49"
+          aria-label="Copy permalink for line 49"
+          title="Copy permalink for line 49"
+        >49</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L50" data-git-line="50">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="50"
+          aria-label="Copy permalink for line 50"
+          title="Copy permalink for line 50"
+        >50</button>
+        <span class="git-code-text">## 5. Build &amp; Verify</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L51" data-git-line="51">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="51"
+          aria-label="Copy permalink for line 51"
+          title="Copy permalink for line 51"
+        >51</button>
+        <span class="git-code-text">Inside `../../sshfs-mnt/chaosandmajesty-static-site-gen`:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L52" data-git-line="52">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="52"
+          aria-label="Copy permalink for line 52"
+          title="Copy permalink for line 52"
+        >52</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L53" data-git-line="53">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="53"
+          aria-label="Copy permalink for line 53"
+          title="Copy permalink for line 53"
+        >53</button>
+        <span class="git-code-text">```bash</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L54" data-git-line="54">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="54"
+          aria-label="Copy permalink for line 54"
+          title="Copy permalink for line 54"
+        >54</button>
+        <span class="git-code-text">npm install   # first run only</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L55" data-git-line="55">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="55"
+          aria-label="Copy permalink for line 55"
+          title="Copy permalink for line 55"
+        >55</button>
+        <span class="git-code-text">npm run build || make preview</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L56" data-git-line="56">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="56"
+          aria-label="Copy permalink for line 56"
+          title="Copy permalink for line 56"
+        >56</button>
+        <span class="git-code-text">```</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L57" data-git-line="57">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="57"
+          aria-label="Copy permalink for line 57"
+          title="Copy permalink for line 57"
+        >57</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L58" data-git-line="58">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="58"
+          aria-label="Copy permalink for line 58"
+          title="Copy permalink for line 58"
+        >58</button>
+        <span class="git-code-text">Open the generated `site-output/blog/index.html` (or run the preview server) and spot-check:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L59" data-git-line="59">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="59"
+          aria-label="Copy permalink for line 59"
+          title="Copy permalink for line 59"
+        >59</button>
+        <span class="git-code-text">- TLDR and Working Notes render as expected.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L60" data-git-line="60">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="60"
+          aria-label="Copy permalink for line 60"
+          title="Copy permalink for line 60"
+        >60</button>
+        <span class="git-code-text">- Hero images resolve correctly.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L61" data-git-line="61">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="61"
+          aria-label="Copy permalink for line 61"
+          title="Copy permalink for line 61"
+        >61</button>
+        <span class="git-code-text">- Navigation lists the new posts by `publishedAt` order.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L62" data-git-line="62">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="62"
+          aria-label="Copy permalink for line 62"
+          title="Copy permalink for line 62"
+        >62</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L63" data-git-line="63">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="63"
+          aria-label="Copy permalink for line 63"
+          title="Copy permalink for line 63"
+        >63</button>
+        <span class="git-code-text">## 6. Commit &amp; Ship</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L64" data-git-line="64">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="64"
+          aria-label="Copy permalink for line 64"
+          title="Copy permalink for line 64"
+        >64</button>
+        <span class="git-code-text">- Stage markdown plus any new assets in the sitegen repo.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L65" data-git-line="65">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="65"
+          aria-label="Copy permalink for line 65"
+          title="Copy permalink for line 65"
+        >65</button>
+        <span class="git-code-text">- Reference the originating feature or issue in the commit message.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L66" data-git-line="66">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="66"
+          aria-label="Copy permalink for line 66"
+          title="Copy permalink for line 66"
+        >66</button>
+        <span class="git-code-text">- Push and run the deployment workflow (or open a PR) per CM release practice.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L67" data-git-line="67">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="67"
+          aria-label="Copy permalink for line 67"
+          title="Copy permalink for line 67"
+        >67</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L68" data-git-line="68">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="68"
+          aria-label="Copy permalink for line 68"
+          title="Copy permalink for line 68"
+        >68</button>
+        <span class="git-code-text">Keep this guide alongside the repo so future imports stay consistent.</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

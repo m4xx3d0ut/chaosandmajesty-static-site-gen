@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+kubectl -n ai scale deploy vllm-glm-edge-1p5b vllm-glm-edge-4b vllm-glm-4-5-air tgi-glm-4-5-air-nf4 --replicas=0
+

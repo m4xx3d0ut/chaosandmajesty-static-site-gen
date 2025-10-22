@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mimir-s3
+    namespace: mimir
+stringData:
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:Gh8xpbrakalTaA==,iv:vsWXD7jRKLVVJsWVfU7YNSX9N87ymU2q0/Z4sdtCKk4=,tag:ybKkWd9W+I3xhvxAcZYgxg==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:CCacG4Glrylg6smsvT6v,iv:lHHo1+uryMdSjUQorCGrjNWjy37n0tRjHvKQDLBwsRo=,tag:7SJMI2Rm4XRbRbHUUiHNOQ==,type:str]
+sops:
+    age:
+        - recipient: age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNOGY3U1FZcmt0b3FUVUE1
+            R2FhaUZLR0gxWkRKcDJkMUwyVG1NeGJQcVc0ClkzTjBLMlFvM3FrWjVLQUhhUHJU
+            OXVIQW9oczZKYVJhbEdvMllDUEc2ZlUKLS0tIE5jMGx0SVhOV2JlWE56RVRZb1Y4
+            Ty9VRnFSY3YxbTI3VWZJMXZGd0xadE0KRyVqdAbKp7Oa6v2aauvESikp2BPOp29A
+            x9cbxCK8TONnRLjlmpxUwaXHfwll28jq1NSmZIzLMFGlQ2/8GzHh1A==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-09-08T15:55:32Z"
+    mac: ENC[AES256_GCM,data:XNw38iugHWLQ+rWqmzRwChHg0RNNLKy+2UeV7/gPgaLFM5IqeMLil4gGr2+RGYGggW/ks8OzX+jHBZ6scD/Q5QFbHOamUA7SI0BTIiLNFNd1fpQW1yIsYTlZUbBA73wFd5Vhb/+NjDP56zRXZGEV1Md4/ni23MXNJuvFrpp/xoU=,iv:YG7p/qnbFkJTfgN/u/YU3TlG2miHEqBqLzBJS/eVeMI=,tag:YhjO1KArI9fJdO5HkC8TDQ==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

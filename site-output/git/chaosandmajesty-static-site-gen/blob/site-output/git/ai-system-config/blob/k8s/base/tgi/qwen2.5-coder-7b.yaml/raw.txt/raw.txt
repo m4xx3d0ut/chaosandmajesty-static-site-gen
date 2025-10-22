@@ -1,0 +1,59 @@
+# k8s/base/tgi/qwen2.5-coder-7b.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgi-qwen2p5-coder-7b
+  namespace: ai
+  labels: { app.kubernetes.io/name: tgi-qwen2p5-coder-7b, app.kubernetes.io/part-of: ai-system, ai.zlabs.dev/component: tgi }
+  annotations:
+    kustomize.toolkit.fluxcd.io/ignore: "true"
+    ai.zlabs.dev/maxReplicas: "1"
+spec:
+  replicas: 0
+  selector:
+    matchLabels: { app.kubernetes.io/name: tgi-qwen2p5-coder-7b, app.kubernetes.io/part-of: ai-system }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: tgi-qwen2p5-coder-7b, app.kubernetes.io/part-of: ai-system, ai.zlabs.dev/component: tgi }
+    spec:
+      enableServiceLinks: false
+      runtimeClassName: nvidia
+      nodeSelector: { accelerator: nvidia }
+      containers:
+        - name: tgi
+          image: ghcr.io/huggingface/text-generation-inference:2.1.0
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+            - { name: HF_HUB_ENABLE_HF_TRANSFER, value: "1" }
+            - { name: ENABLE_OPENAI_COMPAT, value: "1" }
+          args:
+            - "--model-id=Qwen/Qwen2.5-Coder-7B-Instruct"
+            # To run a pre-quantized build instead, swap the repo-id:
+            # - "--model-id=Qwen/Qwen2.5-Coder-7B-Instruct-AWQ"
+            - "--json-output"
+            - "--dtype=float16"
+            - "--max-input-tokens=8192"
+            - "--max-total-tokens=32768"
+            - "--port=8000"
+            - "--trust-remote-code"
+          ports: [ { name: http, containerPort: 8000 } ]
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 10, periodSeconds: 5, timeoutSeconds: 2 }
+          livenessProbe:  { httpGet: { path: /health, port: http }, initialDelaySeconds: 3600, periodSeconds: 10, timeoutSeconds: 2 }
+          resources:
+            requests: { cpu: "8", memory: "24Gi", nvidia.com/gpu: "1" }
+            limits:   { cpu: "16", memory: "48Gi", nvidia.com/gpu: "1" }
+          volumeMounts: [ { name: hf-cache, mountPath: /data } ]
+      volumes: [ { name: hf-cache, persistentVolumeClaim: { claimName: hf-cache } } ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tgi-qwen2p5-coder-7b
+  namespace: ai
+  labels: { app.kubernetes.io/name: tgi-qwen2p5-coder-7b }
+spec:
+  selector: { app.kubernetes.io/name: tgi-qwen2p5-coder-7b }
+  ports:
+    - { name: openai, port: 8000, targetPort: 8000 }
+

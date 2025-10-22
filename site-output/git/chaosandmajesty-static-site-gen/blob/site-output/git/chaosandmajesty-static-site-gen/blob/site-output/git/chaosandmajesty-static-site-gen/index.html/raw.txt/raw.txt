@@ -1,0 +1,227 @@
+
+<article
+  class="git-panel"
+  data-git-panel="chaosandmajesty-static-site-gen"
+  data-git-log-mode="limited"
+  data-git-full-fragment="git/chaosandmajesty-static-site-gen/full.html"
+  data-git-limited-fragment="git/chaosandmajesty-static-site-gen/index.html"
+  data-git-log-total="40"
+  data-git-log-initial-limit="10"
+>
+  <header class="git-panel-header">
+    <div class="git-panel-lead">
+      <h4 class="git-panel-title">chaosandmajesty-static-site-gen</h4>
+      <p class="git-panel-meta">
+        
+          <span class="git-panel-owner">@m4xx3d0ut</span>
+        
+        
+          <span class="git-panel-branch">
+            branch <strong>prod</strong>
+          </span>
+        
+      </p>
+      
+        <p class="git-panel-description">Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration</p>
+      
+    </div>
+    <div class="git-panel-clone">
+      <span class="git-clone-label">Clone repository (read-only)</span>
+      <code class="git-clone-command" data-git-command="git clone https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen.git">git clone https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen.git</code>
+      <button type="button" class="git-clone-copy" data-copy-source="previous">Copy</button>
+      
+        <a class="git-panel-log-link" data-git-log-action="expand" href="git/chaosandmajesty-static-site-gen/full.html">Open full log</a>
+      
+    </div>
+  </header>
+
+  <section class="git-activity">
+    <header class="git-activity-header">
+      <h5 class="git-activity-title">Recent commits</h5>
+      
+        <span class="git-activity-count">
+          10 shown
+          
+            · of 40 total
+          
+        </span>
+      
+    </header>
+
+    
+      <ul class="git-commit-list">
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/58a0e9e298a7bf24c309c4db7dd860352ea51666.html" target="_blank" rel="noopener">feat: enhance DOOM integration with mobile controls, audio, and save states</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">58a0e9e</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-15T17:46:36+00:00">
+                Oct 15, 2025, 5:46 PM
+                 · 6 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/8636b252c28b438df7890f40ce16b44af14fd565.html" target="_blank" rel="noopener">cicd: migrate prod deploy to ubuntu-latest with SSH auth and registry normalization</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">8636b25</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-14T21:24:38+00:00">
+                Oct 14, 2025, 9:24 PM
+                 · 7 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/ac30db4dd5c6a915ca079d48b4a2e58d5e48f105.html" target="_blank" rel="noopener">stg: bug fixes cm head and blog experience from staging</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">ac30db4</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-13T22:04:54+00:00">
+                Oct 13, 2025, 10:04 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/d60bbac182cfc8f1d19f6bb6b6314543692fe757.html" target="_blank" rel="noopener">cicd: dev action dockerfile tweaks, path error, and dockerignore fix. Added ngix def conf for dev.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">d60bbac</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-13T15:25:42+00:00">
+                Oct 13, 2025, 3:25 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/da0ca054cdc0dfa0b72d4c4b5185724e4ed24d7c.html" target="_blank" rel="noopener">cicd: Dockerfile permission error fix.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">da0ca05</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-13T00:38:49+00:00">
+                Oct 13, 2025, 12:38 AM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/c520537c8043c7a02c55e36cddbadba5ac0c8f4a.html" target="_blank" rel="noopener">cicd: prod deployment pipeline base with Ansible.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">c520537</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-13T00:27:47+00:00">
+                Oct 13, 2025, 12:27 AM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/4f33bb947e0e7c47bb30d8f35ba6b6239800abff.html" target="_blank" rel="noopener">cm: mobile title sizing.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">4f33bb9</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-12T19:41:40+00:00">
+                Oct 12, 2025, 7:41 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/51e5a269bee08763a436964082225d119d7ff7ae.html" target="_blank" rel="noopener">cm: terminal focus for mobile tweaks.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">51e5a26</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-12T18:42:53+00:00">
+                Oct 12, 2025, 6:42 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/c01d68f6344ec2140b2b5a578e108bd105f091bf.html" target="_blank" rel="noopener">cm: terminal font style sizing.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">c01d68f</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-11T23:03:06+00:00">
+                Oct 11, 2025, 11:03 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/b26d7a6cae4266e8aba71e9e6ee66f0162a292f4.html" target="_blank" rel="noopener">cm: terminal font style.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">b26d7a6</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-11T23:00:55+00:00">
+                Oct 11, 2025, 11:00 PM
+                 · last week
+              </span>
+            </div>
+          </li>
+        
+      </ul>
+    
+  </section>
+</article>

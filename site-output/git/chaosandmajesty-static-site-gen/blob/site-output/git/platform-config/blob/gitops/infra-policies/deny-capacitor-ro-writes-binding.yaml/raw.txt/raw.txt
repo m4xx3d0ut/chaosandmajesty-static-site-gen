@@ -1,0 +1,17 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: deny-capacitor-ro-writes-binding
+spec:
+  policyName: deny-capacitor-ro-writes
+  validationActions: ["Deny","Audit"]
+  matchResources:
+    # To scope just the flux-system namespace, uncomment:
+    # namespaceSelector:
+    #   matchLabels:
+    #     kubernetes.io/metadata.name: flux-system
+    resourceRules:
+      - apiGroups: ["*"]
+        apiVersions: ["*"]
+        operations: ["CREATE","UPDATE","DELETE","CONNECT"]
+        resources: ["*"]

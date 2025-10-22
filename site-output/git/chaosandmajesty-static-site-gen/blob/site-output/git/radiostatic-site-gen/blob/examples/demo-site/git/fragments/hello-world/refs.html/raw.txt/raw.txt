@@ -1,0 +1,19 @@
+<section class="git-refs-panel" aria-labelledby="git-refs-title">
+  <header>
+    <h3 id="git-refs-title">Branches &amp; tags</h3>
+  </header>
+  <div class="git-refs-columns">
+    <div class="git-refs-column">
+      <h4>Branches</h4>
+      <ul class="git-ref-list">
+        <li class="git-ref-item"><span class="git-ref-name">main</span><span class="git-ref-meta">default</span></li>
+      </ul>
+    </div>
+    <div class="git-refs-column">
+      <h4>Tags</h4>
+      <ul class="git-ref-list">
+        <li class="git-ref-item"><span class="git-ref-name">v0.1.0</span><span class="git-ref-meta">First snapshot</span></li>
+      </ul>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,208 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/docs/prod-deployment.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/docs/prod-deployment.md/raw.txt" data-git-line-count="184">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">prod-deployment.md</h4>
+          <div class="git-file-meta">9.5 KB · 184 lines · docs/prod-deployment.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/docs/prod-deployment.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Production Deployment Playbook</h1>
+<p>A reference for promoting Chaos &amp; Majesty builds into production via a <code>prod</code> branch, a Docker-based GitHub Action, and an SSH-accessible VPS that currently serves <code>/var/www</code> behind Nginx.</p>
+<h2>Goals &amp; Constraints</h2>
+<ul>
+<li>Keep the existing VPS and Nginx footprint while introducing a containerized site service.</li>
+<li>Automate builds from the repository so production only ever serves committed assets.</li>
+<li>Avoid storing secrets in the repo; rely on CI/CD secrets and the VPS keyring.</li>
+<li>Support quick rollbacks and minimal downtime when promoting new releases.</li>
+</ul>
+<h2>Implementation Snapshot</h2>
+<ul>
+<li>Docker image now builds via a multi-stage <code>Dockerfile</code>, compiling the static bundle inside the build context before handing it to <code>nginxinc/nginx-unprivileged</code>.</li>
+<li>Ansible playbook (<code>ansible/deploy.yml</code>) provisions <code>/opt/chaosandmajesty</code>, templates the Compose project, pulls the tagged image, and verifies health over <code>http://127.0.0.1:80/health</code>.</li>
+<li><code>.gitea/workflows/prod-deploy.yml</code> runs on every <code>prod</code> push, performing a smoke build, pushing the <code>prod</code>/<code>prod-&lt;sha&gt;</code> tags, and invoking the Ansible deploy through the CI runner.</li>
+<li>Subdomain reverse-proxying is no longer automatic; extend <code>nginx/default.conf</code>
+if you need additional upstreams beyond the primary site + WebDAV share.</li>
+</ul>
+<h2>Branching &amp; Promotion Flow</h2>
+<ol>
+<li>Continue feature development on short-lived branches; merge to <code>main</code> after review.</li>
+<li>Cut release candidates from <code>main</code> into <code>prod</code> via a fast-forward merge (no direct commits on <code>prod</code>).</li>
+<li>Protect <code>prod</code> with branch rules (status checks, linear history) so only the GitHub Action can deploy.</li>
+<li>Tag deployments (e.g., <code>prod-2024-07-01</code>) to map VPS state to repository history.</li>
+</ol>
+<blockquote>
+<p>For the full bring-up procedure (stopping host nginx, mounting Let&#39;s Encrypt,
+and running the first playbook), see <code>docs/prod-first-run.md</code>.</p>
+</blockquote>
+<h2>CI/CD Overview</h2>
+<p>On every push to <code>prod</code>, a dedicated GitHub Action should:</p>
+<ol>
+<li>Check out the repo with full history for tag support.</li>
+<li>Set up Node 18, install dependencies, and run <code>./build-site.sh</code> to regenerate <code>site-output/</code>.</li>
+<li>Run smoke tests (today <code>./build-site.sh</code> already validates HTML; expand when unit tests exist).</li>
+<li>Build a production Docker image using the root <code>Dockerfile</code> (which expects a pre-populated <code>site-output/</code>).</li>
+<li>Tag and push the image to a registry (GitHub Container Registry is the path of least resistance).</li>
+<li>Connect to the VPS over SSH, pull the new image, and restart the container via Docker Compose or <code>docker run</code>.</li>
+<li>Post deployment status, including the image digest and the <code>./build-site.sh</code> output, to the workflow summary.</li>
+</ol>
+<h3>GitHub Action Skeleton</h3>
+<pre><code class="language-yaml">name: Deploy prod
+
+on:
+  push:
+    branches: [prod]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: ./prepare-cm-files.sh
+      - run: ./build-site.sh
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          tags: ghcr.io/chaosandmajesty/site:${{ github.sha }}
+          push: true
+      - name: Tag latest prod
+        run: |
+          docker buildx imagetools create \
+            ghcr.io/chaosandmajesty/site:${{ github.sha }} \
+            --tag ghcr.io/chaosandmajesty/site:prod
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: /opt/chaosandmajesty/bin/deploy.sh ghcr.io/chaosandmajesty/site:prod
+</code></pre>
+<blockquote>
+<p>Swap in your namespace, and tighten permissions/secrets before enabling prod.</p>
+</blockquote>
+<h2>Container Image Strategy</h2>
+<ul>
+<li>The current <code>Dockerfile</code> expects <code>site-output/</code> to exist; ensure the Action runs <code>./build-site.sh</code> before <code>docker build</code> so the static bundle is in place.</li>
+<li>Stick with the unprivileged Nginx base image; it listens on 8080 internally, which plays well with an upstream Nginx reverse proxy on the host. Mount <code>/var/www/html/dav</code> into <code>/usr/share/nginx/html/dav</code> when deploying so WebDAV remains on the host filesystem.</li>
+<li>Use image labels (<code>org.opencontainers.image.*</code>) for traceability; they surface in GHCR UI and <code>docker inspect</code>.</li>
+<li>Consider a second build stage (FROM node:18-alpine) to compile <code>site-output/</code> inside the Docker build for reproducibility. If you switch to that, <code>docker build</code> no longer depends on CI running <code>./build-site.sh</code> first.</li>
+</ul>
+<h2>Registry &amp; Secrets Checklist</h2>
+<ul>
+<li><code>CR_PAT</code>: a GitHub personal access token or GitHub Actions OIDC with <code>packages:write</code> to push to GHCR.</li>
+<li><code>VPS_HOST</code>, <code>VPS_USER</code>, <code>VPS_SSH_KEY</code>: credentials for SSH access. Use a deploy-only user on the server.</li>
+<li>Optional <code>NGINX_RELOAD_CMD</code> secret (e.g., <code>sudo systemctl reload nginx</code>) if you want the Action to refresh Nginx after updating upstreams.</li>
+<li>Store environment-specific toggles (e.g., basic auth) as Action secrets; never commit them to <code>smoke-test.yaml</code>.</li>
+</ul>
+<h2>VPS Preparation</h2>
+<ol>
+<li>Install Docker Engine + Compose plugin (<code>apt-get install docker-ce docker-compose-plugin</code>).</li>
+<li>Create a non-root <code>deploy</code> user, add to the <code>docker</code> group, and secure SSH access with the CI public key.</li>
+<li>Lay down a runtime directory, e.g., <code>/opt/chaosandmajesty/</code>, containing:<ul>
+<li><code>docker-compose.prod.yml</code></li>
+<li><code>nginx/default.conf</code> (for reference)</li>
+<li><code>bin/deploy.sh</code> – a script that pulls the image, runs <code>docker compose up -d</code>, prunes old images, and emits a health check.</li>
+</ul>
+</li>
+<li>Keep <code>/var/www</code> as the Nginx document root but proxy traffic into the container.</li>
+<li>Ensure outbound traffic from the VPS can reach GHCR (<code>docker login ghcr.io</code>).</li>
+</ol>
+<h3>Example <code>docker-compose.prod.yml</code></h3>
+<pre><code class="language-yaml">services:
+  site:
+    image: ghcr.io/chaosandmajesty/site:prod
+    container_name: cm-prod
+    restart: unless-stopped
+    ports:
+      - &quot;127.0.0.1:8080:8080&quot;
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;wget&quot;, &quot;--no-verbose&quot;, &quot;--tries=1&quot;, &quot;--spider&quot;, &quot;http://localhost:8080/health&quot;]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+</code></pre>
+<h3>Example <code>/opt/chaosandmajesty/bin/deploy.sh</code></h3>
+<pre><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+IMAGE_NAME=${1:?&quot;Usage: deploy.sh &lt;image&gt;&quot;}
+
+/usr/bin/docker login ghcr.io -u chaosandmajesty -p &quot;$CR_PAT&quot;
+/usr/bin/docker compose -f /opt/chaosandmajesty/docker-compose.prod.yml pull
+/usr/bin/docker compose -f /opt/chaosandmajesty/docker-compose.prod.yml up -d
+/usr/bin/docker image prune -f --filter label=chaosandmajesty.prod=true
+/usr/bin/curl --fail http://127.0.0.1:80/health
+</code></pre>
+<p>Add execution permissions (<code>chmod +x</code>). Inject the token via an environment file or SSH agent forwarding; avoid hard-coding secrets.</p>
+<h2>Nginx Integration on the VPS</h2>
+<ul>
+<li>Keep <code>/etc/nginx/sites-available/default</code> (or your site block) as the public entry point.</li>
+<li>Proxy to the container listening on localhost:8080:<pre><code class="language-nginx">server {
+    listen 80;
+    server_name chaosandmajesty.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+</code></pre>
+</li>
+<li>Reload Nginx after the first successful container start: <code>sudo systemctl reload nginx</code>.</li>
+<li>Keep TLS termination on the host (e.g., Certbot) so certificate renewals remain unchanged.</li>
+</ul>
+<h2>Deployment Options</h2>
+<h3>Option A – GitHub Action + SSH (recommended)</h3>
+<ul>
+<li><strong>Flow:</strong> Action builds/pushes the image, uses <code>appleboy/ssh-action</code> (or <code>rschwoebel/ssh-exec</code>) to run the deploy script.</li>
+<li><strong>Pros:</strong> No additional infrastructure, auditable; reuse Compose health checks, easy rollback via <code>docker compose up -d IMAGE=previous-tag</code>.</li>
+<li><strong>Cons:</strong> Requires SSH key distribution; CI must reach the VPS.</li>
+</ul>
+<h3>Option B – Self-hosted Runner on the VPS</h3>
+<ul>
+<li><strong>Flow:</strong> Install a GitHub Actions runner on the VPS. The workflow builds the image locally and runs <code>docker compose up -d</code> without SSH.</li>
+<li><strong>Pros:</strong> Avoids SSH keys; large artifacts never leave the server.</li>
+<li><strong>Cons:</strong> Runner downtime blocks deploys; runner needs system updates and isolation to avoid interfering with the live container.</li>
+</ul>
+<h3>Option C – Pull-Based Deployment (Watchtower or Cron)</h3>
+<ul>
+<li><strong>Flow:</strong> CI pushes the image and tags <code>prod</code>. The VPS runs Watchtower or a cron job (<code>docker compose pull &amp;&amp; docker compose up -d</code>) that polls GHCR.</li>
+<li><strong>Pros:</strong> Decouples release initiation from CI connectivity; easier blue/green experiments.</li>
+<li><strong>Cons:</strong> Adds latency between <code>git push</code> and release; relies on server-side automation you must monitor.</li>
+</ul>
+<h2>Rollback Plan</h2>
+<ol>
+<li>List images: <code>docker images ghcr.io/chaosandmajesty/site</code>.</li>
+<li>Re-run the deploy script with a prior tag (e.g., <code>prod-2024-07-01</code>).</li>
+<li>If the container fails health checks, <code>docker compose logs -f</code> and keep the previous container running (<code>docker compose up</code> keeps the last healthy container until the new one passes).</li>
+<li>As a last resort, revert the Nginx proxy to serve the legacy <code>/var/www</code> build while triaging the container.</li>
+</ol>
+<h2>Operational Tips</h2>
+<ul>
+<li>Run <code>./build-site.sh</code> locally before tagging a release; stash the output for PR reviewers.</li>
+<li>Set up uptime monitoring against <code>https://chaosandmajesty.com/health</code> (proxying to container <code>/health</code>).</li>
+<li>Rotate SSH keys and GHCR tokens quarterly; document expiration dates alongside the secrets in 1Password or Vault.</li>
+<li>Capture the workflow URL and container digest in release notes for traceability.</li>
+</ul>
+<p>With these pieces in place, the <code>prod</code> branch becomes the single source of truth for what runs in production, while the VPS keeps its existing networking footprint.</p>
+
+      </div>
+    </article>
+  

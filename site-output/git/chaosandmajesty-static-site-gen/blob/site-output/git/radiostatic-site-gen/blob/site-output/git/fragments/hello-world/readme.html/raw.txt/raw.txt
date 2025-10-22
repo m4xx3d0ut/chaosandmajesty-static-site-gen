@@ -1,0 +1,12 @@
+<section class="git-readme-panel" aria-labelledby="git-readme-title">
+  <header class="git-readme-header">
+    <h3 id="git-readme-title" class="git-readme-title">README</h3>
+    <p class="git-readme-meta">Last updated May 3, 2025</p>
+  </header>
+  <div class="git-readme-body">
+    <p>This quickstart repository illustrates how the HTMX console pulls in static fragments that were generated during the build.</p>
+    <pre><code>npm install
+npm run build
+./ship-static.sh</code></pre>
+  </div>
+</section>

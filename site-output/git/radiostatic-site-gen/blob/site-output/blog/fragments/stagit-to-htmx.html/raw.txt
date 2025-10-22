@@ -1,0 +1,94 @@
+
+
+
+
+<article class="blog-article-body" data-slug="stagit-to-htmx">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Retiring Stagit, Embracing HTMX</h1>
+    <p class="blog-article-meta">
+      
+        <span>Oct 20, 2025</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>7 min read</span>
+      
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="assets/static/img/not-dead.webp" alt="Retiring Stagit, Embracing HTMX hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <p>When RadioStatic first came online, Stagit handled the heavy lifting for the repository console. The static HTML it generated meant we could mirror git history with zero server state, drop the files into the build, and walk away confident that a basic web host could keep serving them. That simplicity bought us time to focus on the stories, not the scaffolding.</p>
+<h3>What Stagit originally gave us</h3>
+<ul>
+<li><strong>Repository index pages</strong> that enumerated projects with last-updated timestamps, commit counts, and default branches so readers could orient without cloning anything.</li>
+<li><strong>Commit detail and diff views</strong> generated as flat files, including per-file anchors and the trimmed patch so you could skim what changed without loading an external viewer.</li>
+<li><strong>Tag and release snapshots</strong> that mirrored annotated tags into their own subdirectories, which doubled as lightweight release notes.</li>
+<li><strong>RSS/Atom feeds</strong> straight from the git history, letting readers subscribe to repository activity the same way they would track new blog posts.</li>
+</ul>
+<p>Those affordances aligned with our early goal: a fully offline-capable archive that stayed in sync whenever we rebuilt the site.</p>
+<h3>Why we started phasing Stagit out</h3>
+<p>By mid-2024 the cracks were obvious. The Stagit pages were frozen until the next full site regeneration, so hot fixes or walkthrough updates lagged behind live repos. The static diff styling also clashed with the rest of the console, and tailoring it meant forking Stagit’s C templates. Worse, search and filtering remained a separate JavaScript widget bolted on after the pages loaded, which felt like duct tape. On 2025-03-18 we marked the Stagit console as “legacy” in the roadmap and froze feature work.</p>
+<h3>Enter the HTMX console</h3>
+<p>The replacement landed in two drops: a private alpha on 2025-06-02 and the public switch on 2025-07-09. Instead of pre-rendering every commit, we expose curated JSON endpoints during the build and let HTMX hydrate the console with targeted requests. The new stack layers:</p>
+<ul>
+<li><strong>HTMX partial swaps</strong> for the repo list, commit timelines, and file previews, keeping navigation snappy without full page reloads.</li>
+<li><strong>Server-signed payloads</strong> baked during <code>./build-site.sh</code>, so the console still deploys as static files but HTMX consumes fresh data snapshots generated minutes before publish.</li>
+<li><strong>Composable EJS partials</strong> that keep styling consistent across the console, docs, and blog while letting us drop in context-sensitive callouts.</li>
+<li><strong>Telemetry hooks</strong> that emit lightweight events for interaction patterns, giving us benchmarks on what readers actually open.</li>
+</ul>
+<h3>Improvements we’re seeing now</h3>
+<ul>
+<li><strong>Faster refresh cadence:</strong> Regenerating the JSON snapshots is ~12× faster than rebuilding the full HTML tree, which cut publish latency from ~9 minutes to well under a minute for most pushes.</li>
+<li><strong>Unified filtering:</strong> Repo search, tag filters, and changelog toggles now live in a single HTMX-driven control bar, replacing the stitched-on JavaScript and making keyboard navigation reliable.</li>
+<li><strong>Consistent accessibility:</strong> We aligned aria roles and focus management across the console because HTMX lets us target fragments instead of whole pages, eliminating the tab-trap issues we had with Stagit modals.</li>
+<li><strong>Editorial flexibility:</strong> Because the console renders from JSON, we can append release summaries, attach post links, or flag breaking changes without editing C templates or rebuilding binary tooling.</li>
+</ul>
+<h3>What’s next</h3>
+<p>The HTMX system isn’t “set and forget.” We still snapshot git data during build time, so truly real-time commit streams remain on the backlog. We’re also experimenting with progressive enhancement that streams the top commit diff as Markdown for readers on low-bandwidth connections. If you depended on the older Stagit pages, their frozen copies remain archived under <code>/legacy/stagit/</code> for reference, but the console of record now lives entirely in the HTMX pipeline.</p>
+
+  </div>
+
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link is-disabled"
+        data-blog-nav="previous"
+        aria-disabled=&#34;true&#34; tabindex=&#34;-1&#34;
+        href="#"
+        data-default-href=""
+        data-default-fragment=""
+        data-fragment-href=""
+        data-target-slug=""
+        data-post-slug=""
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">No newer posts</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/kickstart-your-first-build.html"
+        data-default-href="blog/kickstart-your-first-build.html"
+        data-default-fragment="blog/fragments/kickstart-your-first-build.html"
+        data-fragment-href="blog/fragments/kickstart-your-first-build.html"
+        data-target-slug="kickstart-your-first-build"
+        data-post-slug="kickstart-your-first-build"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Kickstart Your First Build</span>
+      </a>
+    </nav>
+  
+</article>
+

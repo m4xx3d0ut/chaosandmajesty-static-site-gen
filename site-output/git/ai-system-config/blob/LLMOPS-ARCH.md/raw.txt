@@ -1,0 +1,1453 @@
+# AI System – Single Source of Truth (Gateway + vLLM on RTX 8000/Turing)
+
+> **Purpose**: Single reference for design, manifests, and ops to meet requirements:
+>
+> * Serve multiple open‑weight models on a Quadro RTX 8000 (SM 7.5) with **vLLM**.
+> * Provide a **Gateway** that supports **Direct** and **Routed** modes and abstracts **OpenAI**/**Gemini**.
+> * **Hot‑load** local models on demand; **purge** model cache safely.
+> * GitOps via **Flux**; production‑safe **NetworkPolicy**, **probes**, and **Turing‑specific tuning**.
+
+---
+
+## 0) Architecture
+
+**Per‑model vLLM Deployments** (Option A)
+
+* One Deployment **per local model** (e.g., `vllm-glm-edge-1p5b`, `vllm-glm-edge-4b`, `vllm-glm-45-air`).
+* Each exposes **OpenAI‑compatible** API on port 8000 and ships with a **cachectl** sidecar on 8081.
+* **Hot‑loading** == scaling a Deployment 0 ↔ 1. **Purging** == unload then tell cachectl to delete the HF cache dir.
+
+**Gateway**
+
+* Single FastAPI service that:
+
+  * **Direct mode**: `model:"local:<repo>" | "openai:<model>" | "gemini:<model>"`.
+  * **Routed mode**: `model:"routed"`, with **task** (e.g., `chat`, `classify`) resolved via the `routing` ConfigMap.
+  * **/v1/models** (inventory), **/admin/hotload**, **/admin/unload**, **/admin/purge-cache**, **/admin/prompts**, \*\*/admin/routing\`.
+  * Optional **ADMIN\_TOKEN** header guards admin endpoints.
+* Knows each local model’s **Service** and **Deployment** name for routing/scale.
+
+**GitOps**
+
+* All manifests under `ai-system-config/k8s/base/*` + overlay `k8s/overlays/prod`.
+* Flux Kustomization references overlay (from platform repo).
+
+---
+
+## 1) Model Catalog (initial)
+
+Local models we support out of the box:
+
+* `zai-org/glm-edge-1.5b-chat`
+* `zai-org/glm-edge-4b-chat`
+* `zai-org/GLM-4.5-Air`
+
+> You can add more by cloning a model Deployment + Service and registering it in gateway’s `LOCAL_MODELS` map.
+
+---
+
+## 2) Kubernetes Manifests (authoritative)
+
+### 2.1 Namespace
+
+`k8s/base/namespace.yaml`
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+  labels:
+    istio-injection: "disabled"  # adjust if using a mesh
+```
+
+### 2.2 NetworkPolicy (default‑deny + required allows)
+
+`k8s/base/networkpolicy.yaml`
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny, namespace: ai }
+spec: { podSelector: {}, policyTypes: [Ingress, Egress] }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-dns-any, namespace: ai }
+spec:
+  podSelector: {}
+  policyTypes: ["Egress"]
+  egress:
+    - to: [ { ipBlock: { cidr: 0.0.0.0/0 } } ]
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-egress-internet-for-ai, namespace: ai }
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: ["vllm","gateway"] }
+  policyTypes: ["Egress"]
+  egress:
+    - to: [ { ipBlock: { cidr: 0.0.0.0/0 } } ]
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 80 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-ai-eastwest, namespace: ai }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress: [ { from: [ { podSelector: {} } ] } ]
+  egress:  [ { to:   [ { podSelector: {} } ] } ]
+```
+
+### 2.3 Shared Config (OTel / Flags / Schemas / Routing)
+
+`k8s/base/config-otel-resource.yaml`
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: otel-resource, namespace: ai }
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy.monitoring.svc.cluster.local:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_RESOURCE_ATTRIBUTES: "service.namespace=ai,telemetry.distro=opentelemetry,k8s.cluster.name=microk8s,deployment.environment=prod"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "otlp"
+```
+
+`k8s/base/config-flags.yaml`
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: flags, namespace: ai }
+data:
+  flags.yaml: |
+    experiments:
+      enable_rerank: true
+      enable_semantic_cache: true
+    guardrails:
+      strict_json_mode: true
+      pii_redaction: true
+```
+
+`k8s/base/config-schemas.yaml` (redacted for brevity)
+
+`k8s/base/config-routing.yaml`  ➜ **routed policy**
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: routing, namespace: ai }
+data:
+  routing.yaml: |
+    default:
+      chat:
+        - model: local:zai-org/glm-edge-1.5b-chat
+          weight: 60
+        - model: local:zai-org/glm-edge-4b-chat
+          weight: 40
+      classify:
+        - model: local:zai-org/glm-edge-1.5b-chat
+          weight: 100
+    thresholds:
+      escalate_on_confidence_below: 0.6
+      max_output_tokens: 1024
+```
+
+### 2.4 vLLM – Turing‑safe base (per‑model)
+
+Create one file per model (example below for `glm-edge-1.5b-chat`).
+
+`k8s/base/vllm/glm-edge-1p5b.yaml`
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata: { name: hf-token, namespace: ai }
+type: Opaque
+stringData:
+  HUGGING_FACE_HUB_TOKEN: "<hf_token_here>"  # rotate immediately if a real token ever hit git/logs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: hf-cache, namespace: ai }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 50Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: vllm-glm-edge-1p5b, namespace: ai }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: vllm-glm-edge-1p5b } }
+  replicas: 0   # start cold; hot-load via scale to 1
+  template:
+    metadata: { labels: { app.kubernetes.io/name: vllm-glm-edge-1p5b } }
+    spec:
+      enableServiceLinks: false
+      runtimeClassName: nvidia
+      nodeSelector: { accelerator: nvidia }
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest-x86_64
+          args: ["--port","8000","--model","zai-org/glm-edge-1.5b-chat","--download-dir","/models","--tensor-parallel-size","1","--dtype","float16"]
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+            - { name: VLLM_PORT, value: "39000" }
+            - { name: VLLM_USE_FLASHINFER, value: "0" }
+          ports: [ { name: openai, containerPort: 8000 } ]
+          startupProbe:  { httpGet: { path: "/health", port: "openai" }, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 60 }
+          readinessProbe: { httpGet: { path: "/health", port: "openai" }, initialDelaySeconds: 10, periodSeconds: 5, timeoutSeconds: 1 }
+          livenessProbe:  { httpGet: { path: "/health", port: "openai" }, initialDelaySeconds: 60, periodSeconds: 10, timeoutSeconds: 2 }
+          resources:
+            requests: { cpu: "4", memory: "20Gi", nvidia.com/gpu: "1" }
+            limits:   { cpu: "8", memory: "40Gi", nvidia.com/gpu: "1" }
+          volumeMounts: [ { name: hf-cache, mountPath: /models } ]
+        - name: cachectl
+          image: reg.microk8s.core.home.arpa:32000/ai/cachectl:0.1.0
+          env: [ { name: HF_DOWNLOAD_DIR, value: /models } ]
+          ports: [ { name: cachectl, containerPort: 8081 } ]
+          volumeMounts: [ { name: hf-cache, mountPath: /models } ]
+          resources: { requests: { cpu: "50m", memory: "64Mi" }, limits: { cpu: "200m", memory: "256Mi" } }
+      volumes: [ { name: hf-cache, persistentVolumeClaim: { claimName: hf-cache } } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: vllm-glm-edge-1p5b, namespace: ai }
+spec:
+  selector: { app.kubernetes.io/name: vllm-glm-edge-1p5b }
+  ports:
+    - { name: openai,   port: 8000, targetPort: openai }
+    - { name: cachectl, port: 8081, targetPort: cachectl }
+```
+
+> Create analogous files for `glm-edge-4b` and `GLM-4.5-Air` (change `name`, `--model`, labels/selectors, and Service names accordingly). Keep `replicas: 0` by default.
+
+### 2.5 Gateway – RBAC, Deployment, Service, HPA
+
+`k8s/base/gateway/rbac.yaml`
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: gateway, namespace: ai }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: gateway, namespace: ai }
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get","patch","update"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: gateway, namespace: ai }
+subjects: [ { kind: ServiceAccount, name: gateway, namespace: ai } ]
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: gateway }
+```
+
+`k8s/base/gateway/deploy.yaml`
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ai
+  labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: ai-system }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app.kubernetes.io/name: gateway } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: ai-system }
+    spec:
+      serviceAccountName: gateway
+      containers:
+        - name: gateway
+          image: reg.microk8s.core.home.arpa:32000/ai/gateway:0.1.0
+          imagePullPolicy: Always
+          env:
+            - { name: POD_NAMESPACE,  valueFrom: { fieldRef: { fieldPath: metadata.namespace } } }
+            - { name: ROUTING_CM_NAME, value: "routing" }
+            - { name: ROUTING_CM_KEY,  value: "routing.yaml" }
+            - name: OPENAI_API_KEY
+              valueFrom: { secretKeyRef: { name: provider-keys, key: OPENAI_API_KEY, optional: true } }
+            - name: GEMINI_API_KEY
+              valueFrom: { secretKeyRef: { name: provider-keys, key: GEMINI_API_KEY, optional: true } }
+            - name: ADMIN_TOKEN
+              valueFrom: { secretKeyRef: { name: provider-keys, key: ADMIN_TOKEN, optional: true } }
+          ports: [ { name: http, containerPort: 8080 } ]
+          readinessProbe: { httpGet: { path: "/healthz", port: "http" }, initialDelaySeconds: 5, periodSeconds: 10 }
+          livenessProbe:  { httpGet: { path: "/healthz", port: "http" }, initialDelaySeconds: 10, periodSeconds: 10 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: gateway, namespace: ai }
+spec:
+  selector: { app.kubernetes.io/name: gateway }
+  ports: [ { name: http, port: 8080, targetPort: 8080 } ]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: gateway, namespace: ai }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: gateway }
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+```
+
+> (Ingress and Flagger canary exist but are optional until base is stable.)
+
+### 2.6 Overlay
+
+`k8s/overlays/prod/kustomization.yaml`
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/networkpolicy.yaml
+  - ../../base/config-otel-resource.yaml
+  - ../../base/config-flags.yaml
+  - ../../base/config-routing.yaml
+  - ../../base/config-schemas.yaml
+  - ../../base/gateway/rbac.yaml
+  - ../../base/gateway/deploy.yaml
+  - ../../base/gateway/service.yaml
+  # add per‑model vLLM files
+  - ../../base/vllm/glm-edge-1p5b.yaml
+  - ../../base/vllm/glm-edge-4b.yaml
+  - ../../base/vllm/glm-45-air.yaml
+commonLabels:
+  app.kubernetes.io/part-of: ai-system
+```
+
+---
+
+## 3) Gateway Implementation (features)
+
+* **Inventory**: `GET /v1/models` → lists local models + provider availability (OpenAI/Gemini) + readiness/replicas.
+* **Direct**: `POST /v1/chat/completions` with `model:"local:<repo>" | "openai:<model>" | "gemini:<model>"`.
+* **Routed**: same endpoint with `model:"routed"` and `task:"chat"|"classify"|…`; picks weighted ready targets from `routing` CM.
+* **Admin** (optional `X-Admin-Token`):
+
+  * `POST /admin/hotload {"model":"local:<repo>"}` → scales that model to 1
+  * `POST /admin/unload {…}` → scales to 0
+  * `POST /admin/purge-cache {…}` → requires replicas=0, then hits sidecar `/purge?repo_id=`
+  * `GET /admin/prompts` / `POST /admin/prompts` → update in‑memory prompt templates
+  * `GET /admin/routing` → current loaded routing + resourceVersion
+* **Hot‑reload routing**: watches `routing` ConfigMap (poll), picks up weight/target changes automatically.
+
+> The gateway code already includes: OpenAI SDK, Gemini SDK, Kubernetes client (in‑cluster); task wiring; prompt templating hooks.
+
+---
+
+## 4) Operations
+
+### 4.1 One‑time GPU prep
+
+```bash
+kubectl label node <gpu-node> accelerator=nvidia --overwrite
+# Ensure NVIDIA device plugin is installed.
+```
+
+### 4.2 Build & push images
+
+```bash
+# gateway
+docker build -t reg.microk8s.core.home.arpa:32000/ai/gateway:0.1.0 gateway
+docker push  reg.microk8s.core.home.arpa:32000/ai/gateway:0.1.0
+
+# cachectl
+docker build -t reg.microk8s.core.home.arpa:32000/ai/cachectl:0.1.0 cachectl
+docker push  reg.microk8s.core.home.arpa:32000/ai/cachectl:0.1.0
+```
+
+### 4.3 Apply (Flux)
+
+```bash
+flux -n flux-system reconcile source git ai-system
+kubectl -n flux-system annotate kustomization/ai-system reconcile="$(date +%s)" --overwrite
+```
+
+### 4.4 Hot‑load a local model
+
+```bash
+# scale one model up (admin)
+curl -s -X POST http://gateway.ai.svc.cluster.local:8080/admin/hotload \
+  -H 'content-type: application/json' -H "X-Admin-Token: $ADMIN_TOKEN" \
+  -d '{"model":"local:zai-org/glm-edge-1.5b-chat"}' | jq
+```
+
+### 4.5 Sanity test
+
+```bash
+# inventory
+curl -s http://gateway.ai.svc.cluster.local:8080/v1/models | jq
+
+# direct
+curl -s -X POST http://gateway.ai.svc.cluster.local:8080/v1/chat/completions \
+  -H 'content-type: application/json' \
+  -d '{"model":"local:zai-org/glm-edge-1.5b-chat","messages":[{"role":"user","content":"hello"}]}' | jq
+
+# routed (task=chat)
+curl -s -X POST http://gateway.ai.svc.cluster.local:8080/v1/chat/completions \
+  -H 'content-type: application/json' \
+  -d '{"model":"routed","task":"chat","messages":[{"role":"user","content":"hi there"}]}' | jq
+```
+
+### 4.6 Unload & purge
+
+```bash
+curl -s -X POST http://gateway.ai.svc.cluster.local:8080/admin/unload \
+  -H 'content-type: application/json' -H "X-Admin-Token: $ADMIN_TOKEN" \
+  -d '{"model":"local:zai-org/glm-edge-1.5b-chat"}' | jq
+
+curl -s -X POST http://gateway.ai.svc.cluster.local:8080/admin/purge-cache \
+  -H 'content-type: application/json' -H "X-Admin-Token: $ADMIN_TOKEN" \
+  -d '{"model":"local:zai-org/glm-edge-1.5b-chat"}' | jq
+```
+
+---
+
+## 5) Extended Troubleshooting – **Turing (SM 7.5)**
+
+**Symptom → Fix matrix**
+
+| Symptom (log/error)                                               | Why on SM 7.5             | Fix                                                                         |
+| ----------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------- |
+| `TopPSamplingFromProbs … too many resources requested for launch` | FlashInfer sampling issue | Set `VLLM_USE_FLASHINFER=0` (and/or `VLLM_USE_FLASHINFER_SAMPLER=0`)        |
+| `Cannot use FA version 2 … compute capability >= 8`               | FA2 needs Ampere+         | Expected on Turing; it falls back.                                          |
+| `Your device … doesn't support torch.bfloat16`                    | No BF16                   | Use `--dtype float16`.                                                      |
+| `VLLM_PORT 'tcp://…' appears to be a URI`                         | K8s service env collision | `enableServiceLinks:false` and/or set container env `VLLM_PORT="39000"`.    |
+| Name resolution / HF download errors                              | NetPol/DNS block          | Allow UDP/TCP 53 egress; allow TCP 80/443 for `vllm`/`gateway`.             |
+| Restarts during warmup/compile                                    | Probes too aggressive     | Add `startupProbe` on `/health` with \~5 min window.                        |
+| Pod Pending                                                       | GPU scheduling            | Node label `accelerator=nvidia`, NVIDIA device plugin, `nvidia.com/gpu: 1`. |
+
+**Useful commands**
+
+```bash
+kubectl -n ai logs deploy/vllm-glm-edge-1p5b -c vllm | egrep -i 'flashinfer|dtype|fa |health|error|compile'
+kubectl -n ai exec deploy/vllm-glm-edge-1p5b -c vllm -- printenv | grep ^VLLM_
+```
+
+---
+
+## 6) Security & Ops notes
+
+* **Secrets**: never commit tokens; rotate any previously exposed HF tokens and re‑create `hf-token` Secret.
+* **Admin endpoints**: protect with `ADMIN_TOKEN` + NetworkPolicy (cluster‑internal only) until you front with auth.
+* **Image pinning**: pin `vllm/vllm-openai` to a tested tag once stable (avoid `:latest`).
+* **Canary**: re‑enable Flagger once base is green. Update loadtest path to `/v1/models` or a cheap health.
+* **Observability**: set OTEL envs via `otel-resource` ConfigMap; forward to your collector.
+
+---
+
+## 7) Checklists
+
+**Day‑1 bring‑up**
+
+* [ ] Label GPU node `accelerator=nvidia` and verify device plugin.
+* [ ] Build/push `gateway:0.1.0`, `cachectl:0.1.0`.
+* [ ] Apply overlay via Flux; wait for `gateway` Ready.
+* [ ] Scale one model Deployment to 1 via `/admin/hotload`.
+* [ ] Run direct and routed smoke tests.
+
+**Day‑2 model add**
+
+* [ ] Copy a vLLM manifest; change names/labels/model repo.
+* [ ] Add Service; start with `replicas: 0`.
+* [ ] Register in gateway `LOCAL_MODELS` (env JSON or code map).
+* [ ] Optionally weight it in `routing` CM.
+* [ ] Hot‑load and test.
+
+**Incident**
+
+* [ ] If GPU errors mention FlashInfer: ensure `VLLM_USE_FLASHINFER=0`.
+* [ ] If crash mentions `VLLM_PORT tcp://…`: ensure `enableServiceLinks:false` and override env.
+* [ ] If downloads fail: confirm DNS/egress policies.
+
+---
+
+## 8) API Reference (quick)
+
+**Inventory**
+
+```http
+GET /v1/models
+```
+
+**Chat (Direct)**
+
+```http
+POST /v1/chat/completions
+{ "model":"local:zai-org/glm-edge-1.5b-chat", "messages":[{"role":"user","content":"hi"}] }
+```
+
+**Chat (Routed)**
+
+```http
+POST /v1/chat/completions
+{ "model":"routed", "task":"chat", "messages":[{"role":"user","content":"hi"}] }
+```
+
+**Admin** *(send `X-Admin-Token` if set)*
+
+```http
+POST /admin/hotload   {"model":"local:<repo>"}
+POST /admin/unload    {"model":"local:<repo>"}
+POST /admin/purge-cache {"model":"local:<repo>"}
+GET  /admin/prompts
+POST /admin/prompts   {"system":"...","user_prefix":"..."}
+GET  /admin/routing
+```
+
+---
+
+### End of document
+
+---
+
+---
+
+
+Here’s the **drop-in `gateway/app.py`** that adds **routed mode** and uses **in-cluster RBAC** to **scale per-model Deployments (0↔1)** for hot-load/unload. It keeps your OpenAI/Gemini support, lists models, and probes readiness.
+
+```python
+# gateway/app.py
+import os, json, time, random, asyncio
+from typing import List, Optional, Dict, Any, Tuple
+from fastapi import FastAPI, HTTPException, Body
+from pydantic import BaseModel
+import httpx
+
+# --- Optional external providers (disabled when no keys)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+use_openai = False
+use_gemini = False
+if OPENAI_API_KEY:
+    try:
+        from openai import OpenAI
+        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        use_openai = True
+    except Exception:
+        pass
+if GEMINI_API_KEY:
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        use_gemini = True
+    except Exception:
+        pass
+
+# --- Local model registry (per-model services) -------------------------------
+# repo_id  -> K8s Deployment name (to scale) and Service base URL (to call)
+MODEL_REGISTRY: Dict[str, Dict[str, str]] = {
+    "zai-org/glm-edge-1.5b-chat": {
+        "deployment": "vllm-glm-edge-1p5b",
+        "base": "http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8000",
+    },
+    "zai-org/glm-edge-4b-chat": {
+        "deployment": "vllm-glm-edge-4b",
+        "base": "http://vllm-glm-edge-4b.ai.svc.cluster.local:8000",
+    },
+    "zai-org/GLM-4.5-Air": {
+        "deployment": "vllm-glm-45-air",
+        "base": "http://vllm-glm-45-air.ai.svc.cluster.local:8000",
+    },
+}
+ALLOW_MODELS = list(MODEL_REGISTRY.keys())
+AI_NAMESPACE = os.getenv("AI_NAMESPACE", "ai")
+
+# --- Routing policy -----------------------------------------------------------
+# Loaded once at startup from a mounted ConfigMap (k8s/base/config-routing.yaml)
+ROUTING_PATH = os.getenv("ROUTING_PATH", "/config/routing.yaml")
+
+def _load_routing_policy() -> Dict[str, Any]:
+    import yaml
+    try:
+        with open(ROUTING_PATH, "r") as f:
+            doc = yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        # sane default
+        doc = {
+            "default": {"chat": [{"model": f"local:{ALLOW_MODELS[0]}", "weight": 100}]},
+            "thresholds": {"escalate_on_confidence_below": 0.6, "max_output_tokens": 1024},
+        }
+    return doc
+
+ROUTING = _load_routing_policy()
+
+# --- K8s in-cluster client (for scaling) -------------------------------------
+from kubernetes import client, config
+try:
+    config.load_incluster_config()
+    apps_api = client.AppsV1Api()
+except Exception as e:
+    apps_api = None  # running locally without k8s; admin actions will 501
+
+async def _http_get(url: str, timeout_s: int = 5) -> httpx.Response:
+    async with httpx.AsyncClient(timeout=timeout_s) as cx:
+        return await cx.get(url)
+
+async def _service_ready(base: str, deadline_s: int = 120) -> bool:
+    """
+    Consider the backend ready when /v1/models or /health returns 200.
+    """
+    start = time.time()
+    paths = ["/v1/models", "/health", "/healthz"]
+    while time.time() - start < deadline_s:
+        for p in paths:
+            try:
+                r = await _http_get(f"{base}{p}", timeout_s=3)
+                if r.status_code == 200:
+                    return True
+            except Exception:
+                pass
+        await asyncio.sleep(2)
+    return False
+
+def _scale_deployment(name: str, replicas: int) -> None:
+    if apps_api is None:
+        raise HTTPException(501, "Kubernetes client is not available in this runtime")
+    body = {"spec": {"replicas": replicas}}
+    apps_api.patch_namespaced_deployment_scale(
+        name=name, namespace=AI_NAMESPACE, body=body
+    )
+
+async def _ensure_hotloaded(repo_id: str, wait_ready_s: int = 180) -> str:
+    """
+    Scale the model's Deployment to 1 and wait for Service readiness.
+    Returns the base URL for the model.
+    """
+    if repo_id not in MODEL_REGISTRY:
+        raise HTTPException(400, f"model not allowed: {repo_id}")
+    info = MODEL_REGISTRY[repo_id]
+    # Scale up
+    try:
+        _scale_deployment(info["deployment"], 1)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"failed to scale {info['deployment']}: {e}")
+    # Wait for the service to come alive
+    ok = await _service_ready(info["base"], deadline_s=wait_ready_s)
+    if not ok:
+        raise HTTPException(504, f"model {repo_id} did not become Ready in time")
+    return info["base"]
+
+def _unload(repo_id: str) -> None:
+    if repo_id not in MODEL_REGISTRY:
+        raise HTTPException(400, f"model not allowed: {repo_id}")
+    info = MODEL_REGISTRY[repo_id]
+    try:
+        _scale_deployment(info["deployment"], 0)
+    except Exception as e:
+        raise HTTPException(500, f"failed to scale down {info['deployment']}: {e}")
+
+# --- FastAPI shapes -----------------------------------------------------------
+app = FastAPI(title="AI Gateway", version="0.3.0")
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    model: Optional[str] = None     # "local:<repo_id>" | "openai:<model>" | "gemini:<model>"
+    task: Optional[str] = "chat"    # routed mode uses this (e.g., "chat", "classify")
+    messages: List[ChatMessage]
+    temperature: Optional[float] = 0.7
+    max_tokens: Optional[int] = 512
+    stream: Optional[bool] = False
+
+class HotloadReq(BaseModel):
+    model: str  # e.g., "local:zai-org/glm-edge-4b-chat"
+
+# --- Helpers ------------------------------------------------------------------
+def _choose_routed_model(task: str) -> str:
+    """
+    Choose from ROUTING[<scope>][task] with weights; for now scope="default".
+    Returns a provider-qualified model string, e.g., "local:zai-org/glm-edge-4b-chat".
+    """
+    scope = "default"
+    entry = ((ROUTING or {}).get(scope) or {}).get(task)
+    if not entry:
+        raise HTTPException(400, f"no routing policy for task={task!r}")
+
+    # normalize weights
+    total = sum(max(0, int(item.get("weight", 0))) for item in entry)
+    if total <= 0:
+        raise HTTPException(500, f"invalid routing weights for task={task!r}")
+    pick = random.randint(1, total)
+    cum = 0
+    for item in entry:
+        cum += max(0, int(item.get("weight", 0)))
+        if pick <= cum:
+            model = item.get("model")
+            if not model:
+                raise HTTPException(500, "route item missing 'model'")
+            return model
+    # fallback (shouldn't happen)
+    return entry[-1]["model"]
+
+async def _forward_local(base: str, req: ChatRequest, served_name: str) -> Dict[str, Any]:
+    payload = req.model_dump()
+    payload["model"] = served_name
+    async with httpx.AsyncClient(timeout=600) as cx:
+        r = await cx.post(f"{base}/v1/chat/completions", json=payload)
+        if r.status_code >= 400:
+            raise HTTPException(r.status_code, r.text)
+        return r.json()
+
+# --- Endpoints ----------------------------------------------------------------
+@app.get("/healthz")
+async def healthz(): return {"ok": True}
+
+@app.get("/v1/models")
+async def list_models():
+    """
+    Report local+external catalogs and mark readiness by probing local services.
+    """
+    data = []
+    # Local models: probe readiness
+    for repo, info in MODEL_REGISTRY.items():
+        ready = False
+        try:
+            r = await _http_get(f"{info['base']}/v1/models", timeout_s=2)
+            ready = (r.status_code == 200)
+        except Exception:
+            ready = False
+        data.append({"id": f"local:{repo}", "provider": "local", "ready": ready})
+
+    if use_openai:
+        data.append({"id": "openai:gpt-4o-mini", "provider": "openai", "ready": True})
+    if use_gemini:
+        data.append({"id": "gemini:gemini-1.5-pro", "provider": "gemini", "ready": True})
+
+    return {"data": data}
+
+@app.post("/admin/hotload")
+async def hotload(req: HotloadReq):
+    if not req.model.startswith("local:"):
+        raise HTTPException(400, "hotload supports only local:* models")
+    repo = req.model.split("local:", 1)[1]
+    base = await _ensure_hotloaded(repo)
+    return {"ok": True, "repo_id": repo, "base": base}
+
+@app.post("/admin/unload")
+async def unload(req: HotloadReq):
+    if not req.model.startswith("local:"):
+        raise HTTPException(400, "unload supports only local:* models")
+    repo = req.model.split("local:", 1)[1]
+    _unload(repo)
+    return {"ok": True, "repo_id": repo}
+
+@app.post("/v1/chat/completions")
+async def chat(req: ChatRequest = Body(...)):
+    """
+    - Direct mode: req.model provided (local:/openai:/gemini:)
+    - Routed mode: req.model omitted → choose via ROUTING on req.task
+    """
+    provider: str
+    name: str
+
+    if req.model:
+        provider, name = req.model.split(":", 1) if ":" in req.model else ("local", req.model)
+    else:
+        routed = _choose_routed_model(req.task or "chat")
+        provider, name = routed.split(":", 1) if ":" in routed else ("local", routed)
+
+    if provider == "local":
+        # Scale to 1 if needed and wait for readiness
+        base = await _ensure_hotloaded(name)
+        # vLLM expects either repo id or served name; we forward the repo id
+        return await _forward_local(base, req, name)
+
+    elif provider == "openai":
+        if not use_openai:
+            raise HTTPException(501, "OpenAI disabled (no API key configured)")
+        resp = openai_client.chat.completions.create(
+            model=name,
+            messages=[m.model_dump() for m in req.messages],
+            temperature=req.temperature,
+            max_tokens=req.max_tokens,
+            stream=req.stream,
+        )
+        return resp.model_dump()
+
+    elif provider == "gemini":
+        if not use_gemini:
+            raise HTTPException(501, "Gemini disabled (no API key configured)")
+        import google.generativeai as genai
+        model = genai.GenerativeModel(name)
+        prompt = "\n".join([f"{m.role}: {m.content}" for m in req.messages])
+        out = model.generate_content(
+            prompt,
+            generation_config={"temperature": req.temperature, "max_output_tokens": req.max_tokens},
+        )
+        text = out.text or ""
+        return {
+            "id": "chatcmpl_gemini",
+            "object": "chat.completion",
+            "model": f"gemini:{name}",
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": text}, "finish_reason": "stop"}],
+        }
+
+    else:
+        raise HTTPException(400, f"unknown provider {provider}")
+```
+
+### Notes (how this wires to your cluster)
+
+* **MODEL\_REGISTRY** maps each HF repo id → its **Deployment** (to scale) and **Service** base URL (to call). Make sure your per-model vLLM manifests use those names.
+* **Routed mode**: if `req.model` is missing, we pick a model from the **`routing` ConfigMap** (`k8s/base/config-routing.yaml`) using weights. The selected item can be `local:*` or an API model.
+* **Hotload/unload**: `/admin/hotload` scales the Deployment to **1** and waits for the service to respond on `/v1/models`/`/health`; `/admin/unload` scales to **0**.
+
+If you haven’t already applied RBAC, here’s the minimal Role/Binding that lets the gateway scale Deployments in the `ai` namespace (use the gateway’s ServiceAccount name if you set one):
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gateway
+  namespace: ai
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gateway-scale
+  namespace: ai
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gateway-scale
+  namespace: ai
+subjects:
+  - kind: ServiceAccount
+    name: gateway
+    namespace: ai
+roleRef:
+  kind: Role
+  name: gateway-scale
+  apiGroup: rbac.authorization.k8s.io
+```
+
+And set the ServiceAccount on the gateway Deployment:
+
+```yaml
+spec:
+  template:
+    spec:
+      serviceAccountName: gateway
+```
+
+If you want me to also paste the **three per-model vLLM Deployment/Service** YAMLs that match this registry (`vllm-glm-edge-1p5b`, `vllm-glm-edge-4b`, `vllm-glm-45-air`) with the Turing-safe settings, say the word and I’ll drop them in.
+
+
+
+
+---
+
+---
+
+
+# TGI Plan – GLM‑4.5‑Air (NF4) on RTX 8000
+
+This doc breaks out the Text Generation Inference (TGI) path as a standalone deployment track for `zai-org/GLM-4.5-Air` using **bitsandbytes NF4** quantization. The goals are (1) single‑GPU operability on Quadro RTX 8000 (cc 7.5), (2) leverage abundant host RAM for offload, (3) keep the **OpenAI-compatible** surface so the existing gateway stays minimal.
+
+---
+
+## 1) Why TGI for this track?
+
+* **VRAM pressure**: vLLM FP16 runs out of memory on 1× RTX 8000 during expert instantiation (MoE). NF4 reduces memory footprint significantly.
+* **CPU RAM offload**: TGI with bitsandbytes handles spillover gracefully; your host has \~250 GiB RAM.
+* **OpenAI compat**: TGI 2.x supports `/v1/chat/completions` with `ENABLE_OPENAI_COMPAT=1`, so the gateway can forward unchanged.
+
+> Trade‑offs: Higher latency than vLLM, but reliable “B” track that fits the card and can serve batch‑1 to modest QPS.
+
+---
+
+## 2) Kubernetes Manifests (base)
+
+Create `k8s/base/tgi/glm-4-5-air-nf4.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgi-glm-4-5-air-nf4
+  namespace: ai
+  labels: { app.kubernetes.io/name: tgi-glm-4-5-air-nf4, ai.zlabs.dev/component: tgi }
+spec:
+  replicas: 0  # cold; scale via /admin/hotload
+  selector: { matchLabels: { app.kubernetes.io/name: tgi-glm-4-5-air-nf4 } }
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tgi-glm-4-5-air-nf4
+        ai.zlabs.dev/component: tgi
+    spec:
+      enableServiceLinks: false
+      runtimeClassName: nvidia
+      nodeSelector: { accelerator: nvidia }
+      containers:
+        - name: tgi
+          image: ghcr.io/huggingface/text-generation-inference:2.3.1
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+            - { name: HF_HUB_ENABLE_HF_TRANSFER, value: "1" }
+            - { name: ENABLE_OPENAI_COMPAT, value: "1" }
+          args:
+            - "--model-id=zai-org/GLM-4.5-Air"
+            - "--json-output"
+            - "--dtype=float16"
+            - "--quantize=bitsandbytes-nf4"
+            - "--max-input-tokens=8192"
+            - "--max-total-tokens=32768"
+            - "--port=80"
+          ports: [ { name: http, containerPort: 80 } ]
+          readinessProbe: { httpGet: { path: "/health", port: "http" }, initialDelaySeconds: 10, periodSeconds: 5, timeoutSeconds: 2 }
+          livenessProbe:  { httpGet: { path: "/health", port: "http" }, initialDelaySeconds: 60, periodSeconds: 10, timeoutSeconds: 2 }
+          resources:
+            requests: { cpu: "8", memory: "32Gi", nvidia.com/gpu: "1" }
+            limits:   { cpu: "16", memory: "96Gi", nvidia.com/gpu: "1" }
+          volumeMounts: [ { name: hf-cache, mountPath: /data } ]
+      volumes: [ { name: hf-cache, persistentVolumeClaim: { claimName: hf-cache } } ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tgi-glm-4-5-air-nf4
+  namespace: ai
+spec:
+  selector: { app.kubernetes.io/name: tgi-glm-4-5-air-nf4 }
+  ports:
+    - { name: openai, port: 8000, targetPort: 80 }
+```
+
+**Notes**
+
+* Service exposes port **8000** to match the gateway’s expectation.
+* Probes hit `GET /health` (TGI standard). Ready when weights loaded.
+* `--max-*-tokens` can be tuned; values above are sane defaults for 1× RTX 8000 + NF4 offload.
+
+---
+
+## 3) Gateway mapping
+
+We present this backend as: `local:zai-org/GLM-4.5-Air@nf4`.
+
+Patch `gateway/app.py`:
+
+```diff
+ ALLOW_MODELS = [
+-    "zai-org/GLM-4.5-Air",
++    "zai-org/GLM-4.5-Air@nf4",
+     "zai-org/glm-edge-1.5b-chat",
+     "zai-org/glm-edge-4b-chat",
+ ]
+
+ DEPLOYMENTS = {
+     "zai-org/glm-edge-1.5b-chat": "vllm-glm-edge-1p5b",
+     "zai-org/glm-edge-4b-chat":   "vllm-glm-edge-4b",
+-    "zai-org/GLM-4.5-Air":        "vllm-glm-4-5-air",
++    "zai-org/GLM-4.5-Air@nf4":    "tgi-glm-4-5-air-nf4",
+ }
+
+ MODEL_BACKENDS = {
+     "zai-org/glm-edge-1.5b-chat": "http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8000",
+     "zai-org/glm-edge-4b-chat":   "http://vllm-glm-edge-4b.ai.svc.cluster.local:8000",
+-    "zai-org/GLM-4.5-Air":        "http://vllm-glm-4-5-air.ai.svc.cluster.local:8000",
++    "zai-org/GLM-4.5-Air@nf4":    "http://tgi-glm-4-5-air-nf4.ai.svc.cluster.local:8000",
+ }
+```
+
+> If you want to keep the existing 4.5‑Air vLLM entry for the A/B split, just add the `@vllm` variant alongside this one in both maps.
+
+---
+
+## 4) Hotload / Unload / Smoke test
+
+**Scale up (hotload):**
+
+```bash
+curl -s http://aigw.core.home.arpa/admin/hotload \
+  -H 'X-Admin-Token: testtesttesttest' -H 'Content-Type: application/json' \
+  -d '{"model":"local:zai-org/GLM-4.5-Air@nf4"}' | jq .
+```
+
+**Readiness:**
+
+```bash
+kubectl -n ai get pods -l app.kubernetes.io/name=tgi-glm-4-5-air-nf4 -w
+kubectl -n ai logs service/tgi-glm-4-5-air-nf4
+```
+
+**Chat (OpenAI compat):**
+
+```bash
+curl -s http://aigw.core.home.arpa/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "model":"local:zai-org/GLM-4.5-Air@nf4",
+        "messages":[{"role":"user","content":"Say hi in one sentence."}],
+        "max_tokens":64
+      }' | jq .
+```
+
+**Scale down (unload):**
+
+```bash
+curl -s http://aigw.core.home.arpa/admin/unload \
+  -H 'X-Admin-Token: testtesttesttest' -H 'Content-Type: application/json' \
+  -d '{"model":"local:zai-org/GLM-4.5-Air@nf4"}' | jq .
+```
+
+---
+
+## 5) Tuning knobs
+
+* **Quantization**: Keep `--quantize=bitsandbytes-nf4` for max VRAM savings. Alternatives if needed:
+
+  * `bitsandbytes-int8` (slightly more VRAM, faster than NF4 in some ops)
+  * `awq` / `gptq` / `exl2` (require different images/pipelines; not drop‑in)
+* **Batch / tokens**:
+
+  * Shrink `--max-total-tokens` if VRAM is tight during traffic spikes.
+  * Use smaller `max_tokens` in requests to limit decode working set.
+* **CPU offload pressure**:
+
+  * Raise container memory limit if you see OOM‑killer on host side or swap churn.
+  * Pin pod to a node with fast NVMe for HF cache.
+* **Throughput controls**:
+
+  * `NUM_SHARD=1` default is fine; keep batch sizes low to minimize latency.
+
+---
+
+## 6) Observability & health
+
+* **Health**: `GET /health` returns 200 when the model is loaded.
+* **Metrics**: TGI exposes Prometheus metrics at `/metrics` (enable a ServiceMonitor if you use Prom).
+* **Gateway**: Your gateway already logs `x-request-id` and per‑request durations.
+
+---
+
+## 7) Compatibility notes
+
+* MoE models like GLM‑4.5‑Air are heavy on expert weights; NF4 is a practical way to fit on 1× RTX 8000.
+* Compute capability 7.5 (Turing) works with bitsandbytes; ensure the image includes CUDA/driver support (TGI 2.3+ images do).
+* Keep **FlashInfer disabled** in vLLM track; not applicable here but relevant for A/B parity.
+
+---
+
+## 8) Rollback & cleanup
+
+* Unload via admin API (scales replicas to 0) to free GPU/CPU RAM.
+* Purge cache (optional):
+
+  * If you keep a shared cachectl, you can invoke purge by repo (best‑effort), or simply leave the PVC to benefit warm starts across redeploys.
+
+---
+
+## 9) Future options
+
+* Evaluate **AWQ** or **EXL2** quantized weights if the upstream publishes them for GLM‑4.5‑Air.
+* If you add a second RTX 8000 to the node, the **vLLM TP=2** track becomes your high‑perf A‑variant; keep this TGI NF4 as B‑variant fallback.
+
+---
+
+## 10) Quick checklist
+
+* [ ] Apply TGI Deployment/Service YAML
+* [ ] Patch gateway mappings with `@nf4`
+* [ ] Hotload via `/admin/hotload`
+* [ ] Smoke test `/v1/chat/completions`
+* [ ] Tune token limits if needed
+* [ ] Add Prom scrape if desired
+
+
+
+---
+
+---
+
+
+## Troubleshooting & Settings
+
+### Common Issues
+
+#### 1) FlashInfer crashes on RTX 8000 (SM 7.5)
+
+**Symptoms:**
+```
+RuntimeError: ... flashinfer ... too many resources requested for launch
+ERROR fa_utils.py:57 FA2 only supported on CC >= 8 (your RTX 8000 is 7.5)
+```
+
+**Fix:** Disable both FlashInfer and its sampler in all vLLM Deployments:
+
+```yaml
+env:
+  - { name: VLLM_USE_FLASHINFER, value: "0" }
+  - { name: VLLM_USE_FLASHINFER_SAMPLER, value: "0" }
+```
+
+**Quick patch:**
+```bash
+kubectl -n ai patch deploy vllm-glm-edge-4b --type='json' -p='[
+  {"op":"add","path":"/spec/template/spec/containers/0/env/-","value":
+    {"name":"VLLM_USE_FLASHINFER_SAMPLER","value":"0"}}
+]'
+```
+
+#### 2) Pods scale down after hotload (Flux fighting gateway)
+
+**Symptoms:** Pods boot successfully but get SIGTERM after 1-2 minutes.
+
+**Root cause:** Flux reconciles `spec.replicas: 0` from manifests, overriding gateway hotload.
+
+**Fix:** Remove `replicas` field from Deployments so Flux doesn't manage scale:
+
+```yaml
+# k8s/overlays/<env>/vllm/kustomization.yaml
+patchesJson6902:
+- target: { group: apps, version: v1, kind: Deployment, name: vllm-glm-edge-1p5b }
+  patch: |
+    - op: remove
+      path: /spec/replicas
+```
+
+#### 3) Gateway `/v1/models` times out (30s)
+
+**Symptoms:** 
+```
+connect_tcp.failed ... host='vllm.ai.svc.cluster.local' ... Name or service not known
+```
+
+**Root cause:** Gateway tries to hit non-existent `vllm` Service or Service with no endpoints.
+
+**Fix:** Either create a stable `vllm` Service or point gateway to specific model Service:
+
+```bash
+kubectl -n ai set env deploy/gateway \
+  VLLM_BASE_URL=http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8000
+```
+
+#### 4) NetworkPolicy blocks model downloads
+
+**Symptoms:**
+```
+HTTPSConnectionPool(host='huggingface.co', port=443) ... Network is unreachable
+```
+
+**Fix:** Ensure pods have correct labels for egress policy:
+
+```yaml
+# Pod template needs:
+labels:
+  ai.zlabs.dev/component: vllm  # or tgi, gateway
+```
+
+**Policy:**
+```yaml
+podSelector:
+  matchExpressions:
+    - key: ai.zlabs.dev/component
+      operator: In
+      values: ["vllm", "tgi", "gateway"]
+```
+
+#### 5) Immutable Deployment selector errors
+
+**Symptoms:** Flux fails with "field is immutable" on Deployment selector.
+
+**Fix:** Delete and recreate the Deployment:
+```bash
+kubectl -n ai delete deploy tgi-glm-4-5-air-nf4
+kubectl apply -k k8s/base/tgi
+```
+
+### Performance Tuning
+
+#### vLLM Settings
+- **Quantization**: Use `--dtype=float16` for RTX 8000
+- **Tensor Parallel**: `--tensor-parallel-size=1` for single GPU, `2` for dual GPU
+- **Memory**: Set generous startup probe `failureThreshold: 240` (20min window)
+
+#### TGI Settings  
+- **Quantization**: `--quantize=bitsandbytes-nf4` for max VRAM savings
+- **Tokens**: Adjust `--max-total-tokens` if VRAM tight during spikes
+- **CPU offload**: Raise container memory limit for NF4 spillover
+
+### Gateway Configuration
+
+#### Required RBAC
+```yaml
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get","patch","update"]
+  - apiGroups: [""]
+    resources: ["configmaps","endpoints","services"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get","list","watch"]
+```
+
+#### Environment Variables
+```yaml
+env:
+  - { name: VLLM_BASE_URL, value: "http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8000" }
+  - { name: CACHECTL_URL, value: "http://vllm-glm-edge-1p5b.ai.svc.cluster.local:8081" }
+```
+
+### Diagnostics
+
+#### Check pod readiness
+```bash
+kubectl -n ai get pods -l app.kubernetes.io/name=vllm-glm-edge-4b -w
+kubectl -n ai logs service/vllm-glm-edge-4b -f
+```
+
+#### Test connectivity
+```bash
+# From inside cluster
+kubectl -n ai run curltmp --rm -it --image=alpine:3.20 -- sh -lc '
+  apk add --no-cache curl >/dev/null;
+  curl -sv http://vllm-glm-edge-4b.ai.svc.cluster.local:8000/health
+'
+
+# External test
+curl -s http://aigw.core.home.arpa/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"local:zai-org/glm-edge-4b-chat","messages":[{"role":"user","content":"hi"}],"max_tokens":16}' | jq .
+```
+
+#### Check NetworkPolicy matching
+```bash
+# See pod labels
+kubectl -n ai get pod -l app.kubernetes.io/name=vllm-glm-edge-1p5b -o jsonpath='{.items[0].metadata.labels}{"\n"}'
+
+# Test egress from pod
+kubectl -n ai exec -it deploy/vllm-glm-edge-1p5b -c vllm -- sh -lc \
+  'getent hosts huggingface.co && curl -I https://huggingface.co/ -m 5'
+```
+
+#### Monitor Flux reconciliation
+```bash
+flux -n flux-system logs --follow
+kubectl -n flux-system logs deploy/kustomize-controller | grep vllm
+```
+
+### Bootstrap Checklist
+
+For fresh cluster deployments:
+
+* [ ] Apply base manifests with `replicas` field removed
+* [ ] Scale all model Deployments to 0 initially:
+  ```bash
+  kubectl -n ai scale deploy vllm-glm-edge-1p5b vllm-glm-edge-4b vllm-glm-4-5-air tgi-glm-4-5-air-nf4 --replicas=0
+  ```
+* [ ] Verify NetworkPolicy allows egress for model downloads
+* [ ] Test hotload/unload cycle via gateway admin API
+* [ ] Confirm Flux doesn't revert replica counts
+
+
+---
+
+---
+
+
+# A) Faster inference (vLLM & TGI)
+
+## vLLM (your `vllm-*.yaml`)
+
+1. **Give it more CPU/RAM** (CPU is used for tokenization, HTTP, compile steps):
+
+```yaml
+resources:
+  requests: { cpu: "8", memory: "32Gi", nvidia.com/gpu: "1" }
+  limits:   { cpu: "16", memory: "64Gi", nvidia.com/gpu: "1" }
+```
+
+2. **Use more of the GPU for KV cache** (higher concurrency):
+
+```yaml
+args:
+  - "--port" "8000"
+  - "--model" "zai-org/glm-edge-1.5b-chat"
+  - "--download-dir" "/models"
+  - "--tensor-parallel-size" "1"
+  - "--dtype" "float16"
+  - "--gpu-memory-utilization" "0.95"   # <— add this
+```
+
+3. **Speed tokenization / HTTP path**:
+
+```yaml
+env:
+  - name: TOKENIZERS_PARALLELISM
+    value: "true"
+  - name: UVICORN_WORKERS
+    value: "1"              # default is fine; raise to 2 only if CPU headroom exists
+```
+
+4. **(You’re on RTX 8000 / SM 7.5)** FlashInfer/FA2 isn’t supported; your env already disables it. Keep it disabled to avoid start-up crashes.
+
+## TGI (your `tgi-glm-4-5-air-nf4`)
+
+1. **More CPU/RAM**:
+
+```yaml
+resources:
+  requests: { cpu: "12", memory: "48Gi", nvidia.com/gpu: "1" }
+  limits:   { cpu: "24", memory: "96Gi", nvidia.com/gpu: "1" }
+```
+
+2. **Tune server concurrency** (TGI flags you’re already using; bump if GPU/CPU can take it):
+
+* `--max-concurrent-requests=256` (was 128)
+* If prompts are long, consider `--max-batch-prefill-tokens=<bigger>`; if short, you can leave or lower.
+
+3. **Make sure probes don’t kill the pod during load/compile**
+   You already set liveness `initialDelaySeconds: 3600` which is good. Keep readiness low.
+
+# B) Faster model downloads / cache
+
+Right now your logs show \~1 file/minute for those big shards—this screams **storage and/or single-stream limits**, not gateway. Here’s how to speed that up:
+
+1. **Enable HF Transfer on vLLM too** (it’s only on TGI now):
+
+```yaml
+env:
+  - name: HUGGING_FACE_HUB_TOKEN
+    valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+  - name: HF_HUB_ENABLE_HF_TRANSFER
+    value: "1"                     # <— add for vLLM
+  - name: HF_HUB_ENABLE_TELEMETRY
+    value: "0"
+```
+
+2. **Use a faster cache volume**
+   Your PVC `hf-cache` likely uses MicroK8s’ hostpath (often a loopback file = slow random I/O). Options:
+
+* **Best**: move model cache to a **local NVMe** via a `local-path`/`local-storage` class or a `hostPath` on that node. Example swap in vLLM/TGI:
+
+  ```yaml
+  volumes:
+    - name: hf-cache
+      hostPath: { path: /var/lib/ai/hf-cache, type: DirectoryOrCreate }
+  ```
+
+  (Do this only if you’re okay pinning the workload to that node; add a `nodeSelector` you already have.)
+* **Alternative**: keep the PVC but ensure the storage class is backed by the node’s real disk (not loop), and mount with `noatime`.
+
+3. **Warm the cache before the server starts**
+   Add an **initContainer** to prefetch with parallelism (faster than single-thread HF client):
+
+```yaml
+initContainers:
+  - name: prefetch
+    image: ghcr.io/huggingface/hf-transfer:latest
+    env:
+      - name: HF_HUB_ENABLE_HF_TRANSFER
+        value: "1"
+      - name: HUGGING_FACE_HUB_TOKEN
+        valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+    command: ["/bin/sh","-lc"]
+    args:
+      - |
+        set -e
+        export HF_HOME=/models
+        hf-transfer download zai-org/GLM-4.5-Air --all
+    volumeMounts:
+      - { name: hf-cache, mountPath: /models }   # match your container path
+```
+
+4. **Use the token for higher HF rate limits**
+   You’ve already mounted `hf-token`. Make sure **the env var is visible** to both TGI and vLLM (it is).
+
+5. **Network isn’t restricted**
+   Your `allow-egress-internet-for-ai` policy permits 80/443 to `0.0.0.0/0`. Kubernetes itself doesn’t throttle bandwidth. Any throttling would be:
+
+* Home/ISP bandwidth,
+* CNI shaping (unlikely in default MicroK8s),
+* Disk throughput on the cache volume (most likely bottleneck).
+
+6. **Parallelize downloads**
+   If you prefer not to use `hf-transfer`, an initContainer with `aria2c` against the snapshot URLs also works to multistream shards into the cache dir.
+
+# Quick patches you can drop in now
+
+**vLLM snippet** (apply to all vLLM Deployments):
+
+```yaml
+env:
+  - name: HUGGING_FACE_HUB_TOKEN
+    valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+  - { name: HF_HUB_ENABLE_HF_TRANSFER, value: "1" }
+  - { name: HF_HUB_ENABLE_TELEMETRY,   value: "0" }
+  - { name: TOKENIZERS_PARALLELISM,    value: "true" }
+args:
+  - "--gpu-memory-utilization" "0.95"
+resources:
+  requests: { cpu: "8",  memory: "32Gi", nvidia.com/gpu: "1" }
+  limits:   { cpu: "16", memory: "64Gi", nvidia.com/gpu: "1" }
+```
+
+**TGI snippet** (you already set HF\_TRANSFER):
+
+```yaml
+args:
+  - "--model-id=zai-org/GLM-4.5-Air"
+  - "--json-output"
+  - "--dtype=float16"
+  - "--quantize=bitsandbytes-nf4"
+  - "--max-input-tokens=8192"
+  - "--max-total-tokens=32768"
+  - "--max-concurrent-requests=256"   # bump
+resources:
+  requests: { cpu: "12", memory: "48Gi", nvidia.com/gpu: "1" }
+  limits:   { cpu: "24", memory: "96Gi", nvidia.com/gpu: "1" }
+```
+
+**Faster cache volume (example)**:
+
+```yaml
+volumes:
+  - name: hf-cache
+    hostPath: { path: /var/lib/ai/hf-cache, type: DirectoryOrCreate }
+# …and keep your nodeSelector so pods land on that node
+```
+

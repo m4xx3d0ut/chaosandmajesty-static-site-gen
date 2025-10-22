@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320">
+  <rect width="960" height="320" fill="#111214" />
+  <path d="M320 240c60-120 260-120 320 0" fill="#1e2024" />
+  <path d="M480 60l80 140h-160z" fill="#ff6f8f" />
+  <circle cx="480" cy="60" r="32" fill="#f5f5f6" />
+  <g stroke="#ff436e" stroke-width="2" stroke-dasharray="8 6" opacity="0.6">
+    <line x1="0" y1="280" x2="960" y2="280" />
+    <line x1="0" y1="300" x2="960" y2="300" />
+  </g>
+  <text x="340" y="260" font-family="'Space Grotesk', sans-serif" font-size="28" fill="#f5f5f6">Signal locked. Broadcast live!</text>
+</svg>

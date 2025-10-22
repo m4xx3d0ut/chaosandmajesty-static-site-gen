@@ -1,0 +1,1878 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/ai-system-config/blob/README.md/index.html" data-git-raw-path="git/ai-system-config/blob/README.md/raw.txt" data-git-line-count="2014">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">README.md</h4>
+          <div class="git-file-meta">54 KB · 2014 lines · README.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/ai-system-config/blob/README.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>LLMOps Checklist &amp; K8s Templates (Flux + LEANN)</h1>
+<p><strong>Target stack:</strong> MicroK8s + Flux GitOps, NGINX Ingress, Prometheus/Grafana/Tempo/Loki/Mimir (or Grafana Alloy as the OTLP collector), NVIDIA GPU node(s) optional, LEANN workers for edge-aware RAG.</p>
+<blockquote>
+<p>📌 <strong>Conventions</strong></p>
+<ul>
+<li>Namespace: <code>ai</code></li>
+<li>Your local registry: <code>reg.microk8s.core.home.arpa:32000</code></li>
+<li>Alloy OTLP endpoint: <code>alloy.monitoring.svc.cluster.local:4317</code></li>
+<li>Prometheus: <code>kube-prometheus-stack-prometheus.monitoring:9090</code> (adjust if different)</li>
+<li>Ingress class: <code>nginx</code></li>
+<li>Apps: <code>gateway</code> (FastAPI/HTTP), <code>retriever</code> (RAG service), <code>leann-worker</code> (GPU optional)</li>
+</ul>
+<p>Replace image names and env with your own.</p>
+</blockquote>
+<hr>
+<h2>0) Repo layout (suggested)</h2>
+<pre><code>ai-system/
+  README.md
+  k8s/
+    base/
+      namespace.yaml
+      networkpolicy.yaml
+      config-routing.yaml       # routing.yaml
+      config-flags.yaml         # flags.yaml
+      config-otel-resource.yaml # common OTel resource attrs
+      config-schemas.yaml       # JSON Schemas (tools &amp; responses)
+      gateway/
+        deploy.yaml
+        service.yaml
+        hpa.yaml
+        ingress.yaml
+      retriever/
+        deploy.yaml
+        service.yaml
+        hpa.yaml
+      leann-worker/
+        deploy.yaml
+      flagger/
+        canary-gateway.yaml
+        loadtester.yaml
+    overlays/
+      prod/
+        kustomization.yaml
+  clusters/
+    prod/
+      ai-system-kustomization.yaml   # Flux Kustomization
+</code></pre>
+<hr>
+<h2>1) Ready-to-use Checklist</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Create namespace and baseline policies (<code>k8s/base/namespace.yaml</code>, <code>networkpolicy.yaml</code>).</li>
+<li><input disabled="" type="checkbox"> Add runtime configs (<code>config-routing.yaml</code>, <code>config-flags.yaml</code>, <code>config-otel-resource.yaml</code>).</li>
+<li><input disabled="" type="checkbox"> Add JSON Schemas into <code>config-schemas.yaml</code> and mount into apps.</li>
+<li><input disabled="" type="checkbox"> Deploy <strong>gateway</strong> (Deployment/Service/Ingress/HPA).</li>
+<li><input disabled="" type="checkbox"> Deploy <strong>retriever</strong> (Deployment/Service/HPA).</li>
+<li><input disabled="" type="checkbox"> Deploy <strong>LEANN worker</strong> (Deployment, GPU optional).</li>
+<li><input disabled="" type="checkbox"> Install <strong>Flagger</strong> + <strong>Loadtester</strong> (if not installed) and apply <code>flagger/</code> canary for <code>gateway</code>.</li>
+<li><input disabled="" type="checkbox"> Verify Prometheus, Tempo, Loki are scraping/receiving (check Grafana dashboards).</li>
+<li><input disabled="" type="checkbox"> Wire Flux: create <code>clusters/prod/ai-system-kustomization.yaml</code> and commit.</li>
+<li><input disabled="" type="checkbox"> Canary a new version by changing the <code>gateway</code> image tag → watch Flagger promote.</li>
+</ul>
+<hr>
+<h2>2) Base K8s Manifests</h2>
+<h3>2.1 Namespace &amp; NetworkPolicy</h3>
+<pre><code class="language-yaml"># k8s/base/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+  labels:
+    istio-injection: &quot;disabled&quot;  # adjust if using a mesh
+---
+# k8s/base/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ingress-and-monitoring
+  namespace: ai
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 4317 # otlp/grpc if needed intra-ns
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 4317 # Alloy OTLP gRPC
+        - protocol: TCP
+          port: 4318 # OTLP HTTP (optional)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+      # add your DB/vector store egress here
+</code></pre>
+<h3>2.2 Runtime Configs (routing, flags, OTel resource)</h3>
+<pre><code class="language-yaml"># k8s/base/config-routing.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: routing
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: routing
+  annotations:
+    checksum/version: &quot;v1&quot;
+data:
+  routing.yaml: |
+    default:
+      # task → model weights (example)
+      classify:
+        - model: local:small
+          weight: 80
+        - model: api:gpt-4o-mini
+          weight: 20
+      chat:
+        - model: api:gpt-4.1-mini
+          weight: 100
+    thresholds:
+      escalate_on_confidence_below: 0.6
+      max_output_tokens: 1024
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/config-flags.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flags
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: flags
+  annotations:
+    checksum/version: &quot;v1&quot;
+data:
+  flags.yaml: |
+    experiments:
+      enable_rerank: true
+      enable_semantic_cache: true
+    guardrails:
+      strict_json_mode: true
+      pii_redaction: true
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/config-otel-resource.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-resource
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: otel-resource
+# Shared OTel env to project consistent resource attributes
+# Mount as envFrom in workloads
+# Assumes Grafana Alloy as OTLP collector in monitoring ns
+# Change endpoint if you send direct to Tempo/Prom
+
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: &quot;http://alloy.monitoring.svc.cluster.local:4317&quot;
+  OTEL_EXPORTER_OTLP_PROTOCOL: &quot;grpc&quot;
+  OTEL_RESOURCE_ATTRIBUTES: &quot;service.namespace=ai,telemetry.distro=opentelemetry,k8s.cluster.name=microk8s,deployment.environment=prod&quot;
+  OTEL_METRICS_EXPORTER: &quot;otlp&quot;
+  OTEL_TRACES_EXPORTER: &quot;otlp&quot;
+  OTEL_LOGS_EXPORTER: &quot;otlp&quot;
+</code></pre>
+<h3>2.3 JSON Schemas (tools &amp; responses)</h3>
+<pre><code class="language-yaml"># k8s/base/config-schemas.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schemas
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: schemas
+
+data:
+  tool.search.jsonschema: |
+    {
+      &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+      &quot;$id&quot;: &quot;https://example.ai/schemas/tool.search.json&quot;,
+      &quot;title&quot;: &quot;SearchToolResult&quot;,
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;results&quot;],
+      &quot;properties&quot;: {
+        &quot;results&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;required&quot;: [&quot;doc_id&quot;, &quot;score&quot;, &quot;title&quot;, &quot;url&quot;],
+            &quot;properties&quot;: {
+              &quot;doc_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;score&quot;: {&quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0},
+              &quot;title&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;url&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uri&quot;}
+            }
+          },
+          &quot;minItems&quot;: 1,
+          &quot;maxItems&quot;: 10
+        }
+      }
+    }
+  response.answer.jsonschema: |
+    {
+      &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+      &quot;$id&quot;: &quot;https://example.ai/schemas/response.answer.json&quot;,
+      &quot;title&quot;: &quot;Answer&quot;,
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;final&quot;, &quot;citations&quot;, &quot;trace_id&quot;, &quot;schema_valid&quot;],
+      &quot;properties&quot;: {
+        &quot;final&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;citations&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}
+        },
+        &quot;trace_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;schema_valid&quot;: {&quot;type&quot;: &quot;boolean&quot;},
+        &quot;safety_flags&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}
+        }
+      }
+    }
+</code></pre>
+<p>Mount these under <code>/app/schemas</code> (see Deployments) and validate model outputs at runtime.</p>
+<hr>
+<h2>3) Gateway (Deployment/Service/Ingress/HPA)</h2>
+<pre><code class="language-yaml"># k8s/base/gateway/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gateway
+      annotations:
+        checksum/routing: &quot;{{sha256 of routing.yaml if templated}}&quot;
+        checksum/flags: &quot;{{sha256 of flags.yaml if templated}}&quot;
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: gateway
+          image: reg.microk8s.core.home.arpa:32000/ai/gateway:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ROUTING_PATH
+              value: /config/routing.yaml
+            - name: FLAGS_PATH
+              value: /config/flags.yaml
+            - name: SCHEMAS_DIR
+              value: /schemas
+            - name: OTEL_SERVICE_NAME
+              value: gateway
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_traceidratio
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: &quot;0.1&quot;  # 10% sampling; tune as needed
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          volumeMounts:
+            - name: routing
+              mountPath: /config/routing.yaml
+              subPath: routing.yaml
+              readOnly: true
+            - name: flags
+              mountPath: /config/flags.yaml
+              subPath: flags.yaml
+              readOnly: true
+            - name: schemas
+              mountPath: /schemas
+              readOnly: true
+          resources:
+            requests:
+              cpu: &quot;250m&quot;
+              memory: &quot;256Mi&quot;
+            limits:
+              cpu: &quot;1&quot;
+              memory: &quot;512Mi&quot;
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: routing
+          configMap:
+            name: routing
+            items:
+              - key: routing.yaml
+                path: routing.yaml
+        - name: flags
+          configMap:
+            name: flags
+            items:
+              - key: flags.yaml
+                path: flags.yaml
+        - name: schemas
+          configMap:
+            name: schemas
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway
+  namespace: ai
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: &quot;4m&quot;
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: gateway.core.home.arpa # change to your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+  namespace: ai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gateway
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+</code></pre>
+<hr>
+<h2>4) Retriever (Deployment/Service/HPA)</h2>
+<pre><code class="language-yaml"># k8s/base/retriever/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retriever
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: retriever
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: retriever
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: retriever
+    spec:
+      containers:
+        - name: retriever
+          image: reg.microk8s.core.home.arpa:32000/ai/retriever:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: retriever
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          resources:
+            requests:
+              cpu: &quot;250m&quot;
+              memory: &quot;256Mi&quot;
+            limits:
+              cpu: &quot;1&quot;
+              memory: &quot;512Mi&quot;
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/retriever/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: retriever
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: retriever
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: retriever
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/retriever/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: retriever
+  namespace: ai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: retriever
+  minReplicas: 1
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+</code></pre>
+<hr>
+<h2>5) LEANN Worker (GPU optional)</h2>
+<blockquote>
+<p>Label your GPU node: <code>kubectl label nodes &lt;gpu-node&gt; accelerator=nvidia</code></p>
+</blockquote>
+<pre><code class="language-yaml"># k8s/base/leann-worker/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leann-worker
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: leann-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: leann-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: leann-worker
+    spec:
+      nodeSelector:
+        accelerator: nvidia  # ensure scheduled on GPU node if available
+      containers:
+        - name: leann
+          image: reg.microk8s.core.home.arpa:32000/ai/leann-worker:1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: leann-worker
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          resources:
+            requests:
+              cpu: &quot;500m&quot;
+              memory: &quot;1Gi&quot;
+              nvidia.com/gpu: 1
+            limits:
+              cpu: &quot;2&quot;
+              memory: &quot;4Gi&quot;
+              nvidia.com/gpu: 1
+          # If you use CUDA MPS (time-slicing), configure at the device-plugin/host level.
+          # Optionally add CUDA envs here if your worker supports them.
+</code></pre>
+<hr>
+<h2>6) Flagger Canary for <code>gateway</code> (with NGINX provider)</h2>
+<blockquote>
+<p>Assumes Flagger and Prometheus are installed. If not, install Flagger (Helm) and apply <code>loadtester.yaml</code> below.</p>
+</blockquote>
+<pre><code class="language-yaml"># k8s/base/flagger/canary-gateway.yaml
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: gateway
+  namespace: ai
+spec:
+  provider: nginx
+  # Prometheus address used by Flagger for built-in SLOs
+  metricsServer: http://kube-prometheus-stack-prometheus.monitoring:9090
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gateway
+  service:
+    port: 8080
+    # Optional: enable session stickiness, headers, etc.
+  analysis:
+    interval: 1m
+    threshold: 10           # max number of failed checks before rollback
+    iterations: 10          # total checks before promotion
+    maxWeight: 50           # canary traffic percentage
+    stepWeight: 10          # increase every iteration
+    metrics:
+      - name: request-success-rate
+        thresholdRange:
+          min: 99
+        interval: 1m
+      - name: request-duration
+        thresholdRange:
+          max: 1000
+        interval: 30s
+    webhooks:
+      - name: load-test
+        type: pre-rollout
+        url: http://flagger-loadtester.ai/
+        timeout: 10s
+        metadata:
+          cmd: &quot;hey -z 45s -q 10 -c 2 http://gateway.ai:8080/healthz&quot;
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/flagger/loadtester.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger-loadtester
+  namespace: ai
+  labels:
+    app: flagger-loadtester
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flagger-loadtester
+  template:
+    metadata:
+      labels:
+        app: flagger-loadtester
+    spec:
+      containers:
+        - name: loadtester
+          image: ghcr.io/fluxcd/flagger-loadtester:0.26.1
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flagger-loadtester
+  namespace: ai
+spec:
+  selector:
+    app: flagger-loadtester
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+</code></pre>
+<hr>
+<h2>7) Kustomize overlay (prod)</h2>
+<pre><code class="language-yaml"># k8s/overlays/prod/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/networkpolicy.yaml
+  - ../../base/config-routing.yaml
+  - ../../base/config-flags.yaml
+  - ../../base/config-otel-resource.yaml
+  - ../../base/config-schemas.yaml
+  - ../../base/gateway/deploy.yaml
+  - ../../base/gateway/service.yaml
+  - ../../base/gateway/ingress.yaml
+  - ../../base/gateway/hpa.yaml
+  - ../../base/retriever/deploy.yaml
+  - ../../base/retriever/service.yaml
+  - ../../base/retriever/hpa.yaml
+  - ../../base/leann-worker/deploy.yaml
+  - ../../base/flagger/canary-gateway.yaml
+  - ../../base/flagger/loadtester.yaml
+
+# Optional common labels/annotations
+commonLabels:
+  app.kubernetes.io/part-of: ai-system
+</code></pre>
+<hr>
+<h2>8) Flux Kustomization (clusters/prod)</h2>
+<pre><code class="language-yaml"># clusters/prod/ai-system-kustomization.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ai-system
+  namespace: flux-system
+spec:
+  interval: 1m
+  path: ./k8s/overlays/prod
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  wait: true
+  timeout: 5m
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: gateway
+      namespace: ai
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: retriever
+      namespace: ai
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: leann-worker
+      namespace: ai
+</code></pre>
+<hr>
+<h2>9) Notes on OTel wiring with Grafana Alloy</h2>
+<ul>
+<li>This template sets <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> via <code>config-otel-resource.yaml</code> to the Alloy service in <code>monitoring</code> ns (<code>alloy.monitoring.svc.cluster.local:4317</code>).</li>
+<li>Ensure Alloy is configured to <strong>receive</strong> OTLP (traces/metrics/logs) and <strong>export</strong> traces to Tempo, metrics to Prometheus Remote Write (or scrape), logs to Loki.</li>
+<li>If you don’t run Alloy, point <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> at Tempo (traces) and at your metrics/logs pipeline accordingly.</li>
+</ul>
+<hr>
+<h2>10) Promotion workflow (how to canary a new version)</h2>
+<ol>
+<li>Update the container tag for <code>gateway</code> in <code>k8s/base/gateway/deploy.yaml</code> (e.g., <code>1.0.1</code>).</li>
+<li>Commit &amp; push to your Flux repo branch tracked by <code>flux-system</code>.</li>
+<li>Watch Flagger analysis: <code>kubectl -n ai describe canary gateway</code> and <code>kubectl -n ai get ev --watch</code>.</li>
+<li>If metrics hold, Flagger promotes; on failures, it rolls back.</li>
+</ol>
+<hr>
+<h2>11) Optional: ServiceMonitor (if you expose app metrics)</h2>
+<pre><code class="language-yaml"># example only — expose /metrics from gateway first
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gateway
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  namespaceSelector:
+    matchNames: [&quot;ai&quot;]
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+</code></pre>
+<hr>
+<h2>12) Security &amp; Secrets</h2>
+<ul>
+<li>Use SOPS or SealedSecrets for API keys (model providers, DBs). Reference via <code>envFrom.secretRef</code> in Deployments.</li>
+<li>Add <code>NetworkPolicy</code> egress destinations for your DB/vector store.</li>
+<li>For GPU: ensure MicroK8s NVIDIA add-on/device-plugin is enabled and your images include CUDA when required.</li>
+</ul>
+<hr>
+<h2>13) Quick smoke tests</h2>
+<ul>
+<li><code>kubectl -n ai get deploy,svc,hpa,ingress</code> → all Ready.</li>
+<li>Ingress DNS resolves; <code>curl -I http://gateway.core.home.arpa/healthz</code> → 200.</li>
+<li>Tempo shows new traces for <code>gateway</code>/<code>retriever</code>.</li>
+<li>Flagger Loadtester reachable: <code>kubectl -n ai port-forward svc/flagger-loadtester 8080:80</code> → GET <code>/</code> works.</li>
+</ul>
+<hr>
+<h3>Appendix: Minimal app assumptions</h3>
+<ul>
+<li><code>gateway</code> serves HTTP on <code>:8080</code>, has <code>/healthz</code> and <code>/livez</code> endpoints, reads routing/flags, validates schemas in <code>/schemas</code>.</li>
+<li><code>retriever</code> serves HTTP on <code>:8080</code>, traces outbound calls to vector DB, etc.</li>
+<li><code>leann-worker</code> runs a long-lived worker or server; remove GPU requests if CPU-only.</li>
+</ul>
+<hr>
+<h1>Split Repo: Step‑by‑Step (Gitea in‑cluster SSH + Flux)</h1>
+<p>Target:</p>
+<ul>
+<li><p><strong>New config repo</strong>: <code>ai-system-config</code> (RAG/LLM app manifests live here)</p>
+</li>
+<li><p><strong>Existing platform repo</strong>: your monorepo (contains Flux bootstrap + infra)</p>
+</li>
+<li><p><strong>Git SSH URL (cluster‑internal)</strong>:</p>
+<ul>
+<li><code>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/ai-system-config.git</code></li>
+</ul>
+</li>
+</ul>
+<p>This guide is copy‑pasteable. Follow the steps in order.</p>
+<hr>
+<h2>0) Prereqs checklist</h2>
+<ul>
+<li>Flux controllers are running in <code>flux-system</code> (source/kustomize/helm controllers).</li>
+<li>Ingress + monitoring stack (Prometheus/Tempo/Loki/Alloy) are deployed by your existing Kustomizations.</li>
+<li>(Optional) Flagger installed (CRDs + controller) if you plan to use the provided canary.</li>
+<li>Your workstation has <code>kubectl</code> context pointing at MicroK8s cluster.</li>
+</ul>
+<hr>
+<h2>1) Create the <strong>ai-system-config</strong> repo &amp; scaffold</h2>
+<blockquote>
+<p>You can create the repo in Gitea UI first (empty), or push and let Gitea create it if allowed.</p>
+</blockquote>
+<pre><code class="language-bash"># local working copy
+mkdir -p ~/git/ai-system-config &amp;&amp; cd ~/git/ai-system-config
+
+git init
+cat &gt; README.md &lt;&lt;&#39;EOF&#39;
+# ai-system-config
+Flux-managed configs for the AI gateway, retriever, and LEANN worker.
+EOF
+
+# K8s layout (copy manifests from the LLMOps templates doc into these files)
+mkdir -p k8s/base/{gateway,retriever,leann-worker,flagger} k8s/overlays/prod
+</code></pre>
+<p>ai-system-config/
+  README.md
+  k8s/
+    base/
+      namespace.yaml
+      networkpolicy.yaml
+      config-routing.yaml       # routing.yaml
+      config-flags.yaml         # flags.yaml
+      config-otel-resource.yaml # common OTel resource attrs
+      config-schemas.yaml       # JSON Schemas (tools &amp; responses)
+      gateway/
+        deploy.yaml
+        service.yaml
+        hpa.yaml
+        ingress.yaml
+      retriever/
+        deploy.yaml
+        service.yaml
+        hpa.yaml
+      leann-worker/
+        deploy.yaml
+      flagger/
+        canary-gateway.yaml
+        loadtester.yaml
+    overlays/
+      prod/
+        kustomization.yaml</p>
+<pre><code>
+## 2) Base K8s Manifests
+
+### 2.1 Namespace &amp; NetworkPolicy
+
+```yaml
+# k8s/base/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+  labels:
+    istio-injection: &quot;disabled&quot;  # adjust if using a mesh
+---
+# k8s/base/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: ai
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ingress-and-monitoring
+  namespace: ai
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 4317 # otlp/grpc if needed intra-ns
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 4317 # Alloy OTLP gRPC
+        - protocol: TCP
+          port: 4318 # OTLP HTTP (optional)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+      # add your DB/vector store egress here
+</code></pre>
+<h3>2.2 Runtime Configs (routing, flags, OTel resource)</h3>
+<pre><code class="language-yaml"># k8s/base/config-routing.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: routing
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: routing
+  annotations:
+    checksum/version: &quot;v1&quot;
+data:
+  routing.yaml: |
+    default:
+      # task → model weights (example)
+      classify:
+        - model: local:small
+          weight: 80
+        - model: api:gpt-4o-mini
+          weight: 20
+      chat:
+        - model: api:gpt-4.1-mini
+          weight: 100
+    thresholds:
+      escalate_on_confidence_below: 0.6
+      max_output_tokens: 1024
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/config-flags.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flags
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: flags
+  annotations:
+    checksum/version: &quot;v1&quot;
+data:
+  flags.yaml: |
+    experiments:
+      enable_rerank: true
+      enable_semantic_cache: true
+    guardrails:
+      strict_json_mode: true
+      pii_redaction: true
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/config-otel-resource.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-resource
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: otel-resource
+# Shared OTel env to project consistent resource attributes
+# Mount as envFrom in workloads
+# Assumes Grafana Alloy as OTLP collector in monitoring ns
+# Change endpoint if you send direct to Tempo/Prom
+
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: &quot;http://alloy.monitoring.svc.cluster.local:4317&quot;
+  OTEL_EXPORTER_OTLP_PROTOCOL: &quot;grpc&quot;
+  OTEL_RESOURCE_ATTRIBUTES: &quot;service.namespace=ai,telemetry.distro=opentelemetry,k8s.cluster.name=microk8s,deployment.environment=prod&quot;
+  OTEL_METRICS_EXPORTER: &quot;otlp&quot;
+  OTEL_TRACES_EXPORTER: &quot;otlp&quot;
+  OTEL_LOGS_EXPORTER: &quot;otlp&quot;
+</code></pre>
+<h3>2.3 JSON Schemas (tools &amp; responses)</h3>
+<pre><code class="language-yaml"># k8s/base/config-schemas.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schemas
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: schemas
+
+data:
+  tool.search.jsonschema: |
+    {
+      &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+      &quot;$id&quot;: &quot;https://example.ai/schemas/tool.search.json&quot;,
+      &quot;title&quot;: &quot;SearchToolResult&quot;,
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;results&quot;],
+      &quot;properties&quot;: {
+        &quot;results&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;required&quot;: [&quot;doc_id&quot;, &quot;score&quot;, &quot;title&quot;, &quot;url&quot;],
+            &quot;properties&quot;: {
+              &quot;doc_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;score&quot;: {&quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0},
+              &quot;title&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;url&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uri&quot;}
+            }
+          },
+          &quot;minItems&quot;: 1,
+          &quot;maxItems&quot;: 10
+        }
+      }
+    }
+  response.answer.jsonschema: |
+    {
+      &quot;$schema&quot;: &quot;https://json-schema.org/draft/2020-12/schema&quot;,
+      &quot;$id&quot;: &quot;https://example.ai/schemas/response.answer.json&quot;,
+      &quot;title&quot;: &quot;Answer&quot;,
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;final&quot;, &quot;citations&quot;, &quot;trace_id&quot;, &quot;schema_valid&quot;],
+      &quot;properties&quot;: {
+        &quot;final&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;citations&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}
+        },
+        &quot;trace_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;schema_valid&quot;: {&quot;type&quot;: &quot;boolean&quot;},
+        &quot;safety_flags&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}
+        }
+      }
+    }
+</code></pre>
+<p>Mount these under <code>/app/schemas</code> (see Deployments) and validate model outputs at runtime.</p>
+<hr>
+<h2>3) Gateway (Deployment/Service/Ingress/HPA)</h2>
+<pre><code class="language-yaml"># k8s/base/gateway/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gateway
+      annotations:
+        checksum/routing: &quot;{{sha256 of routing.yaml if templated}}&quot;
+        checksum/flags: &quot;{{sha256 of flags.yaml if templated}}&quot;
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: gateway
+          image: reg.microk8s.core.home.arpa:32000/ai/gateway:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ROUTING_PATH
+              value: /config/routing.yaml
+            - name: FLAGS_PATH
+              value: /config/flags.yaml
+            - name: SCHEMAS_DIR
+              value: /schemas
+            - name: OTEL_SERVICE_NAME
+              value: gateway
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_traceidratio
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: &quot;0.1&quot;  # 10% sampling; tune as needed
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          volumeMounts:
+            - name: routing
+              mountPath: /config/routing.yaml
+              subPath: routing.yaml
+              readOnly: true
+            - name: flags
+              mountPath: /config/flags.yaml
+              subPath: flags.yaml
+              readOnly: true
+            - name: schemas
+              mountPath: /schemas
+              readOnly: true
+          resources:
+            requests:
+              cpu: &quot;250m&quot;
+              memory: &quot;256Mi&quot;
+            limits:
+              cpu: &quot;1&quot;
+              memory: &quot;512Mi&quot;
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: routing
+          configMap:
+            name: routing
+            items:
+              - key: routing.yaml
+                path: routing.yaml
+        - name: flags
+          configMap:
+            name: flags
+            items:
+              - key: flags.yaml
+                path: flags.yaml
+        - name: schemas
+          configMap:
+            name: schemas
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway
+  namespace: ai
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: &quot;4m&quot;
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: gateway.core.home.arpa # change to your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/gateway/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+  namespace: ai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gateway
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+</code></pre>
+<hr>
+<h2>4) Retriever (Deployment/Service/HPA)</h2>
+<pre><code class="language-yaml"># k8s/base/retriever/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retriever
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: retriever
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: retriever
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: retriever
+    spec:
+      containers:
+        - name: retriever
+          image: reg.microk8s.core.home.arpa:32000/ai/retriever:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: retriever
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          resources:
+            requests:
+              cpu: &quot;250m&quot;
+              memory: &quot;256Mi&quot;
+            limits:
+              cpu: &quot;1&quot;
+              memory: &quot;512Mi&quot;
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/retriever/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: retriever
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: retriever
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: retriever
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/retriever/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: retriever
+  namespace: ai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: retriever
+  minReplicas: 1
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+</code></pre>
+<hr>
+<h2>5) LEANN Worker (GPU optional)</h2>
+<blockquote>
+<p>Label your GPU node: <code>kubectl label nodes &lt;gpu-node&gt; accelerator=nvidia</code></p>
+</blockquote>
+<pre><code class="language-yaml"># k8s/base/leann-worker/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leann-worker
+  namespace: ai
+  labels:
+    app.kubernetes.io/name: leann-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: leann-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: leann-worker
+    spec:
+      nodeSelector:
+        accelerator: nvidia  # ensure scheduled on GPU node if available
+      containers:
+        - name: leann
+          image: reg.microk8s.core.home.arpa:32000/ai/leann-worker:1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: leann-worker
+          envFrom:
+            - configMapRef:
+                name: otel-resource
+          resources:
+            requests:
+              cpu: &quot;500m&quot;
+              memory: &quot;1Gi&quot;
+              nvidia.com/gpu: 1
+            limits:
+              cpu: &quot;2&quot;
+              memory: &quot;4Gi&quot;
+              nvidia.com/gpu: 1
+          # If you use CUDA MPS (time-slicing), configure at the device-plugin/host level.
+          # Optionally add CUDA envs here if your worker supports them.
+</code></pre>
+<hr>
+<h2>6) Flagger Canary for <code>gateway</code> (with NGINX provider)</h2>
+<blockquote>
+<p>Assumes Flagger and Prometheus are installed. If not, install Flagger (Helm) and apply <code>loadtester.yaml</code> below.</p>
+</blockquote>
+<pre><code class="language-yaml"># k8s/base/flagger/canary-gateway.yaml
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: gateway
+  namespace: ai
+spec:
+  provider: nginx
+  # Prometheus address used by Flagger for built-in SLOs
+  metricsServer: http://kube-prometheus-stack-prometheus.monitoring:9090
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gateway
+  service:
+    port: 8080
+    # Optional: enable session stickiness, headers, etc.
+  analysis:
+    interval: 1m
+    threshold: 10           # max number of failed checks before rollback
+    iterations: 10          # total checks before promotion
+    maxWeight: 50           # canary traffic percentage
+    stepWeight: 10          # increase every iteration
+    metrics:
+      - name: request-success-rate
+        thresholdRange:
+          min: 99
+        interval: 1m
+      - name: request-duration
+        thresholdRange:
+          max: 1000
+        interval: 30s
+    webhooks:
+      - name: load-test
+        type: pre-rollout
+        url: http://flagger-loadtester.ai/
+        timeout: 10s
+        metadata:
+          cmd: &quot;hey -z 45s -q 10 -c 2 http://gateway.ai:8080/healthz&quot;
+</code></pre>
+<pre><code class="language-yaml"># k8s/base/flagger/loadtester.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flagger-loadtester
+  namespace: ai
+  labels:
+    app: flagger-loadtester
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flagger-loadtester
+  template:
+    metadata:
+      labels:
+        app: flagger-loadtester
+    spec:
+      containers:
+        - name: loadtester
+          image: ghcr.io/fluxcd/flagger-loadtester:0.26.1
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flagger-loadtester
+  namespace: ai
+spec:
+  selector:
+    app: flagger-loadtester
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+</code></pre>
+<hr>
+<h2>7) Kustomize overlay (prod)</h2>
+<pre><code class="language-yaml"># k8s/overlays/prod/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ai
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/networkpolicy.yaml
+  - ../../base/config-routing.yaml
+  - ../../base/config-flags.yaml
+  - ../../base/config-otel-resource.yaml
+  - ../../base/config-schemas.yaml
+  - ../../base/gateway/deploy.yaml
+  - ../../base/gateway/service.yaml
+  - ../../base/gateway/ingress.yaml
+  - ../../base/gateway/hpa.yaml
+  - ../../base/retriever/deploy.yaml
+  - ../../base/retriever/service.yaml
+  - ../../base/retriever/hpa.yaml
+  - ../../base/leann-worker/deploy.yaml
+  - ../../base/flagger/canary-gateway.yaml
+  - ../../base/flagger/loadtester.yaml
+
+# Optional common labels/annotations
+commonLabels:
+  app.kubernetes.io/part-of: ai-system
+</code></pre>
+<hr>
+<!-- ## 8) Flux Kustomization (clusters/prod) -->
+<!---->
+<!-- ```yaml -->
+<!-- # clusters/prod/ai-system-kustomization.yaml -->
+<!-- apiVersion: kustomize.toolkit.fluxcd.io/v1 -->
+<!-- kind: Kustomization -->
+<!-- metadata: -->
+<!--   name: ai-system -->
+<!--   namespace: flux-system -->
+<!-- spec: -->
+<!--   interval: 1m -->
+<!--   path: ./k8s/overlays/prod -->
+<!--   prune: true -->
+<!--   sourceRef: -->
+<!--     kind: GitRepository -->
+<!--     name: flux-system -->
+<!--   wait: true -->
+<!--   timeout: 5m -->
+<!--   healthChecks: -->
+<!--     - apiVersion: apps/v1 -->
+<!--       kind: Deployment -->
+<!--       name: gateway -->
+<!--       namespace: ai -->
+<!--     - apiVersion: apps/v1 -->
+<!--       kind: Deployment -->
+<!--       name: retriever -->
+<!--       namespace: ai -->
+<!--     - apiVersion: apps/v1 -->
+<!--       kind: Deployment -->
+<!--       name: leann-worker -->
+<!--       namespace: ai -->
+<!-- ``` -->
+
+
+<h1>initial commit</h1>
+<p>git add .
+git commit -m &quot;feat: bootstrap ai-system-config (base + prod overlay)&quot;</p>
+<h1>add the cluster-internal SSH remote and push</h1>
+<p>REPO_SSH=&quot;ssh://<a href="mailto:git@gitea-ssh.git-local.svc.cluster.local">git@gitea-ssh.git-local.svc.cluster.local</a>:2222/m4xx3d0ut/ai-system-config.git&quot;
+git remote add origin &quot;$REPO_SSH&quot;
+git branch -M main
+git push -u origin main</p>
+<pre><code>
+&gt; If push fails because the repo doesn’t yet exist, create it in Gitea UI and try again.
+
+---
+
+## 2) Generate SSH deploy key &amp; **known\_hosts** (cluster‑internal)
+
+Flux needs an SSH key **and** the host key of your in‑cluster Gitea SSH service.
+
+### 2.1 Create a dedicated keypair (workstation)
+
+```bash
+cd ~/git/ai-system-config
+ssh-keygen -t ed25519 -C &quot;flux-ai-system&quot; -f ./flux-ai-ai-system -N &#39;&#39;
+</code></pre>
+<p>Add the <strong>public key</strong> <code>flux-ai-ai-system.pub</code> as a <strong>Deploy Key (read‑only)</strong> in the <code>ai-system-config</code> repo settings in Gitea.</p>
+<h3>2.2 Capture known_hosts <strong>from inside the cluster</strong> (recommended)</h3>
+<p>Your workstation probably can’t resolve <code>*.svc.cluster.local</code>. Generate the host key from a pod that <strong>can</strong>:</p>
+<pre><code class="language-bash"># Use the source-controller pod (Alpine-based) to scan the SSH service
+kubectl -n flux-system exec deploy/source-controller -- sh -c \
+  &quot;apk add -q openssh-client || true; ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local&quot; \
+  | tee known_hosts
+</code></pre>
+<blockquote>
+<p>Alternative: run a short‑lived toolbox pod (<code>kubectl run -it toolbox --rm --image=alpine -- sh</code>) and run <code>ssh-keyscan -p 32222 gitea.core.home.arpa</code> inside it, then copy the output.</p>
+</blockquote>
+<h3>2.3 Create the Secret in <code>flux-system</code></h3>
+<pre><code class="language-bash">kubectl -n flux-system create secret generic ai-system-ssh \
+  --from-file=identity=./flux-ai-ai-system \
+  --from-file=identity.pub=./flux-ai-ai-system.pub \
+  --from-file=known_hosts=./known_hosts
+</code></pre>
+<hr>
+<h2>3) Add Flux <strong>GitRepository</strong> + <strong>Kustomization</strong> (in monorepo)</h2>
+<p>Create two files in your <strong>platform-config</strong> repo so Flux can reconcile the new repo.</p>
+<h3>3.1 GitRepository (source)</h3>
+<p><code>clusters/microk8s-prod/flux-system/gitrepository-ai-system.yaml</code></p>
+<pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: ai-system
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/m4xx3d0ut/ai-system-config.git
+  ref:
+    branch: main
+  secretRef:
+    name: ai-system-ssh
+</code></pre>
+<h3>3.2 Kustomization (reconciler)</h3>
+<p><code>clusters/microk8s-prod/kustomizations/ai-system.yaml</code></p>
+<pre><code class="language-yaml">apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ai-system
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: ai-system
+  path: ./k8s/overlays/prod
+  prune: true
+  wait: true
+  timeout: 5m
+  dependsOn:
+    - name: infra-core
+    - name: infra-crds
+    - name: infra-policies
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: gateway
+      namespace: ai
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: retriever
+      namespace: ai
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: leann-worker
+      namespace: ai
+</code></pre>
+<h3>3.3 Include these in your aggregator</h3>
+<p>Add the new files to your existing aggregator kustomization so Flux applies them:</p>
+<p><code>clusters/microk8s-prod/kustomizations/kustomization.yaml</code> (example)</p>
+<pre><code class="language-yaml">apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - infra-core.yaml
+  - infra-crds.yaml
+  - infra-policies.yaml
+  - apps.yaml
+  - ai-system.yaml              # &lt;— add this line
+</code></pre>
+<p>Commit and push the monorepo changes.</p>
+<pre><code class="language-bash">cd ~/git/platform-config
+git add clusters/microk8s-prod/flux-system/gitrepository-ai-system.yaml \
+        clusters/microk8s-prod/kustomizations/ai-system.yaml \
+        clusters/microk8s-prod/kustomizations/kustomization.yaml
+
+git commit -m &quot;flux: add ai-system GitRepository + Kustomization (split repo)&quot;
+git push
+</code></pre>
+<hr>
+<h2>4) First reconcile &amp; validation</h2>
+<pre><code class="language-bash"># Check the source and kustomization
+kubectl -n flux-system get gitrepositories,kustomizations
+kubectl -n flux-system describe gitrepository ai-system
+kubectl -n flux-system describe kustomization ai-system
+
+# Tail events for fast feedback
+kubectl -n flux-system get events --sort-by=.lastTimestamp | tail -n 50
+
+# Verify workloads
+kubectl -n ai get deploy,svc,hpa,ingress
+
+# (Optional) check Flagger canary status if installed
+kubectl -n ai describe canary gateway || true
+</code></pre>
+<p>If the <code>GitRepository</code> is failing:</p>
+<ul>
+<li><strong>host key mismatch</strong> → regenerate <code>known_hosts</code> from inside cluster and recreate the secret.</li>
+<li><strong>permission denied</strong> → ensure deploy key is added to the repo and has <strong>Read</strong> access.</li>
+<li><strong>network</strong> → ensure <code>flux-system</code> pods can resolve and reach <code>gitea-ssh.git-local.svc.cluster.local:2222</code>.</li>
+</ul>
+<hr>
+<h2>5) SOPS (optional, recommended)</h2>
+<p>If you encrypt secrets in <code>ai-system-config</code>:</p>
+<ol>
+<li>Reuse the same <strong>age</strong> keypair that your monorepo uses.</li>
+<li>Commit <code>.sops.yaml</code> in <code>ai-system-config</code> with the public key.</li>
+<li>Ensure the private key is present in <code>flux-system</code> as a secret (already in your monorepo).</li>
+<li>Keep <code>GitRepository</code> as-is; Flux will decrypt during apply.</li>
+</ol>
+<hr>
+<h2>6) Tag‑ or branch‑based promotions (optional)</h2>
+<p>To pin releases, change the <code>GitRepository</code> to use a <strong>tag</strong> instead of a branch.</p>
+<pre><code class="language-yaml">spec:
+  ref:
+    tag: v1.0.0
+</code></pre>
+<p>Release flow:</p>
+<ul>
+<li>Prepare changes on <code>main</code> in <code>ai-system-config</code> → create tag <code>v1.0.0</code> → update or let an automated policy bump the tag in the <strong>monorepo</strong> <code>gitrepository-ai-system.yaml</code> → Flux promotes.</li>
+</ul>
+<hr>
+<h2>7) Canary a change (smoke test)</h2>
+<ol>
+<li>Edit <code>k8s/base/gateway/deploy.yaml</code> image tag in <code>ai-system-config</code> (e.g., <code>1.0.1</code>).</li>
+<li>Commit &amp; push to <code>main</code>.</li>
+<li>Watch Flagger analysis:</li>
+</ol>
+<pre><code class="language-bash">kubectl -n ai get canary
+kubectl -n ai describe canary gateway
+kubectl -n ai get events --watch
+</code></pre>
+<p>On success Flagger shifts traffic and promotes; otherwise it rolls back.</p>
+<hr>
+<h2>8) Troubleshooting quick hits</h2>
+<ul>
+<li><p><strong>GitRepository stuck</strong> <code>auth/ssh: handshake failed</code>: wrong key in secret or SSH service not reachable; verify with:</p>
+<pre><code class="language-bash">kubectl -n flux-system exec deploy/source-controller -- sh -c \
+  &quot;apk add -q openssh-client || true; ssh -p 2222 -o StrictHostKeyChecking=yes git@gitea-ssh.git-local.svc.cluster.local -T&quot; || true
+</code></pre>
+</li>
+<li><p><strong>Kustomization <code>not ready</code></strong>: run <code>describe</code> to see the failing object; often missing CRDs (Flagger, Prometheus). Ensure your <code>dependsOn</code> brings them up first.</p>
+</li>
+<li><p><strong>Ingress 404</strong>: confirm DNS for <code>gateway.core.home.arpa</code> (or your host), check NGINX Ingress logs, and that the Service <code>gateway</code> is Healthy.</p>
+</li>
+<li><p><strong>No traces/metrics</strong>: verify Alloy OTLP endpoint in <code>config-otel-resource.yaml</code> and NetworkPolicy egress paths to <code>monitoring</code> ns.</p>
+</li>
+</ul>
+<hr>
+<h2>9) Next steps</h2>
+<ul>
+<li>Add <code>k8s/overlays/staging</code> and a second Flux <code>Kustomization</code> pointing to it for multi‑env.</li>
+<li>Add a <strong>ServiceMonitor</strong> for <code>/metrics</code> once the app exposes them.</li>
+<li>Wire <strong>OPA/Cedar policies</strong> and quotas in a dedicated <code>policies/</code> dir within <code>ai-system-config</code> if needed.</li>
+</ul>
+<hr>
+<h3>Summary</h3>
+<p>You now have a clean <strong>split‑repo</strong> setup: platform Flux config stays in the monorepo, while <code>ai-system-config</code> owns the AI stack. Flux pulls via <strong>in‑cluster SSH</strong> at <code>gitea-ssh.git-local.svc.cluster.local:2222</code>, with a scoped deploy key and pinned <code>known_hosts</code>. Promotion and rollback are controlled from the monorepo by tweaking the <code>GitRepository</code> ref, while day‑to‑day app evolution happens in the dedicated repo.</p>
+<hr>
+<h1>Extended troubleshooting: vLLM on Turing (SM 7.5 — e.g., Quadro RTX 8000)</h1>
+<h2>Quick symptoms → fixes</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom (log/error)</th>
+<th>Why (on SM 7.5)</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>TopPSamplingFromProbs … too many resources requested for launch</code></td>
+<td>FlashInfer sampling kernels can over-allocate on Turing</td>
+<td><strong>Disable FlashInfer</strong>: <code>VLLM_USE_FLASHINFER=0</code> (or <code>VLLM_USE_FLASHINFER_SAMPLER=0</code>)</td>
+</tr>
+<tr>
+<td><code>Cannot use FA version 2 … compute capability &gt;= 8</code></td>
+<td>FlexAttention v2 requires Ampere+</td>
+<td><strong>Expected</strong> on Turing. vLLM falls back. No action needed.</td>
+</tr>
+<tr>
+<td><code>Your device … doesn&#39;t support torch.bfloat16</code></td>
+<td>Turing has no BF16</td>
+<td>Force FP16: add <code>--dtype float16</code></td>
+</tr>
+<tr>
+<td><code>ValueError: invalid literal for int() with base 10: &#39;false&#39;</code></td>
+<td>vLLM parses some envs as <strong>ints</strong>, not booleans</td>
+<td>Use <code>&quot;0&quot;</code>/<code>&quot;1&quot;</code>, <strong>not</strong> <code>&quot;false&quot;</code>/<code>&quot;true&quot;</code></td>
+</tr>
+<tr>
+<td><code>VLLM_PORT &#39;tcp://…&#39; appears to be a URI</code></td>
+<td>K8s <strong>Service env injection</strong> collides with vLLM’s <code>VLLM_PORT</code></td>
+<td><code>enableServiceLinks: false</code> <strong>and</strong>/or set <code>env: VLLM_PORT=&quot;39000&quot;</code></td>
+</tr>
+<tr>
+<td>Name resolution / HF download errors</td>
+<td>NetPol default-deny or DNS not allowed</td>
+<td>Allow <strong>UDP/TCP 53 egress</strong> to DNS + <strong>80/443 egress</strong> for <code>vllm</code>/<code>gateway</code></td>
+</tr>
+<tr>
+<td>Pod restarts during warmup/compile</td>
+<td>Probes too aggressive while vLLM JITs</td>
+<td>Add <strong>startupProbe</strong> on <code>/health</code>, give it ~5 min</td>
+</tr>
+<tr>
+<td>vLLM Pending</td>
+<td>GPU scheduling</td>
+<td>Label node <code>accelerator=nvidia</code>, have NVIDIA device plugin, <code>requests/limits</code> include <code>nvidia.com/gpu: &quot;1&quot;</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Golden config (Turing-safe vLLM block)</h2>
+<p>Drop this into your <code>Deployment</code> <strong>container: vllm</strong> (it matches what worked for you):</p>
+<pre><code class="language-yaml"># container: vllm
+image: vllm/vllm-openai:latest-x86_64
+args:
+  - --port; &quot;8000&quot;
+  - --model; &quot;zai-org/glm-edge-1.5b-chat&quot;
+  - --download-dir; /models
+  - --tensor-parallel-size; &quot;1&quot;
+  - --dtype; float16                # no BF16 on SM 7.5
+env:
+  - name: HUGGING_FACE_HUB_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: hf-token
+        key: HUGGING_FACE_HUB_TOKEN
+        optional: true
+  - { name: VLLM_PORT, value: &quot;39000&quot; }                 # avoid K8s URI collision
+  - { name: VLLM_USE_FLASHINFER, value: &quot;0&quot; }           # disable FlashInfer sampler on Turing
+ports:
+  - { name: openai, containerPort: 8000 }
+resources:
+  requests: { cpu: &quot;4&quot;, memory: &quot;20Gi&quot;, nvidia.com/gpu: &quot;1&quot; }
+  limits:   { cpu: &quot;8&quot;, memory: &quot;40Gi&quot;, nvidia.com/gpu: &quot;1&quot; }
+volumeMounts:
+  - { name: hf-cache, mountPath: /models }
+# be patient during compile/warmup
+startupProbe:
+  httpGet: { path: /health, port: openai }
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 60       # ~5 min
+readinessProbe:
+  httpGet: { path: /health, port: openai }
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 1
+livenessProbe:
+  httpGet: { path: /health, port: openai }
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 2
+</code></pre>
+<p>And at the <strong>pod</strong> level:</p>
+<pre><code class="language-yaml">spec:
+  enableServiceLinks: false          # stop injecting VLLM_* from Service
+  runtimeClassName: nvidia
+  nodeSelector: { accelerator: nvidia }
+</code></pre>
+<blockquote>
+<p>Tip: pin an image tag you trust instead of <code>:latest</code> once you’re happy (e.g., <code>v0.4x.y</code>).</p>
+</blockquote>
+<hr>
+<h2>NetworkPolicy must-haves</h2>
+<p>Allow the basics so vLLM can resolve and fetch models, and so gateway ↔ vLLM works:</p>
+<pre><code class="language-yaml"># default deny (Ingress+Egress) for safety
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny, namespace: ai }
+spec: { podSelector: {}, policyTypes: [Ingress, Egress] }
+
+# DNS egress (fast unbreak)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-dns-any, namespace: ai }
+spec:
+  podSelector: {}
+  policyTypes: [&quot;Egress&quot;]
+  egress:
+    - to: [ { ipBlock: { cidr: 0.0.0.0/0 } } ]
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+
+# Internet egress for vllm/gateway (80/443)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-egress-internet-for-ai, namespace: ai }
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [&quot;vllm&quot;,&quot;gateway&quot;] }
+  policyTypes: [&quot;Egress&quot;]
+  egress:
+    - to: [ { ipBlock: { cidr: 0.0.0.0/0 } } ]
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 80 }
+
+# east-west inside ai ns
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: allow-ai-eastwest, namespace: ai }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress: [ { from: [ { podSelector: {} } ] } ]
+  egress:  [ { to:   [ { podSelector: {} } ] } ]
+</code></pre>
+<p>(You can later tighten DNS to your CoreDNS labels/IPs.)</p>
+<hr>
+<h2>Health/probes you want</h2>
+<p>vLLM serves <code>GET /health</code>. Use:</p>
+<ul>
+<li><strong>startupProbe</strong>: <code>/health</code>, <code>failureThreshold: 60</code>, <code>periodSeconds: 5</code></li>
+<li><strong>readinessProbe</strong>: <code>/health</code></li>
+<li><strong>livenessProbe</strong>: <code>/health</code></li>
+</ul>
+<p>This avoids “probe-kills” while vLLM JIT-compiles graphs (~20–30 s on your logs).</p>
+<hr>
+<h2>Sanity checklist (Turing edition)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>FlashInfer disabled</strong> on Turing: <code>VLLM_USE_FLASHINFER=0</code></li>
+<li><input disabled="" type="checkbox"> <strong>BF16 disabled</strong>: <code>--dtype float16</code></li>
+<li><input disabled="" type="checkbox"> <strong>Service env collision avoided</strong>: <code>enableServiceLinks: false</code> (and/or set <code>VLLM_PORT=&quot;39000&quot;</code>)</li>
+<li><input disabled="" type="checkbox"> <strong>GPU scheduling</strong>: node labeled <code>accelerator=nvidia</code>, device plugin present, <code>nvidia.com/gpu: &quot;1&quot;</code> requests/limits</li>
+<li><input disabled="" type="checkbox"> <strong>NetPol</strong>: DNS (53), HTTPS (443) egress allowed for <code>vllm</code> (and gateway)</li>
+<li><input disabled="" type="checkbox"> <strong>HF token</strong> (if the repo requires it) in <code>Secret hf-token</code></li>
+<li><input disabled="" type="checkbox"> <strong>Probes</strong>: added startup/readiness/liveness on <code>/health</code></li>
+<li><input disabled="" type="checkbox"> (Optional) <strong>Compile quirks</strong>: if you still see instability, add <code>--enforce-eager</code> and/or <code>VLLM_COMPILE_LEVEL=0</code></li>
+</ul>
+<hr>
+<h2>Common log lines &amp; what they mean</h2>
+<ul>
+<li><code>Using FlexAttention backend…</code> + <code>FA version 2 is not supported…</code> → <strong>Normal</strong> on SM 7.5; it will fall back.</li>
+<li><code>FlashInfer is available, but it is not enabled. Falling back…</code> → <strong>Good</strong> (what we want).</li>
+<li><code>Available KV cache memory …</code> + a suggested <code>--kv-cache-memory</code> → <strong>Perf tuning</strong> only; not a failure.</li>
+<li><code>pynvml deprecated</code> → Noise; harmless.</li>
+</ul>
+<hr>
+<h2>Quick validation commands</h2>
+<pre><code class="language-bash"># watch rollout
+kubectl -n ai rollout status deploy/vllm
+kubectl -n ai get pods -l app.kubernetes.io/name=vllm -w
+
+# tail logs
+kubectl -n ai logs deploy/vllm -c vllm | egrep -i &#39;flashinfer|flex|fa |dtype|health|error|compile&#39;
+
+# verify env collision is gone
+kubectl -n ai exec deploy/vllm -c vllm -- sh -lc &#39;printenv | grep ^VLLM_PORT || echo &quot;no VLLM_PORT (ok)&quot;&#39;
+
+# smoke the OpenAI shim
+kubectl -n ai exec deploy/gateway -- curl -s http://vllm.ai.svc.cluster.local:8000/v1/models
+</code></pre>
+<hr>
+<h2>Reference: minimal Turing-safe <code>single.yaml</code> (vLLM bits only)</h2>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: ai
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: vllm } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: vllm }
+    spec:
+      enableServiceLinks: false
+      runtimeClassName: nvidia
+      nodeSelector: { accelerator: nvidia }
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest-x86_64
+          args: [&quot;--port&quot;,&quot;8000&quot;,&quot;--model&quot;,&quot;zai-org/glm-edge-1.5b-chat&quot;,&quot;--download-dir&quot;,&quot;/models&quot;,&quot;--tensor-parallel-size&quot;,&quot;1&quot;,&quot;--dtype&quot;,&quot;float16&quot;]
+          env:
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom: { secretKeyRef: { name: hf-token, key: HUGGING_FACE_HUB_TOKEN, optional: true } }
+            - { name: VLLM_PORT, value: &quot;39000&quot; }
+            - { name: VLLM_USE_FLASHINFER, value: &quot;0&quot; }
+          ports: [{ name: openai, containerPort: 8000 }]
+          resources:
+            requests: { cpu: &quot;4&quot;, memory: &quot;20Gi&quot;, nvidia.com/gpu: &quot;1&quot; }
+            limits:   { cpu: &quot;8&quot;, memory: &quot;40Gi&quot;, nvidia.com/gpu: &quot;1&quot; }
+          volumeMounts: [{ name: hf-cache, mountPath: /models }]
+          startupProbe:  { httpGet: { path: &quot;/health&quot;, port: &quot;openai&quot; }, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 60 }
+          readinessProbe: { httpGet: { path: &quot;/health&quot;, port: &quot;openai&quot; }, initialDelaySeconds: 10, periodSeconds: 5, timeoutSeconds: 1 }
+          livenessProbe:  { httpGet: { path: &quot;/health&quot;, port: &quot;openai&quot; }, initialDelaySeconds: 60, periodSeconds: 10, timeoutSeconds: 2 }
+      volumes:
+        - name: hf-cache
+          persistentVolumeClaim: { claimName: hf-cache }
+</code></pre>
+
+      </div>
+    </article>
+  

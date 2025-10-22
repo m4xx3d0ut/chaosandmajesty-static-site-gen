@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""Restructure OffSec posts to use TLDR + Working Notes format."""
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+CONTENT_DIR = Path("content/offsec")
+SOURCE_DIR = Path("sources/OffSec")
+
+MAPPING = {
+    "pwk-foundations.md": "PEN-200 C. 1-5.md",
+    "information-gathering.md": "PEN-200 C. 6.md",
+    "vulnerability-scanning.md": "PEN-200 C. 7.md",
+    "web-intro.md": "PEN-200 C. 8.md",
+    "web-common-attacks.md": "PEN-200 C. 9.md",
+    "sql-injection.md": "PEN-200 C. 10.md",
+    "client-side-attacks.md": "PEN-200 C. 11.md",
+    "public-exploits.md": "PEN-200 C. 12.md",
+    "fixing-exploits.md": "PEN-200 C. 13.md",
+    "av-evasion.md": "PEN-200 C. 14.md",
+    "password-attacks.md": "PEN-200 C. 15.md",
+    "windows-priv-esc.md": "PEN-200 C. 16.md",
+    "linux-priv-esc.md": "PEN-200 C. 17.md",
+    "pivoting-ssh.md": "PEN-200 C. 18.md",
+    "dpi-evasion.md": "PEN-200 C. 19.md",
+    # metasploit already updated manually
+    "ad-enum.md": "PEN-200 C. 21.md",
+    "ad-auth-attacks.md": "PEN-200 C. 22.md",
+    "ad-lateral-movement.md": "PEN-200 C. 23.md",
+    "assembling-the-pieces.md": "PEN-200 C. 24.md",
+    "challenge-labs.md": "PEN-200 C. 25.md",
+    "operator-shells.md": "Shells.md",
+}
+
+SANITIZE_REPLACEMENTS = (
+    ("m4xx3d0ut", "operator"),
+    ("h4ckt0p", "labhost"),
+    ("H4ckt0p", "labhost"),
+    ("h4cktop", "labhost"),
+    ("/home/operator@", "/home/operator@"),
+    ("/home/m4xx3d0ut", "/home/operator"),
+    ("192.168.29.", "192.0.2."),
+)
+
+
+def indent_headings(text: str, extra_hashes: int) -> str:
+    if extra_hashes <= 0:
+        return text
+    lines = text.splitlines()
+    inside_code = False
+    adjusted = []
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            inside_code = not inside_code
+            adjusted.append(line)
+            continue
+        if not inside_code and line.startswith("#"):
+            adjusted.append("#" * extra_hashes + line)
+        else:
+            adjusted.append(line)
+    return "\n".join(adjusted)
+
+
+def sanitize(text: str) -> str:
+    for old, new in SANITIZE_REPLACEMENTS:
+        text = text.replace(old, new)
+    # normalize multiple blank lines at end
+    return text.strip("\n")
+
+
+def extract_front_matter(text: str) -> tuple[str, str]:
+    if text.startswith("---\n"):
+        parts = text.split("---\n", 2)
+        if len(parts) == 3:
+            front = "---\n" + parts[1] + "---\n\n"
+            rest = parts[2].lstrip("\n")
+            return front, rest
+    return "", text
+
+
+def main() -> None:
+    for content_name, source_name in MAPPING.items():
+        content_path = CONTENT_DIR / content_name
+        if not content_path.exists():
+            print(f"[skip] missing content {content_name}")
+            continue
+        text = content_path.read_text()
+        if "## TLDR;" in text:
+            print(f"[skip] already formatted {content_name}")
+            continue
+        front, remainder = extract_front_matter(text)
+        lines = remainder.split("\n", 1)
+        if not lines:
+            print(f"[warn] empty content for {content_name}")
+            continue
+        title_line = lines[0]
+        body = lines[1] if len(lines) > 1 else ""
+        body = body.lstrip("\n")
+        if not body:
+            print(f"[warn] no body for {content_name}")
+            continue
+
+        curated = body
+        curated = indent_headings(curated, 1)
+        curated = curated.strip("\n")
+
+        source_path = SOURCE_DIR / source_name
+        if not source_path.exists():
+            print(f"[warn] missing source {source_name}")
+            continue
+        raw = source_path.read_text()
+        # strip front matter
+        if raw.startswith("---"):
+            raw = raw.split("---", 2)[2]
+        raw = raw.lstrip("\n")
+        if "#### Exercises" in raw:
+            raw = raw.rsplit("#### Exercises", 1)[0]
+        raw = indent_headings(raw, 2)
+        raw = sanitize(raw)
+
+        new_text = (
+            f"{front}{title_line}\n\n## TLDR;\n\n{curated}\n\n"
+            f"## Working Notes... In Graphic Detail...\n\n{raw}\n"
+        )
+        content_path.write_text(new_text)
+        print(f"[updated] {content_name}")
+
+
+if __name__ == "__main__":
+    main()

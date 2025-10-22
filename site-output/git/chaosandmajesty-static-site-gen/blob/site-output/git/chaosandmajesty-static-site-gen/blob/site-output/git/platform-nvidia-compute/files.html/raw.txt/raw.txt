@@ -1,0 +1,89 @@
+
+    <section class="git-panel git-files-panel" data-git-panel-section="files">
+      <header class="git-files-header">
+        <h4 class="git-files-title">platform-nvidia-compute</h4>
+        <p class="git-files-meta">2 directories · 6 files</p>
+      </header>
+      <div class="git-files-layout">
+        <aside class="git-files-tree" data-git-tree>
+          <ul class="git-tree-root">
+            
+        <li class="git-tree-item git-tree-dir" data-git-tree-item="dir">
+          <details open>
+            <summary>
+              <span class="git-tree-name">.github</span> <span class="git-tree-meta">1 dir</span>
+            </summary>
+            <ul class="git-tree-children">
+              
+        <li class="git-tree-item git-tree-dir" data-git-tree-item="dir">
+          <details open>
+            <summary>
+              <span class="git-tree-name">workflows</span> <span class="git-tree-meta">2 files</span>
+            </summary>
+            <ul class="git-tree-children">
+              
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/.github/workflows/cuda-smoke.yaml/index.html" data-git-file-path=".github/workflows/cuda-smoke.yaml">
+          <span class="git-tree-name">cuda-smoke.yaml</span>
+          <span class="git-tree-size">5.1 KB</span>
+        </button>
+      </li>
+    
+
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/.github/workflows/cuda-vecadd.yaml/index.html" data-git-file-path=".github/workflows/cuda-vecadd.yaml">
+          <span class="git-tree-name">cuda-vecadd.yaml</span>
+          <span class="git-tree-size">6.9 KB</span>
+        </button>
+      </li>
+    
+            </ul>
+          </details>
+        </li>
+      
+            </ul>
+          </details>
+        </li>
+      
+
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/cuda-smoke-test.yaml/index.html" data-git-file-path="cuda-smoke-test.yaml">
+          <span class="git-tree-name">cuda-smoke-test.yaml</span>
+          <span class="git-tree-size">1.1 KB</span>
+        </button>
+      </li>
+    
+
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/cuda-vecadd.yaml/index.html" data-git-file-path="cuda-vecadd.yaml">
+          <span class="git-tree-name">cuda-vecadd.yaml</span>
+          <span class="git-tree-size">493 B</span>
+        </button>
+      </li>
+    
+
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/GPU-COMPUTE.md/index.html" data-git-file-path="GPU-COMPUTE.md" data-git-file-markdown="true">
+          <span class="git-tree-name">GPU-COMPUTE.md</span>
+          <span class="git-tree-size">11 KB</span>
+        </button>
+      </li>
+    
+
+      <li class="git-tree-item git-tree-file" data-git-tree-item="file">
+        <button type="button" class="git-tree-entry" data-git-blob="git/platform-nvidia-compute/blob/LICENSE/index.html" data-git-file-path="LICENSE">
+          <span class="git-tree-name">LICENSE</span>
+          <span class="git-tree-size">1.0 KB</span>
+        </button>
+      </li>
+    
+          </ul>
+        </aside>
+        <section class="git-files-preview" data-git-file-preview>
+          <div class="git-file-placeholder">
+            Select a file to view its contents.
+          </div>
+        </section>
+      </div>
+    </section>
+  

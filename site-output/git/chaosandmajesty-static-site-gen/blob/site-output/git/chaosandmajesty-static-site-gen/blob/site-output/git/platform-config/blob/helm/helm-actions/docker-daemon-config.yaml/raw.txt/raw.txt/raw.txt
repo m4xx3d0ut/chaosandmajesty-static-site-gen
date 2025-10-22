@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-daemon-config
+  namespace: git-local
+data:
+  daemon.json: |
+    {
+      "insecure-registries": ["reg.microk8s.core.home.arpa:32000"],
+      "features": { "containerd-snapshotter": true }
+    }
+

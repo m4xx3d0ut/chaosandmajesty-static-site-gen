@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls
+  namespace: monitoring
+spec:
+  secretName: grafana-tls
+  dnsNames:
+    - grafana.core.home.arpa
+  issuerRef:
+    name: org-ca
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  # Optional tuning:
+  # duration: 2160h        # 90d
+  # renewBefore: 360h      # 15d
+  # keystores:             # if you ever need JKS/PKCS12 for Java apps
+  #   pkcs12:
+  #     create: false
+

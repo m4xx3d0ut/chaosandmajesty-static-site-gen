@@ -1,0 +1,26 @@
+import os, shutil, glob
+from fastapi import FastAPI, HTTPException, Query
+
+app = FastAPI(title="cachectl", version="0.1.0")
+BASE = os.getenv("HF_DOWNLOAD_DIR", "/models").rstrip("/")
+
+def _repo_dir(repo_id: str) -> str:
+    # HF cache shape: /models/hub/models--ORG--NAME
+    safe = "models--" + repo_id.replace("/", "--")
+    return os.path.join(BASE, "hub", safe)
+
+@app.get("/purge")
+def purge(repo_id: str = Query(..., description="e.g. zai-org/glm-edge-4b-chat")):
+    path = _repo_dir(repo_id)
+    # remove primary dir and any snapshot dirs referencing this repo
+    if not os.path.exists(path):
+        raise HTTPException(404, f"cache path not found: {path}")
+    try:
+        shutil.rmtree(path, ignore_errors=True)
+        # also clean possible blobs/snapshots entries for the repo
+        for p in glob.glob(os.path.join(BASE, "hub", "snapshots", "*", "refs")):
+            _ = p  # best-effort; keeping PoC simple
+        return {"ok": True, "purged": path}
+    except Exception as e:
+        raise HTTPException(500, f"purge failed: {e}")
+

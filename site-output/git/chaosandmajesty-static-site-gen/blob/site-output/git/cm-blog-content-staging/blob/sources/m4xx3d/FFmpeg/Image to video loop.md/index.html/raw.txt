@@ -1,0 +1,56 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Image to video loop.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Image to video loop.md/raw.txt" data-git-line-count="46">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Image to video loop.md</h4>
+          <div class="git-file-meta">1.3 KB · 46 lines · sources/m4xx3d/FFmpeg/Image to video loop.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Image to video loop.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Image to video loop
+updated: 2023-10-20 19:13:56Z
+created: 2023-10-20 18:37:14Z
+latitude: 33.91917990
+longitude: -118.41646520
+altitude: 0.0000</h2>
+<p>Resize image as needed:</p>
+<pre><code class="language-bash">convert EoE.png -resize 1920x1080 UCI-TCL_EoE.png
+</code></pre>
+<p>To create a 10 minute, 30 FPS, video loop from a single input image:</p>
+<pre><code class="language-bash">ffmpeg -loop 1 -i input.png -t 600 -r 30 -pix_fmt yuv420p output.mp4
+</code></pre>
+<p>Concat a 10 minute loop to 1 hour video:</p>
+<pre><code class="language-bash">m4xx3d0ut@hyp3rion:~/Documents/IR/DevOps/DSE/UCI-TCL$ for i in {1..6}; do echo &quot;file &#39;EoE.mp4&#39;&quot; &gt;&gt; concat.lst; done
+m4xx3d0ut@hyp3rion:~/Documents/IR/DevOps/DSE/UCI-TCL$ cat concat.lst 
+file &#39;EoE.mp4&#39;
+file &#39;EoE.mp4&#39;
+file &#39;EoE.mp4&#39;
+file &#39;EoE.mp4&#39;
+file &#39;EoE.mp4&#39;
+file &#39;EoE.mp4&#39;
+
+m4xx3d0ut@hyp3rion:~/Documents/IR/DevOps/DSE/UCI-TCL$ ffmpeg -f concat -safe 0 -i concat.lst -c copy UCI-TCL_EoE.mp4 
+...
+
+m4xx3d0ut@hyp3rion:~/Documents/IR/DevOps/DSE/UCI-TCL$ ffprobe UCI-TCL_EoE.mp4 
+...
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;UCI-TCL_EoE.mp4&#39;:
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf58.45.100
+  Duration: 01:00:00.00, start: 0.000000, bitrate: 192 kb/s
+    Stream #0:0(und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1920x1080, 189 kb/s, 30 fps, 30 tbr, 15360 tbn, 60 tbc (default)
+    Metadata:
+      handler_name    : VideoHandler
+</code></pre>
+
+      </div>
+    </article>
+  

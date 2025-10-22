@@ -1,0 +1,146 @@
+
+
+
+
+<article class="blog-article-body" data-slug="nethunter-notes">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Nethunter Notes</h1>
+    <p class="blog-article-meta">
+      
+        <span>Dec 22, 2023</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>1 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>m4xx3d0ut</span>
+      
+    </p>
+  </header>
+
+  
+
+  <div class="blog-article-content">
+    <h2>TLDR;</h2>
+<ul>
+<li>Use <code>su --mount-master</code> to bind the external SD card into <code>/data/local/nhsystem</code> so NetHunter has room for its root filesystem.</li>
+<li>Automate the bind mount with Magisk or Termux boot scripts so the chroot is ready after every reboot.</li>
+<li>Point Metasploit at a Termux-hosted PostgreSQL instance to dodge shared-memory issues inside the NetHunter chroot.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h3>Shield Tablet K1 Mounts</h3>
+<p>Bind-mount the SD card into the NetHunter rootfs:</p>
+<pre><code class="language-bash">su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+</code></pre>
+<p>Magisk boot script (<code>/data/adb/service.d/nhbind.sh</code>) to recreate the bind mount and log to logcat:</p>
+<pre><code class="language-bash">#!/system/bin/sh
+{
+  # Bind mount ext sdcard nhsys to internal nhsystem
+  su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+} | tee /dev/tty | while read line; do
+  log -p v -t &quot;$0&quot; &quot;$line&quot;
+done
+</code></pre>
+<p>Termux boot script (<code>~/.termux/boot/nhbind</code>):</p>
+<pre><code class="language-bash">#!/data/data/com.termux/files/usr/bin/sh
+su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+</code></pre>
+<h3>APK Automation</h3>
+<p>Install every APK in the current directory:</p>
+<pre><code class="language-bash">for i in *; do
+  echo &quot;$i&quot;
+  adb install -r &quot;$i&quot;
+done
+</code></pre>
+<p>List third-party packages:</p>
+<pre><code class="language-bash">adb shell pm list packages -f -3
+</code></pre>
+<h3>Kernel Reference</h3>
+<p>LineageOS defconfig path for OnePlus One:</p>
+<pre><code>kernel/oppo/msm8974/arch/arm/configs/lineageos_bacon_defconfig
+</code></pre>
+<h3>Metasploit + Termux PostgreSQL</h3>
+<p>Run PostgreSQL in Termux to back Metasploit:</p>
+<pre><code class="language-bash">pkg update &amp;&amp; pkg install openssl-tool postgresql
+mkdir /path/to/db
+pg_ctl initdb -D /path/to/db
+pg_ctl -D /path/to/db start
+pg_ctl -D /path/to/db stop
+createuser --superuser --pwprompt msf
+# Suggested password: generate your own secret instead of reusing samples.
+</code></pre>
+<p>Inside <code>psql</code>:</p>
+<pre><code class="language-bash">psql postgres
+CREATE DATABASE msf;
+\l
+\q
+</code></pre>
+<p>Connect from Kali:</p>
+<pre><code class="language-bash">msfconsole
+db_connect msf:&lt;password&gt;@127.0.0.1/msf
+db_status
+</code></pre>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/bunny-punx.webp" alt="m4xx3d0ut avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">m4xx3d0ut</strong>
+        
+          <div class="blog-author-title">Chaos Operator</div>
+        
+        
+          <p class="blog-author-bio">Architect of the Neon Terminal Core and Professional Technologist.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://www.linkedin.com/in/paul-k-a3a18196/" target="_blank" rel="noopener">@m4xx3d0ut</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="blog/assembling-the-pieces.html"
+        data-default-href="blog/assembling-the-pieces.html"
+        data-default-fragment="blog/fragments/assembling-the-pieces.html"
+        data-fragment-href="blog/fragments/assembling-the-pieces.html"
+        data-target-slug="assembling-the-pieces"
+        data-post-slug="assembling-the-pieces"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">PEN-200 Module 24 — Assembling the Pieces</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/ad-lateral-movement.html"
+        data-default-href="blog/ad-lateral-movement.html"
+        data-default-fragment="blog/fragments/ad-lateral-movement.html"
+        data-fragment-href="blog/fragments/ad-lateral-movement.html"
+        data-target-slug="ad-lateral-movement"
+        data-post-slug="ad-lateral-movement"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">PEN-200 Module 23 — Lateral Movement and Persistence in AD</span>
+      </a>
+    </nav>
+  
+</article>
+

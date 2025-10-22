@@ -1,0 +1,171 @@
+title: RadioStatic Demo
+description: A retro signal-inspired demo that shows how RadioStatic helps security-minded makers broadcast their platform.
+
+useCmHead: true
+useCmConsole: false
+useCmFooter: true
+
+parallaxImage: assets/static/img/hero-terminal.png
+parallaxPush: "12vh"
+
+assets: examples/demo-site/assets
+templates: static-sitegen/templates
+
+styles:
+  - assets/modern.css
+
+extraCopies:
+  - from: examples/demo-site/git
+    to: git
+
+blog:
+  enabled: true
+  title: "RadioStatic Blog"
+  description: "Dispatches for developers and makers dialing in their personal platform."
+  postsDir: content/blog
+  outputDir: blog
+  fragmentDir: blog/fragments
+  indexTemplate: blog/index.ejs
+  postTemplate: blog/post.ejs
+  fragmentTemplate: blog/fragment.ejs
+  index:
+    hero:
+      title: "RadioStatic Blog"
+      tagline: "Shortwave notes on security, theming, and automation."
+      intro: |
+        Tune into the engineering desk. These posts walk through securing static builds, wiring content pipelines, and keeping the RadioStatic signal sharp.
+    renderInitialPost: true
+    sidebarPageSize: 6
+    defaultPostPath: content/blog/default-post.md
+  authors:
+    - id: your-name
+      name: "Your Name"
+      title: "Signal Keeper"
+      avatar: "assets/static/img/avatar-alex.svg"
+      bio: "Introduce yourself or your crew with a quick sentence about why you broadcast."
+      social:
+        - label: "@yourhandle"
+          href: "https://example.com/you"
+
+index:
+  title: Home
+  hideTitle: true
+  useCmConsole: true
+  tagline: "Secure your signal. Own your platform."
+  content: |
+
+    ### Build and ship a static site with one config
+
+    RadioStatic reads your YAML, copies the assets you point at, and renders modular templates so you can deploy a hardened static site in minutes.
+
+    - Automatic asset mirroring and checksum-friendly output.
+    - Markdown-first content with reusable partials.
+    - Stagit-compatible Git mirrors for audit-friendly release notes.
+
+    Duplicate this configuration, tweak the metadata, and run `./build-site.sh` to watch a fresh build land in `site-output/`.
+
+  cta:
+    label: Visit the Blog
+    href: blog.html
+
+sections:
+  - id: features
+    heading: Feature Tour
+    image: assets/static/img/hero-cards.svg
+    useCmConsole: false
+    content: |
+      ## What ships in this demo
+
+      - **Config-driven pages** — adjust navigation, copy, and theme controls straight from YAML.
+      - **Reusable layouts** — extend the EJS templates in `static-sitegen/templates/` to bring your own brand system.
+      - **Blog with fragments** — serve HTMX fragments alongside full posts for instant previews.
+
+    columnLayout:
+      enabled: true
+      ratio: "15/85"
+      leftContent: |
+        ### Quick Links
+        - [Blog](../blog.html)
+        - [Git Console](../sections/git.html)
+      rightContent: |
+        ## Customize every frequency
+        Set typography, palettes, and metadata without touching the templates. Rebuild anytime to keep your signal crisp.
+
+  - id: git
+    heading: Git Activity
+    image: assets/static/img/hero-launch.svg
+    useCmConsole: false
+    content: |
+      <div class="git-grid" data-git-source="../git/repos.json">
+        <aside class="git-sidebar" aria-label="Repository list">
+          <div class="git-sidebar-head">
+            <h3>Repositories</h3>
+            <p class="git-sidebar-note">Snapshots generated during the latest build.</p>
+          </div>
+          <label class="git-search">
+            <span class="visually-hidden">Filter repositories</span>
+            <input type="search" placeholder="Filter repositories" autocomplete="off" data-git-filter>
+          </label>
+          <ul class="git-repo-list" data-git-list>
+            <li class="git-empty-state">Loading repositories…</li>
+          </ul>
+        </aside>
+        <section class="git-content" aria-live="polite">
+          <header class="git-content-header">
+            <div>
+              <h3 data-git-active-label>Loading…</h3>
+              <p data-git-active-stage class="git-active-meta"></p>
+            </div>
+            <nav class="git-tabs" aria-label="Repository panels">
+              <button type="button" class="git-tab-button" data-git-tab="log" hx-target="#git-panel" hx-swap="innerHTML">Log</button>
+              <button type="button" class="git-tab-button" data-git-tab="files" hx-target="#git-panel" hx-swap="innerHTML">Files</button>
+              <button type="button" class="git-tab-button" data-git-tab="readme" hx-target="#git-panel" hx-swap="innerHTML">README</button>
+              <button type="button" class="git-tab-button" data-git-tab="refs" hx-target="#git-panel" hx-swap="innerHTML">Refs</button>
+            </nav>
+          </header>
+          <div id="git-panel" class="git-content-body" role="region" aria-live="polite">
+            <p class="git-panel-placeholder">Select a repository to view its activity.</p>
+          </div>
+        </section>
+      </div>
+      <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+      <script src="../assets/static/js/git-console.js" defer></script>
+
+sitemap:
+  hideTitle: false
+
+header:
+  links:
+    - label: Home
+      href: index.html
+    - label: Blog
+      href: blog.html
+    - label: Git
+      href: sections/git.html
+
+footer:
+  text: "© 2025 RadioStatic Demo."
+  links:
+    - label: GitHub
+      href: "https://github.com/example"
+    - label: Privacy
+      href: privacy.html
+    - label: Terms
+      href: terms.html
+
+domain: example.com
+page_title: RadioStatic Demo
+logo: assets/static/img/site-icon-512.png
+favicon: assets/static/img/site-icon-512.png
+
+theme:
+  mode: dark
+  primary_color: "#ff436e"
+  secondary_color: "#9e9e9e"
+
+analytics_id: UA-000000-0
+social_preview_image: assets/social-preview.svg
+
+meta:
+  description: RadioStatic demo site showcasing the retro signal theme and security-first workflow.
+  keywords: static site generator, yaml, markdown, radio static, demo

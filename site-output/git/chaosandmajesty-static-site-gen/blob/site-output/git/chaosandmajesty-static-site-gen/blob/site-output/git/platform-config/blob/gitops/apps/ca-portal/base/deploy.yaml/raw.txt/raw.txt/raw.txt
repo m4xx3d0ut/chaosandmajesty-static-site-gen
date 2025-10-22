@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ca-portal
+  namespace: ca-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ca-portal }
+  template:
+    metadata:
+      labels: { app: ca-portal }
+    spec:
+      initContainers:
+        - name: make-der
+          image: alpine:3.20
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+              apk add --no-cache openssl
+              cp /ca/ca.crt /work/org-root-ca.crt
+              openssl x509 -outform der -in /ca/ca.crt -out /work/org-root-ca.der
+          volumeMounts:
+            - name: ca-bundle
+              mountPath: /ca
+            - name: downloads
+              mountPath: /work
+      containers:
+        - name: nginx
+          image: ghcr.io/nginxinc/nginx-unprivileged:alpine
+          ports: [{ containerPort: 8080 }]
+          volumeMounts:
+            - { name: site, mountPath: /usr/share/nginx/html }
+            - { name: downloads, mountPath: /usr/share/nginx/html/downloads }
+      volumes:
+        - name: site
+          configMap: { name: ca-portal-site }
+        - name: downloads
+          emptyDir: {}
+        - name: ca-bundle
+          configMap:
+            name: org-root-bundle
+            items:
+              - { key: ca.crt, path: ca.crt }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ca-portal
+  namespace: ca-portal
+spec:
+  selector: { app: ca-portal }
+  ports:
+    - port: 80
+      targetPort: 8080
+

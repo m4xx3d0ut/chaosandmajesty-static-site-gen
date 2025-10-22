@@ -1,0 +1,202 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/platform-config/blob/gitops/clusters/microk8s-prod/kustomizations/infra-cert-manager.yaml/raw.txt/raw.txt/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/platform-config/blob/gitops/clusters/microk8s-prod/kustomizations/infra-cert-manager.yaml/raw.txt/raw.txt/raw.txt" data-git-line-count="15">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">raw.txt</h4>
+          <div class="git-file-meta">309 B · 15 lines · site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/platform-config/blob/gitops/clusters/microk8s-prod/kustomizations/infra-cert-manager.yaml/raw.txt/raw.txt</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/git/platform-config/blob/gitops/clusters/microk8s-prod/kustomizations/infra-cert-manager.yaml/raw.txt/raw.txt/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">apiVersion: kustomize.toolkit.fluxcd.io/v1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">kind: Kustomization</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">metadata:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text">  name: infra-cert-manager</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text">  namespace: flux-system</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text">spec:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text">  interval: 10m</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text">  sourceRef:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L9" data-git-line="9">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="9"
+          aria-label="Copy permalink for line 9"
+          title="Copy permalink for line 9"
+        >9</button>
+        <span class="git-code-text">    kind: GitRepository</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L10" data-git-line="10">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="10"
+          aria-label="Copy permalink for line 10"
+          title="Copy permalink for line 10"
+        >10</button>
+        <span class="git-code-text">    name: platform-config</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L11" data-git-line="11">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="11"
+          aria-label="Copy permalink for line 11"
+          title="Copy permalink for line 11"
+        >11</button>
+        <span class="git-code-text">  path: ./gitops/infra/cert-manager</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L12" data-git-line="12">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="12"
+          aria-label="Copy permalink for line 12"
+          title="Copy permalink for line 12"
+        >12</button>
+        <span class="git-code-text">  prune: true</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L13" data-git-line="13">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="13"
+          aria-label="Copy permalink for line 13"
+          title="Copy permalink for line 13"
+        >13</button>
+        <span class="git-code-text">  wait: true</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L14" data-git-line="14">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="14"
+          aria-label="Copy permalink for line 14"
+          title="Copy permalink for line 14"
+        >14</button>
+        <span class="git-code-text">  dependsOn:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L15" data-git-line="15">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="15"
+          aria-label="Copy permalink for line 15"
+          title="Copy permalink for line 15"
+        >15</button>
+        <span class="git-code-text">    - name: infra-crds</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

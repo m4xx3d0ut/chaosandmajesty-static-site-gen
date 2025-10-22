@@ -1,0 +1,118 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/assets/doom/doom.wasm/index.html/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/assets/doom/doom.wasm/index.html/raw.txt" data-git-line-count="8">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">index.html</h4>
+          <div class="git-file-meta">383 B · 8 lines · site-output/git/chaosandmajesty-static-site-gen/blob/site-output/assets/doom/doom.wasm/index.html</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/site-output/assets/doom/doom.wasm/index.html/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">      &lt;article class=&quot;git-file-panel&quot; data-git-panel-section=&quot;blob&quot; data-git-fragment-path=&quot;git/chaosandmajesty-static-site-gen/blob/site-output/assets/doom/doom.wasm/index.html&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">        &lt;header class=&quot;git-file-header&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text">          &lt;h4 class=&quot;git-file-title&quot;&gt;doom.wasm&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text">        &lt;/header&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text">        &lt;div class=&quot;git-file-empty&quot;&gt;File is too large (5.4 MB).&lt;/div&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text">      &lt;/article&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text">    </span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

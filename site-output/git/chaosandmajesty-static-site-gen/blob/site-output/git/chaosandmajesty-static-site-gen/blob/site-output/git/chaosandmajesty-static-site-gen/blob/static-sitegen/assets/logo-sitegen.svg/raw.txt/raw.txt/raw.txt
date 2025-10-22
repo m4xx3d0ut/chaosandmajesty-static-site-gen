@@ -1,0 +1,14 @@
+<svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="320" height="80" rx="16" fill="#191c20"/>
+  <text 
+    x="50%" 
+    y="56%" 
+    dominant-baseline="middle" 
+    text-anchor="middle" 
+    font-family="'JetBrains Mono','Fira Mono','Menlo','SF Mono','Consolas',monospace" 
+    font-size="28" 
+    fill="#e0e0e0"
+    letter-spacing="2"
+    font-weight="bold"
+  >c0r3 SiteGen</text>
+</svg>

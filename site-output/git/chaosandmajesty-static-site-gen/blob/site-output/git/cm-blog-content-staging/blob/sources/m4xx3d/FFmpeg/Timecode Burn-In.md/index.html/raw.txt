@@ -1,0 +1,67 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Timecode Burn-In.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Timecode Burn-In.md/raw.txt" data-git-line-count="64">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Timecode Burn-In.md</h4>
+          <div class="git-file-meta">4.2 KB · 64 lines · sources/m4xx3d/FFmpeg/Timecode Burn-In.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/FFmpeg/Timecode Burn-In.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Timecode Burn-In
+updated: 2023-07-03 18:50:17Z
+created: 2023-07-03 18:24:04Z
+latitude: 33.88473610
+longitude: -118.41090890
+altitude: 0.0000</h2>
+<h3>TC Bottom Center</h3>
+<p>To overlay time code on an MP4 video using ffmpeg from the Linux command line, you can use the drawtext filter. Here&#39;s an example command:</p>
+<pre><code class="language-bash">ffmpeg -i input.mp4 -vf &quot;drawtext=fontfile=/path/to/font.ttf:text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=h-th-10:fontsize=24:fontcolor=white:bordercolor=black:borderw=2&quot; -c:a copy output.mp4
+</code></pre>
+<p>Let&#39;s break down the command:</p>
+<ul>
+<li><code>-i input.mp4</code>: Specifies the input video file.</li>
+<li><code>-vf &quot;drawtext=fontfile=/path/to/font.ttf:text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=h-th-10:fontsize=24:fontcolor=white:bordercolor=black:borderw=2&quot;</code>: Applies the drawtext filter to overlay the time code on the video. Here&#39;s what each parameter does:<ul>
+<li><code>fontfile</code>: Specifies the path to the font file you want to use. Replace <code>/path/to/font.ttf</code> with the actual path to your font file.</li>
+<li><code>text</code>: Sets the text to be displayed. <code>%{pts\:hms}</code> is a special variable that represents the current time in hours:minutes:seconds format.</li>
+<li><code>x</code> and <code>y</code>: Specify the position of the text on the video. <code>(w-tw)/2</code> centers the text horizontally, and <code>h-th-10</code> positions it 10 pixels from the bottom.</li>
+<li><code>fontsize</code>: Sets the font size of the text (e.g., 24).</li>
+<li><code>fontcolor</code>: Specifies the font color (e.g., white).</li>
+<li><code>bordercolor</code> and <code>borderw</code>: Sets the color and width of the text border (e.g., black and 2 pixels).</li>
+</ul>
+</li>
+<li><code>-c:a copy</code>: Copies the audio stream from the input to the output without re-encoding.</li>
+<li><code>output.mp4</code>: Specifies the output video file.</li>
+</ul>
+<p>Make sure to replace <code>input.mp4</code> with the path to your actual input video file, and <code>output.mp4</code> with the desired name/path for the output file. Additionally, replace <code>/path/to/font.ttf</code> with the path to the font file you want to use for the time code overlay.<strong>strong text</strong></p>
+<hr>
+<h3>TC Centered in Frame</h3>
+<p>To overlay time code with a font size of 48 on the center of the frame in an MP4 video using ffmpeg, you can use the following command:</p>
+<pre><code class="language-bash">ffmpeg -i input.mp4 -vf &quot;drawtext=fontfile=/path/to/font.ttf:fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=(h/PHI)+th&quot; -codec:a copy output.mp4
+</code></pre>
+<p>Here&#39;s a breakdown of the command:</p>
+<ul>
+<li><code>-i input.mp4</code> specifies the input video file.</li>
+<li><code>-vf</code> is the video filter option used to apply the drawtext filter.</li>
+<li><code>drawtext</code> is the filter that allows drawing text on the video frames.</li>
+<li><code>fontfile=/path/to/font.ttf</code> sets the path to the font file you want to use. Replace <code>/path/to/font.ttf</code> with the actual path to the font file you want to use. Make sure to provide the correct path to the font file.</li>
+<li><code>fontsize=48</code> sets the font size to 48.</li>
+<li><code>box=1:boxcolor=black@0.5:boxborderw=5</code> adds a black semi-transparent box behind the text for better visibility. You can adjust the box color, transparency (0.5 in this example), and border width (5 in this example) as per your preference.</li>
+<li><code>text=&#39;%{pts\:hms}&#39;</code> sets the text to be displayed as the time code in the format hours:minutes:seconds.</li>
+<li><code>x=(w-tw)/2:y=(h/PHI)+th</code> calculates the position of the text overlay to be centered on the frame. <code>x</code> determines the horizontal position, and <code>(w-tw)/2</code> ensures it is centered. <code>y</code> determines the vertical position, and <code>(h/PHI)+th</code> places it slightly above the center. You can adjust the vertical and horizontal positions based on your requirements.</li>
+<li><code>-codec:a copy</code> copies the audio stream from the input to the output without re-encoding, ensuring there is no loss in audio quality.</li>
+<li><code>output.mp4</code> is the output video file.</li>
+</ul>
+<p>Make sure to replace <code>input.mp4</code> with the path to your input video file and <code>output.mp4</code> with the desired output file name and extension.</p>
+<hr>
+<h3>SGP Example</h3>
+<pre><code class="language-bash">$ ffmpeg -ss 00:04:30 -t 00:04:50 -i https://d1vx32x80ky54z.cloudfront.net/fim-sgp-mp-beauty_endpoint_1/index.m3u8?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6InRoZWluZmluaXRlcmVhbGl0eSIsImlhdCI6MTUxNjIzOTAyMiwibmJmIjoxNjE2MjM5MzIsImV4cCI6MTY3MjU5Njc1Mn0.P99JjXQ-y37waUSbMkND11DPrcWV4F1uppa4a9ZBHyc -vf &quot;drawtext=fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=(h/PHI)+th&quot; -c:a copy -t 20 fim-sgp-beauty-20s-tc.mp4
+</code></pre>
+
+      </div>
+    </article>
+  

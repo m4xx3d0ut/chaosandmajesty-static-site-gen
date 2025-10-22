@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= site.title %> – <%= page.post?.title || page.title %></title>
+
+  <% if (page.useCmHead || site.useCmHead) { %>
+    <%- include('../partials/cm-head.ejs') %>
+  <% } else if (site.styles && site.styles.length > 0) { %>
+    <% site.styles.forEach(function(style) { %>
+      <link rel="stylesheet" href="<%= style %>">
+    <% }); %>
+  <% } %>
+
+  <% const rawRootBase = page.rootBase || page.blog?.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
+  <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
+  <% const hasAbsoluteBase = !!normalizedRootBase; %>
+  <% const baseDepth = (typeof page.baseDepth === 'number') ? page.baseDepth : 0; %>
+  <% const depthPrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : ''); %>
+  <% const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || ''); %>
+  <% const resolvePath = (value) => {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || '/') : './');
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, '');
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || '/');
+       }
+       return depthPrefix + cleaned;
+     }; %>
+  <% const buildInternalHref = (href) => {
+       if (!href) return '#';
+       if (isExternal(href)) return href;
+       if (href.startsWith('#')) {
+         const target = href.slice(1);
+         if (!target) {
+           return resolvePath('');
+         }
+         return resolvePath(`sections/${target}.html`);
+       }
+       return resolvePath(href);
+     }; %>
+  <% const buildAssetHref = (asset) => {
+       if (!asset) return '';
+       if (isExternal(asset)) return asset;
+       return resolvePath(asset);
+     }; %>
+  <% const backHref = buildInternalHref(page.blog?.indexHref || 'blog.html'); %>
+
+</head>
+<body class="cm-body blog-page">
+  <header>
+    <div class="container header-container">
+      <% const logoPath = site.logo || 'assets/static/img/not-dead.webp'; %>
+      <% const resolvedLogo = buildAssetHref(logoPath); %>
+      <% if (resolvedLogo) { %>
+        <a href="<%= buildInternalHref('index.html') %>" class="logo-link">
+          <img src="<%= resolvedLogo %>" alt="<%= site.title %> Logo" class="logo">
+        </a>
+      <% } else { %>
+        <h1 class="logo-text"><%= site.title %></h1>
+      <% } %>
+      <% var navLinks = (site.header && site.header.links) ? site.header.links : []; %>
+      <% if (navLinks.length > 0) { %>
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            <% navLinks.forEach(function(link) { %>
+              <li><a href="<%= buildInternalHref(link.href) %>"><%= link.label %></a></li>
+            <% }); %>
+          </ul>
+        </nav>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="blog-container blog-post-view">
+    <div class="blog-article-shell">
+      <a class="blog-back-link" href="<%= backHref %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Back to <%= page.blog?.title || 'Blog' %>
+      </a>
+      <%- include('partials/article.ejs', { post: page.post, buildAssetHref, buildInternalHref }) %>
+    </div>
+  </main>
+
+  <footer>
+    <% if (page.useCmFooter || site.useCmFooter) { %>
+      <%- include('../partials/cm-footer.ejs') %>
+    <% } %>
+    <div class="container footer-container">
+      <p class="footer-copy">&copy; <%= new Date().getFullYear() %> <%= site.title %></p>
+    </div>
+  </footer>
+
+  <button type="button" class="blog-back-to-top" aria-label="Back to top">
+    ▲
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

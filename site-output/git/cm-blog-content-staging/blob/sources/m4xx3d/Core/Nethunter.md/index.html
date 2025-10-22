@@ -1,0 +1,71 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Nethunter.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Nethunter.md/raw.txt" data-git-line-count="74">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Nethunter.md</h4>
+          <div class="git-file-meta">1.6 KB · 74 lines · sources/m4xx3d/Core/Nethunter.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Nethunter.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Nethunter
+updated: 2023-12-24 19:33:17Z
+created: 2023-12-22 14:37:53Z</h2>
+<h2>Shield Tablet K1</h2>
+<p>SD card bind mount for Kali RootFS</p>
+<pre><code>su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+</code></pre>
+<p><a href="https://github.com/topjohnwu/Magisk/blob/master/docs/guides.md#boot-scripts">Magisk Boot Script</a> to create bind mount and output to logcat.</p>
+<pre><code>shieldtablet:/ $ su
+shieldtablet:/ # cat /data/adb/service.d/nhbind.sh
+#!/system/bin/sh
+{
+# Bind mount ext sdcard nhsys to internal nhsystem
+su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+} | tee /dev/tty | while read line; do
+ log -p v -t &quot;$0&quot; &quot;$line&quot;
+done
+</code></pre>
+<p>Termux boot mount <code>.termux/boot/nhbind</code></p>
+<pre><code>#!/data/data/com.termux/files/usr/bin/sh
+# Bind mount ext sdcard nhsys to internal nhsystem
+su --mount-master -c &quot;mount --bind /storage/emulated/0/nhsys/ /data/local/nhsystem/&quot;
+</code></pre>
+<p>Install apks from dir</p>
+<pre><code>for i in $(ls); echo $i; adb install -r $i
+</code></pre>
+<p>List installed 3rd party packages</p>
+<pre><code>adb shell pm list packages -f -3
+</code></pre>
+<p>OP One LineageOS defconfig</p>
+<pre><code>kernel/oppo/msm8974/arch/arm/configs/lineageos_bacon_defconfig
+</code></pre>
+<p>Metasploit Postgres connection to Termux Postgresql, avoids issues with SYSVIPC SHMMEM in Kali chroot.</p>
+<pre><code># Termux shell
+pkg update &amp;&amp; pkg install openssl-tool postgresql
+mkdir {/path/to/db/dir}
+pg_ctl initdb -D {/path/to/db/dir}
+pg_ctl -D {/path/to/db/dir} start
+pg_ctl -D {/path/to/db/dir} stop
+createuser --superuser --pwprompt msf
+pw: LmnKsFF962a1
+
+# psql shell
+psql postgres
+CREATE DATABASE msf;
+\l
+\q
+
+# kali shell
+msfconsole
+db_connect msf:LmnKsFF962a1@127.0.0.1/msf
+db_status
+</code></pre>
+
+      </div>
+    </article>
+  

@@ -1,0 +1,394 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/platform-config/blob/gitops/infra-policies/deny-capacitor-ro-writes.yaml/index.html" data-git-raw-path="git/platform-config/blob/gitops/infra-policies/deny-capacitor-ro-writes.yaml/raw.txt" data-git-line-count="31">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">deny-capacitor-ro-writes.yaml</h4>
+          <div class="git-file-meta">890 B · 31 lines · gitops/infra-policies/deny-capacitor-ro-writes.yaml</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/platform-config/blob/gitops/infra-policies/deny-capacitor-ro-writes.yaml/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">apiVersion: admissionregistration.k8s.io/v1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">kind: ValidatingAdmissionPolicy</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">metadata:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text">  name: deny-capacitor-ro-writes</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text">spec:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text">  failurePolicy: Fail</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text">  matchConstraints:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text">    resourceRules:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L9" data-git-line="9">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="9"
+          aria-label="Copy permalink for line 9"
+          title="Copy permalink for line 9"
+        >9</button>
+        <span class="git-code-text">      - apiGroups: [&quot;&quot;, &quot;apps&quot;, &quot;batch&quot;]</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L10" data-git-line="10">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="10"
+          aria-label="Copy permalink for line 10"
+          title="Copy permalink for line 10"
+        >10</button>
+        <span class="git-code-text">        apiVersions: [&quot;*&quot;]</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L11" data-git-line="11">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="11"
+          aria-label="Copy permalink for line 11"
+          title="Copy permalink for line 11"
+        >11</button>
+        <span class="git-code-text">        operations: [&quot;*&quot;]</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L12" data-git-line="12">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="12"
+          aria-label="Copy permalink for line 12"
+          title="Copy permalink for line 12"
+        >12</button>
+        <span class="git-code-text">        resources:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L13" data-git-line="13">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="13"
+          aria-label="Copy permalink for line 13"
+          title="Copy permalink for line 13"
+        >13</button>
+        <span class="git-code-text">          - pods</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L14" data-git-line="14">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="14"
+          aria-label="Copy permalink for line 14"
+          title="Copy permalink for line 14"
+        >14</button>
+        <span class="git-code-text">          - pods/exec</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L15" data-git-line="15">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="15"
+          aria-label="Copy permalink for line 15"
+          title="Copy permalink for line 15"
+        >15</button>
+        <span class="git-code-text">          - pods/attach</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L16" data-git-line="16">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="16"
+          aria-label="Copy permalink for line 16"
+          title="Copy permalink for line 16"
+        >16</button>
+        <span class="git-code-text">          - pods/portforward</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L17" data-git-line="17">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="17"
+          aria-label="Copy permalink for line 17"
+          title="Copy permalink for line 17"
+        >17</button>
+        <span class="git-code-text">          - pods/eviction</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L18" data-git-line="18">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="18"
+          aria-label="Copy permalink for line 18"
+          title="Copy permalink for line 18"
+        >18</button>
+        <span class="git-code-text">          - pods/ephemeralcontainers</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L19" data-git-line="19">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="19"
+          aria-label="Copy permalink for line 19"
+          title="Copy permalink for line 19"
+        >19</button>
+        <span class="git-code-text">          - deployments</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L20" data-git-line="20">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="20"
+          aria-label="Copy permalink for line 20"
+          title="Copy permalink for line 20"
+        >20</button>
+        <span class="git-code-text">          - deployments/scale</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L21" data-git-line="21">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="21"
+          aria-label="Copy permalink for line 21"
+          title="Copy permalink for line 21"
+        >21</button>
+        <span class="git-code-text">          - replicasets</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L22" data-git-line="22">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="22"
+          aria-label="Copy permalink for line 22"
+          title="Copy permalink for line 22"
+        >22</button>
+        <span class="git-code-text">          - replicasets/scale</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L23" data-git-line="23">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="23"
+          aria-label="Copy permalink for line 23"
+          title="Copy permalink for line 23"
+        >23</button>
+        <span class="git-code-text">          - statefulsets</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L24" data-git-line="24">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="24"
+          aria-label="Copy permalink for line 24"
+          title="Copy permalink for line 24"
+        >24</button>
+        <span class="git-code-text">          - statefulsets/scale</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L25" data-git-line="25">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="25"
+          aria-label="Copy permalink for line 25"
+          title="Copy permalink for line 25"
+        >25</button>
+        <span class="git-code-text">          - daemonsets</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L26" data-git-line="26">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="26"
+          aria-label="Copy permalink for line 26"
+          title="Copy permalink for line 26"
+        >26</button>
+        <span class="git-code-text">          - jobs</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L27" data-git-line="27">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="27"
+          aria-label="Copy permalink for line 27"
+          title="Copy permalink for line 27"
+        >27</button>
+        <span class="git-code-text">          - cronjobs</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L28" data-git-line="28">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="28"
+          aria-label="Copy permalink for line 28"
+          title="Copy permalink for line 28"
+        >28</button>
+        <span class="git-code-text">  validations:</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L29" data-git-line="29">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="29"
+          aria-label="Copy permalink for line 29"
+          title="Copy permalink for line 29"
+        >29</button>
+        <span class="git-code-text">    - expression: request.userInfo.username != &quot;system:serviceaccount:flux-system:capacitor-next-ro&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L30" data-git-line="30">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="30"
+          aria-label="Copy permalink for line 30"
+          title="Copy permalink for line 30"
+        >30</button>
+        <span class="git-code-text">      message: &quot;capacitor-next-ro is view-only; write-like operations are blocked by policy.&quot;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L31" data-git-line="31">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="31"
+          aria-label="Copy permalink for line 31"
+          title="Copy permalink for line 31"
+        >31</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

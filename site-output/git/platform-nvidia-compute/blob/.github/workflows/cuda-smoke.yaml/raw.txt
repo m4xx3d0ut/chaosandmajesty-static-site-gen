@@ -1,0 +1,130 @@
+name: CUDA Smoke Test
+on:
+  workflow_dispatch:
+
+jobs:
+  cuda-smoke-test:
+    runs-on: ubuntu-latest
+    env:
+      GITEA_SVC_HOST: gitea-ssh.git-local.svc.cluster.local
+      GITEA_SSH_PORT: "2222"
+      NAMESPACE: default
+      # Optional: pin kubectl (e.g., v1.30.5). Leave empty to use latest stable.
+      KUBECTL_VERSION: ""
+    steps:
+      - name: Install prerequisites (fast)
+        run: |
+          set -euo pipefail
+          if ! command -v ssh >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            sudo apt-get update -y -q
+            sudo apt-get install -y --no-install-recommends openssh-client curl ca-certificates
+          fi
+          ssh -V
+        timeout-minutes: 3
+
+      - name: DNS & connectivity checks (in-cluster)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== resolv.conf ==="; cat /etc/resolv.conf || true; echo
+          echo "=== getent hosts (gitea ssh svc) ==="
+          getent hosts "$GITEA_SVC_HOST" || (echo "FATAL: cannot resolve $GITEA_SVC_HOST" && exit 1)
+          echo
+          echo "=== TCP check gitea ssh ==="
+          timeout 5 bash -lc ">/dev/tcp/$GITEA_SVC_HOST/$GITEA_SSH_PORT" || (echo "FATAL: cannot reach $GITEA_SVC_HOST:$GITEA_SSH_PORT" && exit 1)
+          echo "OK"
+
+      - name: Setup SSH material
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          umask 177
+          printf '%s' "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -p "$GITEA_SSH_PORT" "$GITEA_SVC_HOST" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          {
+            echo "Host $GITEA_SVC_HOST"
+            echo "  HostName $GITEA_SVC_HOST"
+            echo "  Port $GITEA_SSH_PORT"
+            echo "  User git"
+            echo "  IdentityFile ~/.ssh/id_ci"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Clone repo (SSH via in-cluster service)
+        run: |
+          set -euo pipefail
+          REPO_SSH="ssh://git@${GITEA_SVC_HOST}:${GITEA_SSH_PORT}/m4xx3d0ut/platform-nvidia-compute.git"
+          git clone --depth 1 --branch dev "$REPO_SSH" . || git clone --depth 1 "$REPO_SSH" .
+
+      - name: Install kubectl
+        run: |
+          set -euo pipefail
+          if [ -n "${KUBECTL_VERSION}" ]; then
+            URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+          else
+            URL="https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          fi
+          curl -sSL "$URL" -o kubectl
+          install -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Configure kubeconfig
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.kube
+          printf '%s' "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          head -1 ~/.kube/config | grep -q 'apiVersion:' || { echo "Malformed kubeconfig"; exit 1; }
+          kubectl --request-timeout=30s cluster-info
+          kubectl --request-timeout=30s get ns
+
+      # Deploy CUDA smoke test (Job)
+      - name: Deploy CUDA smoke test (Job)
+        run: |
+          set -euo pipefail
+          echo "Validating manifest (server dry-run) ..."
+          kubectl --request-timeout=30s apply -n "$NAMESPACE" -f cuda-smoke-test.yaml --dry-run=server
+          echo "Applying manifest ..."
+          kubectl --request-timeout=30s apply -n "$NAMESPACE" -f cuda-smoke-test.yaml
+          echo "Waiting for Job to complete ..."
+          kubectl --request-timeout=30s wait -n "$NAMESPACE" --for=condition=complete job/cuda-vecadd --timeout=600s || true
+
+      # Show pod status + logs
+      - name: Show pod status + logs
+        run: |
+          set -euo pipefail
+          echo "Pods for the job:"
+          kubectl --request-timeout=30s get pods -n "$NAMESPACE" -l job-name=cuda-vecadd -o wide
+          POD="$(kubectl --request-timeout=30s get pods -n "$NAMESPACE" -l job-name=cuda-vecadd -o jsonpath='{.items[0].metadata.name}')"
+          echo "=== Logs from $POD ==="
+          kubectl --request-timeout=30s logs -n "$NAMESPACE" "$POD" || true
+          echo "=== Describe job ==="
+          kubectl --request-timeout=30s describe job -n "$NAMESPACE" cuda-vecadd || true
+
+      # Check job success
+      - name: Check job success
+        run: |
+          set -euo pipefail
+          SUCCEEDED="$(kubectl --request-timeout=30s get job -n "$NAMESPACE" cuda-vecadd -o jsonpath='{.status.succeeded}')"
+          if [ "${SUCCEEDED:-0}" = "1" ]; then
+            echo "✅ CUDA smoke test PASSED"
+          else
+            echo "❌ CUDA smoke test FAILED"
+            echo "Recent events:"
+            kubectl --request-timeout=30s get events -n "$NAMESPACE" --sort-by=.lastTimestamp | tail -n 50 || true
+            exit 1
+          fi
+
+      # Cleanup
+      - name: Cleanup
+        if: always()
+        run: |
+          set -euo pipefail
+          echo "Cleaning up job..."
+          kubectl --request-timeout=30s delete -n "$NAMESPACE" job cuda-vecadd --ignore-not-found=true
+          echo "Cleanup complete"

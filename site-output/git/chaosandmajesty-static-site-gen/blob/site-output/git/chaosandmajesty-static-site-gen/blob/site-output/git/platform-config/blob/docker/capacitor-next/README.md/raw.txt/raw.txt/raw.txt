@@ -1,0 +1,1201 @@
+# 1) Image build (multi-stage)
+
+Create `docker/capacitor-next/Dockerfile`:
+
+```Dockerfile
+# docker/capacitor-next/Dockerfile
+# Build a small image that embeds the Capacitor Next binary (next-v0.5.0)
+
+FROM debian:bookworm-slim AS builder
+ARG CAP_VERSION=next-v0.5.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates wget curl bash && rm -rf /var/lib/apt/lists/*
+WORKDIR /work
+# The official installer drops a binary named "next" into the CWD
+RUN curl -fsSL https://gimlet.io/install-capacitor | bash -s -- ${CAP_VERSION}
+
+# ---
+FROM gcr.io/distroless/base-debian12
+COPY --from=builder /usr/local/bin/next /usr/local/bin/next
+USER 65532:65532
+EXPOSE 3333
+ENTRYPOINT ["/usr/local/bin/next"]
+CMD ["--port","3333","--auth","static"]
+```
+
+Optional `.dockerignore` (same folder):
+
+```gitignore
+# docker/capacitor-next/.dockerignore
+*
+!Dockerfile
+```
+
+**Build & push** (from repo root):
+
+```bash
+# If you use buildx already:
+docker buildx build --platform linux/amd64 \
+  -f docker/capacitor-next/Dockerfile \
+  -t reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0 \
+  --build-arg CAP_VERSION=next-v0.5.0 \
+  .
+
+docker push reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+```
+
+> If your registry is **HTTP** (MicroK8s default), ensure your build host and nodes trust it as an *insecure registry* (containerd `hosts.toml` / Docker daemon `insecure-registries`).
+
+---
+
+# 2) Kustomize folder
+
+Create `gitops/apps/capacitor-next/kustomization.yaml`:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flux-system
+resources:
+  - sa-rbac.yaml
+  - deploy.yaml
+  - service.yaml
+  - ingress.yaml
+  - netpol.yaml        # safe to keep even without default-deny
+```
+
+## 2a) ServiceAccount & RBAC
+
+By default we bind **read-only** (ClusterRole `view`). Change to `admin` if you want full control.
+
+```yaml
+# gitops/apps/capacitor-next/sa-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: capacitor-next-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: capacitor-next
+    namespace: flux-system
+```
+
+> **Why RBAC?** In `auth=static` mode, Capacitor Next serves the UI and proxies requests using the pod’s ServiceAccount. Binding to `view` keeps it safe in a homelab; bump to `edit`/`admin` if you want write actions.
+
+## 2b) Deployment
+
+```yaml
+# gitops/apps/capacitor-next/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: capacitor-next }
+  template:
+    metadata:
+      labels: { app: capacitor-next }
+    spec:
+      serviceAccountName: capacitor-next
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--port"
+            - "3333"
+            - "--auth"
+            - "static"
+            # Optional: force a role for all visitors if supported by your release
+            # - "--static-role"; "viewer"  # or "admin"
+          ports:
+            - containerPort: 3333
+              name: http
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 384Mi }
+          readinessProbe:
+            httpGet: { path: "/", port: 3333 }
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: { path: "/", port: 3333 }
+            periodSeconds: 20
+            timeoutSeconds: 3
+```
+
+## 2c) Service
+
+```yaml
+# gitops/apps/capacitor-next/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+spec:
+  selector: { app: capacitor-next }
+  ports:
+    - name: http
+      port: 3333
+      targetPort: http
+```
+
+## 2d) Ingress (self-signed TLS, same pattern as classic)
+
+```yaml
+# gitops/apps/capacitor-next/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/issuer: selfsigned-issuer
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["cap-next.core.home.arpa"]
+      secretName: capacitor-next-tls
+  rules:
+    - host: cap-next.core.home.arpa
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: capacitor-next
+                port:
+                  number: 3333
+```
+
+## 2e) NetworkPolicy (allow ingress-nginx → app)
+
+```yaml
+# gitops/apps/capacitor-next/netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx-to-capacitor-next
+  namespace: flux-system
+spec:
+  podSelector:
+    matchLabels: { app: capacitor-next }
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3333
+```
+
+---
+
+# 3) Wire into your apps kustomization
+
+Edit `gitops/apps/kustomization.yaml` and add the new folder:
+
+```diff
+   - capacitor/issuer.yaml
++  - capacitor-next/
+```
+
+Commit and let Flux apply:
+
+```bash
+git add docker/capacitor-next \
+        gitops/apps/capacitor-next \
+        gitops/apps/kustomization.yaml
+
+git commit -m "apps/capacitor-next: next-v0.5.0 in auth=static mode (homelab)"
+
+git push
+
+# force reconcile if you want now
+flux reconcile kustomization apps -n flux-system
+```
+
+---
+
+## Notes & toggles
+
+* **Role scope**: switch the binding from `view` → `admin` by changing the `ClusterRole` in `sa-rbac.yaml` if you want full control from the UI.
+* **Port**: change the container args and Service/Ingress ports if you prefer `9000`.
+* **Registry**: if your registry is TLS-enabled with a self-signed cert, add a Node trust step (containerd `hosts.toml` with the CA) or push to the built-in MicroK8s registry (`localhost:32000`).
+* **Zero-auth warning**: this endpoint has no login—keep it on your LAN-only homelab.
+
+
+
+
+---
+
+
+
+got it — here’s the **updated, no-auth “view-only”** rollout using the new path **`gitops/apps/capacitor-next-ro`** and host **`capacitor.core.home.arpa`**.
+
+---
+
+# What you’ll get
+
+* **Deployment** (restricted PodSecurity): non-root, no priv-esc, drop all caps.
+* **Service** on port 80 → container 3333.
+* **Ingress** (no basic auth).
+* **Minimal RBAC** (read-only: get/list/watch).
+* **Optional NetworkPolicy** to allow only the ingress controller.
+* Tips to avoid the `rollingUpdate forbidden` reconciliation error.
+
+---
+
+# 0) Assumptions
+
+* Your image: `reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0`
+* It can use **in-cluster** auth via ServiceAccount (no kubeconfig file needed).
+* NGINX Ingress Controller (class name `nginx`) is installed.
+* DNS for `capacitor.core.home.arpa` points to your ingress VIP.
+
+> If your binary still insists on `~/.kube/config`, either add a flag/env to use in-cluster config or (as a last resort) mount a minimal kubeconfig. The manifests below assume **in-cluster** use only.
+
+---
+
+# 1) Repo layout
+
+```
+gitops/apps/capacitor-next-ro/
+  ├─ kustomization.yaml
+  ├─ sa-rbac.yaml
+  ├─ deploy.yaml
+  ├─ service.yaml
+  ├─ ingress.yaml
+  └─ netpol.yaml              # optional but recommended
+```
+
+---
+
+# 2) Manifests (drop-in)
+
+### `gitops/apps/capacitor-next-ro/sa-rbac.yaml`
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: capacitor-next-ro
+  namespace: flux-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: capacitor-next-ro-view
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["pods","namespaces"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments","replicasets","statefulsets","daemonsets"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: capacitor-next-ro-view
+  namespace: flux-system
+subjects:
+  - kind: ServiceAccount
+    name: capacitor-next-ro
+    namespace: flux-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: capacitor-next-ro-view
+```
+
+### `gitops/apps/capacitor-next-ro/deploy.yaml`
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacitor-next-ro
+  namespace: flux-system
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels: { app: capacitor-next-ro }
+  template:
+    metadata:
+      labels: { app: capacitor-next-ro }
+    spec:
+      serviceAccountName: capacitor-next-ro
+      restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+          imagePullPolicy: Always
+          args: ["--port","3333","--theme","dark"]
+          ports:
+            - containerPort: 3333
+              name: http
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 384Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }
+          readinessProbe:
+            httpGet: { path: "/", port: 3333 }
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: { path: "/", port: 3333 }
+            periodSeconds: 20
+            timeoutSeconds: 3
+```
+
+### `gitops/apps/capacitor-next-ro/service.yaml`
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: capacitor-next-ro
+  namespace: flux-system
+spec:
+  type: ClusterIP
+  selector: { app: capacitor-next-ro }
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+```
+
+### `gitops/apps/capacitor-next-ro/ingress.yaml`
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: capacitor-next-ro
+  namespace: flux-system
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Cache-Control "no-store";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: capacitor.core.home.arpa
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: capacitor-next-ro
+                port:
+                  number: 80
+  # Add TLS if you terminate HTTPS here:
+  # tls:
+  #   - hosts: [capacitor.core.home.arpa]
+  #     secretName: capacitor-next-ro-tls
+```
+
+### `gitops/apps/capacitor-next-ro/netpol.yaml`  *(optional, adjust ns as needed)*
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: capacitor-next-ro-allow-ingress-only
+  namespace: flux-system
+spec:
+  podSelector:
+    matchLabels: { app: capacitor-next-ro }
+  policyTypes: ["Ingress","Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              # CHANGE THIS if your ingress controller runs in another ns (e.g. "ingress")
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 3333
+          protocol: TCP
+  egress:
+    - {}   # allow all egress, or restrict if you prefer (API server is ClusterIP:443)
+```
+
+### `gitops/apps/capacitor-next-ro/kustomization.yaml`
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flux-system
+resources:
+  - sa-rbac.yaml
+  - deploy.yaml
+  - service.yaml
+  - ingress.yaml
+  - netpol.yaml
+commonLabels:
+  app: capacitor-next-ro
+```
+
+---
+
+# 3) Wire it into the parent and remove legacy entries
+
+Update your **parent** `gitops/apps/kustomization.yaml`:
+
+* **Add**: `- capacitor-next-ro/`
+* **Remove**: any old `- capacitor/` or `- capacitor-next/` lines
+
+Example (quick helpers):
+
+```bash
+# Add new directory
+git add gitops/apps/capacitor-next-ro
+
+# Remove legacy paths from parent
+sed -i '/^\s*-\s*capacitor\/\s*$/d' gitops/apps/kustomization.yaml
+sed -i '/^\s*-\s*capacitor-next\/\s*$/d' gitops/apps/kustomization.yaml
+
+# Ensure new path present
+grep -q 'capacitor-next-ro/' gitops/apps/kustomization.yaml || \
+  sed -i '/^resources:/a\  - capacitor-next-ro/' gitops/apps/kustomization.yaml
+
+git commit -m "apps: add capacitor-next-ro (view-only, no auth)"
+git push
+flux reconcile kustomization apps -n flux-system
+```
+
+
+---
+
+# 4) If reconciliation fails with `rollingUpdate forbidden`
+
+This indicates an old field manager owns `spec.strategy.rollingUpdate`. One-time clean reset:
+
+```bash
+flux suspend kustomization apps -n flux-system
+kubectl -n flux-system delete deploy capacitor-next capacitor-next-ro --ignore-not-found
+flux resume kustomization apps -n flux-system
+flux reconcile kustomization apps -n flux-system
+```
+
+---
+
+# 5) Verify
+
+```bash
+# Pods up
+kubectl -n flux-system get deploy,po -l app=capacitor-next-ro
+
+# Ingress present and points to service
+kubectl -n flux-system get ingress capacitor-next-ro
+kubectl -n flux-system describe ingress capacitor-next-ro | sed -n '/Rules:/,/Events:/p'
+
+# No-auth reachability (expect 200)
+curl -I http://capacitor.core.home.arpa/
+```
+
+---
+
+## Notes & gotchas
+
+* If the app **still** tries to read `~/.kube/config`, add the flag/env it expects to use in-cluster config. If that’s not available, create a very small kubeconfig that points to the in-cluster API using the SA token, and mount it to wherever the app expects (but prefer fixing the app).
+* If you enable **TLS**, remember to update your DNS (or cert) and add the `tls:` block in the Ingress.
+* If traffic is blocked after applying the **NetworkPolicy**, double-check the **ingress controller namespace** label in `netpol.yaml` (MicroK8s often uses `ingress` ns, not `ingress-nginx`).
+
+That’s it — this gets you a **view-only** capacitor-next at **`capacitor.core.home.arpa`**, **no authentication**, with clean Flux ownership and restricted security settings.
+
+
+
+
+
+
+--- --- ---
+
+
+
+
+
+
+
+
+Great call. For `auth=static`, the clean + safe pattern is:
+
+* put **AUTH** and **USERS** in a **Kubernetes Secret**,
+* **SOPS-encrypt** that file in Git (you already do this elsewhere),
+* wire the Deployment with `envFrom` so the pod reads the values from the Secret.
+
+Below is exactly what I’d add/modify.
+
+---
+
+# 1) Create the Secret (SOPS-friendly)
+
+`gitops/apps/capacitor-next/secret-auth.yaml`
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: capacitor-next-auth
+  namespace: flux-system
+type: Opaque
+stringData:
+  AUTH: static
+  # One user per line: email:bcrypt-hash
+  USERS: |
+    admin@example.com:$2y$12$REPLACE.ME.REPLACE.ME.REPLACE.ME
+    # viewer1@example.com:$2y$12$REPLACE.ME.REPLACE.ME.REPLACE.ME
+```
+
+Generate a bcrypt hash (example command you shared):
+
+```bash
+htpasswd -bnBC 12 x 'mypassword' | cut -d: -f2
+```
+
+Paste the hash(s) into the `USERS:` block (one **email\:hash** per line).
+Then encrypt in-place with SOPS (age):
+
+```bash
+sops -e -i gitops/apps/capacitor-next/secret-auth.yaml
+```
+
+> YAML tip: using a **block scalar** (`|`) avoids any quoting issues with `:` and `$` in bcrypt.
+
+---
+
+# 2) Mount the secret as env in the Deployment
+
+Patch `gitops/apps/capacitor-next/deploy.yaml`:
+
+```diff
+ spec:
+   replicas: 1
+   selector:
+     matchLabels: { app: capacitor-next }
+   template:
+     metadata:
+       labels: { app: capacitor-next }
+     spec:
+       serviceAccountName: capacitor-next
++      restartPolicy: Always
+       securityContext:
+         runAsNonRoot: true
+         seccompProfile: { type: RuntimeDefault }
+       containers:
+         - name: app
+           image: reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+           imagePullPolicy: IfNotPresent
+           args:
+             - "--port"
+             - "3333"
+             - "--auth"
+             - "static"
+           ports:
+             - containerPort: 3333
+               name: http
++          envFrom:
++            - secretRef:
++                name: capacitor-next-auth
+           resources:
+             requests: { cpu: 100m, memory: 128Mi }
+             limits:   { cpu: 500m, memory: 384Mi }
+```
+
+And include the secret in your app kustomization:
+
+```diff
+ # gitops/apps/capacitor-next/kustomization.yaml
+ resources:
+   - sa-rbac.yaml
+   - deploy.yaml
+   - service.yaml
+   - ingress.yaml
+   - netpol.yaml
++  - secret-auth.yaml
+```
+
+> When you change users/passwords later, **updating the Secret won’t restart** pods automatically. After pushing, do:
+>
+> ```bash
+> kubectl -n flux-system rollout restart deploy/capacitor-next
+> ```
+
+---
+
+# 3) How to model “admin” vs “view-only” in static mode
+
+In `auth=static`, **every logged-in user ultimately acts with the Deployment’s ServiceAccount RBAC**, since there’s no per-user impersonation. So:
+
+* If you want different privileges, run **two instances**:
+
+  * **Admin UI**: SA bound to `admin` (or a narrow set you choose), Secret has your admin(s).
+  * **Viewer UI**: SA bound to `view`, Secret has viewer accounts.
+  * Give each a distinct host (e.g., `cap-next.core.home.arpa` and `cap-next-view.core.home.arpa`), or keep the viewer instance internal only.
+
+This keeps RBAC enforcement server-side and avoids relying on just “hiding buttons” in the UI.
+
+If later you want **true per-user RBAC**, switch that instance to the OIDC/impersonation setup we sketched before.
+
+---
+
+# 4) Operational tips
+
+* **Rotation**: generate a new bcrypt and update the SOPS secret → commit → `rollout restart`.
+* **Tests**: `kubectl -n flux-system port-forward svc/capacitor-next 3333:3333` then hit `http://localhost:3333`, log in with your static user.
+* **Lockdown**: keep the Ingress on your LAN, and retain the NetPol allowing only `ingress-nginx` → app.
+* **Port swap**: if you want 9000 instead of 3333, change `args`, Service, and Ingress ports in the existing files.
+
+If you’d like, I can drop a second “viewer” instance manifest (minimal diffs: new SA+RBAC, a clone of the Deployment with a different name/host, and a separate `secret-auth-view.yaml`).
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+Yep—that’s the kubelet/containerd trying **HTTPS by default**. Two quick fixes; pick one. (You’ll do this on every MicroK8s node that pulls images.)
+
+---
+
+## Option A — add a per-registry `hosts.toml` (clean & upgrade-safe)
+
+```bash
+# 1) Create a containerd registry config for your host:port
+sudo mkdir -p /var/snap/microk8s/current/args/certs.d/reg.microk8s.core.home.arpa:32000
+
+sudo tee /var/snap/microk8s/current/args/certs.d/reg.microk8s.core.home.arpa:32000/hosts.toml >/dev/null <<'EOF'
+server = "http://reg.microk8s.core.home.arpa:32000"
+
+[host."http://reg.microk8s.core.home.arpa:32000"]
+  capabilities = ["pull", "resolve", "push"]
+EOF
+
+# 2) Restart containerd (or microk8s) to pick it up
+sudo systemctl restart snap.microk8s.daemon-containerd.service
+# or
+sudo microk8s stop && sudo microk8s start
+```
+
+**Test from the node:**
+
+```bash
+sudo ctr -n k8s.io images pull --plain-http reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+```
+
+If that pulls, delete the pending pod(s) to trigger a fresh pull:
+
+```bash
+kubectl -n flux-system delete pod -l app=capacitor-next
+kubectl -n flux-system delete pod -l app=capacitor-next-view
+```
+
+---
+
+## Option B — declare the HTTP mirror in containerd’s template
+
+(Works too; just remember upgrades may rewrite the template.)
+
+```bash
+sudo vi /var/snap/microk8s/current/args/containerd-template.toml
+```
+
+Add this block (or merge if present):
+
+```toml
+[plugins."io.containerd.grpc.v1.cri".registry.mirrors."reg.microk8s.core.home.arpa:32000"]
+  endpoint = ["http://reg.microk8s.core.home.arpa:32000"]
+```
+
+Restart containerd:
+
+```bash
+sudo systemctl restart snap.microk8s.daemon-containerd.service
+```
+
+---
+
+### If you ever switch to HTTPS with a self-signed CA
+
+Put your CA at:
+
+```
+/var/snap/microk8s/current/args/certs.d/reg.microk8s.core.home.arpa:32000/ca.crt
+```
+
+…and set `server = "https://reg.microk8s.core.home.arpa:32000"` in `hosts.toml`. No need for `skip_verify` if the CA is present.
+
+---
+
+## Also fix your PodSecurity “restricted” violation (shown in your logs)
+
+Add container-level securityContext to both Deployments so Flux can apply:
+
+```diff
+ # in gitops/apps/capacitor-next/deploy.yaml (and ...-view/deploy.yaml)
+       containers:
+         - name: app
+           image: reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
++          securityContext:
++            allowPrivilegeEscalation: false
++            capabilities:
++              drop: ["ALL"]
+```
+
+(You already have pod-level `seccompProfile` and `runAsNonRoot`; these two fields are what “restricted” still requires.)
+
+Commit & reconcile:
+
+```bash
+git add gitops/apps/capacitor-next/deploy.yaml gitops/apps/capacitor-next-view/deploy.yaml
+git commit -m "capacitornext: allow HTTP registry & satisfy PodSecurity restricted"
+git push
+flux reconcile kustomization apps -n flux-system
+```
+
+That’ll stop the HTTPS attempt, clear the `ErrImagePull`, and let the Kustomization apply cleanly.
+
+
+
+
+
+---
+
+
+
+
+
+
+
+Nice—this explains the CrashLoop. Your new `capacitor-next` pod is dying because the binary tries to load a kubeconfig from `/home/nonroot/.kube/config` and fails:
+
+```
+Error creating Kubernetes client: error loading kubeconfig file:
+open /home/nonroot/.kube/config: no such file or directory
+```
+
+The `next` binary isn’t auto-switching to in-cluster auth; it wants a kubeconfig file. Fix it by **mounting a kubeconfig** that points at the in-cluster API (using the pod’s SA token + CA), and (while we’re here) satisfy PodSecurity so Flux stops whining.
+
+### 1) Add a kubeconfig ConfigMap
+
+Create `gitops/apps/capacitor-next/kubeconfig-cm.yaml`:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: capacitor-next-kubeconfig
+  namespace: flux-system
+data:
+  config: |
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        server: https://kubernetes.default.svc
+        certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      name: in-cluster
+    contexts:
+    - context:
+        cluster: in-cluster
+        user: sa
+      name: in-cluster
+    current-context: in-cluster
+    users:
+    - name: sa
+      user:
+        tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+```
+
+Update `gitops/apps/capacitor-next/kustomization.yaml` to include it (if not already):
+
+```yaml
+resources:
+  - sa-rbac.yaml
+  - deploy.yaml
+  - service.yaml
+  - ingress.yaml
+  - netpol.yaml
+  - secret-auth.yaml
+  - kubeconfig-cm.yaml
+```
+
+### 2) Mount it + add PodSecurity in the Deployment
+
+Patch `gitops/apps/capacitor-next/deploy.yaml` (container name looks like `app`):
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels: { app: capacitor-next }
+  template:
+    metadata:
+      labels: { app: capacitor-next }
+    spec:
+      serviceAccountName: capacitor-next
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: reg.microk8s.core.home.arpa:32000/capacitor-next:next-v0.5.0
+          imagePullPolicy: Always
+          args:
+            - "--port"
+            - "3333"
+            - "--theme"
+            - "dark"
+            - "--kubeconfig"
+            - "/home/nonroot/.kube/config"     # 👈 make it explicit
+          ports:
+            - name: http
+              containerPort: 3333
+          readinessProbe:
+            httpGet: { path: "/", port: 3333 }
+          livenessProbe:
+            httpGet: { path: "/", port: 3333 }
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "384Mi" }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: /home/nonroot/.kube      # mounts directory; file is "config"
+              readOnly: true
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: capacitor-next-kubeconfig
+```
+
+> Keep `--auth` **out** (unsupported now). You’ve already removed it on the new RS—good.
+
+### 3) Commit, push, reconcile, watch
+
+```bash
+git add gitops/apps/capacitor-next/{kubeconfig-cm.yaml,deploy.yaml,kustomization.yaml}
+git commit -m "capacitor-next: mount in-cluster kubeconfig + PodSecurity"
+git push origin dev
+flux reconcile kustomization apps -n flux-system
+kubectl -n flux-system rollout status deploy/capacitor-next
+kubectl -n flux-system get pods -l app=capacitor-next -w
+```
+
+### 4) Tidy up the extra ReplicaSet
+
+You’ve switched to `Recreate` (👍). Once the pod comes up healthy, if an old RS still lingers, just scale it to 0 or delete it:
+
+```bash
+kubectl -n flux-system get rs -l app=capacitor-next
+kubectl -n flux-system delete rs capacitor-next-66fd9fb9f7 --ignore-not-found
+kubectl -n flux-system delete rs capacitor-next-594699c599 --ignore-not-found
+```
+
+### 5) If it still crashes
+
+* Make sure the **ServiceAccount + RBAC** (`sa-rbac.yaml`) let it list/get/watch the resources it needs.
+* If logs are still thin (distroless), temporarily swap your runtime stage to `debian:bookworm-slim` (as a debug image) to get more introspection, then switch back once it’s stable.
+
+This should stop the kubeconfig error, satisfy PodSecurity, and get you back to a single healthy `capacitor-next` pod.
+
+
+
+
+
+---
+
+
+
+
+Short answer: your `Deployment` looks good, and you **don’t need** to pass `--kubeconfig` because the binary’s default is exactly what you’re mounting (`/home/nonroot/.kube/config`). The flag **is valid** (it shows up in the usage), but it’s optional in your setup.
+
+A few quick checks to make sure this actually fixes the CrashLoop:
+
+1. Make sure the ConfigMap exists and is included
+
+* You should have a `ConfigMap` named `capacitor-next-kubeconfig` with a key **`config`**.
+* It must be referenced in `gitops/apps/capacitor-next/kustomization.yaml`.
+
+```bash
+kubectl -n flux-system get cm capacitor-next-kubeconfig -o jsonpath='{.data.config}' | head
+```
+
+2. Confirm the pod mounts the CM at the right path
+   Distroless won’t let you `exec` a shell, so use `describe`:
+
+```bash
+kubectl -n flux-system describe pod -l app=capacitor-next | sed -n '/Volumes:/,/Conditions:/p'
+kubectl -n flux-system describe pod -l app=capacitor-next | sed -n '/Mounts:/,/Conditions:/p'
+```
+
+You should see:
+
+* Volume `kubeconfig` → ConfigMap `capacitor-next-kubeconfig`
+* Container mount `/home/nonroot/.kube` (which will expose a file named `config`)
+
+3. RBAC for the SA
+   Your pod will now authenticate using the SA token referenced in the kubeconfig. Verify it has the rights it needs:
+
+```bash
+kubectl -n flux-system auth can-i list pods --as=system:serviceaccount:flux-system:capacitor-next
+kubectl -n flux-system auth can-i list deployments --as=system:serviceaccount:flux-system:capacitor-next
+```
+
+(If either says “no”, tighten up `sa-rbac.yaml`.)
+
+4. Reconcile & watch rollout
+
+```bash
+flux reconcile kustomization apps -n flux-system
+kubectl -n flux-system rollout status deploy/capacitor-next
+kubectl -n flux-system logs deploy/capacitor-next -c app --tail=100
+```
+
+If you still see `open /home/nonroot/.kube/config: no such file or directory`, it’s almost always one of:
+
+* The CM key wasn’t named `config` (must be exactly that).
+* The CM isn’t in the kustomization (never applied).
+* A typo in the CM name under `volumes:`.
+
+Bonus: your `securityContext` now satisfies the PodSecurity warnings (drop ALL caps + APE=false + non-root), so those Flux messages should stop once this revision is applied.
+
+
+
+
+
+
+
+
+Got it — you can keep using your existing SOPS-encrypted `capacitor-next-auth` Secret. Just add an `auth` key (htpasswd content) to **that same Secret**, and point the Ingress at it.
+
+### 1) Add `auth` to your SOPS secret
+
+Generate a bcrypt htpasswd line (recommended):
+
+```bash
+USER=admin
+PASS='choose-a-strong-password'
+htpasswd -nbB "$USER" "$PASS"
+# outputs: admin:$2y$05$...
+```
+
+Edit your SOPS file and add the `auth` key under `stringData` (SOPS will encrypt it because your policy matches `stringData`):
+
+```yaml
+# gitops/apps/capacitor-next/secret-auth.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: capacitor-next-auth
+  namespace: flux-system
+type: Opaque
+stringData:
+  auth: |               # NEW — the htpasswd line(s)
+    admin:$2y$05$REDACTEDREDACTEDREDACTED
+sops:
+  # ... unchanged ...
+```
+
+> Tip: run `sops -e -i gitops/apps/capacitor-next/secret-auth.yaml` to edit in place so it stays encrypted.
+
+### 2) Enable basic auth on the Ingress (reuse the same Secret)
+
+Update (or confirm) these annotations and make the secret name point to `capacitor-next-auth`:
+
+```yaml
+# gitops/apps/capacitor-next/ingress.yaml
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/issuer: selfsigned-issuer
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: capacitor-next-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+```
+
+(Keep the TLS host matching your `rules.host`.)
+
+### 3) Commit & reconcile
+
+```bash
+git add gitops/apps/capacitor-next/secret-auth.yaml gitops/apps/capacitor-next/ingress.yaml
+git commit -m "capacitor-next: enable NGINX basic auth using existing SOPS secret"
+git push
+flux reconcile kustomization apps -n flux-system
+```
+
+### 4) Verify
+
+```bash
+# Ensure the secret now has an 'auth' key
+kubectl -n flux-system get secret capacitor-next-auth -o jsonpath='{.data.auth}' | base64 -d; echo
+
+# Expect 401 challenge then success with credentials
+curl -I https://capacitor-next.core.home.arpa
+curl -I -u admin:'choose-a-strong-password' https://capacitor-next.core.home.arpa
+```
+
+---
+
+#### If Flux still complains about `rollingUpdate` with `Recreate`
+
+That’s a one-time cleanup of an old field on the live object. Run:
+
+```bash
+kubectl -n flux-system patch deploy capacitor-next --type=json \
+  -p='[{"op":"remove","path":"/spec/strategy/rollingUpdate"}]'
+```
+
+Then reconcile again. After that, your Ingress should prompt for basic auth using the SOPS secret you already manage.
+
+
+
+
+---
+
+
+
+
+
+Short answer: **yes**—you can drop `AUTH` and `USERS` from the secret **as long as nothing else reads them**. From the manifests you uploaded, nothing does: your `Deployment` only uses `envFrom` (which blindly injects *all* keys), and your `Ingress` currently has **no** auth annotations—so those two keys aren’t doing anything for you.
+
+Two quick fixes to make this clean and to actually get Basic Auth working:
+
+## 1) Keep only the `auth` key in the Secret (for NGINX)
+
+Your SOPS-encrypted secret can safely be trimmed to just the `auth` key (htpasswd format). Leave the `sops:` block untouched.
+
+```yaml
+# gitops/apps/capacitor-next/secret-auth.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: capacitor-next-auth
+  namespace: flux-system
+type: Opaque
+stringData:
+  auth: |               # htpasswd lines; NGINX expects the key to be literally "auth"
+    admin:$2y$05$REDACTEDREDACTEDREDACTED
+# (sops block unchanged)
+```
+
+## 2) Remove the secret from your Pod env entirely (more secure)
+
+Since the app doesn’t use those creds, stop injecting them into the container:
+
+```diff
+# gitops/apps/capacitor-next/deploy.yaml
+@@
+       containers:
+         - name: app
+@@
+-          envFrom:
+-            - secretRef:
+-                name: capacitor-next-auth
+```
+
+(Leaving the env var there is harmless functionally, but it leaks your htpasswd into the pod’s environment for no reason.)
+
+## 3) Add NGINX Ingress basic-auth annotations
+
+This is why you “don’t see a basic auth flow”: your `Ingress` doesn’t reference the secret yet.
+
+```yaml
+# gitops/apps/capacitor-next/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: capacitor-next
+  namespace: flux-system
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: capacitor-next-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+spec:
+  rules:
+    - host: <your.host>
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: capacitor-next
+                port:
+                  number: 3333
+```
+
+## Sanity checks
+
+* Verify the secret has only the `auth` key (and that it decodes to htpasswd):
+
+  ```bash
+  kubectl -n flux-system get secret capacitor-next-auth -o jsonpath='{.data}' | jq .
+  kubectl -n flux-system get secret capacitor-next-auth -o jsonpath='{.data.auth}' | base64 -d
+  ```
+* Commit & let Flux reconcile:
+
+  ```bash
+  git add .
+  git commit -m "capacitor-next: use Ingress basic auth; drop unused secret keys; stop env injection"
+  git push
+  flux reconcile kustomization apps -n flux-system
+  ```
+* Hit the host—browser should now prompt for Basic Auth.
+
+If you prefer to keep `envFrom` for later, you still **should** rename the secret keys you don’t want injected; but the cleaner pattern is to remove `envFrom` entirely when credentials are only for Ingress.
+

@@ -1,0 +1,8 @@
+
+      <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/assets/static/resources/e0219a243d2742609c1e9f9cb5c90ad5.jpg/index.html">
+        <header class="git-file-header">
+          <h4 class="git-file-title">e0219a243d2742609c1e9f9cb5c90ad5.jpg</h4>
+        </header>
+        <div class="git-file-empty">Binary file preview is not available.</div>
+      </article>
+    

@@ -1,0 +1,58 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/platform-config/blob/gitops/clusters/microk8s-prod/infra/crds/kustomization.yaml/index.html" data-git-raw-path="git/platform-config/blob/gitops/clusters/microk8s-prod/infra/crds/kustomization.yaml/raw.txt" data-git-line-count="3">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">kustomization.yaml</h4>
+          <div class="git-file-meta">78 B · 3 lines · gitops/clusters/microk8s-prod/infra/crds/kustomization.yaml</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/platform-config/blob/gitops/clusters/microk8s-prod/infra/crds/kustomization.yaml/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">apiVersion: kustomize.config.k8s.io/v1beta1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">kind: Kustomization</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">resources: []</span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

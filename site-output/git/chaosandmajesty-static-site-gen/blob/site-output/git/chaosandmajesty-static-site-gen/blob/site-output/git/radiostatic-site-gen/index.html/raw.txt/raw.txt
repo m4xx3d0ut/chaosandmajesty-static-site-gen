@@ -1,0 +1,227 @@
+
+<article
+  class="git-panel"
+  data-git-panel="radiostatic-site-gen"
+  data-git-log-mode="limited"
+  data-git-full-fragment="git/radiostatic-site-gen/full.html"
+  data-git-limited-fragment="git/radiostatic-site-gen/index.html"
+  data-git-log-total="40"
+  data-git-log-initial-limit="10"
+>
+  <header class="git-panel-header">
+    <div class="git-panel-lead">
+      <h4 class="git-panel-title">radiostatic-site-gen</h4>
+      <p class="git-panel-meta">
+        
+          <span class="git-panel-owner">@m4xx3d0ut</span>
+        
+        
+          <span class="git-panel-branch">
+            branch <strong>dev</strong>
+          </span>
+        
+      </p>
+      
+        <p class="git-panel-description">RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal</p>
+      
+    </div>
+    <div class="git-panel-clone">
+      <span class="git-clone-label">Clone repository (read-only)</span>
+      <code class="git-clone-command" data-git-command="git clone https://cm.core.home.arpa/git/radiostatic-site-gen.git">git clone https://cm.core.home.arpa/git/radiostatic-site-gen.git</code>
+      <button type="button" class="git-clone-copy" data-copy-source="previous">Copy</button>
+      
+        <a class="git-panel-log-link" data-git-log-action="expand" href="git/radiostatic-site-gen/full.html">Open full log</a>
+      
+    </div>
+  </header>
+
+  <section class="git-activity">
+    <header class="git-activity-header">
+      <h5 class="git-activity-title">Recent commits</h5>
+      
+        <span class="git-activity-count">
+          10 shown
+          
+            · of 40 total
+          
+        </span>
+      
+    </header>
+
+    
+      <ul class="git-commit-list">
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/f95f5d3acc5e9947e00b148d177cf421c1919c76.html" target="_blank" rel="noopener">site-gen: ui/ux testing and fixes.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">f95f5d3</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-20T21:12:23+00:00">
+                Oct 20, 2025, 9:12 PM
+                 · 23 hours ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/f63f9a13ddbbbbd3564dc225720f34c35bfe96d9.html" target="_blank" rel="noopener">site-gen: styling and logo update.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">f63f9a1</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-20T19:28:32+00:00">
+                Oct 20, 2025, 7:28 PM
+                 · yesterday
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/bacb6a95246aff87642822465cf445e3a8d0fe4b.html" target="_blank" rel="noopener">site-gen: style cleanup and testing.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">bacb6a9</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T23:49:17+00:00">
+                Oct 17, 2025, 11:49 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/a99f265dce979beea90a04eafe455fbc5abf83fb.html" target="_blank" rel="noopener">site-gen: blog post render fix.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">a99f265</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T22:20:51+00:00">
+                Oct 17, 2025, 10:20 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/f8a609a839502e90714124c66973e33fdbd74460.html" target="_blank" rel="noopener">site-gen: styling with light / dark toggle set.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">f8a609a</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T22:15:05+00:00">
+                Oct 17, 2025, 10:15 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/3ad522ec32b5720df39de7cca9341b29a753e0dc.html" target="_blank" rel="noopener">site-gen: styling tweaks.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">3ad522e</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T22:09:16+00:00">
+                Oct 17, 2025, 10:09 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/7eafe2dec72bbc783d114b31580fdc6fbd151508.html" target="_blank" rel="noopener">site-gen: blog default styling.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">7eafe2d</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T21:16:07+00:00">
+                Oct 17, 2025, 9:16 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/aea558fd61530a2e2475135d5df95c69ee89ebf4.html" target="_blank" rel="noopener">site-gen: home page default styling.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">aea558f</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T20:52:30+00:00">
+                Oct 17, 2025, 8:52 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/392bb2c0c0bef32f5927811e6030b528c5f2ea94.html" target="_blank" rel="noopener">site-gen: strip branch to default demo site.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">392bb2c</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T20:39:41+00:00">
+                Oct 17, 2025, 8:39 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+          <li class="git-commit-item">
+            <div class="git-commit-summary">
+              
+                <a class="git-commit-title" href="https://cm.core.home.arpa/git/radiostatic-site-gen/commit/d48e93bdca9f3e96a1f2079c6864b94e32b8c0e1.html" target="_blank" rel="noopener">stagit: manigfest update.</a>
+              
+              
+            </div>
+            <div class="git-commit-meta">
+              <span class="git-commit-sha">d48e93b</span>
+              <span class="git-commit-author">m4xx3d0ut</span>
+              <span class="git-commit-date" title="2025-10-17T19:28:38+00:00">
+                Oct 17, 2025, 7:28 PM
+                 · 4 days ago
+              </span>
+            </div>
+          </li>
+        
+      </ul>
+    
+  </section>
+</article>

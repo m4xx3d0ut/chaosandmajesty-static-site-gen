@@ -1,0 +1,17 @@
+# Minimal rights in the namespace where your test pods run (default).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: smoke-test
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["pods","pods/log"]
+    verbs: ["get","list","watch","create","delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list","watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get","list","watch","create","delete"]
+

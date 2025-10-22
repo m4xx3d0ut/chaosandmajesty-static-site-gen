@@ -1,0 +1,35 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/AGENTS.md/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/AGENTS.md/raw.txt" data-git-line-count="22">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">AGENTS.md</h4>
+          <div class="git-file-meta">3.0 KB · 22 lines · AGENTS.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/AGENTS.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Repository Guidelines</h1>
+<h2>Project Structure &amp; Module Organization</h2>
+<p>The generator lives in <code>static-sitegen/</code> (ES modules in <code>lib/</code>, CLI at <code>bin/radiostatic.js</code> with a legacy <code>sitegen.js</code> alias, EJS templates under <code>templates/</code>). YAML configs such as <code>smoke-test.yaml</code> describe the site and render into <code>site-output/</code>. The bundled demo keeps its assets in <code>examples/demo-site/assets/</code>; use <code>./prepare-demo-assets.sh</code> if you want to sync them into <code>static-sitegen/assets/</code> while developing. Helper scripts (<code>build-site.sh</code>, <code>prepare-demo-assets.sh</code>) pair with Docker artifacts (<code>Dockerfile</code>, <code>docker-compose.yml</code>, <code>Makefile</code>) for local or container builds.</p>
+<h2>Build, Test, and Development Commands</h2>
+<ul>
+<li><code>./build-site.sh [config] [output]</code>: wraps <code>static-sitegen/bin/radiostatic.js</code> (or the legacy alias), defaults to <code>smoke-test.yaml</code>, and validates the chosen output directory.</li>
+<li><code>make build-local CONFIG=path/to.yaml OUTPUT=dir</code> mirrors the script; <code>make build</code>, <code>make up</code>, <code>make down</code>, <code>make logs</code> cover Docker workflows.</li>
+<li><code>make serve-local</code> serves <code>site-output/</code> on <code>http://localhost:8080</code>.</li>
+<li><code>make test</code> runs the Node 18 smoke container and calls <code>npm test</code>; expand it as coverage grows.</li>
+</ul>
+<h2>Coding Style &amp; Naming Conventions</h2>
+<p>Code is modern ES module JavaScript with 2-space indentation, single quotes, and small focused helpers in <code>lib/</code>. Keep CLI argument parsing in <code>bin/radiostatic.js</code> (the legacy <code>sitegen.js</code> shim forwards accordingly); templates still expose the historical <code>cm-*</code> partials for compatibility until the rename lands. Assets, configs, and generated files should stay kebab-case to match copy logic. No linter is enforced, so mirror the existing style and double-check imports remain sorted by dependency weight.</p>
+<h2>Testing Guidelines</h2>
+<p><code>npm test</code> is a stub today; replace it with unit or smoke checks when you add modules. Always rerun <code>./build-site.sh</code> after code, template, or YAML edits and inspect <code>site-output/</code> for regressions. Future tests can live beside the modules (e.g., <code>generateSite.spec.js</code>) with fixture YAML under <code>tests/fixtures/</code>. When templates change, load <code>make serve-local</code> and confirm terminal interactions still render as expected.</p>
+<h2>Commit &amp; Pull Request Guidelines</h2>
+<p>Use the <code>&lt;scope&gt;: &lt;present-tense summary&gt;</code> convention from history (<code>cicd: configure buildkit for insecure reg.</code>). Keep commits focused, include generated assets only when reviewers need them, and call out new configuration knobs. Pull requests should describe the scenario, link issues, and paste the latest <code>./build-site.sh</code> or <code>make test</code> output. Add screenshots or terminal recordings whenever UI or console behavior shifts.</p>
+<h2>Asset &amp; Configuration Notes</h2>
+<p>Never store secrets in YAML. Keep reusable defaults in <code>examples/demo-site/assets/</code> (or your own asset directory) and introduce new config files for project-specific variants. For the terminal hero, update the assets referenced by <code>cmImage</code>/<code>cmTitle</code>/<code>cmTagline</code> in the YAML file. Favor additive configuration keys so existing builds remain compatible.</p>
+
+      </div>
+    </article>
+  

@@ -1,0 +1,63 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/ansible/README.md/raw.txt" data-git-line-count="49">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">README.md</h4>
+          <div class="git-file-meta">2.4 KB · 49 lines · ansible/README.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/ansible/README.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Chaos &amp; Majesty Ansible Deployment</h1>
+<p>This playbook deploys the production container image to the Linode VPS via SSH.</p>
+<h2>Layout</h2>
+<ul>
+<li><code>inventory/hosts.ini</code> – target hosts; override <code>ansible_host</code> before use.</li>
+<li><code>group_vars/all.yml</code> – defaults (install path, image coordinates, mounts).</li>
+<li><code>deploy.yml</code> – entrypoint playbook that applies the <code>app_deploy</code> role.</li>
+<li><code>requirements.yml</code> – Ansible collections required (<code>community.docker</code>).</li>
+<li><code>roles/app_deploy</code> – renders Docker Compose configuration and deploys the site container.</li>
+<li><code>../config/git/manifest.txt</code> – repository manifest consumed by the static site generator.</li>
+</ul>
+<h2>Usage</h2>
+<ol>
+<li>Install dependencies:<pre><code class="language-bash">ansible-galaxy collection install -r requirements.yml
+</code></pre>
+</li>
+<li>Provide the target host address by editing <code>inventory/hosts.ini</code> (defaults to
+<code>chaosandmajesty.com</code>) or by passing
+<code>-i &quot;prod,&quot; -e ansible_host=vps.example.com</code>.</li>
+<li>Supply the registry coordinates and credentials (if private):<pre><code class="language-bash">ansible-playbook -i inventory/hosts.ini deploy.yml \
+  -e image_registry=ghcr.io \
+  -e image_namespace=chaosandmajesty \
+  -e image_name=cm-site \
+  -e image_tag=prod
+</code></pre>
+</li>
+<li>When running from CI, export <code>REGISTRY_USERNAME</code>/<code>REGISTRY_PASSWORD</code> secrets
+and pass them via <code>-e registry_username=...</code> or environment variable lookup
+in the workflow.</li>
+</ol>
+<p>Key defaults (override in <code>group_vars/all.yml</code> or via extra-vars):</p>
+<ul>
+<li><code>webdav_host_path=/var/www/html/dav</code> keeps the host Joplin share mounted.</li>
+<li><code>letsencrypt_host_path=/etc/letsencrypt</code> shares existing certificates read-only.</li>
+<li><code>acme_webroot_host_path=/var/www/letsencrypt</code> is used for HTTP-01 challenges.</li>
+<li><code>auth_file_host_path=/etc/nginx/auth</code> mounts your existing WebDAV htpasswd directory read-only so credentials continue to work.</li>
+<li><code>disable_host_nginx=true</code> stops and disables the system nginx service at deploy time.</li>
+</ul>
+<p>The role will render a Docker Compose project in <code>{{ app_dir }}</code> (default
+<code>/opt/chaosandmajesty</code>), ensure the WebDAV directory exists on the host, pull the
+specified image, and recreate the container. A health check against
+<code>http://127.0.0.1:{{ healthcheck_port }}</code> guards against silent failures.</p>
+<h2>Git manifest</h2>
+<p>The static site generator consumes <code>config/git/manifest.txt</code> to know which
+repositories to mirror locally during <code>./build-site.sh</code>. Update that manifest
+before builds so the Git page sidebar stays in sync with your catalog.</p>
+
+      </div>
+    </article>
+  

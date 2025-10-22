@@ -1,0 +1,594 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Lua Scripting.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Lua Scripting.md/raw.txt" data-git-line-count="699">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">Lua Scripting.md</h4>
+          <div class="git-file-meta">16 KB · 699 lines · sources/m4xx3d/Core/Lua Scripting.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/Core/Lua Scripting.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Lua Scripting
+updated: 2025-01-16 19:58:22Z
+created: 2024-12-19 20:51:51Z</h2>
+<p>Lua is a lightweight, high-level programming language designed for embedding in other applications. It’s known for its simplicity, speed, and flexibility, making it ideal for scripting, game development, and configuration files. Below is a comprehensive introduction to Lua scripting for beginners:</p>
+<hr>
+<h3><strong>1. Key Features of Lua</strong></h3>
+<ul>
+<li><strong>Lightweight:</strong> Small memory footprint, ideal for embedded systems.</li>
+<li><strong>Extensible:</strong> Can be easily integrated with C and other languages.</li>
+<li><strong>Fast:</strong> Efficient execution with a simple virtual machine.</li>
+<li><strong>Simple Syntax:</strong> Easy to learn for beginners and concise for experienced developers.</li>
+<li><strong>Dynamic Typing:</strong> Variables can hold values of any type without explicit declarations.</li>
+</ul>
+<hr>
+<h3><strong>2. Setting Up Lua</strong></h3>
+<p>To start scripting in Lua:</p>
+<ol>
+<li><p><strong>Install Lua:</strong></p>
+<ul>
+<li>Download Lua from <a href="https://www.lua.org/download.html">lua.org</a>.</li>
+<li>Use a package manager (<code>apt</code>, <code>brew</code>, etc.) for easier installation:<ul>
+<li>Linux: <code>sudo apt-get install lua5.4</code></li>
+<li>macOS: <code>brew install lua</code></li>
+<li>Windows: Use Lua binaries from the official website.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Choose a Text Editor or IDE:</strong></p>
+<ul>
+<li>Use a simple editor like VS Code, Sublime Text, or Notepad++.</li>
+<li>Install Lua extensions for syntax highlighting and debugging.</li>
+</ul>
+</li>
+<li><p><strong>Run Lua Scripts:</strong></p>
+<ul>
+<li>Create a script, e.g., <code>script.lua</code>.</li>
+<li>Run it in the terminal with <code>lua script.lua</code>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3><strong>3. Lua Basics</strong></h3>
+<h4><strong>Variables and Data Types</strong></h4>
+<pre><code class="language-lua">-- Variables
+name = &quot;John&quot;          -- String
+age = 25               -- Number
+is_programmer = true   -- Boolean
+pi = 3.14              -- Float
+
+-- Print to console
+print(name, age, is_programmer, pi)
+</code></pre>
+<h4><strong>Comments</strong></h4>
+<pre><code class="language-lua">-- Single-line comment
+--[[ 
+   Multi-line comment
+]]
+</code></pre>
+<h4><strong>Control Structures</strong></h4>
+<pre><code class="language-lua">-- If-Else
+if age &gt; 18 then
+  print(&quot;Adult&quot;)
+else
+  print(&quot;Minor&quot;)
+end
+
+-- Loops
+for i = 1, 5 do
+  print(i)
+end
+
+i = 0
+while i &lt; 5 do
+  print(i)
+  i = i + 1
+end
+</code></pre>
+<h4><strong>Functions</strong></h4>
+<pre><code class="language-lua">-- Define a function
+function greet(name)
+  return &quot;Hello, &quot; .. name
+end
+
+-- Call the function
+print(greet(&quot;Alice&quot;))
+</code></pre>
+<hr>
+<h3><strong>4. Advanced Topics</strong></h3>
+<h4><strong>Tables (Arrays and Dictionaries)</strong></h4>
+<p>Tables are Lua’s only data structure and can represent arrays, dictionaries, or even objects.</p>
+<pre><code class="language-lua">-- Array
+fruits = {&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;}
+print(fruits[1]) -- Lua arrays are 1-indexed
+
+-- Dictionary
+person = {name = &quot;John&quot;, age = 25}
+print(person.name, person.age)
+
+-- Nested Table
+data = {
+  users = {
+    {id = 1, name = &quot;Alice&quot;},
+    {id = 2, name = &quot;Bob&quot;}
+  }
+}
+print(data.users[2].name)
+</code></pre>
+<h4><strong>Metatables</strong></h4>
+<p>Metatables allow you to customize the behavior of tables (e.g., adding operator overloading).</p>
+<pre><code class="language-lua">a = {x = 1}
+b = {y = 2}
+meta = {
+  __add = function(t1, t2)
+    return {sum = t1.x + t2.y}
+  end
+}
+setmetatable(a, meta)
+print((a + b).sum) -- Output: 3
+</code></pre>
+<h4><strong>Coroutines</strong></h4>
+<p>Coroutines enable cooperative multitasking.</p>
+<pre><code class="language-lua">co = coroutine.create(function()
+  for i = 1, 5 do
+    print(i)
+    coroutine.yield()
+  end
+end)
+
+coroutine.resume(co) -- Prints 1
+coroutine.resume(co) -- Prints 2
+</code></pre>
+<hr>
+<h3><strong>5. Integrating Lua with Other Languages</strong></h3>
+<p>Lua can be embedded into C or C++ projects to extend functionality. Use Lua’s C API to load and execute scripts within your program.</p>
+<hr>
+<h3><strong>6. Practical Applications</strong></h3>
+<ul>
+<li><strong>Game Development:</strong> Widely used in engines like Roblox, Corona, and Unity (via plugins).</li>
+<li><strong>Configuration Files:</strong> Used to define behavior and settings.</li>
+<li><strong>Embedded Scripting:</strong> In applications such as Nginx, Redis, and Wireshark.</li>
+</ul>
+<hr>
+<h3><strong>7. Example Project: Simple Calculator</strong></h3>
+<pre><code class="language-lua">function calculator(a, b, operation)
+  if operation == &quot;add&quot; then
+    return a + b
+  elseif operation == &quot;subtract&quot; then
+    return a - b
+  elseif operation == &quot;multiply&quot; then
+    return a * b
+  elseif operation == &quot;divide&quot; then
+    if b ~= 0 then
+      return a / b
+    else
+      return &quot;Cannot divide by zero&quot;
+    end
+  else
+    return &quot;Invalid operation&quot;
+  end
+end
+
+print(calculator(10, 5, &quot;add&quot;))        -- 15
+print(calculator(10, 5, &quot;divide&quot;))    -- 2
+print(calculator(10, 0, &quot;divide&quot;))    -- Cannot divide by zero
+</code></pre>
+<hr>
+<h3><strong>8. Learning Resources</strong></h3>
+<ul>
+<li><strong>Official Documentation:</strong> <a href="https://www.lua.org/manual/5.4/">Lua 5.4 Reference Manual</a></li>
+<li><strong>Books:</strong> <em>Programming in Lua</em> by Roberto Ierusalimschy</li>
+<li><strong>Online Tutorials:</strong><ul>
+<li><a href="https://www.learn-lua.org/">Learn Lua</a></li>
+<li><a href="https://www.tutorialspoint.com/lua/index.htm">Lua Tutorials</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>Lua is intuitive and grows with you. Experiment, build small scripts, and gradually explore its advanced capabilities!</p>
+<h1>---</h1>
+<p>Lua&#39;s simplicity makes it easy to pick up, but it also offers powerful features that cater to more advanced needs, such as metaprogramming, custom data structures, and coroutines. Here’s a comprehensive intermediate-to-advanced Lua scripting tutorial:</p>
+<hr>
+<h2><strong>1. Advanced Data Manipulation</strong></h2>
+<h3><strong>Tables as Custom Data Structures</strong></h3>
+<p>Tables can act as lists, dictionaries, or objects. Combining these allows you to build complex data structures.</p>
+<h4><strong>Custom Objects</strong></h4>
+<pre><code class="language-lua">-- Define a class-like structure
+Rectangle = {}
+Rectangle.__index = Rectangle
+
+function Rectangle:new(width, height)
+  local obj = {width = width, height = height}
+  setmetatable(obj, self)
+  return obj
+end
+
+function Rectangle:area()
+  return self.width * self.height
+end
+
+-- Create and use an object
+local rect = Rectangle:new(10, 20)
+print(rect:area()) -- Output: 200
+</code></pre>
+<hr>
+<h3><strong>Using Metatables for Overloading</strong></h3>
+<p>Metatables enable operator overloading and dynamic behavior for tables.</p>
+<h4><strong>Example: Vector Addition</strong></h4>
+<pre><code class="language-lua">Vector = {}
+Vector.__index = Vector
+
+function Vector:new(x, y)
+  return setmetatable({x = x, y = y}, self)
+end
+
+meta = {
+  __add = function(v1, v2)
+    return Vector:new(v1.x + v2.x, v1.y + v2.y)
+  end
+}
+
+setmetatable(Vector, meta)
+
+v1 = Vector:new(2, 3)
+v2 = Vector:new(4, 5)
+v3 = v1 + v2 -- Uses the __add metamethod
+print(v3.x, v3.y) -- Output: 6, 8
+</code></pre>
+<hr>
+<h2><strong>2. Metaprogramming</strong></h2>
+<p>Metaprogramming allows Lua scripts to generate or manipulate their own code during runtime.</p>
+<h3><strong>Using <code>loadstring</code> for Dynamic Code Execution</strong></h3>
+<pre><code class="language-lua">code = &quot;return 2 + 3&quot;
+func = loadstring(code) -- Compiles the string into a Lua function
+print(func()) -- Output: 5
+</code></pre>
+<h3><strong>Custom Control Structures</strong></h3>
+<p>You can define your own syntax-like constructs using functions.</p>
+<pre><code class="language-lua">function repeat_until(condition, action)
+  while true do
+    action()
+    if condition() then break end
+  end
+end
+
+count = 0
+repeat_until(
+  function() return count &gt;= 5 end,
+  function() count = count + 1; print(count) end
+)
+</code></pre>
+<hr>
+<h2><strong>3. Coroutines</strong></h2>
+<p>Coroutines provide cooperative multitasking, useful for implementing non-blocking tasks like animations or simulations.</p>
+<h4><strong>Basic Coroutine Example</strong></h4>
+<pre><code class="language-lua">function task()
+  for i = 1, 3 do
+    print(&quot;Task step &quot; .. i)
+    coroutine.yield()
+  end
+end
+
+co = coroutine.create(task)
+coroutine.resume(co) -- Task step 1
+coroutine.resume(co) -- Task step 2
+coroutine.resume(co) -- Task step 3
+</code></pre>
+<h4><strong>Producer-Consumer Example</strong></h4>
+<pre><code class="language-lua">function producer()
+  for i = 1, 5 do
+    coroutine.yield(i)
+  end
+end
+
+function consumer()
+  local co = coroutine.create(producer)
+  while coroutine.status(co) ~= &quot;dead&quot; do
+    local _, value = coroutine.resume(co)
+    print(&quot;Consumed:&quot;, value)
+  end
+end
+
+consumer()
+</code></pre>
+<hr>
+<h2><strong>4. Error Handling and Debugging</strong></h2>
+<h3><strong>Error Handling with <code>pcall</code></strong></h3>
+<p><code>pcall</code> runs a function and catches errors without crashing the program.</p>
+<pre><code class="language-lua">function divide(a, b)
+  if b == 0 then
+    error(&quot;Division by zero!&quot;)
+  end
+  return a / b
+end
+
+status, result = pcall(divide, 10, 0)
+if status then
+  print(&quot;Result:&quot;, result)
+else
+  print(&quot;Error:&quot;, result)
+end
+</code></pre>
+<h3><strong>Debug Library</strong></h3>
+<p>The <code>debug</code> library provides tools for inspecting and manipulating Lua’s execution state.</p>
+<h4><strong>Inspecting Stack Traces</strong></h4>
+<pre><code class="language-lua">function faulty()
+  error(&quot;Something went wrong!&quot;)
+end
+
+function wrapper()
+  faulty()
+end
+
+status, err = xpcall(wrapper, debug.traceback)
+if not status then
+  print(&quot;Traceback:&quot;, err)
+end
+</code></pre>
+<hr>
+<h2><strong>5. Optimizing Lua Scripts</strong></h2>
+<h3><strong>Using <code>local</code> Variables</strong></h3>
+<p>Avoid global variables for better performance and reduced memory usage.</p>
+<pre><code class="language-lua">-- Global (slower)
+for i = 1, 1000000 do
+  global_var = i
+end
+
+-- Local (faster)
+for i = 1, 1000000 do
+  local local_var = i
+end
+</code></pre>
+<h3><strong>Memoization</strong></h3>
+<p>Cache function results to avoid recalculating expensive computations.</p>
+<pre><code class="language-lua">function memoize(func)
+  local cache = {}
+  return function(arg)
+    if cache[arg] == nil then
+      cache[arg] = func(arg)
+    end
+    return cache[arg]
+  end
+end
+
+function expensive_computation(x)
+  print(&quot;Computing for&quot;, x)
+  return x * x
+end
+
+memoized = memoize(expensive_computation)
+print(memoized(5)) -- Computing for 5, then 25
+print(memoized(5)) -- Cached result: 25
+</code></pre>
+<hr>
+<h2><strong>6. File I/O</strong></h2>
+<p>Lua’s file I/O API allows reading from and writing to files.</p>
+<h4><strong>Reading from a File</strong></h4>
+<pre><code class="language-lua">file = io.open(&quot;example.txt&quot;, &quot;r&quot;)
+if file then
+  content = file:read(&quot;*a&quot;) -- Read entire file
+  file:close()
+  print(content)
+end
+</code></pre>
+<h4><strong>Writing to a File</strong></h4>
+<pre><code class="language-lua">file = io.open(&quot;output.txt&quot;, &quot;w&quot;)
+file:write(&quot;Hello, Lua!&quot;)
+file:close()
+</code></pre>
+<hr>
+<h2><strong>7. Advanced Applications</strong></h2>
+<h3><strong>Sandboxing</strong></h3>
+<p>Restrict Lua scripts to a controlled environment for security.</p>
+<pre><code class="language-lua">sandbox = {print = print}
+setmetatable(sandbox, {__index = _G})
+
+code = &quot;print(&#39;Hello&#39;); os.execute(&#39;rm -rf /&#39;)&quot;
+safe_code = loadstring(code, &quot;sandbox&quot;)
+setfenv(safe_code, sandbox) -- Restrict environment
+pcall(safe_code) -- Output: Hello (os.execute is restricted)
+</code></pre>
+<h3><strong>Interfacing with C Libraries</strong></h3>
+<p>Lua can call functions from compiled C libraries for performance-critical tasks.</p>
+<hr>
+<h2><strong>8. Example Project: Event Dispatcher</strong></h2>
+<p>An event dispatcher is a system that triggers functions when events occur.</p>
+<pre><code class="language-lua">EventDispatcher = {}
+EventDispatcher.__index = EventDispatcher
+
+function EventDispatcher:new()
+  return setmetatable({listeners = {}}, self)
+end
+
+function EventDispatcher:on(event, listener)
+  if not self.listeners[event] then
+    self.listeners[event] = {}
+  end
+  table.insert(self.listeners[event], listener)
+end
+
+function EventDispatcher:emit(event, ...)
+  if self.listeners[event] then
+    for _, listener in ipairs(self.listeners[event]) do
+      listener(...)
+    end
+  end
+end
+
+-- Example usage
+dispatcher = EventDispatcher:new()
+dispatcher:on(&quot;greet&quot;, function(name) print(&quot;Hello, &quot; .. name) end)
+dispatcher:emit(&quot;greet&quot;, &quot;Alice&quot;) -- Output: Hello, Alice
+</code></pre>
+<hr>
+<h2><strong>9. Learning Resources</strong></h2>
+<ul>
+<li><strong>Advanced Documentation:</strong><ul>
+<li><a href="https://www.lua.org/manual/5.4/">Programming in Lua (Advanced Topics)</a></li>
+</ul>
+</li>
+<li><strong>Open Source Projects Using Lua:</strong> Explore Nginx modules, Redis scripts, or game engines like Love2D.</li>
+<li><strong>Interactive Tools:</strong> Use Lua interpreters or IDE plugins for live coding.</li>
+</ul>
+<p>By mastering these advanced Lua scripting concepts, you’ll be able to tackle real-world problems, optimize performance, and even extend Lua to meet unique application needs!</p>
+<h1>---</h1>
+<p>Lua is highly extensible, and you can integrate Python and Bash scripts into Lua to leverage their respective strengths. This is typically achieved through Lua&#39;s <code>os.execute</code>, <code>io.popen</code>, or libraries like <code>luaposix</code> (for Bash) and <code>lunatic-python</code> or custom bindings (for Python). Below are intermediate and advanced examples of integrating Python and Bash scripts into Lua.</p>
+<hr>
+<h3><strong>1. Intermediate Examples</strong></h3>
+<h4><strong>1.1. Running Bash Commands with <code>os.execute</code></strong></h4>
+<p>You can run Bash commands directly from Lua using <code>os.execute</code>.</p>
+<pre><code class="language-lua">-- Execute a Bash command and check its status
+local status = os.execute(&quot;ls -l&quot;)
+if status then
+  print(&quot;Command executed successfully&quot;)
+else
+  print(&quot;Command failed&quot;)
+end
+</code></pre>
+<h4><strong>1.2. Capturing Bash Output with <code>io.popen</code></strong></h4>
+<p>To capture the output of a Bash command:</p>
+<pre><code class="language-lua">-- Capture the output of the `date` command
+local handle = io.popen(&quot;date&quot;)
+local result = handle:read(&quot;*a&quot;)
+handle:close()
+print(&quot;Current date and time:&quot;, result)
+</code></pre>
+<hr>
+<h4><strong>1.3. Executing Python Scripts Using <code>os.execute</code></strong></h4>
+<p>You can call a Python script from Lua.</p>
+<p><strong>Python Script (<code>hello.py</code>):</strong></p>
+<pre><code class="language-python"># hello.py
+print(&quot;Hello from Python!&quot;)
+</code></pre>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">local status = os.execute(&quot;python3 hello.py&quot;)
+if status then
+  print(&quot;Python script executed successfully&quot;)
+else
+  print(&quot;Python script execution failed&quot;)
+end
+</code></pre>
+<hr>
+<h4><strong>1.4. Passing Data to a Python Script</strong></h4>
+<p>Use arguments to pass data to Python.</p>
+<p><strong>Python Script (<code>sum.py</code>):</strong></p>
+<pre><code class="language-python">import sys
+a, b = int(sys.argv[1]), int(sys.argv[2])
+print(f&quot;The sum is: {a + b}&quot;)
+</code></pre>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">local a, b = 5, 10
+local command = string.format(&quot;python3 sum.py %d %d&quot;, a, b)
+local handle = io.popen(command)
+local result = handle:read(&quot;*a&quot;)
+handle:close()
+print(result) -- Output: The sum is: 15
+</code></pre>
+<hr>
+<h3><strong>2. Advanced Examples</strong></h3>
+<h4><strong>2.1. Bidirectional Communication with Bash</strong></h4>
+<p>Using Lua’s <code>io.popen</code> to send and receive data from Bash:</p>
+<pre><code class="language-lua">-- Send data to Bash and capture the output
+local handle = io.popen(&quot;grep Lua&quot;, &quot;w&quot;)
+handle:write(&quot;Lua is lightweight and fast.\nLua is embedded.\n&quot;)
+handle:close()
+</code></pre>
+<hr>
+<h4><strong>2.2. Interfacing Lua with Python for Complex Tasks</strong></h4>
+<p>For tighter integration with Python, you can use <code>lunatic-python</code> or build custom bindings using the Python C API.</p>
+<p><strong>Example Using <code>lunatic-python</code>:</strong></p>
+<p>Install <code>lunatic-python</code>:</p>
+<pre><code class="language-bash">luarocks install lunatic-python
+</code></pre>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">local python = require(&quot;python&quot;)
+
+-- Import Python modules
+local math = python.import(&quot;math&quot;)
+local os = python.import(&quot;os&quot;)
+
+-- Use Python functions
+print(&quot;Pi from Python:&quot;, math.pi)
+print(&quot;Current working directory (Python):&quot;, os.getcwd())
+</code></pre>
+<hr>
+<h4><strong>2.3. Running Bash Scripts Dynamically</strong></h4>
+<p>You can create and execute Bash scripts dynamically from Lua.</p>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">-- Write a dynamic Bash script
+local bash_script = [[
+#!/bin/bash
+echo &quot;Hello from Bash!&quot;
+whoami
+]]
+
+-- Save and execute the script
+local file = io.open(&quot;script.sh&quot;, &quot;w&quot;)
+file:write(bash_script)
+file:close()
+
+os.execute(&quot;chmod +x script.sh &amp;&amp; ./script.sh&quot;)
+</code></pre>
+<hr>
+<h4><strong>2.4. Embedding Python into Lua for Realtime Data Exchange</strong></h4>
+<p>For advanced tasks, you can embed Python into Lua to perform computations or manipulate data.</p>
+<p><strong>Python Script (<code>embedded.py</code>):</strong></p>
+<pre><code class="language-python"># embedded.py
+def multiply(a, b):
+    return a * b
+</code></pre>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">local python = require(&quot;python&quot;)
+
+-- Import and call Python functions
+local embedded = python.import(&quot;embedded&quot;)
+local result = embedded.multiply(5, 10)
+print(&quot;Result from Python:&quot;, result) -- Output: Result from Python: 50
+</code></pre>
+<hr>
+<h4><strong>2.5. Using Environment Variables for Integration</strong></h4>
+<p>Use environment variables to pass data between Lua, Bash, and Python.</p>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">os.setenv(&quot;MY_VAR&quot;, &quot;Hello from Lua&quot;)
+os.execute(&quot;bash -c &#39;echo $MY_VAR &gt; bash_output.txt&#39;&quot;)
+</code></pre>
+<p><strong>Bash Command (within the Lua script):</strong></p>
+<pre><code class="language-bash">export MY_VAR=&quot;Hello from Lua&quot;
+python3 -c &#39;import os; print(os.environ[&quot;MY_VAR&quot;])&#39;
+</code></pre>
+<hr>
+<h4><strong>2.6. Complex Pipeline: Lua → Bash → Python</strong></h4>
+<p>You can combine Lua, Bash, and Python for multi-step processing.</p>
+<p><strong>Lua Script:</strong></p>
+<pre><code class="language-lua">-- Step 1: Lua generates input data
+local data = &quot;5,10,15,20&quot;
+local input_file = io.open(&quot;input.txt&quot;, &quot;w&quot;)
+input_file:write(data)
+input_file:close()
+
+-- Step 2: Bash processes the input
+os.execute(&quot;cat input.txt | tr &#39;,&#39; &#39;\\n&#39; &gt; processed.txt&quot;)
+
+-- Step 3: Python analyzes the processed data
+os.execute(&quot;python3 -c &#39;import sys; print(sum(int(x) for x in open(\&quot;processed.txt\&quot;)))&#39;&quot;)
+</code></pre>
+<hr>
+<h3><strong>3. Real-World Applications</strong></h3>
+<ul>
+<li><strong>Task Automation:</strong>
+Combine Lua (control logic), Bash (system commands), and Python (data processing).</li>
+<li><strong>Game Development:</strong>
+Use Lua for game scripting, Bash for deployment, and Python for AI/ML.</li>
+<li><strong>Data Pipelines:</strong>
+Use Lua to orchestrate Bash for ETL (Extract, Transform, Load) pipelines and Python for analysis.</li>
+</ul>
+<p>These techniques demonstrate how Lua can bridge lightweight scripting with the power of Bash and Python for complex, real-world workflows.</p>
+
+      </div>
+    </article>
+  

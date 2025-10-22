@@ -1,0 +1,199 @@
+---
+title: SLI & SLO
+updated: 2024-04-12 19:16:20Z
+created: 2024-04-05 16:41:50Z
+---
+
+[Confluence SLI & SLO Page](https://tsu.atlassian.net/wiki/x/EYBvgQ)
+
+## What to do?
+
+First, read this page to familiarize yourself with the wonderful world of Service Level Indicators and Service Level Objectives!  Then fill out this form with information pertinent to your “subsystem” or “user journey” of expertise.  Upon completion you will get an email summary of your response, including an edit link should the need arise.  You are free to submit the form multiple times to define as many SLOs as you feel are pertinent.  
+
+### Form & Responses
+
+[SLI & SLO User Journey Form](https://docs.google.com/forms/d/e/1FAIpQLSd5XLgX8arCupOynlrdGOQpfuZO8VJZ4z9Q27rKOa28EjpGpw/viewform?usp=sf_link)
+
+[SLI & SLO Form Responses](https://docs.google.com/forms/d/1XM7jL2Sp9G2TIOJqLa-GL7MQQLIWujYO9w61BmpGDYk/viewanalytics)
+
+A Google Sheet with the results can also be found here: [SLI & SLO User Journey Form](https://docs.google.com/forms/d/e/1FAIpQLSd5XLgX8arCupOynlrdGOQpfuZO8VJZ4z9Q27rKOa28EjpGpw/viewform?usp=sf_link)
+
+<br>
+
+# Service Level Indicators & Service Level Objectives
+
+SLIs, SLOs and SLAs aren’t just useful abstractions. Without them you cannot know if your system is reliable, available, or even useful. If they don’t tie explicitly back to your business objectives then you have no idea if the choices you make are helping or hurting your business. You also can’t make honest promises to your customers.  If you’re building a system from scratch, make sure that SLIs, SLOs and SLAs are part of your system requirements. If you already have a production system but don’t have them clearly defined then that’s your highest priority work.
+
+- If you want to have a reliable service, you must first define “reliability.” In most cases that actually translates to availability.
+- If you want to know how reliable your service is, you must be able to measure the rates of successful and unsuccessful queries; these will form the basis of your SLIs.
+- The more reliable the service, the more it costs to operate. Define the lowest level of reliability that you can get away with, and state that as your Service Level Objective (SLO).
+- Without an SLO, your team and your stakeholders cannot make principled judgements about whether your service needs to be made more reliable (increasing cost and slowing development) or less reliable (allowing greater velocity of development).
+- If you’re charging your customers money you'll probably need an SLA, and it should be a little bit looser than your SLO.
+
+<br>
+
+## Outage Math
+
+### Allowed 100% Outage Duration
+
+| Reliability Level | Per Year | Per Quarter | Per 28 Days |  
+| ----------------- | -------- | ----------- | ----------- |
+| 90% | 36d 12h | 9d | 2d 19h 12m |
+| 95% | 18d 6h | 4d 12h | 1d 9h 36m |
+| 99% | 3d 15h 36m | 21h 36m | 6h 43m 12s |
+| 99.5% | 1d 19h 48m | 10h 48m | 3h 21m 36s |
+| 99.9% | 8h 45m 36s | 2h 9m 36s | 40m 19s |
+| 99.95% | 4h 22m 48s | 1h 4m 48s | 20m 10s |
+| 99.99% | 52m 33.6s | 12m 57.6s | 4m 1.9s |
+| 99.999% | 5m 15.4s | 1m 17.8s | 24.2s |
+
+<br>
+
+### Allowed Consistent Error% Outage Duration per 28 Days @99.95% Reliability
+
+| 100% | 10% | 1% | 0.1% |
+| ---- | --- | --- | ----|
+|20m 10s | 3h 21m 36s | 1d 9h 36m | 14d |
+
+<br>
+
+## SLI Equation
+
+`SLI = (good events / valid events) * 100%`
+
+1. SLIs fall between 0% and 100%.
+0% means nothing works, 100% means nothing is broken.
+This scale is intuitive and directly translates to percentagereliability SLOs and error budgets.
+2. SLIs have a consistent format.
+Consistency allows common tooling to be built around SLIs.
+Alerting logic, error budget calculations, and SLO analysis
+and reporting tools can all be written to expect the same
+inputs: good events, valid events, and an SLO threshold.
+
+Events can be prevented from counting against an error budget either by
+including them in the numerator or by excluding them from the denominator. The former is achieved by classifying some events good, the
+latter by classifying some events invalid.
+
+<br>
+
+### SLI Properties
+
+- Request / Response
+	- Availability
+	- Latency
+	- Quality
+- Data Processing
+	- Freshness
+	- Coverage
+	- Correctness
+	- Throughput
+- Storage
+	- Throughput
+	- Latency
+
+---
+
+<br>
+
+## SLI Types
+
+### Availability
+
+#### Request / Response
+
+The proportion of valid requests served successfully.
+
+What requests this system serves are valid for the SLI?
+What makes a response successful?
+
+
+### Latency
+
+#### Request / Response
+
+The proportion of valid requests served faster than a threshold.
+
+What requests this system serves are valid for the SLI?
+When does the timer measuring the request latency start and stop?
+
+
+### Quality
+
+#### Request / Response
+
+The proportion of valid requests served without degrading quality.
+
+What requests this system serves are valid for the SLI?
+How to determine whether the response was served with degraded quality?
+
+
+### Freshness
+
+#### Data Processing
+
+The proportion of valid data updated more recently than a threshold.
+
+What data this system processes are valid for the SLI?
+When does the timer measuring the freshness of data start and stop?
+
+
+### Coverage
+
+#### Data Processing
+
+The proportion of valid data processed successfully.
+
+What data this system processes are valid for the SLI?
+How to determine whether the processing of a particular piece of data was successful?
+
+
+### Correctness
+
+#### Data Processing
+
+The proportion of valid data producing correct output.
+
+What data this system processes are valid for the SLI?
+How to determine the correctness of output records?
+
+
+### Throughput
+
+#### Data Processing
+
+The proportion of time where the data processing rate is faster than a threshold.
+
+What is the units of measurement for your data processing rate?
+
+
+---
+
+<br>
+
+## Example SLO
+
+<br>
+
+**User Journey:** Home Page Load
+
+**SLI Type:** Latency
+
+**SLI Specification:**
+- Proportion of home page requests served in < 100ms
+	- SLI equation; `Requests served in < 100ms / Requests`
+
+**SLI Implementations:**
+- Proportion of home page requests served in < 100ms
+	- Measured from server log request latency values
+		- This will miss requests that don't reach the backend
+- Proportion of home page requests served in < 100ms
+	- Measured by probe executing JS in VM browser
+		- This will catch errors when requests cannot reach our network, but may miss issues affecting a subset of users
+
+**SLO:**
+99% of home page request in the past 28 days served in < 100ms.
+
+---
+
+Base metrics here
+https://tsu.atlassian.net/wiki/spaces/IREE/pages/2148171801

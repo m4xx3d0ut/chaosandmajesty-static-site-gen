@@ -1,0 +1,1807 @@
+diff --git a/doom/Cargo.toml b/doom/Cargo.toml
+index 33de7d3..edf837f 100644
+--- a/doom/Cargo.toml
++++ b/doom/Cargo.toml
+@@ -8,3 +8,9 @@ edition = "2018"
+ 
+ [dependencies]
+ lazy_static = "1.4.0"
++
++[profile.release]
++opt-level = 3
++lto = true
++codegen-units = 1
++panic = "abort"
+diff --git a/doom/clang_compiler_rt/Makefile b/doom/clang_compiler_rt/Makefile
+index 5ba9da2..a8bbf60 100644
+--- a/doom/clang_compiler_rt/Makefile
++++ b/doom/clang_compiler_rt/Makefile
+@@ -1,5 +1,5 @@
+-CC=clang
+-AR=llvm-ar-10
++CC=clang-12
++AR=llvm-ar-12
+ 
+ CFLAGS=--target=wasm32 -m32 -O2 -Wall -nostdlib -ffreestanding -nostdinc -I../musl-1.2.2/built_inc/include/
+ 
+@@ -14,4 +14,4 @@ build/libclang_rt.builtins-wasm32.a: $(OBJS)
+ 	$(AR) rcs $@ $^
+ 
+ clean:
+-	rm -rf build
+\ No newline at end of file
++	rm -rf build
+diff --git a/doom/linuxdoom-1.10/Makefile b/doom/linuxdoom-1.10/Makefile
+index e6bfc75..7c4771f 100644
+--- a/doom/linuxdoom-1.10/Makefile
++++ b/doom/linuxdoom-1.10/Makefile
+@@ -4,8 +4,8 @@
+ #
+ # $Log:$
+ #
+-CC=clang
+-AR=llvm-ar-10
++CC=clang-12
++AR=llvm-ar-12
+ 
+ # If your get `error: unable to execute command: Executable "wasm-ld" doesn't exist!` on Ubntu 20.04
+ # apt install lld
+@@ -34,6 +34,7 @@ OBJS=				\
+ 		$(O)/dstrings.o		\
+ 		$(O)/i_system.o		\
+ 		$(O)/i_sound.o		\
++		$(O)/doom_music.o	\
+ 		$(O)/i_net.o			\
+ 		$(O)/tables.o			\
+ 		$(O)/f_finale.o		\
+diff --git a/doom/linuxdoom-1.10/d_main.c b/doom/linuxdoom-1.10/d_main.c
+index 56f8ef8..d018668 100644
+--- a/doom/linuxdoom-1.10/d_main.c
++++ b/doom/linuxdoom-1.10/d_main.c
+@@ -489,16 +489,16 @@ void D_AdvanceDemo (void)
+ 	  S_StartMusic (mus_intro);
+ 	break;
+       case 1:
+-	G_DeferedPlayDemo ("demo1");
+-	break;
++	D_DoAdvanceDemo();
++	return;
+       case 2:
+ 	pagetic = 200;
+ 	gamestate = GS_DEMOSCREEN;
+ 	pagename = "CREDIT";
+ 	break;
+       case 3:
+-	G_DeferedPlayDemo ("demo2");
+-	break;
++	D_DoAdvanceDemo();
++	return;
+       case 4:
+ 	gamestate = GS_DEMOSCREEN;
+ 	if ( gamemode == commercial)
+@@ -518,12 +518,12 @@ void D_AdvanceDemo (void)
+ 	}
+ 	break;
+       case 5:
+-	G_DeferedPlayDemo ("demo3");
+-	break;
++	D_DoAdvanceDemo();
++	return;
+         // THE DEFINITIVE DOOM Special Edition demo
+       case 6:
+-	G_DeferedPlayDemo ("demo4");
+-	break;
++	D_DoAdvanceDemo();
++	return;
+     }
+ }
+ 
+diff --git a/doom/linuxdoom-1.10/doom_music.c b/doom/linuxdoom-1.10/doom_music.c
+new file mode 100644
+index 0000000..a421e19
+--- /dev/null
++++ b/doom/linuxdoom-1.10/doom_music.c
+@@ -0,0 +1,733 @@
++#include "doom_music.h"
++
++#include "doomdef.h"
++#include "doomstat.h"
++#include "i_system.h"
++#include "m_fixed.h"
++#include "w_wad.h"
++#include "z_zone.h"
++
++#include <math.h>
++#include <stddef.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#ifndef M_PI
++#define M_PI 3.14159265358979323846
++#endif
++
++#define DOOM_MUSIC_SAMPLE_RATE 44100
++#define DOOM_MUSIC_FRAMES_PER_CHUNK 1024
++#define DOOM_MUSIC_MAX_VOICES 48
++#define DOOM_MUSIC_MIN_VOLUME 0.0001f
++#define DOOM_MUSIC_RELEASE_SECONDS 0.25f
++
++extern void wasm_music_init(int sample_rate);
++extern void wasm_music_shutdown(void);
++extern void wasm_music_enqueue(const int16_t *ptr, size_t frames, int sample_rate);
++extern void wasm_music_stop(void);
++extern void wasm_music_pause(int paused);
++extern void wasm_music_set_volume(int volume);
++
++typedef enum
++{
++    DM_EVENT_NOTE_ON = 0,
++    DM_EVENT_NOTE_OFF = 1,
++    DM_EVENT_VOLUME = 2,
++    DM_EVENT_PAN = 3,
++    DM_EVENT_PROGRAM = 4,
++    DM_EVENT_END = 5
++} doom_music_event_type_t;
++
++typedef struct
++{
++    uint32_t tick;
++    uint64_t sample;
++    doom_music_event_type_t type;
++    uint8_t channel;
++    uint8_t data1;
++    uint8_t data2;
++} doom_music_event_t;
++
++typedef struct
++{
++    int active;
++    int channel;
++    int note;
++    float velocity;
++    float phase;
++    float phase_step;
++    float env;
++    int releasing;
++    float release_factor;
++} doom_music_voice_t;
++
++typedef struct
++{
++    int initialised;
++    int playing;
++    int looping;
++    int paused;
++    int sample_rate;
++    double samples_per_tick;
++    uint64_t current_sample;
++    uint64_t total_samples;
++    doom_music_event_t *events;
++    size_t event_count;
++    size_t next_event;
++    float channel_volume[16];
++    float channel_pan[16];
++    uint8_t channel_last_note_volume[16];
++    doom_music_voice_t voices[DOOM_MUSIC_MAX_VOICES];
++    int16_t *mix_buffer;
++    size_t mix_buffer_capacity;
++} doom_music_state_t;
++
++static doom_music_state_t g_music_state;
++
++static void DoomMusic_ResetChannelsAndVoices(void)
++{
++    size_t i;
++    for (i = 0; i < 16; ++i)
++    {
++        g_music_state.channel_volume[i] = 1.0f;
++        g_music_state.channel_pan[i] = 0.5f;
++        g_music_state.channel_last_note_volume[i] = 100;
++    }
++    for (i = 0; i < DOOM_MUSIC_MAX_VOICES; ++i)
++    {
++        g_music_state.voices[i].active = 0;
++        g_music_state.voices[i].releasing = 0;
++        g_music_state.voices[i].env = 0.0f;
++    }
++}
++
++static void DoomMusic_EnsureBuffer(size_t frames)
++{
++    size_t samples = frames * 2;
++    if (g_music_state.mix_buffer_capacity >= samples)
++    {
++        return;
++    }
++    size_t new_capacity = frames * 2;
++    int16_t *new_buffer = (int16_t *)realloc(g_music_state.mix_buffer, new_capacity * sizeof(int16_t));
++    if (!new_buffer)
++    {
++        I_Error("Failed to allocate DOOM music mix buffer");
++    }
++    g_music_state.mix_buffer = new_buffer;
++    g_music_state.mix_buffer_capacity = new_capacity;
++}
++
++static uint8_t DoomMusic_ReadByte(const unsigned char **cursor, const unsigned char *end)
++{
++    if (*cursor >= end)
++    {
++        return 0;
++    }
++    uint8_t value = **cursor;
++    (*cursor)++;
++    return value;
++}
++
++static uint16_t DoomMusic_ReadLE16(const unsigned char **cursor, const unsigned char *end)
++{
++    uint16_t lo = DoomMusic_ReadByte(cursor, end);
++    uint16_t hi = DoomMusic_ReadByte(cursor, end);
++    return (hi << 8) | lo;
++}
++
++static uint32_t DoomMusic_ReadVarLen(const unsigned char **cursor, const unsigned char *end)
++{
++    uint32_t value = 0;
++    int shift = 0;
++    while (*cursor < end)
++    {
++        uint8_t byte = DoomMusic_ReadByte(cursor, end);
++        value |= (uint32_t)(byte & 0x7F) << shift;
++        if ((byte & 0x80) == 0)
++        {
++            break;
++        }
++        shift += 7;
++    }
++    return value;
++}
++
++static int DoomMusic_AddEvent(doom_music_event_t **events,
++                              size_t *count,
++                              size_t *capacity,
++                              doom_music_event_t event)
++{
++    if (*count >= *capacity)
++    {
++        size_t new_capacity = (*capacity == 0) ? 128 : (*capacity * 2);
++        doom_music_event_t *new_block = (doom_music_event_t *)realloc(*events, new_capacity * sizeof(doom_music_event_t));
++        if (!new_block)
++        {
++            return 0;
++        }
++        *events = new_block;
++        *capacity = new_capacity;
++    }
++    (*events)[*count] = event;
++    (*count)++;
++    return 1;
++}
++
++static int DoomMusic_Parse(const unsigned char *data, size_t length,
++                           doom_music_event_t **out_events,
++                           size_t *out_count,
++                           uint32_t *out_last_tick)
++{
++    const unsigned char *cursor = data;
++    const unsigned char *end = data + length;
++
++    if (length < 16)
++    {
++        return 0;
++    }
++
++    // MUS header fields
++    cursor += 4; // signature "MUS\x1A"
++    uint16_t score_len = DoomMusic_ReadLE16(&cursor, end);
++    uint16_t score_start = DoomMusic_ReadLE16(&cursor, end);
++    uint16_t channel_count = DoomMusic_ReadLE16(&cursor, end);
++    (void)channel_count;
++    cursor += 4; // skip secondary channels and instrument count
++
++    if (score_start >= length)
++    {
++        return 0;
++    }
++
++    const unsigned char *score = data + score_start;
++    const unsigned char *score_end = score + score_len;
++    if (score_end > end)
++    {
++        score_end = end;
++    }
++
++    doom_music_event_t *events = NULL;
++    size_t event_count = 0;
++    size_t event_capacity = 0;
++    uint32_t tick = 0;
++    uint8_t channel_map[16];
++    uint8_t channel_volume[16];
++    size_t i;
++
++    for (i = 0; i < 16; ++i)
++    {
++        channel_map[i] = i;
++        if (i == 15)
++        {
++            channel_map[i] = 9;
++        }
++        else if (i >= 9)
++        {
++            channel_map[i] = i + 1;
++        }
++        channel_volume[i] = 100;
++    }
++
++    cursor = score;
++    while (cursor < score_end)
++    {
++        uint8_t event_byte = DoomMusic_ReadByte(&cursor, score_end);
++        int last_event = (event_byte & 0x80) != 0;
++        uint8_t event_type = (event_byte >> 4) & 0x07;
++        uint8_t mus_channel = event_byte & 0x0F;
++        uint8_t midi_channel = channel_map[mus_channel & 0x0F];
++
++        switch (event_type)
++        {
++            case 0: // release note
++            {
++                uint8_t note = DoomMusic_ReadByte(&cursor, score_end) & 0x7F;
++                doom_music_event_t ev = { tick, 0, DM_EVENT_NOTE_OFF, midi_channel, note, 0 };
++                if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                {
++                    free(events);
++                    return 0;
++                }
++                break;
++            }
++            case 1: // play note
++            {
++                uint8_t note_data = DoomMusic_ReadByte(&cursor, score_end);
++                uint8_t note = note_data & 0x7F;
++                uint8_t volume = channel_volume[mus_channel];
++                if (note_data & 0x80)
++                {
++                    volume = DoomMusic_ReadByte(&cursor, score_end) & 0x7F;
++                    channel_volume[mus_channel] = volume;
++                }
++                if (volume == 0)
++                {
++                    volume = 1;
++                }
++                doom_music_event_t ev = { tick, 0, DM_EVENT_NOTE_ON, midi_channel, note, volume };
++                if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                {
++                    free(events);
++                    return 0;
++                }
++                break;
++            }
++            case 2: // pitch wheel
++            {
++                // ignore for now
++                DoomMusic_ReadByte(&cursor, score_end);
++                break;
++            }
++            case 3: // system event (ignore)
++            {
++                DoomMusic_ReadByte(&cursor, score_end);
++                break;
++            }
++            case 4: // controller change
++            {
++                uint8_t controller = DoomMusic_ReadByte(&cursor, score_end) & 0x7F;
++                uint8_t value = DoomMusic_ReadByte(&cursor, score_end) & 0x7F;
++                doom_music_event_t ev;
++                switch (controller)
++                {
++                    case 0: // instrument change
++                        ev.tick = tick;
++                        ev.sample = 0;
++                        ev.type = DM_EVENT_PROGRAM;
++                        ev.channel = midi_channel;
++                        ev.data1 = value;
++                        ev.data2 = 0;
++                        if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                        {
++                            free(events);
++                            return 0;
++                        }
++                        break;
++                    case 3: // volume
++                        channel_volume[mus_channel] = value;
++                        ev.tick = tick;
++                        ev.sample = 0;
++                        ev.type = DM_EVENT_VOLUME;
++                        ev.channel = midi_channel;
++                        ev.data1 = value;
++                        ev.data2 = 0;
++                        if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                        {
++                            free(events);
++                            return 0;
++                        }
++                        break;
++                    case 4: // pan
++                        ev.tick = tick;
++                        ev.sample = 0;
++                        ev.type = DM_EVENT_PAN;
++                        ev.channel = midi_channel;
++                        ev.data1 = value;
++                        ev.data2 = 0;
++                        if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                        {
++                            free(events);
++                            return 0;
++                        }
++                        break;
++                    default:
++                        break;
++                }
++                break;
++            }
++            case 5: // score end
++            {
++                doom_music_event_t ev = { tick, 0, DM_EVENT_END, midi_channel, 0, 0 };
++                if (!DoomMusic_AddEvent(&events, &event_count, &event_capacity, ev))
++                {
++                    free(events);
++                    return 0;
++                }
++                cursor = score_end;
++                break;
++            }
++            default:
++                break;
++        }
++
++        if (last_event)
++        {
++            uint32_t delta = DoomMusic_ReadVarLen(&cursor, score_end);
++            tick += delta;
++        }
++    }
++
++    *out_events = events;
++    *out_count = event_count;
++    *out_last_tick = tick;
++    return 1;
++}
++
++static doom_music_voice_t *DoomMusic_AllocVoice(void)
++{
++    size_t i;
++    doom_music_voice_t *voice = NULL;
++    float lowest_env = 1e9f;
++    for (i = 0; i < DOOM_MUSIC_MAX_VOICES; ++i)
++    {
++        if (!g_music_state.voices[i].active)
++        {
++            voice = &g_music_state.voices[i];
++            break;
++        }
++        if (g_music_state.voices[i].env < lowest_env)
++        {
++            lowest_env = g_music_state.voices[i].env;
++            voice = &g_music_state.voices[i];
++        }
++    }
++    if (voice)
++    {
++        voice->active = 1;
++        voice->releasing = 0;
++    }
++    return voice;
++}
++
++static float DoomMusic_NoteFrequency(int note)
++{
++    return 440.0f * (float)pow(2.0, ((double)note - 69.0) / 12.0);
++}
++
++static void DoomMusic_ProcessEvent(const doom_music_event_t *event)
++{
++    switch (event->type)
++    {
++        case DM_EVENT_NOTE_ON:
++        {
++            doom_music_voice_t *voice = DoomMusic_AllocVoice();
++            if (!voice)
++            {
++                return;
++            }
++            float freq = DoomMusic_NoteFrequency(event->data1);
++            voice->channel = event->channel;
++            voice->note = event->data1;
++            voice->velocity = (float)event->data2 / 127.0f;
++            if (voice->velocity <= 0.0f)
++            {
++                voice->velocity = 0.01f;
++            }
++            voice->phase = 0.0f;
++            voice->phase_step = (float)((2.0 * M_PI * freq) / (double)g_music_state.sample_rate);
++            voice->env = voice->velocity;
++            voice->release_factor = (float)pow(0.0001, 1.0 / (DOOM_MUSIC_RELEASE_SECONDS * g_music_state.sample_rate));
++            break;
++        }
++        case DM_EVENT_NOTE_OFF:
++        {
++            size_t i;
++            for (i = 0; i < DOOM_MUSIC_MAX_VOICES; ++i)
++            {
++                doom_music_voice_t *voice = &g_music_state.voices[i];
++                if (!voice->active)
++                {
++                    continue;
++                }
++                if (voice->channel == event->channel && voice->note == event->data1)
++                {
++                    voice->releasing = 1;
++                }
++            }
++            break;
++        }
++        case DM_EVENT_VOLUME:
++        {
++            g_music_state.channel_volume[event->channel & 0x0F] = (float)event->data1 / 127.0f;
++            break;
++        }
++        case DM_EVENT_PAN:
++        {
++            g_music_state.channel_pan[event->channel & 0x0F] = (float)event->data1 / 127.0f;
++            break;
++        }
++        case DM_EVENT_PROGRAM:
++        default:
++            break;
++    }
++}
++
++static void DoomMusic_ResetVoices(void)
++{
++    size_t i;
++    for (i = 0; i < DOOM_MUSIC_MAX_VOICES; ++i)
++    {
++        g_music_state.voices[i].active = 0;
++        g_music_state.voices[i].releasing = 0;
++        g_music_state.voices[i].env = 0.0f;
++    }
++}
++
++static int DoomMusic_Render(short *output, size_t frames)
++{
++    size_t frame_index = 0;
++    size_t out_index = 0;
++
++    while (frame_index < frames)
++    {
++        // process pending events whose sample time has arrived
++        while (g_music_state.next_event < g_music_state.event_count)
++        {
++            doom_music_event_t *event = &g_music_state.events[g_music_state.next_event];
++            if (event->sample > g_music_state.current_sample)
++            {
++                break;
++            }
++            if (event->type == DM_EVENT_END)
++            {
++                if (g_music_state.looping)
++                {
++                    g_music_state.current_sample = 0;
++                    g_music_state.next_event = 0;
++                    DoomMusic_ResetVoices();
++                    continue;
++                }
++                else
++                {
++                    g_music_state.playing = 0;
++                    return (int)frame_index;
++                }
++            }
++            DoomMusic_ProcessEvent(event);
++            g_music_state.next_event++;
++        }
++
++        size_t frames_to_render = frames - frame_index;
++        if (g_music_state.next_event < g_music_state.event_count)
++        {
++            doom_music_event_t *next_event = &g_music_state.events[g_music_state.next_event];
++            if (next_event->sample > g_music_state.current_sample)
++            {
++                uint64_t delta = next_event->sample - g_music_state.current_sample;
++                if (delta < frames_to_render)
++                {
++                    frames_to_render = (size_t)delta;
++                }
++            }
++            else
++            {
++                frames_to_render = 0;
++            }
++        }
++
++        if (frames_to_render == 0)
++        {
++            // no audio to render before next event, advance a minimal step
++            frames_to_render = 1;
++        }
++
++        size_t i;
++        for (i = 0; i < frames_to_render; ++i)
++        {
++            float left = 0.0f;
++            float right = 0.0f;
++            size_t v;
++            for (v = 0; v < DOOM_MUSIC_MAX_VOICES; ++v)
++            {
++                doom_music_voice_t *voice = &g_music_state.voices[v];
++                if (!voice->active)
++                {
++                    continue;
++                }
++                float sample = sinf(voice->phase);
++                voice->phase += voice->phase_step;
++                if (voice->phase > (float)(2.0 * M_PI))
++                {
++                    voice->phase -= (float)(2.0 * M_PI);
++                }
++
++                if (voice->releasing)
++                {
++                    voice->env *= voice->release_factor;
++                    if (voice->env < DOOM_MUSIC_MIN_VOLUME)
++                    {
++                        voice->active = 0;
++                        continue;
++                    }
++                }
++
++                float channel_vol = g_music_state.channel_volume[voice->channel & 0x0F];
++                float pan = g_music_state.channel_pan[voice->channel & 0x0F];
++                if (pan < 0.0f)
++                {
++                    pan = 0.0f;
++                }
++                if (pan > 1.0f)
++                {
++                    pan = 1.0f;
++                }
++
++                float amplitude = sample * voice->env * channel_vol;
++                float left_weight = 1.0f - pan;
++                float right_weight = pan;
++                left += amplitude * left_weight;
++                right += amplitude * right_weight;
++            }
++
++            if (left > 1.0f)
++                left = 1.0f;
++            if (left < -1.0f)
++                left = -1.0f;
++            if (right > 1.0f)
++                right = 1.0f;
++            if (right < -1.0f)
++                right = -1.0f;
++
++            output[out_index++] = (int16_t)(left * 32767.0f);
++            output[out_index++] = (int16_t)(right * 32767.0f);
++            g_music_state.current_sample++;
++        }
++
++        frame_index += frames_to_render;
++    }
++
++    return (int)frame_index;
++}
++
++void DoomMusic_Init(void)
++{
++    if (g_music_state.initialised)
++    {
++        return;
++    }
++    memset(&g_music_state, 0, sizeof(g_music_state));
++    g_music_state.sample_rate = DOOM_MUSIC_SAMPLE_RATE;
++    g_music_state.samples_per_tick = (double)g_music_state.sample_rate / 140.0;
++    DoomMusic_ResetChannelsAndVoices();
++    wasm_music_init(g_music_state.sample_rate);
++    g_music_state.initialised = 1;
++}
++
++void DoomMusic_Shutdown(void)
++{
++    if (!g_music_state.initialised)
++    {
++        return;
++    }
++    DoomMusic_Stop();
++    free(g_music_state.events);
++    g_music_state.events = NULL;
++    g_music_state.event_count = 0;
++    free(g_music_state.mix_buffer);
++    g_music_state.mix_buffer = NULL;
++    g_music_state.mix_buffer_capacity = 0;
++    wasm_music_shutdown();
++    g_music_state.initialised = 0;
++}
++
++void DoomMusic_Play(const unsigned char *data, size_t length, int looping)
++{
++    if (!g_music_state.initialised)
++    {
++        DoomMusic_Init();
++    }
++    DoomMusic_Stop();
++
++    doom_music_event_t *events = NULL;
++    size_t event_count = 0;
++    uint32_t last_tick = 0;
++    if (!DoomMusic_Parse(data, length, &events, &event_count, &last_tick))
++    {
++        return;
++    }
++
++    size_t i;
++    double samples_per_tick = (double)g_music_state.sample_rate / 140.0;
++    for (i = 0; i < event_count; ++i)
++    {
++        double sample_pos = (double)events[i].tick * samples_per_tick;
++        if (sample_pos < 0.0)
++        {
++            sample_pos = 0.0;
++        }
++        events[i].sample = (uint64_t)(sample_pos + 0.5);
++    }
++
++    g_music_state.events = events;
++    g_music_state.event_count = event_count;
++    g_music_state.samples_per_tick = samples_per_tick;
++    g_music_state.looping = looping;
++    g_music_state.playing = 1;
++    g_music_state.paused = 0;
++    g_music_state.current_sample = 0;
++    g_music_state.next_event = 0;
++    if (event_count > 0)
++    {
++        g_music_state.total_samples = events[event_count - 1].sample;
++    }
++    else
++    {
++        g_music_state.total_samples = 0;
++    }
++    DoomMusic_ResetChannelsAndVoices();
++    g_music_state.looping = looping;
++    wasm_music_stop();
++}
++
++void DoomMusic_Stop(void)
++{
++    if (!g_music_state.initialised)
++    {
++        return;
++    }
++    g_music_state.playing = 0;
++    g_music_state.paused = 0;
++    g_music_state.looping = 0;
++    g_music_state.current_sample = 0;
++    g_music_state.next_event = 0;
++    DoomMusic_ResetVoices();
++    if (g_music_state.events)
++    {
++        free(g_music_state.events);
++        g_music_state.events = NULL;
++        g_music_state.event_count = 0;
++    }
++    wasm_music_stop();
++}
++
++void DoomMusic_Pause(int paused)
++{
++    g_music_state.paused = paused ? 1 : 0;
++    wasm_music_pause(g_music_state.paused);
++}
++
++void DoomMusic_SetVolume(int volume)
++{
++    if (volume < 0)
++    {
++        volume = 0;
++    }
++    if (volume > 127)
++    {
++        volume = 127;
++    }
++    wasm_music_set_volume(volume);
++}
++
++void DoomMusic_Update(void)
++{
++    if (!g_music_state.initialised)
++    {
++        return;
++    }
++    if (!g_music_state.playing || g_music_state.paused)
++    {
++        return;
++    }
++
++    DoomMusic_EnsureBuffer(DOOM_MUSIC_FRAMES_PER_CHUNK);
++    int produced = DoomMusic_Render(g_music_state.mix_buffer, DOOM_MUSIC_FRAMES_PER_CHUNK);
++    if (produced > 0)
++    {
++        wasm_music_enqueue(g_music_state.mix_buffer, (size_t)produced, g_music_state.sample_rate);
++    }
++}
+diff --git a/doom/linuxdoom-1.10/doom_music.h b/doom/linuxdoom-1.10/doom_music.h
+new file mode 100644
+index 0000000..571b9ee
+--- /dev/null
++++ b/doom/linuxdoom-1.10/doom_music.h
+@@ -0,0 +1,15 @@
++#ifndef DOOM_MUSIC_H
++#define DOOM_MUSIC_H
++
++#include <stddef.h>
++#include <stdint.h>
++
++void DoomMusic_Init(void);
++void DoomMusic_Shutdown(void);
++void DoomMusic_Play(const unsigned char *data, size_t length, int looping);
++void DoomMusic_Stop(void);
++void DoomMusic_Pause(int paused);
++void DoomMusic_SetVolume(int volume);
++void DoomMusic_Update(void);
++
++#endif /* DOOM_MUSIC_H */
+diff --git a/doom/linuxdoom-1.10/i_sound.c b/doom/linuxdoom-1.10/i_sound.c
+index 5561b65..bf87293 100644
+--- a/doom/linuxdoom-1.10/i_sound.c
++++ b/doom/linuxdoom-1.10/i_sound.c
+@@ -24,78 +24,419 @@
+ static const char
+ rcsid[] = "$Id: i_unix.c,v 1.5 1997/02/03 22:45:10 b1 Exp $";
+ 
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "doomdef.h"
++#include "doomstat.h"
++#include "sounds.h"
++#include "s_sound.h"
++#include "w_wad.h"
++#include "z_zone.h"
++
+ #include "i_sound.h"
++#include "doom_music.h"
++
++extern void wasm_audio_init(int sample_rate);
++extern void wasm_audio_play_sfx(const unsigned char *data,
++                                int length,
++                                int sample_rate,
++                                int left_volume,
++                                int right_volume,
++                                int pitch);
++extern void wasm_audio_shutdown(void);
++
++#define SAMPLECOUNT 512
++#define DEFAULT_SAMPLE_RATE 11025
++
++static unsigned char *sfx_data[NUMSFX];
++static int sfx_lengths[NUMSFX];
++static int sfx_sample_rates[NUMSFX];
++static int audio_initialized = 0;
++static unsigned short has_audio_context = 0;
++static int music_initialized = 0;
++static int current_music_lumpnum = -1;
++static int current_music_lump_length = 0;
++static const unsigned char *current_music_data = NULL;
++
++// -----------------------------------------------------------------------------
++// Minimal helpers derived from the original Linux DOOM implementation.
++// They load the raw 8-bit PCM data from the WAD, pad it to SAMPLECOUNT so the
++// in-game mixing assumptions remain valid, and return a pointer to the sound
++// data (skipping the 8 byte DMX header held in each lump).
++// -----------------------------------------------------------------------------
++
++static unsigned char *load_sfx_data(const char *sfxname,
++                                    int *out_length,
++                                    int *out_sample_rate)
++{
++    unsigned char *sfx;
++    unsigned char *padded;
++    int size;
++    int padded_size;
++    char lump_name[20];
++    int lump_num;
++    int i;
++
++    sprintf(lump_name, "ds%s", sfxname);
++    if (W_CheckNumForName(lump_name) == -1)
++    {
++        lump_num = W_GetNumForName("dspistol");
++    }
++    else
++    {
++        lump_num = W_GetNumForName(lump_name);
++    }
++
++    size = W_LumpLength(lump_num);
++    if (size < 8)
++    {
++        *out_length = 0;
++        *out_sample_rate = DEFAULT_SAMPLE_RATE;
++        return NULL;
++    }
++
++    sfx = (unsigned char *)W_CacheLumpNum(lump_num, PU_STATIC);
++    padded_size = ((size - 8 + (SAMPLECOUNT - 1)) / SAMPLECOUNT) * SAMPLECOUNT;
++    if (padded_size < 0)
++    {
++        padded_size = 0;
++    }
++
++    padded = (unsigned char *)Z_Malloc(padded_size + 8, PU_STATIC, 0);
++    memcpy(padded, sfx, size);
++    for (i = size; i < padded_size + 8; ++i)
++    {
++        padded[i] = 128; // silence
++    }
++
++    if (out_sample_rate)
++    {
++        // DMX header stores sample rate in little endian at bytes 2..3.
++        int rate = padded[2] | (padded[3] << 8);
++        *out_sample_rate = rate > 0 ? rate : DEFAULT_SAMPLE_RATE;
++    }
++
++    Z_Free(sfx);
++
++    *out_length = padded_size;
++    return padded + 8;
++}
++
++static int sfx_index_from_link(const sfxinfo_t *sfx)
++{
++    if (!sfx || !sfx->link)
++    {
++        return -1;
++    }
++
++    return (int)(sfx->link - S_sfx);
++}
+ 
++void I_SetChannels(void)
++{
++    // No-op: we rely on the legacy S_StartSound channel allocation to
++    // determine positional parameters, while playback happens via WebAudio.
++}
+ 
++void I_SetSfxVolume(int volume)
++{
++    (void)volume;
++}
+ 
+-// UNIX hack, to be removed.
+-#ifdef SNDSERV
+-char*  sndserver_filename = "./sndserver ";
+-#endif
++void I_SetMusicVolume(int volume)
++{
++    if (volume < 0)
++    {
++        volume = 0;
++    }
++    if (volume > 127)
++    {
++        volume = 127;
++    }
+ 
++    if (!music_initialized)
++    {
++        I_InitMusic();
++    }
+ 
++    DoomMusic_SetVolume(volume);
++}
+ 
+-void I_SetChannels(){}
++int I_GetSfxLumpNum(sfxinfo_t *sfx)
++{
++    char namebuf[9];
++    sprintf(namebuf, "ds%s", sfx->name);
++    return W_GetNumForName(namebuf);
++}
+ 
+-void I_SetSfxVolume(int volume){}
++static void ensure_audio_context(void)
++{
++    if (!has_audio_context)
++    {
++        wasm_audio_init(DEFAULT_SAMPLE_RATE);
++        has_audio_context = 1;
++    }
++}
+ 
+-void I_SetMusicVolume(int volume){}
++void I_NotifyMusicLump(int lumpnum)
++{
++    current_music_lumpnum = lumpnum;
++    if (lumpnum >= 0)
++    {
++        current_music_lump_length = W_LumpLength(lumpnum);
++    }
++    else
++    {
++        current_music_lump_length = 0;
++    }
++}
+ 
+-int I_GetSfxLumpNum(sfxinfo_t* sfx)
++void I_InitSound(void)
+ {
+-  return 0;
++    int i;
++
++    if (audio_initialized)
++    {
++        return;
++    }
++
++    ensure_audio_context();
++
++    sfx_data[0] = NULL;
++    sfx_lengths[0] = 0;
++    sfx_sample_rates[0] = DEFAULT_SAMPLE_RATE;
++
++    for (i = 1; i < NUMSFX; ++i)
++    {
++        int link_index = sfx_index_from_link(&S_sfx[i]);
++        if (link_index >= 0 && link_index < NUMSFX)
++        {
++            sfx_data[i] = sfx_data[link_index];
++            sfx_lengths[i] = sfx_lengths[link_index];
++            sfx_sample_rates[i] = sfx_sample_rates[link_index];
++        }
++        else
++        {
++            int length = 0;
++            int sample_rate = DEFAULT_SAMPLE_RATE;
++            unsigned char *data = load_sfx_data(S_sfx[i].name, &length, &sample_rate);
++            sfx_data[i] = data;
++            sfx_lengths[i] = length;
++            sfx_sample_rates[i] = sample_rate;
++        }
++
++        S_sfx[i].data = sfx_data[i];
++    }
++
++    audio_initialized = 1;
+ }
+ 
+-int
+-I_StartSound
+-( int		id,
+-  int		vol,
+-  int		sep,
+-  int		pitch,
+-  int		priority )
++static void compute_channel_volumes(int base_volume,
++                                    int separation,
++                                    int *left_volume,
++                                    int *right_volume)
+ {
+-  return 0;
++    int sep = separation + 1; // original algorithm expects 1-258
++    int left = base_volume - ((base_volume * sep * sep) >> 16);
++    sep = sep - 257;
++    int right = base_volume - ((base_volume * sep * sep) >> 16);
++
++    if (left < 0) left = 0;
++    if (left > 127) left = 127;
++    if (right < 0) right = 0;
++    if (right > 127) right = 127;
++
++    *left_volume = left;
++    *right_volume = right;
+ }
+ 
+-void I_StopSound (int handle){}
++int I_StartSound(int id,
++                 int vol,
++                 int sep,
++                 int pitch,
++                 int priority)
++{
++    int left_volume;
++    int right_volume;
++
++    (void)priority;
++
++    if (id <= 0 || id >= NUMSFX)
++    {
++        return 0;
++    }
++
++    if (!audio_initialized)
++    {
++        I_InitSound();
++    }
++
++    if (!sfx_data[id] || sfx_lengths[id] <= 0)
++    {
++        return 0;
++    }
+ 
++    compute_channel_volumes(vol, sep, &left_volume, &right_volume);
++    ensure_audio_context();
++    wasm_audio_play_sfx(sfx_data[id],
++                        sfx_lengths[id],
++                        sfx_sample_rates[id],
++                        left_volume,
++                        right_volume,
++                        pitch);
++
++    return id;
++}
++
++void I_StopSound(int handle)
++{
++    (void)handle;
++}
+ 
+ int I_SoundIsPlaying(int handle)
+ {
+-    // Ouch.
++    (void)handle;
+     return 0;
+ }
+ 
+-void I_UpdateSound( void ){}
++void I_UpdateSound(void)
++{
++    if (music_initialized)
++    {
++        DoomMusic_Update();
++    }
++}
++
++void I_SubmitSound(void)
++{
++}
++
++void I_UpdateSoundParams(int handle,
++                         int vol,
++                         int sep,
++                         int pitch)
++{
++    (void)handle;
++    (void)vol;
++    (void)sep;
++    (void)pitch;
++}
++
++void I_ShutdownSound(void)
++{
++    if (has_audio_context)
++    {
++        wasm_audio_shutdown();
++        has_audio_context = 0;
++    }
++    if (music_initialized)
++    {
++        DoomMusic_Shutdown();
++        music_initialized = 0;
++    }
++    audio_initialized = 0;
++}
++
++void I_InitMusic(void)
++{
++    if (music_initialized)
++    {
++        return;
++    }
++
++    ensure_audio_context();
++    DoomMusic_Init();
++    music_initialized = 1;
++}
++
++void I_ShutdownMusic(void)
++{
++    if (!music_initialized)
++    {
++        return;
++    }
+ 
+-void I_SubmitSound(void){}
++    DoomMusic_Shutdown();
++    music_initialized = 0;
++}
+ 
++void I_PlaySong(int handle, int looping)
++{
++    if (!music_initialized)
++    {
++        I_InitMusic();
++    }
+ 
++    if (!current_music_lump_length || !current_music_data)
++    {
++        return;
++    }
+ 
+-void
+-I_UpdateSoundParams
+-( int	handle,
+-  int	vol,
+-  int	sep,
+-  int	pitch){}
++    DoomMusic_Play(current_music_data,
++                   (size_t)current_music_lump_length,
++                   looping ? 1 : 0);
++    DoomMusic_Update();
++}
+ 
+-void I_ShutdownSound(void){}
++void I_PauseSong(int handle)
++{
++    if (!music_initialized)
++    {
++        return;
++    }
+ 
+-void I_InitSound(){}
++    DoomMusic_Pause(1);
++}
+ 
+-void I_InitMusic(void)		{ }
+-void I_ShutdownMusic(void)	{ }
+-void I_PlaySong(int handle, int looping){}
++void I_ResumeSong(int handle)
++{
++    if (!music_initialized)
++    {
++        return;
++    }
+ 
+-void I_PauseSong (int handle){}
++    DoomMusic_Pause(0);
++}
+ 
+-void I_ResumeSong (int handle){}
++void I_StopSong(int handle)
++{
++    if (!music_initialized)
++    {
++        return;
++    }
+ 
+-void I_StopSong(int handle){}
++    DoomMusic_Stop();
++}
+ 
+-void I_UnRegisterSong(int handle){}
++void I_UnRegisterSong(int handle)
++{
++    (void)handle;
++    current_music_data = NULL;
++    current_music_lump_length = 0;
++}
+ 
+-int I_RegisterSong(void* data)
++int I_RegisterSong(void *data)
+ {
+-  return 1;
++    if (!data)
++    {
++        return 0;
++    }
++
++    if (!music_initialized)
++    {
++        I_InitMusic();
++    }
++
++    current_music_data = (const unsigned char *)data;
++    if (current_music_lump_length <= 0 && current_music_lumpnum >= 0)
++    {
++        current_music_lump_length = W_LumpLength(current_music_lumpnum);
++    }
++    if (current_music_lump_length < 0)
++    {
++        current_music_lump_length = 0;
++    }
++    return 1;
+ }
+diff --git a/doom/linuxdoom-1.10/i_sound.h b/doom/linuxdoom-1.10/i_sound.h
+index bbfabac..212725c 100644
+--- a/doom/linuxdoom-1.10/i_sound.h
++++ b/doom/linuxdoom-1.10/i_sound.h
+@@ -94,6 +94,7 @@ void I_InitMusic(void);
+ void I_ShutdownMusic(void);
+ // Volume.
+ void I_SetMusicVolume(int volume);
++void I_NotifyMusicLump(int lumpnum);
+ // PAUSE game handling.
+ void I_PauseSong(int handle);
+ void I_ResumeSong(int handle);
+diff --git a/doom/linuxdoom-1.10/i_system.c b/doom/linuxdoom-1.10/i_system.c
+index e497718..3c8dabb 100644
+--- a/doom/linuxdoom-1.10/i_system.c
++++ b/doom/linuxdoom-1.10/i_system.c
+@@ -48,7 +48,19 @@ rcsid[] = "$Id: m_bbox.c,v 1.1 1997/02/03 22:45:10 b1 Exp $";
+ 
+ 
+ 
+-int	mb_used = 6;
++int	mb_used = 160;
++
++static int clamp_zone_mb(int value)
++{
++    const int min_mb = 128;
++    const int max_mb = 512;
++
++    if (value < min_mb)
++        return min_mb;
++    if (value > max_mb)
++        return max_mb;
++    return value;
++}
+ 
+ 
+ void
+@@ -70,11 +82,13 @@ ticcmd_t*	I_BaseTiccmd(void)
+ 
+ int  I_GetHeapSize (void)
+ {
++    mb_used = clamp_zone_mb(mb_used);
+     return mb_used*1024*1024;
+ }
+ 
+ byte* I_ZoneBase (int*	size)
+ {
++    mb_used = clamp_zone_mb(mb_used);
+     *size = mb_used*1024*1024;
+     return (byte *) malloc (*size);
+ }
+diff --git a/doom/linuxdoom-1.10/m_menu.c b/doom/linuxdoom-1.10/m_menu.c
+index 4d415ae..1c9def8 100644
+--- a/doom/linuxdoom-1.10/m_menu.c
++++ b/doom/linuxdoom-1.10/m_menu.c
+@@ -38,6 +38,9 @@ rcsid[] = "$Id: m_menu.c,v 1.7 1997/02/03 22:45:10 b1 Exp $";
+ 
+ #include "d_main.h"
+ 
++#include "m_misc.h"
++
++extern int wasm_save_state_load(int slot, unsigned char *data, int capacity);
+ #include "i_system.h"
+ #include "i_video.h"
+ #include "z_zone.h"
+@@ -510,28 +513,28 @@ menu_t  SaveDef =
+ //
+ void M_ReadSaveStrings(void)
+ {
+-    int             handle;
+-    int             count;
+     int             i;
+-    char    name[256];
+-	
++
+     for (i = 0;i < load_end;i++)
+     {
+-	if (M_CheckParm("-cdrom"))
+-	    sprintf(name,"c:\\doomdata\\"SAVEGAMENAME"%d.dsg",i);
+-	else
+-	    sprintf(name,SAVEGAMENAME"%d.dsg",i);
+-
+-	handle = open (name, O_RDONLY | 0, 0666);
+-	if (handle == -1)
+-	{
+-	    strcpy(&savegamestrings[i][0],EMPTYSTRING);
+-	    LoadMenu[i].status = 0;
+-	    continue;
+-	}
+-	count = read (handle, &savegamestrings[i], SAVESTRINGSIZE);
+-	close (handle);
+-	LoadMenu[i].status = 1;
++        int read_bytes;
++
++        read_bytes = wasm_save_state_load(i,
++                         (unsigned char *)&savegamestrings[i][0],
++                         SAVESTRINGSIZE);
++        if (read_bytes <= 0)
++        {
++            strcpy(&savegamestrings[i][0],EMPTYSTRING);
++            LoadMenu[i].status = 0;
++            continue;
++        }
++
++        if (read_bytes < SAVESTRINGSIZE)
++            savegamestrings[i][read_bytes] = '\0';
++        else
++            savegamestrings[i][SAVESTRINGSIZE-1] = '\0';
++
++        LoadMenu[i].status = 1;
+     }
+ }
+ 
+@@ -1890,4 +1893,3 @@ void M_Init (void)
+     }
+     
+ }
+-
+diff --git a/doom/linuxdoom-1.10/m_misc.c b/doom/linuxdoom-1.10/m_misc.c
+index 0df4fe5..02158c0 100644
+--- a/doom/linuxdoom-1.10/m_misc.c
++++ b/doom/linuxdoom-1.10/m_misc.c
+@@ -59,6 +59,48 @@ rcsid[] = "$Id: m_misc.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
+ 
+ #include "m_misc.h"
+ 
++extern int wasm_save_state_store(int slot, const unsigned char *data, int length);
++extern int wasm_save_state_load(int slot, unsigned char *data, int capacity);
++extern int wasm_save_state_length(int slot);
++extern int wasm_save_state_clear(int slot);
++
++static int M_SaveSlotForName(const char *name)
++{
++    const char *basename;
++    size_t prefix_len;
++    int slot;
++
++    if (!name)
++        return -1;
++
++    basename = strrchr(name, '/');
++    if (!basename)
++        basename = strrchr(name, '\\');
++    if (basename)
++        basename++;
++    else
++        basename = name;
++
++    prefix_len = strlen(SAVEGAMENAME);
++    if (strncmp(basename, SAVEGAMENAME, prefix_len) != 0)
++        return -1;
++
++    basename += prefix_len;
++    if (!*basename)
++        return -1;
++
++    slot = 0;
++    while (*basename && *basename != '.')
++    {
++        if (!isdigit((unsigned char)*basename))
++            return -1;
++        slot = slot * 10 + (*basename - '0');
++        basename++;
++    }
++
++    return slot;
++}
++
+ //
+ // M_DrawText
+ // Returns the final X coordinate
+@@ -115,9 +157,22 @@ M_WriteFile
+   void*		source,
+   int		length )
+ {
++    int slot = M_SaveSlotForName(name);
++    if (slot >= 0)
++    {
++        const unsigned char *bytes = (const unsigned char *)source;
++        if (length <= 0)
++        {
++            wasm_save_state_clear(slot);
++            return true;
++        }
++
++        return wasm_save_state_store(slot, bytes, length) == 0;
++    }
++
+     int		handle;
+     int		count;
+-	
++
+     handle = open ( name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
+ 
+     if (handle == -1)
+@@ -141,10 +196,32 @@ M_ReadFile
+ ( char const*	name,
+   byte**	buffer )
+ {
++    int slot = M_SaveSlotForName(name);
++    if (slot >= 0)
++    {
++        int length = wasm_save_state_length(slot);
++        int written;
++        byte *buf;
++
++        if (length <= 0)
++            I_Error ("Couldn't read file %s", name);
++
++        buf = Z_Malloc (length, PU_STATIC, NULL);
++        written = wasm_save_state_load(slot, buf, length);
++        if (written < length)
++        {
++            Z_Free (buf);
++            I_Error ("Couldn't read file %s", name);
++        }
++
++        *buffer = buf;
++        return length;
++    }
++
+     int	handle, count, length;
+     struct stat	fileinfo;
+     byte		*buf;
+-	
++
+     handle = open (name, O_RDONLY | O_BINARY, 0666);
+     if (handle == -1)
+ 	I_Error ("Couldn't read file %s", name);
+@@ -255,7 +332,7 @@ default_t	defaults[] =
+ // UNIX hack, to be removed. 
+ #ifdef SNDSERV
+     {"sndserver", (int *) &sndserver_filename, (int) "sndserver"},
+-    {"mb_used", &mb_used, 2},
++    {"mb_used", &mb_used, 160},
+ #endif
+     
+ #endif
+@@ -530,5 +607,3 @@ void M_ScreenShot (void)
+ 	
+     players[consoleplayer].message = "screen shot";
+ }
+-
+-
+diff --git a/doom/linuxdoom-1.10/s_sound.c b/doom/linuxdoom-1.10/s_sound.c
+index bcfb538..b9b486e 100644
+--- a/doom/linuxdoom-1.10/s_sound.c
++++ b/doom/linuxdoom-1.10/s_sound.c
+@@ -676,6 +676,7 @@ S_ChangeMusic
+     }
+ 
+     // load & register it
++    I_NotifyMusicLump(music->lumpnum);
+     music->data = (void *) W_CacheLumpNum(music->lumpnum, PU_MUSIC);
+     music->handle = I_RegisterSong(music->data);
+ 
+@@ -876,4 +877,3 @@ S_getChannel
+ 
+ 
+ 
+-
+diff --git a/doom/musl-1.2.2/config.mak b/doom/musl-1.2.2/config.mak
+index 7ef6c56..5bf70f2 100644
+--- a/doom/musl-1.2.2/config.mak
++++ b/doom/musl-1.2.2/config.mak
+@@ -1,8 +1,8 @@
+ # This version of config.mak was generated by:
+ # AR=llvm-ar-10 CC=clang CFLAGS="-m32 --target=wasm32" ./configure --target=wasm32
+ # Any changes made here will be lost if configure is re-run
+-AR = llvm-ar-10
+-RANLIB = llvm-ranlib-10 #$(CROSS_COMPILE)ranlib
++AR = llvm-ar-12
++RANLIB = llvm-ranlib-12 #$(CROSS_COMPILE)ranlib
+ ARCH = wasm32
+ SUBARCH = 
+ ASMSUBARCH = 
+@@ -13,7 +13,7 @@ bindir = $(exec_prefix)/bin
+ libdir = $(prefix)/lib
+ includedir = $(prefix)/include
+ syslibdir = /lib
+-CC = clang
++CC = clang-12
+ CFLAGS = -m32 --target=wasm32
+ CFLAGS_AUTO = -Os -pipe -fomit-frame-pointer -fno-unwind-tables -fno-asynchronous-unwind-tables -ffunction-sections -fdata-sections -w -Wno-pointer-to-int-cast -Werror=implicit-function-declaration -Werror=implicit-int -Werror=pointer-sign -Werror=pointer-arith -Werror=int-conversion -Werror=incompatible-pointer-types -Qunused-arguments -Waddress -Warray-bounds -Wchar-subscripts -Wduplicate-decl-specifier -Winit-self -Wreturn-type -Wsequence-point -Wstrict-aliasing -Wunused-function -Wunused-label -Wunused-variable
+ CFLAGS_C99FSE = -std=c99 -nostdinc -ffreestanding -frounding-math -Wa,--noexecstack
+diff --git a/doom/src/js_imports.rs b/doom/src/js_imports.rs
+index cd3d564..aee1dbd 100644
+--- a/doom/src/js_imports.rs
++++ b/doom/src/js_imports.rs
+@@ -5,4 +5,23 @@ extern "C" {
+     pub fn js_console_log(ptr: *const u8, len: usize);
+     pub fn js_stdout(ptr: *const u8, len: usize);
+     pub fn js_stderr(ptr: *const u8, len: usize);
++    pub fn js_audio_init(sample_rate: i32);
++    pub fn js_audio_play_sfx(
++        ptr: *const u8,
++        len: usize,
++        sample_rate: i32,
++        left_volume: i32,
++        right_volume: i32,
++        pitch: i32,
++    );
++    pub fn js_audio_shutdown();
++    pub fn js_music_init(sample_rate: i32);
++    pub fn js_music_shutdown();
++    pub fn js_music_enqueue(ptr: *const i16, frames: usize, sample_rate: i32);
++    pub fn js_music_stop();
++    pub fn js_music_pause(paused: i32);
++    pub fn js_music_set_volume(volume: i32);
++    pub fn js_save_state_store(slot: i32, ptr: *const u8, len: usize) -> i32;
++    pub fn js_save_state_load(slot: i32, ptr: *mut u8, capacity: usize) -> i32;
++    pub fn js_save_state_clear(slot: i32) -> i32;
+ }
+diff --git a/doom/src/lib.rs b/doom/src/lib.rs
+index 51688ff..69445d2 100644
+--- a/doom/src/lib.rs
++++ b/doom/src/lib.rs
+@@ -8,6 +8,9 @@ mod printf;
+ mod unimplemented_libc;
+ mod video;
+ 
++use std::ffi::CString;
++use std::os::raw::c_char;
++
+ #[macro_export]
+ macro_rules! log {
+     ($($arg:tt)*) => {
+@@ -18,3 +21,126 @@ macro_rules! log {
+ 
+ #[macro_export]
+ macro_rules! println { ($($arg:tt),*) => { log!( $( $arg )* ) }; }
++
++#[no_mangle]
++pub extern "C" fn wasm_audio_init(sample_rate: i32) {
++    unsafe { js_imports::js_audio_init(sample_rate) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_audio_play_sfx(
++    ptr: *const u8,
++    len: usize,
++    sample_rate: i32,
++    left_volume: i32,
++    right_volume: i32,
++    pitch: i32,
++) {
++    unsafe {
++        js_imports::js_audio_play_sfx(ptr, len, sample_rate, left_volume, right_volume, pitch)
++    }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_audio_shutdown() {
++    unsafe { js_imports::js_audio_shutdown() }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_init(sample_rate: i32) {
++    unsafe { js_imports::js_music_init(sample_rate) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_shutdown() {
++    unsafe { js_imports::js_music_shutdown() }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_enqueue(ptr: *const i16, frames: usize, sample_rate: i32) {
++    unsafe { js_imports::js_music_enqueue(ptr, frames, sample_rate) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_stop() {
++    unsafe { js_imports::js_music_stop() }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_pause(paused: i32) {
++    unsafe { js_imports::js_music_pause(paused) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_music_set_volume(volume: i32) {
++    unsafe { js_imports::js_music_set_volume(volume) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_save_state_store(slot: i32, ptr: *const u8, len: usize) -> i32 {
++    unsafe { js_imports::js_save_state_store(slot, ptr, len) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_save_state_load(slot: i32, ptr: *mut u8, capacity: usize) -> i32 {
++    unsafe { js_imports::js_save_state_load(slot, ptr, capacity) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_save_state_clear(slot: i32) -> i32 {
++    unsafe { js_imports::js_save_state_clear(slot) }
++}
++
++#[no_mangle]
++pub extern "C" fn wasm_save_state_length(slot: i32) -> i32 {
++    unsafe { js_imports::js_save_state_load(slot, std::ptr::null_mut(), 0) }
++}
++
++extern "C" {
++    fn G_SaveGame(slot: i32, description: *mut c_char);
++    fn G_LoadGame(name: *mut c_char);
++}
++
++const SAVEGAME_PREFIX: &str = "doomsav";
++const SAVEGAME_SUFFIX: &str = ".dsg";
++
++#[no_mangle]
++pub extern "C" fn cm_save_state_v1(slot: i32) -> i32 {
++    if slot < 0 {
++        return 2;
++    }
++
++    let desc = format!("Console slot {}", slot);
++    match CString::new(desc) {
++        Ok(c_desc) => {
++            unsafe {
++                G_SaveGame(slot, c_desc.as_ptr() as *mut c_char);
++            }
++            0
++        }
++        Err(_) => 3,
++    }
++}
++
++#[no_mangle]
++pub extern "C" fn cm_load_state_v1(slot: i32) -> i32 {
++    if slot < 0 {
++        return 2;
++    }
++
++    let available = wasm_save_state_length(slot);
++    if available <= 0 {
++        return 1;
++    }
++
++    let name = format!("{}{}{}", SAVEGAME_PREFIX, slot, SAVEGAME_SUFFIX);
++    match CString::new(name) {
++        Ok(c_name) => {
++            unsafe {
++                G_LoadGame(c_name.as_ptr() as *mut c_char);
++            }
++            0
++        }
++        Err(_) => 3,
++    }
++}
+diff --git a/doom/src/malloc.rs b/doom/src/malloc.rs
+index ed4c202..84979dc 100644
+--- a/doom/src/malloc.rs
++++ b/doom/src/malloc.rs
+@@ -43,10 +43,11 @@ extern "C" fn realloc(ptr: i32, size: usize) -> *const c_void {
+         None => panic!("Memory {} not malloced", ptr),
+     };
+     if size <= old_vec.len() {
+-        panic!("realloc asked to shrink!"); // TODO
+-    }
+-    for _ in 0..size - old_vec.len() {
+-        old_vec.push(0);
++        old_vec.truncate(size);
++    } else {
++        for _ in 0..size - old_vec.len() {
++            old_vec.push(0);
++        }
+     }
+ 
+     let p = old_vec.as_ptr();
+diff --git a/doom/src/unimplemented_libc.rs b/doom/src/unimplemented_libc.rs
+index 953cd07..9211858 100644
+--- a/doom/src/unimplemented_libc.rs
++++ b/doom/src/unimplemented_libc.rs
+@@ -37,7 +37,7 @@ extern "C" fn exit(_: i32) {
+ 
+ #[no_mangle]
+ extern "C" fn usleep(_: i32) -> i32 {
+-    panic!("usleep unimplemented");
++    0
+ }
+ 
+ #[no_mangle]

@@ -1,0 +1,239 @@
+title: SiteGen Title
+description: The SiteGen – a showcase of features!
+
+parallaxImage: assets/template/logo-sitegen-parallax.png
+parallaxPush: "10vh"
+
+assets: static-sitegen/assets
+templates: static-sitegen/templates
+
+pages:
+  - title: About
+    slug: about
+    content: |
+      ## About SiteGen
+
+      **Welcome to SiteGen!**  
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus blandit, lorem non dictum dictum, arcu risus tincidunt justo, in euismod eros justo in metus. 
+
+      ### Meet the Team
+      
+      SiteGen was founded by Jane Doe and John Smith.
+
+      <div style="text-align: center;">
+        <img src="assets/template/stick-fig-template.jpg" alt="Team" style="width: 200px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);" />
+        <p style="font-size: 1.1em; color: var(--text-secondary); margin-top: 0.5em;">Our dedicated team at SiteGen</p>
+      </div>
+
+      ### Our Contributors
+
+      * Alice Example (Lead Developer)
+      * Bob Sample (UX Designer)
+      * Charlie Placeholder (Content Writer)
+
+      ---
+
+      ### Why Use SiteGen?
+
+      - **Easy configuration** via YAML  
+      - Supports *Markdown* and **HTML**  
+      - Modern responsive design  
+      - Built-in theming and parallax backgrounds  
+      - Simple asset management
+
+      > “SiteGen made building our static site a breeze!”  
+      > — *Jane Doe, Founder*
+
+      ### Example Markdown
+
+      Here’s an example code block:
+
+      ```yaml
+      theme:
+        mode: dark
+        primary_color: "#1e40af"
+        secondary_color: "#f59e42"
+      ```
+
+      Or inline code: ``sitegen ./your-config.yaml ./output_dir``
+
+      ### Parallax Background Demo
+
+      ![Sample Parallax](assets/template/logo-sitegen-parallax.png)
+
+      The background above uses our parallax feature—customizable via config!
+
+    image: assets/template/logo-template.png
+    fullWidthImage: false
+    hideTitle: false
+
+  - title: Blog
+    slug: blog
+    content: |
+      ## Blog
+
+      Welcome to the SiteGen blog.  
+      *Stay tuned for the latest news and updates!*
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi.  
+   
+  - title: Features
+    slug: features
+    content: |
+      ## Site Features
+
+      - Easy to use and highly customizable
+      - Responsive design out of the box
+      - Markdown and HTML content support
+      - Powered by YAML configuration
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse gravida pretium magna, vel pretium massa feugiat id.
+    
+  - title: Contact
+    slug: contact
+    hideTitle: false
+    content: |
+      ## Contact Us
+
+      Reach out to us via email!
+
+      For general inquiries: [info@example.com](mailto:info@example.com)
+
+      Or use our contact form (coming soon!).
+
+styles: ["assets/modern.css"]
+
+index: 
+  title: Home
+  content: |
+    ## Welcome to SiteGen
+
+    This is the landing page of your new static site!  
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum nec odio ipsum. Suspendisse cursus malesuada facilisis.
+
+    ---
+
+    ### Why Choose SiteGen?
+
+    - Built for speed and flexibility
+    - Clean, minimal templates
+    - **Markdown** supported everywhere
+    - Parallax backgrounds for modern visuals
+
+    ---
+
+    ### Try Editing This Section
+
+    You can use all standard Markdown:
+
+    1. Numbered lists  
+    2. **Bold text**
+    3. [Links](https://example.com)
+    4. Images:
+       ![Logo](assets/template/logo-template.png)
+
+    > Blockquotes are supported for testimonials, tips, or calls to action.
+
+    ### Example YAML Snippet
+
+    ```yaml
+    pages:
+      - title: "Sample Page"
+        content: "Write your content in Markdown or HTML."
+    ```
+
+    ---
+
+    ### How Parallax Works
+
+    The background image moves at a different speed than content as you scroll—add depth to your site instantly!
+
+  cta:
+    label: Get Started
+    href: "contact.html"
+
+  image: assets/template/logo-template.png
+  fullWidthImage: true
+  hideTitle: false
+
+domain: localhost
+page_title: SiteGen Home
+logo: assets/logo.svg
+
+theme:
+  mode: dark
+  primary_color: "#1e40af"
+  secondary_color: "#f59e42"
+
+analytics_id: UA-XXXXXXXX-X
+social_preview_image: assets/social-preview.jpg
+
+header:
+  links:
+    - label: Home
+      href: "index.html"
+    - label: About
+      href: "about.html"
+    - label: Features
+      href: "features.html"
+    - label: Contact
+      href: "contact.html"
+    - label: Blog
+      href: "blog.html"
+    - label: Sitemap
+      href: "sitemap.html"
+
+sections:
+  - id: section-a
+    heading: Section A
+    content: |
+      ## Section A
+
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.  
+      Pellentesque sed turpis id urna convallis maximus.  
+      Proin tincidunt, purus nec tincidunt cursus, urna mi vehicula urna, eget consequat sem augue vel ligula.
+
+      #### Useful Links
+
+      - [Project Repo](https://github.com/example)
+      - [SiteGen Docs](https://sitegen.example.com/docs)
+
+      #### Inline Image Example
+
+      ![Section A Logo](../assets/template/logo-template.png)
+
+    image: ../assets/template/logo-template.png
+
+  - id: section-b
+    heading: Section B
+    content: |
+      ## Section B
+
+      Etiam scelerisque, lorem eget pulvinar dictum, nisi sem dictum dui, id mattis neque nulla at lectus.  
+      Suspendisse potenti. Curabitur ultricies nibh a ex pretium, non hendrerit urna dignissim.
+
+      ```html
+      <!-- HTML is supported inside markdown content! -->
+      <button>Click me</button>
+      ```
+
+      > You can mix markdown and HTML for advanced layouts.
+
+    image: ../assets/template/logo-template.png
+
+footer:
+  text: © 2025 Example Static Site. All rights reserved.
+  links:
+    - label: GitHub
+      href: "https://github.com/example"
+    - label: Privacy Policy
+      href: "privacy.html"
+    - label: Terms
+      href: "terms.html"
+    - label: Sitemap
+      href: "sitemap.html"
+
+meta:
+  description: A modern example static website generated from YAML using Node.js and EJS.
+  keywords: static site, nodejs, ejs, yaml, markdown, example
+

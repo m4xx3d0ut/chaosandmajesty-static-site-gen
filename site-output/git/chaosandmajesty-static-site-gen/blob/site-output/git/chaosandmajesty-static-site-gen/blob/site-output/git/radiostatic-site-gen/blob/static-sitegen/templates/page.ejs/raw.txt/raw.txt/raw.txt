@@ -1,0 +1,6 @@
+<%- include('base.ejs', { 
+  site: site, 
+  page: page,
+  content: content,
+  isSection: isSection
+}) %>

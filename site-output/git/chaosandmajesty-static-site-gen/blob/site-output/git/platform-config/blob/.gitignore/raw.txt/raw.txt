@@ -1,0 +1,15 @@
+backups/
+*.tar.gz
+*.dump
+.tmp/
+.env
+bootstrap/age.agekey
+bootstrap/flux-git
+bootstrap/known_hosts
+tmp/
+live-export/
+*.tmp
+
+local-*
+org-root-ca.crt
+live-export

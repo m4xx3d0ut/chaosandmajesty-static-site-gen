@@ -1,0 +1,56 @@
+---
+title: Transcode
+updated: 2023-10-23 23:18:33Z
+created: 2023-07-07 21:24:10Z
+latitude: 33.86223660
+longitude: -118.39951940
+altitude: 0.0000
+---
+
+To convert a 4K MOV video to a 1920x1080 H.264 AAC MP4 using FFmpeg, you can use the following command:
+
+```bash
+ffmpeg -i input.mov -vf "scale=1920:1080" -c:v libx264 -crf 23 -c:a aac -b:a 192k output.mp4
+```
+
+Let's break down the command:
+
+- `-i input.mov` specifies the input file, in this case, `input.mov`.
+- `-vf "scale=1920:1080"` sets the output video resolution to 1920x1080 by scaling it.
+- `-c:v libx264` sets the video codec to H.264, which is widely supported.
+- `-crf 23` sets the video quality. Lower values result in higher quality but larger file size. Reasonable values range from 18 to 28.
+- `-c:a aac` sets the audio codec to AAC, a commonly used audio format.
+- `-b:a 192k` sets the audio bitrate to 192 kbps.
+- `output.mp4` specifies the output file name, in this case, `output.mp4`.
+
+Make sure you have FFmpeg installed and properly set up in your system before running this command.
+
+---
+
+To utilize NVIDIA NVENC for hardware-accelerated video encoding and convert a 4K MOV video to a 1920x1080 H.264 AAC MP4 with the output format set to YUV420p, you can use the following FFmpeg command:
+
+```bash
+ffmpeg -i input.mov -vf "scale=1920:1080" -c:v h264_nvenc -rc:v vbr_hq -b:v 8M -pix_fmt yuv420p -c:a aac -b:a 192k output.mp4
+```
+
+Here's an explanation of the additional options used in the command:
+
+- `-c:v h264_nvenc` specifies the video codec as NVIDIA NVENC H.264 encoder.
+- `-rc:v vbr_hq` sets the rate control mode to variable bitrate with high quality.
+- `-b:v 8M` sets the target video bitrate to 8 Mbps. You can adjust this value as needed.
+- `-pix_fmt yuv420p` specifies the pixel format as YUV420p, which is commonly used and widely supported.
+- The remaining options for audio encoding remain the same as in the previous command.
+
+Remember to have FFmpeg with NVIDIA NVENC support installed and properly configured on your system for this command to work.
+
+---
+
+Reduce size of mp4.
+```bash
+ffmpeg -i input.mp4 -c:v libx265 -crf 28 -c:a copy output.mp4
+```
+
+Iterate, reduce file size of mp4, to out dir.
+```bash
+for file in "$(pwd)"/*; do [ -f "$file" ] && ffmpeg -y -i $file -c:v libx264 -crf 28 -c:a copy "$(pwd)"/out/${file##*/}; done
+```

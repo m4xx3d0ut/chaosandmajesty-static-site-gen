@@ -1,0 +1,10 @@
+<section class="git-readme-panel" aria-labelledby="git-readme-title-radiostatic">
+  <header class="git-readme-header">
+    <h3 id="git-readme-title-radiostatic" class="git-readme-title">README</h3>
+    <p class="git-readme-meta">Last updated Jul 9, 2025</p>
+  </header>
+  <div class="git-readme-body">
+    <p>RadioStatic is a static site generator that pivots from stagit HTML dumps to an HTMX-driven console. The README highlights how to wire your git manifest into <code>gitArtifacts.js</code> so fragments stay fresh.</p>
+    <p>Use the buttons above to explore the build graph, review files, and copy clone commands.</p>
+  </div>
+</section>

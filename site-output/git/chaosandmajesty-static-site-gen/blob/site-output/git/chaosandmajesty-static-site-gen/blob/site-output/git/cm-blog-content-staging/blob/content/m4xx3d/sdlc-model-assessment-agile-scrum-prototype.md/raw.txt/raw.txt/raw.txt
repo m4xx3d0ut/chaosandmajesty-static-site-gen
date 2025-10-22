@@ -1,0 +1,303 @@
+---
+title: SDLC Model Assessment Agile_Scrum_Prototype
+slug: sdlc-model-assessment-agile-scrum-prototype
+author: m4xx3d0ut
+summary: TODO
+tags:
+  - m4xx3d
+publishedAt: 2025-02-06
+updatedAt: 2025-02-06
+readingMinutes: 5
+---
+
+---
+title: SDLC Model Assessment Agile/Scrum/Prototype
+updated: 2024-11-18 05:50:02Z
+created: 2024-11-18 05:48:44Z
+---
+
+# SDLC Model Assessment Agile/Scrum/Prototype
+
+## Introduction
+
+How the **SDLC stages** (Software Development Life Cycle) align with the **Agile**, **Scrum**, and **Prototype** models, considering their unique principles.
+
+* * *
+
+### **1\. Requirement Analysis**
+
+#### **Agile**
+
+- **Approach**: Requirements evolve over time; prioritize features through a product backlog.
+- **Activities**:
+    - Conduct workshops, brainstorming sessions, and user interviews.
+    - Create **epics** and **user stories** with acceptance criteria.
+- **Output**: A prioritized product backlog reflecting user needs.
+
+#### **Scrum**
+
+- **Approach**: Focus on collecting high-level requirements for the first sprint.
+- **Activities**:
+    - Collaborate with the Product Owner to populate the product backlog.
+    - Use sprint planning meetings to define the sprint goal.
+- **Output**: Initial product backlog with a set of sprint-ready stories.
+
+#### **Prototype**
+
+- **Approach**: Emphasis on capturing requirements iteratively through prototype feedback.
+- **Activities**:
+    - Conduct initial interviews to identify user needs.
+    - Develop a quick prototype to showcase functionality.
+    - Refine requirements based on feedback.
+- **Output**: Updated requirements informed by prototype testing.
+
+* * *
+
+### **2\. System Design**
+
+#### **Agile**
+
+- **Approach**: Incremental and flexible design focusing on minimal upfront planning.
+- **Activities**:
+    - Outline high-level architecture supporting iterative development.
+    - Collaborate with cross-functional teams to refine designs during each sprint.
+- **Output**: Modular and adaptable system design documents.
+
+#### **Scrum**
+
+- **Approach**: High-level system design during initial sprints, refined over time.
+- **Activities**:
+    - Create sprint-specific designs, focusing on immediate sprint deliverables.
+    - Use technical debt tracking for deferred design issues.
+- **Output**: Sprint-specific design diagrams (e.g., ERD, flowcharts).
+
+#### **Prototype**
+
+- **Approach**: Design evolves through iterative refinement of the prototype.
+- **Activities**:
+    - Create rough designs aligned with prototype features.
+    - Continuously adjust designs based on prototype feedback.
+- **Output**: Incrementally improved design aligned with validated requirements.
+
+* * *
+
+### **3\. Implementation (Development)**
+
+#### **Agile**
+
+- **Approach**: Develop in small, incremental iterations with continuous feedback.
+- **Activities**:
+    - Divide work into manageable iterations (e.g., 2-week cycles).
+    - Implement user stories, write unit tests, and review code collaboratively.
+- **Output**: Working increments of software after each iteration.
+
+#### **Scrum**
+
+- **Approach**: Sprint-driven implementation, focusing on delivering shippable increments.
+- **Activities**:
+    - Develop sprint backlog items within a time-boxed sprint.
+    - Conduct daily standups to monitor progress and resolve blockers.
+- **Output**: Potentially shippable product increments at the end of each sprint.
+
+#### **Prototype**
+
+- **Approach**: Focus on quickly implementing features for validation through prototypes.
+- **Activities**:
+    - Develop functional and/or visual prototypes for testing.
+    - Refactor code as feedback is incorporated.
+- **Output**: Refined prototype with validated functionality.
+
+* * *
+
+### **4\. Testing**
+
+#### **Agile**
+
+- **Approach**: Testing occurs continuously throughout iterations.
+- **Activities**:
+    - Write automated tests alongside code (Test-Driven Development or TDD).
+    - Conduct regression testing during each iteration.
+- **Output**: A robust suite of tested software increments.
+
+#### **Scrum**
+
+- **Approach**: Testing is an integral part of the sprint, ensuring quality within the iteration.
+- **Activities**:
+    - Perform sprint-end testing for all completed user stories.
+    - Use Definition of Done (DoD) to ensure each backlog item meets quality standards.
+- **Output**: Fully tested sprint deliverables.
+
+#### **Prototype**
+
+- **Approach**: Focus on user validation rather than comprehensive testing.
+- **Activities**:
+    - Perform usability testing with stakeholders.
+    - Collect feedback on the prototype’s functionality and design.
+- **Output**: Insights on usability and functional gaps.
+
+* * *
+
+### **5\. Deployment**
+
+#### **Agile**
+
+- **Approach**: Deploy frequently using CI/CD pipelines for quicker feedback.
+- **Activities**:
+    - Automate deployment processes for incremental releases.
+    - Use DevOps practices to streamline deployment.
+- **Output**: Frequently deployed working software.
+
+#### **Scrum**
+
+- **Approach**: Deployment happens at the end of a sprint (if the increment is shippable).
+- **Activities**:
+    - Prepare deployment scripts and documentation during the sprint.
+    - Use sprint review to demonstrate readiness for release.
+- **Output**: Deployed sprint increments.
+
+#### **Prototype**
+
+- **Approach**: Deployment is minimal and often not production-grade.
+- **Activities**:
+    - Deploy prototypes in test environments or as proof of concept.
+    - Use deployment to facilitate user validation.
+- **Output**: A prototype deployed for demonstration or feedback collection.
+
+* * *
+
+### **6\. Maintenance**
+
+#### **Agile**
+
+- **Approach**: Ongoing updates and refinements based on user feedback.
+- **Activities**:
+    - Use additional iterations to address bugs and enhance features.
+    - Collect and prioritize post-deployment feedback in the product backlog.
+- **Output**: Continuously improved and maintained software.
+
+#### **Scrum**
+
+- **Approach**: Maintenance tasks are handled in future sprints.
+- **Activities**:
+    - Log issues in the product backlog for prioritization.
+    - Resolve maintenance requests during sprint planning.
+- **Output**: Resolved issues and updated functionality in subsequent sprints.
+
+#### **Prototype**
+
+- **Approach**: Minimal maintenance, as the prototype is not a production-ready system.
+- **Activities**:
+    - Fix critical issues in the prototype to ensure continued usability for demonstrations.
+    - Incorporate lessons into the final system design and development.
+- **Output**: Lessons learned from prototype validation.
+
+* * *
+
+### **Comparison Summary**
+
+| SDLC Stage | **Agile** | **Scrum** | **Prototype** |
+| --- | --- | --- | --- |
+| Requirement Analysis | Iterative backlog creation | Sprint-specific backlog | Feedback-driven requirements |
+| System Design | Flexible, modular design | Sprint-specific design | Evolving design based on feedback |
+| Implementation | Incremental development | Sprint-driven development | Rapid prototyping |
+| Testing | Continuous, automated | Sprint-end testing | Usability-focused testing |
+| Deployment | Frequent incremental releases | End-of-sprint releases | Minimal or test environment deployment |
+| Maintenance | Continuous improvement | Handled in future sprints | Rare; primarily informs final system |
+
+* * *
+
+### **Expected Pitfalls**
+
+1.  **Misaligned Timelines**
+    
+    - **Issue**: The delivery date is realistic for the web application but overly optimistic for the middleware. This creates pressure to compromise quality or skip iterative cycles in the middleware development.
+    - **Impact**: Delays in the middleware delivery can block critical integration tasks for the web application, impacting overall project success.
+2.  **Dependency Mismanagement**
+    
+    - **Issue**: Middleware serves as a foundation for certain web application features. If the middleware is incomplete or delayed, the web app team might face blockers or have to develop workarounds.
+    - **Impact**: Rework or integration delays may lead to missed deadlines.
+3.  **Contrasting Methodologies**
+    
+    - **Issue**: Agile/Scrum focuses on delivering increments, while the Prototype model emphasizes iterative validation of unknowns. Coordination between these differing models can be challenging.
+    - **Impact**: Communication gaps may arise, resulting in misaligned deliverables or mismatched expectations.
+4.  **Scope Creep in Middleware**
+    
+    - **Issue**: Prototypes for the middleware may expose additional requirements or complexities, leading to expanding scope and increased development time.
+    - **Impact**: The middleware timeline may continue to slip, jeopardizing overall project delivery.
+5.  **Resource Allocation**
+    
+    - **Issue**: Teams may need to switch focus or juggle responsibilities across both parts. Overlap of resources between Agile (web) and Prototype (middleware) workstreams may cause inefficiencies.
+    - **Impact**: Reduced productivity and stretched resources may impact progress in both areas.
+6.  **Integration Challenges**
+    
+    - **Issue**: Without sufficient coordination, integration of the web application with the middleware framework could reveal compatibility issues late in the project.
+    - **Impact**: Delays and technical debt may accumulate during integration.
+
+* * *
+
+### **Where the Plan is Likely to Break Down**
+
+1.  **Middleware Complexity Underestimated**
+    
+    - Misjudging the number of iterations required for prototype validation could derail timelines.
+2.  **Lack of Integration Milestones**
+    
+    - Delays in middleware readiness could delay web application integration testing, which may not be feasible within the set delivery date.
+3.  **Inadequate Risk Management**
+    
+    - Without proper risk buffers, unforeseen challenges in middleware development (due to many unknowns) may spill over into the web app timeline.
+4.  **Communication Breakdown**
+    
+    - Agile's rapid iteration cycle and Prototype's validation-focused loops may not sync up, causing misalignment in deliverable expectations and integration points.
+
+* * *
+
+### **Suggested Plan Revisions**
+
+1.  **Reevaluate Delivery Date**
+    
+    - Separate delivery timelines for the web application and middleware framework:
+        - **Web Application**: Stick to the existing delivery date with focus on delivering full functionality.
+        - **Middleware Framework**: Introduce a later, more realistic timeline with defined milestones for prototype iterations.
+2.  **Define Integration Points**
+    
+    - Identify **must-have middleware features** required for web app integration early and establish fixed deadlines for their readiness.
+    - Create mock APIs or stubs for middleware to enable parallel development in the web app.
+3.  **Parallel Workstreams**
+    
+    - Clearly separate teams and resources for the web app and middleware to prevent resource bottlenecks.
+    - Ensure middleware prototypes are built with modularity to allow phased integration with the web app.
+4.  **Frequent Communication**
+    
+    - Use regular cross-team meetings to synchronize progress between the Agile (web app) and Prototype (middleware) teams.
+    - Share common documentation (e.g., APIs, protocols, and integration requirements) early and keep it updated.
+
+* * *
+
+### **Mitigations to Safeguard the Critical Path**
+
+1.  **Risk Buffers**
+    
+    - Add explicit buffer time for middleware development and integration.
+    - Treat **middleware readiness** as a high-risk dependency and escalate blockers immediately.
+2.  **Incremental Middleware Prototypes**
+    
+    - Ensure middleware prototypes deliver modular functionality that can be consumed incrementally by the web app.
+    - Prioritize foundational modules first (e.g., APIs, communication protocols).
+3.  **Web App Workarounds**
+    
+    - Develop contingency plans (e.g., mocking middleware responses) to allow the web app team to proceed with testing and feature implementation without waiting for the middleware.
+4.  **Integration Testing**
+    
+    - Start integration testing early with partial middleware functionality or stubs to identify compatibility issues ahead of time.
+5.  **Scope Control**
+    
+    - For the middleware:
+        - Limit scope by focusing only on essential features for the web app integration.
+        - Defer additional features or enhancements to post-release phases.
+    - For the web app:
+        - Avoid re-prioritizing features that depend on middleware until core functionality is stable.
+6.  **Centralized Coordination**
+    
+    - Assign a **technical lead** to oversee integration and manage dependencies between the two parts.
+    - Use tools like JIRA or Confluence to track dependencies and monitor progress transparently.

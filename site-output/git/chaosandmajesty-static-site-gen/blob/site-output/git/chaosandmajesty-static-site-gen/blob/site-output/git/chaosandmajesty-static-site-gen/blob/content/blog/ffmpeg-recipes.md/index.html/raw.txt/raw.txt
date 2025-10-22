@@ -1,0 +1,103 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/content/blog/ffmpeg-recipes.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/content/blog/ffmpeg-recipes.md/raw.txt" data-git-line-count="128">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">ffmpeg-recipes.md</h4>
+          <div class="git-file-meta">3.7 KB · 128 lines · content/blog/ffmpeg-recipes.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/content/blog/ffmpeg-recipes.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<p>title: FFmpeg Production Recipes
+slug: ffmpeg-recipes
+author: m4xx3d0ut
+summary: Handy FFmpeg CLI snippets for clipping, transcoding, looping stills, generating
+  test patterns, and burning in timecode.
+tags:</p>
+<ul>
+<li>m4xx3d</li>
+<li>ffmpeg</li>
+<li>video</li>
+<li>media</li>
+<li>automation
+publishedAt: 2023-10-20
+updatedAt: 2025-02-02</li>
+</ul>
+<hr>
+<ul>
+<li>Use <code>-ss</code>/<code>-t</code> with <code>-c copy</code> to clip segments without re-encoding, and rely on <code>libx264</code>/<code>libx265</code> (or <code>h264_nvenc</code>) when you need transcodes.</li>
+<li>Loop still images or test patterns with <code>-loop 1</code> and <code>lavfi</code> sources, then concat segments via a manifest to reach longer runtimes.</li>
+<li>The <code>drawtext</code> filter handles timecode overlays; remember to point to a valid font and position text with expressions like <code>(w-tw)/2</code>.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<h3>Transcode 4K MOV to 1080p H.264 AAC</h3>
+<pre><code class="language-bash">ffmpeg -i input.mov -vf &quot;scale=1920:1080&quot; -c:v libx264 -crf 23 -c:a aac -b:a 192k output.mp4
+</code></pre>
+<p>Hardware-accelerated NVENC variant:</p>
+<pre><code class="language-bash">ffmpeg -i input.mov -vf &quot;scale=1920:1080&quot; -c:v h264_nvenc -rc:v vbr_hq -b:v 8M -pix_fmt yuv420p -c:a aac -b:a 192k output.mp4
+</code></pre>
+<p>Reduce file size with HEVC:</p>
+<pre><code class="language-bash">ffmpeg -i input.mp4 -c:v libx265 -crf 28 -c:a copy output.mp4
+</code></pre>
+<p>Batch transcode current directory to an <code>out/</code> folder:</p>
+<pre><code class="language-bash">mkdir -p out
+for file in &quot;$(pwd)&quot;/*; do
+  [ -f &quot;$file&quot; ] || continue
+  ffmpeg -y -i &quot;$file&quot; -c:v libx264 -crf 28 -c:a copy &quot;$(pwd)&quot;/out/&quot;${file##*/}&quot;
+done
+</code></pre>
+<h3>Clip a Segment</h3>
+<pre><code class="language-bash">ffmpeg -ss 00:00:00 -t 00:00:20 -i input.mp4 -c copy output.mp4
+</code></pre>
+<h3>1-Minute SCTE Test Pattern (MJPEG)</h3>
+<pre><code class="language-bash">ffmpeg -f lavfi -i testsrc=size=1920x1080:rate=30 -t 60 -c:v mjpeg -an output_test_pattern.mjpeg
+</code></pre>
+<h3>1 kHz Audio Tone (60 seconds)</h3>
+<pre><code class="language-bash">ffmpeg -f lavfi -i sine=frequency=1000:duration=60 -c:a pcm_s16le audio.wav
+</code></pre>
+<h3>Bouncing Ball Test Pattern (excerpt)</h3>
+<p>Generate a five-minute MJPEG test clip with moving graphics:</p>
+<pre><code class="language-bash">ffmpeg -f lavfi -i &quot;testsrc=size=1920x1080:rate=30&quot; \
+       -f lavfi -i &quot;life=s=1920x1080:mold=10:r=30:ratio=0.1:death_color=black:life_color=white&quot; \
+       -filter_complex &quot;overlay&quot; -t 300 -c:v mjpeg -an bouncing-ball.mjpeg
+</code></pre>
+<h3>Loop a Single Image</h3>
+<p>Resize as needed (ImageMagick):</p>
+<pre><code class="language-bash">convert input.png -resize 1920x1080 frame.png
+</code></pre>
+<p>Build a 10-minute, 30 FPS loop:</p>
+<pre><code class="language-bash">ffmpeg -loop 1 -i frame.png -t 600 -r 30 -pix_fmt yuv420p loop-10min.mp4
+</code></pre>
+<p>Concatenate six loops into an hour-long clip:</p>
+<pre><code class="language-bash">for i in {1..6}; do echo &quot;file &#39;loop-10min.mp4&#39;&quot; &gt;&gt; concat.lst; done
+ffmpeg -f concat -safe 0 -i concat.lst -c copy loop-60min.mp4
+</code></pre>
+<h3>Burn-In Timecode</h3>
+<p>Top-left overlay (adjust font path):</p>
+<pre><code class="language-bash">ffmpeg -i input.mp4 -vf &quot;drawtext=fontfile=/path/to/font.ttf:fontsize=32:fontcolor=white:\
+  box=1:boxcolor=black@0.5:boxborderw=5:text=&#39;%{pts\:hms}&#39;:x=20:y=20&quot; -c:a copy output.mp4
+</code></pre>
+<p>Centered overlay with golden-ratio offset:</p>
+<pre><code class="language-bash">ffmpeg -i input.mp4 -vf &quot;drawtext=fontfile=/path/to/font.ttf:fontsize=48:fontcolor=white:\
+  box=1:boxcolor=black@0.5:boxborderw=5:text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=(h/PHI)+th&quot; -c:a copy output.mp4
+</code></pre>
+<p>Sample grabbing from an HLS stream and exporting a 20-second clip with timecode:</p>
+<pre><code class="language-bash">ffmpeg -ss 00:04:30 -t 20 -i https://example.com/endpoint/index.m3u8 \
+  -vf &quot;drawtext=fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=5:\
+  text=&#39;%{pts\:hms}&#39;:x=(w-tw)/2:y=(h/PHI)+th&quot; -c:a copy clip-with-tc.mp4
+</code></pre>
+<h3>Quick Reference Commands</h3>
+<ul>
+<li>Create an MJPEG video test card and matching sine-wave audio tone for end-to-end testing.</li>
+<li>Loop a still image via <code>-loop 1</code> and use the concat demuxer to extend the runtime.</li>
+<li>Clip segments with <code>-ss</code>/<code>-t</code>, preserving audio with <code>-c:a copy</code>.</li>
+<li>Switch between software (<code>libx264</code>, <code>libx265</code>) and hardware (<code>h264_nvenc</code>) encoders depending on the workstation.</li>
+</ul>
+
+      </div>
+    </article>
+  

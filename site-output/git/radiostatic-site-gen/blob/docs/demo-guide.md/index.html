@@ -1,0 +1,87 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/radiostatic-site-gen/blob/docs/demo-guide.md/index.html" data-git-raw-path="git/radiostatic-site-gen/blob/docs/demo-guide.md/raw.txt" data-git-line-count="102">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">demo-guide.md</h4>
+          <div class="git-file-meta">4.2 KB · 102 lines · docs/demo-guide.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/radiostatic-site-gen/blob/docs/demo-guide.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>RadioStatic Demo Guide</h1>
+<p>This guide walks through the retro RadioStatic demo that ships with the repository. Follow it to generate the sample site locally, explore the output, and adapt the structure for your own projects.</p>
+<h2>Prerequisites</h2>
+<ul>
+<li>Node.js 18 or newer (the demo runs entirely on the command line—no extra services required)</li>
+<li><code>npm</code> for installing dependencies</li>
+<li>Optional: <code>make</code> for the convenience targets</li>
+</ul>
+<h2>1. Install Dependencies</h2>
+<pre><code class="language-bash">npm install
+</code></pre>
+<p>Installation is only required the first time you clone the repository (or after updating dependencies).</p>
+<h2>2. Build the Demo</h2>
+<pre><code class="language-bash">./build-site.sh
+</code></pre>
+<p>The script wraps the generator CLI (<code>static-sitegen/bin/radiostatic.js</code>) and defaults to <code>smoke-test.yaml</code>. It validates the resulting files and prints a short listing from the output directory.</p>
+<h3>Custom Configuration Names</h3>
+<p>You can pass a different configuration file or choose a custom output directory:</p>
+<pre><code class="language-bash">./build-site.sh config/your-site.yaml public-site
+</code></pre>
+<p>The script also respects environment variables (new names listed first, legacy aliases still work):</p>
+<ul>
+<li><code>RADIOSTATIC_CONFIG</code> / <code>SITEGEN_CONFIG</code> – default config path (overridden by positional argument)</li>
+<li><code>RADIOSTATIC_OUTPUT</code> / <code>SITEGEN_OUTPUT</code> – default output directory</li>
+<li><code>RADIOSTATIC_VERBOSE</code> / <code>SITEGEN_VERBOSE</code> – set to <code>0</code> to suppress verbose logging</li>
+</ul>
+<p><code>make build-local</code> supports the same options:</p>
+<pre><code class="language-bash">make build-local CONFIG=config/your-site.yaml OUTPUT=public-site
+</code></pre>
+<h2>3. Serve the Output</h2>
+<pre><code class="language-bash">make serve-local
+</code></pre>
+<p>This runs <code>python3 -m http.server 8080</code> inside the <code>site-output/</code> directory so you can browse the generated pages at <a href="http://localhost:8080">http://localhost:8080</a>.</p>
+<p>Stop the server with <code>Ctrl+C</code> when finished.</p>
+<h2>Demo Components</h2>
+<ul>
+<li><strong>Configuration</strong> – <code>smoke-test.yaml</code> demonstrates every supported feature (home page hero, sections, blog, sitemap).</li>
+<li><strong>Blog content</strong> – <code>content/blog/</code> contains Markdown posts for two sample authors (<code>alex-lee</code> and <code>jamie-hart</code>) plus a default article used by the blog landing page.</li>
+<li><strong>Assets</strong> – <code>examples/demo-site/assets/</code> holds the CSS, JavaScript, SVG artwork, <code>site.webmanifest</code>, and <code>robots.txt</code> referenced by the demo configuration.</li>
+<li><strong>Stagit sample</strong> – <code>examples/demo-site/stagit/</code> packages a small bare git repository and static HTML so you can illustrate a repository mirror alongside the site. Step-by-step integration lives in the <a href="#stagit-demo">Stagit</a> section below.</li>
+</ul>
+<h2>Updating Assets</h2>
+<p>To experiment with the assets that ship inside <code>static-sitegen/assets/</code>, run:</p>
+<pre><code class="language-bash">./prepare-demo-assets.sh
+</code></pre>
+<p>The script mirrors <code>examples/demo-site/assets/</code> into <code>static-sitegen/assets/</code> (useful when tweaking the default theme). Pass a different source directory if you maintain your own asset pack:</p>
+<pre><code class="language-bash">./prepare-demo-assets.sh path/to/your-assets
+</code></pre>
+<h2>Editing Content</h2>
+<ol>
+<li>Duplicate a post in <code>content/blog/</code> or create a new Markdown file.</li>
+<li>Update the front matter (<code>title</code>, <code>slug</code>, <code>author</code>, <code>publishedAt</code>, <code>heroImage</code>, etc.).</li>
+<li>Re-run <code>./build-site.sh</code> (or <code>make build-local</code>) to regenerate the site.</li>
+</ol>
+<p>Authors are configured in the YAML file under <code>blog.authors</code>. Add new entries to expose additional avatars, bios, and social links.</p>
+<h2>Stagit Demo</h2>
+<p>The demo includes:</p>
+<ul>
+<li><code>examples/demo-site/stagit/repos/hello-world.git</code> – a tiny bare repository with two commits.</li>
+<li><code>examples/demo-site/stagit/html/</code> – placeholder HTML styled to resemble a stagit export.</li>
+</ul>
+<p><code>smoke-test.yaml</code> declares an <code>extraCopies</code> entry so the build automatically mirrors the HTML folder into <code>site-output/stagit/</code>. Replace these artifacts with real stagit output when you connect your own repositories or point the <code>from</code> path at your own build pipeline.</p>
+<h2>Next Steps</h2>
+<ul>
+<li>Read <a href="configuration.md">docs/configuration.md</a> for a tour of the YAML keys and how they map to templates.</li>
+<li>Update the navigation links, sections, and call-to-action blocks in your configuration file to match your project.</li>
+<li>Swap the SVG artwork under <code>examples/demo-site/assets/static/img/</code> and rerun the build.</li>
+<li>Commit the resulting <code>site-output/</code> directory to the platform of your choice or upload it to static hosting.</li>
+</ul>
+<p>That’s it—you now have a working RadioStatic build and a clear path for customising it.</p>
+
+      </div>
+    </article>
+  

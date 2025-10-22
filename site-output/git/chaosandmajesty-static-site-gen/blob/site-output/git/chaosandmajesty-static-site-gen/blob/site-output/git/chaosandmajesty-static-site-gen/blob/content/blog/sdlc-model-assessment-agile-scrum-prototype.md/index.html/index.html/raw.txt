@@ -1,0 +1,4990 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/index.html/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/index.html/raw.txt" data-git-line-count="414">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">index.html</h4>
+          <div class="git-file-meta">17 KB · 414 lines · site-output/git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/index.html</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/site-output/git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/index.html/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        
+    <div class="git-code-shell" data-git-code-shell>
+      <ol class="git-code-list" data-git-code-list>
+        
+      <li class="git-code-line" id="L1" data-git-line="1">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="1"
+          aria-label="Copy permalink for line 1"
+          title="Copy permalink for line 1"
+        >1</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L2" data-git-line="2">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="2"
+          aria-label="Copy permalink for line 2"
+          title="Copy permalink for line 2"
+        >2</button>
+        <span class="git-code-text">    &lt;article class=&quot;git-file-panel&quot; data-git-panel-section=&quot;blob&quot; data-git-fragment-path=&quot;git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/index.html&quot; data-git-raw-path=&quot;git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/raw.txt&quot; data-git-line-count=&quot;295&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L3" data-git-line="3">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="3"
+          aria-label="Copy permalink for line 3"
+          title="Copy permalink for line 3"
+        >3</button>
+        <span class="git-code-text">      &lt;header class=&quot;git-file-header&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L4" data-git-line="4">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="4"
+          aria-label="Copy permalink for line 4"
+          title="Copy permalink for line 4"
+        >4</button>
+        <span class="git-code-text">        &lt;div class=&quot;git-file-header-main&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L5" data-git-line="5">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="5"
+          aria-label="Copy permalink for line 5"
+          title="Copy permalink for line 5"
+        >5</button>
+        <span class="git-code-text">          &lt;h4 class=&quot;git-file-title&quot;&gt;sdlc-model-assessment-agile-scrum-prototype.md&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L6" data-git-line="6">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="6"
+          aria-label="Copy permalink for line 6"
+          title="Copy permalink for line 6"
+        >6</button>
+        <span class="git-code-text">          &lt;div class=&quot;git-file-meta&quot;&gt;12 KB · 295 lines · content/blog/sdlc-model-assessment-agile-scrum-prototype.md&lt;/div&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L7" data-git-line="7">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="7"
+          aria-label="Copy permalink for line 7"
+          title="Copy permalink for line 7"
+        >7</button>
+        <span class="git-code-text">        &lt;/div&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L8" data-git-line="8">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="8"
+          aria-label="Copy permalink for line 8"
+          title="Copy permalink for line 8"
+        >8</button>
+        <span class="git-code-text">        &lt;div class=&quot;git-file-actions&quot;&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L9" data-git-line="9">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="9"
+          aria-label="Copy permalink for line 9"
+          title="Copy permalink for line 9"
+        >9</button>
+        <span class="git-code-text">          &lt;a class=&quot;git-file-action git-file-action--raw&quot; href=&quot;./git/chaosandmajesty-static-site-gen/blob/content/blog/sdlc-model-assessment-agile-scrum-prototype.md/raw.txt&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Raw&lt;/a&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L10" data-git-line="10">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="10"
+          aria-label="Copy permalink for line 10"
+          title="Copy permalink for line 10"
+        >10</button>
+        <span class="git-code-text">          &lt;button type=&quot;button&quot; class=&quot;git-file-action git-file-action--copy&quot; data-git-file-copy&gt;Copy&lt;/button&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L11" data-git-line="11">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="11"
+          aria-label="Copy permalink for line 11"
+          title="Copy permalink for line 11"
+        >11</button>
+        <span class="git-code-text">        &lt;/div&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L12" data-git-line="12">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="12"
+          aria-label="Copy permalink for line 12"
+          title="Copy permalink for line 12"
+        >12</button>
+        <span class="git-code-text">      &lt;/header&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L13" data-git-line="13">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="13"
+          aria-label="Copy permalink for line 13"
+          title="Copy permalink for line 13"
+        >13</button>
+        <span class="git-code-text">      &lt;div class=&quot;git-file-body&quot; data-git-file-body&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L14" data-git-line="14">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="14"
+          aria-label="Copy permalink for line 14"
+          title="Copy permalink for line 14"
+        >14</button>
+        <span class="git-code-text">        &lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L15" data-git-line="15">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="15"
+          aria-label="Copy permalink for line 15"
+          title="Copy permalink for line 15"
+        >15</button>
+        <span class="git-code-text">&lt;p&gt;title: SDLC Model Assessment Agile Scrum Prototype</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L16" data-git-line="16">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="16"
+          aria-label="Copy permalink for line 16"
+          title="Copy permalink for line 16"
+        >16</button>
+        <span class="git-code-text">slug: sdlc-model-assessment-agile-scrum-prototype</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L17" data-git-line="17">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="17"
+          aria-label="Copy permalink for line 17"
+          title="Copy permalink for line 17"
+        >17</button>
+        <span class="git-code-text">author: m4xx3d0ut</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L18" data-git-line="18">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="18"
+          aria-label="Copy permalink for line 18"
+          title="Copy permalink for line 18"
+        >18</button>
+        <span class="git-code-text">summary: Stage-by-stage comparison of Agile, Scrum, and Prototype models highlighting</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L19" data-git-line="19">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="19"
+          aria-label="Copy permalink for line 19"
+          title="Copy permalink for line 19"
+        >19</button>
+        <span class="git-code-text">  approaches, key activities, and outputs for each SDLC phase.</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L20" data-git-line="20">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="20"
+          aria-label="Copy permalink for line 20"
+          title="Copy permalink for line 20"
+        >20</button>
+        <span class="git-code-text">tags:&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L21" data-git-line="21">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="21"
+          aria-label="Copy permalink for line 21"
+          title="Copy permalink for line 21"
+        >21</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L22" data-git-line="22">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="22"
+          aria-label="Copy permalink for line 22"
+          title="Copy permalink for line 22"
+        >22</button>
+        <span class="git-code-text">&lt;li&gt;m4xx3d</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L23" data-git-line="23">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="23"
+          aria-label="Copy permalink for line 23"
+          title="Copy permalink for line 23"
+        >23</button>
+        <span class="git-code-text">publishedAt: 2025-02-06</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L24" data-git-line="24">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="24"
+          aria-label="Copy permalink for line 24"
+          title="Copy permalink for line 24"
+        >24</button>
+        <span class="git-code-text">updatedAt: 2025-02-06</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L25" data-git-line="25">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="25"
+          aria-label="Copy permalink for line 25"
+          title="Copy permalink for line 25"
+        >25</button>
+        <span class="git-code-text">readingMinutes: 5&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L26" data-git-line="26">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="26"
+          aria-label="Copy permalink for line 26"
+          title="Copy permalink for line 26"
+        >26</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L27" data-git-line="27">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="27"
+          aria-label="Copy permalink for line 27"
+          title="Copy permalink for line 27"
+        >27</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L28" data-git-line="28">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="28"
+          aria-label="Copy permalink for line 28"
+          title="Copy permalink for line 28"
+        >28</button>
+        <span class="git-code-text">&lt;h2&gt;Introduction&lt;/h2&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L29" data-git-line="29">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="29"
+          aria-label="Copy permalink for line 29"
+          title="Copy permalink for line 29"
+        >29</button>
+        <span class="git-code-text">&lt;p&gt;How the &lt;strong&gt;SDLC stages&lt;/strong&gt; (Software Development Life Cycle) align with the &lt;strong&gt;Agile&lt;/strong&gt;, &lt;strong&gt;Scrum&lt;/strong&gt;, and &lt;strong&gt;Prototype&lt;/strong&gt; models, considering their unique principles.&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L30" data-git-line="30">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="30"
+          aria-label="Copy permalink for line 30"
+          title="Copy permalink for line 30"
+        >30</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L31" data-git-line="31">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="31"
+          aria-label="Copy permalink for line 31"
+          title="Copy permalink for line 31"
+        >31</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;1. Requirement Analysis&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L32" data-git-line="32">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="32"
+          aria-label="Copy permalink for line 32"
+          title="Copy permalink for line 32"
+        >32</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L33" data-git-line="33">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="33"
+          aria-label="Copy permalink for line 33"
+          title="Copy permalink for line 33"
+        >33</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L34" data-git-line="34">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="34"
+          aria-label="Copy permalink for line 34"
+          title="Copy permalink for line 34"
+        >34</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Requirements evolve over time; prioritize features through a product backlog.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L35" data-git-line="35">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="35"
+          aria-label="Copy permalink for line 35"
+          title="Copy permalink for line 35"
+        >35</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L36" data-git-line="36">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="36"
+          aria-label="Copy permalink for line 36"
+          title="Copy permalink for line 36"
+        >36</button>
+        <span class="git-code-text">&lt;li&gt;Conduct workshops, brainstorming sessions, and user interviews.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L37" data-git-line="37">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="37"
+          aria-label="Copy permalink for line 37"
+          title="Copy permalink for line 37"
+        >37</button>
+        <span class="git-code-text">&lt;li&gt;Create &lt;strong&gt;epics&lt;/strong&gt; and &lt;strong&gt;user stories&lt;/strong&gt; with acceptance criteria.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L38" data-git-line="38">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="38"
+          aria-label="Copy permalink for line 38"
+          title="Copy permalink for line 38"
+        >38</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L39" data-git-line="39">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="39"
+          aria-label="Copy permalink for line 39"
+          title="Copy permalink for line 39"
+        >39</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L40" data-git-line="40">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="40"
+          aria-label="Copy permalink for line 40"
+          title="Copy permalink for line 40"
+        >40</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: A prioritized product backlog reflecting user needs.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L41" data-git-line="41">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="41"
+          aria-label="Copy permalink for line 41"
+          title="Copy permalink for line 41"
+        >41</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L42" data-git-line="42">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="42"
+          aria-label="Copy permalink for line 42"
+          title="Copy permalink for line 42"
+        >42</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L43" data-git-line="43">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="43"
+          aria-label="Copy permalink for line 43"
+          title="Copy permalink for line 43"
+        >43</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L44" data-git-line="44">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="44"
+          aria-label="Copy permalink for line 44"
+          title="Copy permalink for line 44"
+        >44</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Focus on collecting high-level requirements for the first sprint.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L45" data-git-line="45">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="45"
+          aria-label="Copy permalink for line 45"
+          title="Copy permalink for line 45"
+        >45</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L46" data-git-line="46">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="46"
+          aria-label="Copy permalink for line 46"
+          title="Copy permalink for line 46"
+        >46</button>
+        <span class="git-code-text">&lt;li&gt;Collaborate with the Product Owner to populate the product backlog.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L47" data-git-line="47">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="47"
+          aria-label="Copy permalink for line 47"
+          title="Copy permalink for line 47"
+        >47</button>
+        <span class="git-code-text">&lt;li&gt;Use sprint planning meetings to define the sprint goal.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L48" data-git-line="48">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="48"
+          aria-label="Copy permalink for line 48"
+          title="Copy permalink for line 48"
+        >48</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L49" data-git-line="49">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="49"
+          aria-label="Copy permalink for line 49"
+          title="Copy permalink for line 49"
+        >49</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L50" data-git-line="50">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="50"
+          aria-label="Copy permalink for line 50"
+          title="Copy permalink for line 50"
+        >50</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Initial product backlog with a set of sprint-ready stories.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L51" data-git-line="51">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="51"
+          aria-label="Copy permalink for line 51"
+          title="Copy permalink for line 51"
+        >51</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L52" data-git-line="52">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="52"
+          aria-label="Copy permalink for line 52"
+          title="Copy permalink for line 52"
+        >52</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L53" data-git-line="53">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="53"
+          aria-label="Copy permalink for line 53"
+          title="Copy permalink for line 53"
+        >53</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L54" data-git-line="54">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="54"
+          aria-label="Copy permalink for line 54"
+          title="Copy permalink for line 54"
+        >54</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Emphasis on capturing requirements iteratively through prototype feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L55" data-git-line="55">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="55"
+          aria-label="Copy permalink for line 55"
+          title="Copy permalink for line 55"
+        >55</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L56" data-git-line="56">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="56"
+          aria-label="Copy permalink for line 56"
+          title="Copy permalink for line 56"
+        >56</button>
+        <span class="git-code-text">&lt;li&gt;Conduct initial interviews to identify user needs.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L57" data-git-line="57">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="57"
+          aria-label="Copy permalink for line 57"
+          title="Copy permalink for line 57"
+        >57</button>
+        <span class="git-code-text">&lt;li&gt;Develop a quick prototype to showcase functionality.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L58" data-git-line="58">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="58"
+          aria-label="Copy permalink for line 58"
+          title="Copy permalink for line 58"
+        >58</button>
+        <span class="git-code-text">&lt;li&gt;Refine requirements based on feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L59" data-git-line="59">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="59"
+          aria-label="Copy permalink for line 59"
+          title="Copy permalink for line 59"
+        >59</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L60" data-git-line="60">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="60"
+          aria-label="Copy permalink for line 60"
+          title="Copy permalink for line 60"
+        >60</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L61" data-git-line="61">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="61"
+          aria-label="Copy permalink for line 61"
+          title="Copy permalink for line 61"
+        >61</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Updated requirements informed by prototype testing.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L62" data-git-line="62">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="62"
+          aria-label="Copy permalink for line 62"
+          title="Copy permalink for line 62"
+        >62</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L63" data-git-line="63">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="63"
+          aria-label="Copy permalink for line 63"
+          title="Copy permalink for line 63"
+        >63</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L64" data-git-line="64">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="64"
+          aria-label="Copy permalink for line 64"
+          title="Copy permalink for line 64"
+        >64</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;2. System Design&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L65" data-git-line="65">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="65"
+          aria-label="Copy permalink for line 65"
+          title="Copy permalink for line 65"
+        >65</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L66" data-git-line="66">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="66"
+          aria-label="Copy permalink for line 66"
+          title="Copy permalink for line 66"
+        >66</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L67" data-git-line="67">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="67"
+          aria-label="Copy permalink for line 67"
+          title="Copy permalink for line 67"
+        >67</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Incremental and flexible design focusing on minimal upfront planning.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L68" data-git-line="68">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="68"
+          aria-label="Copy permalink for line 68"
+          title="Copy permalink for line 68"
+        >68</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L69" data-git-line="69">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="69"
+          aria-label="Copy permalink for line 69"
+          title="Copy permalink for line 69"
+        >69</button>
+        <span class="git-code-text">&lt;li&gt;Outline high-level architecture supporting iterative development.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L70" data-git-line="70">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="70"
+          aria-label="Copy permalink for line 70"
+          title="Copy permalink for line 70"
+        >70</button>
+        <span class="git-code-text">&lt;li&gt;Collaborate with cross-functional teams to refine designs during each sprint.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L71" data-git-line="71">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="71"
+          aria-label="Copy permalink for line 71"
+          title="Copy permalink for line 71"
+        >71</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L72" data-git-line="72">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="72"
+          aria-label="Copy permalink for line 72"
+          title="Copy permalink for line 72"
+        >72</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L73" data-git-line="73">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="73"
+          aria-label="Copy permalink for line 73"
+          title="Copy permalink for line 73"
+        >73</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Modular and adaptable system design documents.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L74" data-git-line="74">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="74"
+          aria-label="Copy permalink for line 74"
+          title="Copy permalink for line 74"
+        >74</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L75" data-git-line="75">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="75"
+          aria-label="Copy permalink for line 75"
+          title="Copy permalink for line 75"
+        >75</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L76" data-git-line="76">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="76"
+          aria-label="Copy permalink for line 76"
+          title="Copy permalink for line 76"
+        >76</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L77" data-git-line="77">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="77"
+          aria-label="Copy permalink for line 77"
+          title="Copy permalink for line 77"
+        >77</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: High-level system design during initial sprints, refined over time.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L78" data-git-line="78">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="78"
+          aria-label="Copy permalink for line 78"
+          title="Copy permalink for line 78"
+        >78</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L79" data-git-line="79">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="79"
+          aria-label="Copy permalink for line 79"
+          title="Copy permalink for line 79"
+        >79</button>
+        <span class="git-code-text">&lt;li&gt;Create sprint-specific designs, focusing on immediate sprint deliverables.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L80" data-git-line="80">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="80"
+          aria-label="Copy permalink for line 80"
+          title="Copy permalink for line 80"
+        >80</button>
+        <span class="git-code-text">&lt;li&gt;Use technical debt tracking for deferred design issues.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L81" data-git-line="81">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="81"
+          aria-label="Copy permalink for line 81"
+          title="Copy permalink for line 81"
+        >81</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L82" data-git-line="82">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="82"
+          aria-label="Copy permalink for line 82"
+          title="Copy permalink for line 82"
+        >82</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L83" data-git-line="83">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="83"
+          aria-label="Copy permalink for line 83"
+          title="Copy permalink for line 83"
+        >83</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Sprint-specific design diagrams (e.g., ERD, flowcharts).&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L84" data-git-line="84">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="84"
+          aria-label="Copy permalink for line 84"
+          title="Copy permalink for line 84"
+        >84</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L85" data-git-line="85">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="85"
+          aria-label="Copy permalink for line 85"
+          title="Copy permalink for line 85"
+        >85</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L86" data-git-line="86">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="86"
+          aria-label="Copy permalink for line 86"
+          title="Copy permalink for line 86"
+        >86</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L87" data-git-line="87">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="87"
+          aria-label="Copy permalink for line 87"
+          title="Copy permalink for line 87"
+        >87</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Design evolves through iterative refinement of the prototype.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L88" data-git-line="88">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="88"
+          aria-label="Copy permalink for line 88"
+          title="Copy permalink for line 88"
+        >88</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L89" data-git-line="89">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="89"
+          aria-label="Copy permalink for line 89"
+          title="Copy permalink for line 89"
+        >89</button>
+        <span class="git-code-text">&lt;li&gt;Create rough designs aligned with prototype features.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L90" data-git-line="90">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="90"
+          aria-label="Copy permalink for line 90"
+          title="Copy permalink for line 90"
+        >90</button>
+        <span class="git-code-text">&lt;li&gt;Continuously adjust designs based on prototype feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L91" data-git-line="91">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="91"
+          aria-label="Copy permalink for line 91"
+          title="Copy permalink for line 91"
+        >91</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L92" data-git-line="92">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="92"
+          aria-label="Copy permalink for line 92"
+          title="Copy permalink for line 92"
+        >92</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L93" data-git-line="93">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="93"
+          aria-label="Copy permalink for line 93"
+          title="Copy permalink for line 93"
+        >93</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Incrementally improved design aligned with validated requirements.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L94" data-git-line="94">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="94"
+          aria-label="Copy permalink for line 94"
+          title="Copy permalink for line 94"
+        >94</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L95" data-git-line="95">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="95"
+          aria-label="Copy permalink for line 95"
+          title="Copy permalink for line 95"
+        >95</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L96" data-git-line="96">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="96"
+          aria-label="Copy permalink for line 96"
+          title="Copy permalink for line 96"
+        >96</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;3. Implementation (Development)&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L97" data-git-line="97">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="97"
+          aria-label="Copy permalink for line 97"
+          title="Copy permalink for line 97"
+        >97</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L98" data-git-line="98">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="98"
+          aria-label="Copy permalink for line 98"
+          title="Copy permalink for line 98"
+        >98</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L99" data-git-line="99">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="99"
+          aria-label="Copy permalink for line 99"
+          title="Copy permalink for line 99"
+        >99</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Develop in small, incremental iterations with continuous feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L100" data-git-line="100">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="100"
+          aria-label="Copy permalink for line 100"
+          title="Copy permalink for line 100"
+        >100</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L101" data-git-line="101">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="101"
+          aria-label="Copy permalink for line 101"
+          title="Copy permalink for line 101"
+        >101</button>
+        <span class="git-code-text">&lt;li&gt;Divide work into manageable iterations (e.g., 2-week cycles).&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L102" data-git-line="102">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="102"
+          aria-label="Copy permalink for line 102"
+          title="Copy permalink for line 102"
+        >102</button>
+        <span class="git-code-text">&lt;li&gt;Implement user stories, write unit tests, and review code collaboratively.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L103" data-git-line="103">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="103"
+          aria-label="Copy permalink for line 103"
+          title="Copy permalink for line 103"
+        >103</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L104" data-git-line="104">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="104"
+          aria-label="Copy permalink for line 104"
+          title="Copy permalink for line 104"
+        >104</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L105" data-git-line="105">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="105"
+          aria-label="Copy permalink for line 105"
+          title="Copy permalink for line 105"
+        >105</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Working increments of software after each iteration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L106" data-git-line="106">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="106"
+          aria-label="Copy permalink for line 106"
+          title="Copy permalink for line 106"
+        >106</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L107" data-git-line="107">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="107"
+          aria-label="Copy permalink for line 107"
+          title="Copy permalink for line 107"
+        >107</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L108" data-git-line="108">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="108"
+          aria-label="Copy permalink for line 108"
+          title="Copy permalink for line 108"
+        >108</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L109" data-git-line="109">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="109"
+          aria-label="Copy permalink for line 109"
+          title="Copy permalink for line 109"
+        >109</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Sprint-driven implementation, focusing on delivering shippable increments.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L110" data-git-line="110">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="110"
+          aria-label="Copy permalink for line 110"
+          title="Copy permalink for line 110"
+        >110</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L111" data-git-line="111">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="111"
+          aria-label="Copy permalink for line 111"
+          title="Copy permalink for line 111"
+        >111</button>
+        <span class="git-code-text">&lt;li&gt;Develop sprint backlog items within a time-boxed sprint.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L112" data-git-line="112">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="112"
+          aria-label="Copy permalink for line 112"
+          title="Copy permalink for line 112"
+        >112</button>
+        <span class="git-code-text">&lt;li&gt;Conduct daily standups to monitor progress and resolve blockers.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L113" data-git-line="113">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="113"
+          aria-label="Copy permalink for line 113"
+          title="Copy permalink for line 113"
+        >113</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L114" data-git-line="114">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="114"
+          aria-label="Copy permalink for line 114"
+          title="Copy permalink for line 114"
+        >114</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L115" data-git-line="115">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="115"
+          aria-label="Copy permalink for line 115"
+          title="Copy permalink for line 115"
+        >115</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Potentially shippable product increments at the end of each sprint.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L116" data-git-line="116">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="116"
+          aria-label="Copy permalink for line 116"
+          title="Copy permalink for line 116"
+        >116</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L117" data-git-line="117">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="117"
+          aria-label="Copy permalink for line 117"
+          title="Copy permalink for line 117"
+        >117</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L118" data-git-line="118">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="118"
+          aria-label="Copy permalink for line 118"
+          title="Copy permalink for line 118"
+        >118</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L119" data-git-line="119">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="119"
+          aria-label="Copy permalink for line 119"
+          title="Copy permalink for line 119"
+        >119</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Focus on quickly implementing features for validation through prototypes.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L120" data-git-line="120">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="120"
+          aria-label="Copy permalink for line 120"
+          title="Copy permalink for line 120"
+        >120</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L121" data-git-line="121">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="121"
+          aria-label="Copy permalink for line 121"
+          title="Copy permalink for line 121"
+        >121</button>
+        <span class="git-code-text">&lt;li&gt;Develop functional and/or visual prototypes for testing.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L122" data-git-line="122">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="122"
+          aria-label="Copy permalink for line 122"
+          title="Copy permalink for line 122"
+        >122</button>
+        <span class="git-code-text">&lt;li&gt;Refactor code as feedback is incorporated.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L123" data-git-line="123">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="123"
+          aria-label="Copy permalink for line 123"
+          title="Copy permalink for line 123"
+        >123</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L124" data-git-line="124">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="124"
+          aria-label="Copy permalink for line 124"
+          title="Copy permalink for line 124"
+        >124</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L125" data-git-line="125">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="125"
+          aria-label="Copy permalink for line 125"
+          title="Copy permalink for line 125"
+        >125</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Refined prototype with validated functionality.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L126" data-git-line="126">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="126"
+          aria-label="Copy permalink for line 126"
+          title="Copy permalink for line 126"
+        >126</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L127" data-git-line="127">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="127"
+          aria-label="Copy permalink for line 127"
+          title="Copy permalink for line 127"
+        >127</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L128" data-git-line="128">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="128"
+          aria-label="Copy permalink for line 128"
+          title="Copy permalink for line 128"
+        >128</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;4. Testing&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L129" data-git-line="129">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="129"
+          aria-label="Copy permalink for line 129"
+          title="Copy permalink for line 129"
+        >129</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L130" data-git-line="130">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="130"
+          aria-label="Copy permalink for line 130"
+          title="Copy permalink for line 130"
+        >130</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L131" data-git-line="131">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="131"
+          aria-label="Copy permalink for line 131"
+          title="Copy permalink for line 131"
+        >131</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Testing occurs continuously throughout iterations.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L132" data-git-line="132">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="132"
+          aria-label="Copy permalink for line 132"
+          title="Copy permalink for line 132"
+        >132</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L133" data-git-line="133">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="133"
+          aria-label="Copy permalink for line 133"
+          title="Copy permalink for line 133"
+        >133</button>
+        <span class="git-code-text">&lt;li&gt;Write automated tests alongside code (Test-Driven Development or TDD).&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L134" data-git-line="134">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="134"
+          aria-label="Copy permalink for line 134"
+          title="Copy permalink for line 134"
+        >134</button>
+        <span class="git-code-text">&lt;li&gt;Conduct regression testing during each iteration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L135" data-git-line="135">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="135"
+          aria-label="Copy permalink for line 135"
+          title="Copy permalink for line 135"
+        >135</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L136" data-git-line="136">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="136"
+          aria-label="Copy permalink for line 136"
+          title="Copy permalink for line 136"
+        >136</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L137" data-git-line="137">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="137"
+          aria-label="Copy permalink for line 137"
+          title="Copy permalink for line 137"
+        >137</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: A robust suite of tested software increments.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L138" data-git-line="138">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="138"
+          aria-label="Copy permalink for line 138"
+          title="Copy permalink for line 138"
+        >138</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L139" data-git-line="139">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="139"
+          aria-label="Copy permalink for line 139"
+          title="Copy permalink for line 139"
+        >139</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L140" data-git-line="140">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="140"
+          aria-label="Copy permalink for line 140"
+          title="Copy permalink for line 140"
+        >140</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L141" data-git-line="141">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="141"
+          aria-label="Copy permalink for line 141"
+          title="Copy permalink for line 141"
+        >141</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Testing is an integral part of the sprint, ensuring quality within the iteration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L142" data-git-line="142">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="142"
+          aria-label="Copy permalink for line 142"
+          title="Copy permalink for line 142"
+        >142</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L143" data-git-line="143">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="143"
+          aria-label="Copy permalink for line 143"
+          title="Copy permalink for line 143"
+        >143</button>
+        <span class="git-code-text">&lt;li&gt;Perform sprint-end testing for all completed user stories.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L144" data-git-line="144">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="144"
+          aria-label="Copy permalink for line 144"
+          title="Copy permalink for line 144"
+        >144</button>
+        <span class="git-code-text">&lt;li&gt;Use Definition of Done (DoD) to ensure each backlog item meets quality standards.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L145" data-git-line="145">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="145"
+          aria-label="Copy permalink for line 145"
+          title="Copy permalink for line 145"
+        >145</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L146" data-git-line="146">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="146"
+          aria-label="Copy permalink for line 146"
+          title="Copy permalink for line 146"
+        >146</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L147" data-git-line="147">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="147"
+          aria-label="Copy permalink for line 147"
+          title="Copy permalink for line 147"
+        >147</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Fully tested sprint deliverables.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L148" data-git-line="148">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="148"
+          aria-label="Copy permalink for line 148"
+          title="Copy permalink for line 148"
+        >148</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L149" data-git-line="149">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="149"
+          aria-label="Copy permalink for line 149"
+          title="Copy permalink for line 149"
+        >149</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L150" data-git-line="150">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="150"
+          aria-label="Copy permalink for line 150"
+          title="Copy permalink for line 150"
+        >150</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L151" data-git-line="151">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="151"
+          aria-label="Copy permalink for line 151"
+          title="Copy permalink for line 151"
+        >151</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Focus on user validation rather than comprehensive testing.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L152" data-git-line="152">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="152"
+          aria-label="Copy permalink for line 152"
+          title="Copy permalink for line 152"
+        >152</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L153" data-git-line="153">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="153"
+          aria-label="Copy permalink for line 153"
+          title="Copy permalink for line 153"
+        >153</button>
+        <span class="git-code-text">&lt;li&gt;Perform usability testing with stakeholders.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L154" data-git-line="154">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="154"
+          aria-label="Copy permalink for line 154"
+          title="Copy permalink for line 154"
+        >154</button>
+        <span class="git-code-text">&lt;li&gt;Collect feedback on the prototype’s functionality and design.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L155" data-git-line="155">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="155"
+          aria-label="Copy permalink for line 155"
+          title="Copy permalink for line 155"
+        >155</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L156" data-git-line="156">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="156"
+          aria-label="Copy permalink for line 156"
+          title="Copy permalink for line 156"
+        >156</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L157" data-git-line="157">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="157"
+          aria-label="Copy permalink for line 157"
+          title="Copy permalink for line 157"
+        >157</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Insights on usability and functional gaps.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L158" data-git-line="158">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="158"
+          aria-label="Copy permalink for line 158"
+          title="Copy permalink for line 158"
+        >158</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L159" data-git-line="159">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="159"
+          aria-label="Copy permalink for line 159"
+          title="Copy permalink for line 159"
+        >159</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L160" data-git-line="160">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="160"
+          aria-label="Copy permalink for line 160"
+          title="Copy permalink for line 160"
+        >160</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;5. Deployment&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L161" data-git-line="161">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="161"
+          aria-label="Copy permalink for line 161"
+          title="Copy permalink for line 161"
+        >161</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L162" data-git-line="162">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="162"
+          aria-label="Copy permalink for line 162"
+          title="Copy permalink for line 162"
+        >162</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L163" data-git-line="163">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="163"
+          aria-label="Copy permalink for line 163"
+          title="Copy permalink for line 163"
+        >163</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Deploy frequently using CI/CD pipelines for quicker feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L164" data-git-line="164">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="164"
+          aria-label="Copy permalink for line 164"
+          title="Copy permalink for line 164"
+        >164</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L165" data-git-line="165">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="165"
+          aria-label="Copy permalink for line 165"
+          title="Copy permalink for line 165"
+        >165</button>
+        <span class="git-code-text">&lt;li&gt;Automate deployment processes for incremental releases.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L166" data-git-line="166">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="166"
+          aria-label="Copy permalink for line 166"
+          title="Copy permalink for line 166"
+        >166</button>
+        <span class="git-code-text">&lt;li&gt;Use DevOps practices to streamline deployment.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L167" data-git-line="167">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="167"
+          aria-label="Copy permalink for line 167"
+          title="Copy permalink for line 167"
+        >167</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L168" data-git-line="168">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="168"
+          aria-label="Copy permalink for line 168"
+          title="Copy permalink for line 168"
+        >168</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L169" data-git-line="169">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="169"
+          aria-label="Copy permalink for line 169"
+          title="Copy permalink for line 169"
+        >169</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Frequently deployed working software.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L170" data-git-line="170">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="170"
+          aria-label="Copy permalink for line 170"
+          title="Copy permalink for line 170"
+        >170</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L171" data-git-line="171">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="171"
+          aria-label="Copy permalink for line 171"
+          title="Copy permalink for line 171"
+        >171</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L172" data-git-line="172">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="172"
+          aria-label="Copy permalink for line 172"
+          title="Copy permalink for line 172"
+        >172</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L173" data-git-line="173">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="173"
+          aria-label="Copy permalink for line 173"
+          title="Copy permalink for line 173"
+        >173</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Deployment happens at the end of a sprint (if the increment is shippable).&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L174" data-git-line="174">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="174"
+          aria-label="Copy permalink for line 174"
+          title="Copy permalink for line 174"
+        >174</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L175" data-git-line="175">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="175"
+          aria-label="Copy permalink for line 175"
+          title="Copy permalink for line 175"
+        >175</button>
+        <span class="git-code-text">&lt;li&gt;Prepare deployment scripts and documentation during the sprint.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L176" data-git-line="176">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="176"
+          aria-label="Copy permalink for line 176"
+          title="Copy permalink for line 176"
+        >176</button>
+        <span class="git-code-text">&lt;li&gt;Use sprint review to demonstrate readiness for release.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L177" data-git-line="177">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="177"
+          aria-label="Copy permalink for line 177"
+          title="Copy permalink for line 177"
+        >177</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L178" data-git-line="178">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="178"
+          aria-label="Copy permalink for line 178"
+          title="Copy permalink for line 178"
+        >178</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L179" data-git-line="179">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="179"
+          aria-label="Copy permalink for line 179"
+          title="Copy permalink for line 179"
+        >179</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Deployed sprint increments.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L180" data-git-line="180">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="180"
+          aria-label="Copy permalink for line 180"
+          title="Copy permalink for line 180"
+        >180</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L181" data-git-line="181">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="181"
+          aria-label="Copy permalink for line 181"
+          title="Copy permalink for line 181"
+        >181</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L182" data-git-line="182">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="182"
+          aria-label="Copy permalink for line 182"
+          title="Copy permalink for line 182"
+        >182</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L183" data-git-line="183">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="183"
+          aria-label="Copy permalink for line 183"
+          title="Copy permalink for line 183"
+        >183</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Deployment is minimal and often not production-grade.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L184" data-git-line="184">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="184"
+          aria-label="Copy permalink for line 184"
+          title="Copy permalink for line 184"
+        >184</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L185" data-git-line="185">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="185"
+          aria-label="Copy permalink for line 185"
+          title="Copy permalink for line 185"
+        >185</button>
+        <span class="git-code-text">&lt;li&gt;Deploy prototypes in test environments or as proof of concept.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L186" data-git-line="186">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="186"
+          aria-label="Copy permalink for line 186"
+          title="Copy permalink for line 186"
+        >186</button>
+        <span class="git-code-text">&lt;li&gt;Use deployment to facilitate user validation.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L187" data-git-line="187">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="187"
+          aria-label="Copy permalink for line 187"
+          title="Copy permalink for line 187"
+        >187</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L188" data-git-line="188">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="188"
+          aria-label="Copy permalink for line 188"
+          title="Copy permalink for line 188"
+        >188</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L189" data-git-line="189">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="189"
+          aria-label="Copy permalink for line 189"
+          title="Copy permalink for line 189"
+        >189</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: A prototype deployed for demonstration or feedback collection.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L190" data-git-line="190">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="190"
+          aria-label="Copy permalink for line 190"
+          title="Copy permalink for line 190"
+        >190</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L191" data-git-line="191">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="191"
+          aria-label="Copy permalink for line 191"
+          title="Copy permalink for line 191"
+        >191</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L192" data-git-line="192">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="192"
+          aria-label="Copy permalink for line 192"
+          title="Copy permalink for line 192"
+        >192</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;6. Maintenance&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L193" data-git-line="193">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="193"
+          aria-label="Copy permalink for line 193"
+          title="Copy permalink for line 193"
+        >193</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L194" data-git-line="194">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="194"
+          aria-label="Copy permalink for line 194"
+          title="Copy permalink for line 194"
+        >194</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L195" data-git-line="195">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="195"
+          aria-label="Copy permalink for line 195"
+          title="Copy permalink for line 195"
+        >195</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Ongoing updates and refinements based on user feedback.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L196" data-git-line="196">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="196"
+          aria-label="Copy permalink for line 196"
+          title="Copy permalink for line 196"
+        >196</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L197" data-git-line="197">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="197"
+          aria-label="Copy permalink for line 197"
+          title="Copy permalink for line 197"
+        >197</button>
+        <span class="git-code-text">&lt;li&gt;Use additional iterations to address bugs and enhance features.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L198" data-git-line="198">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="198"
+          aria-label="Copy permalink for line 198"
+          title="Copy permalink for line 198"
+        >198</button>
+        <span class="git-code-text">&lt;li&gt;Collect and prioritize post-deployment feedback in the product backlog.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L199" data-git-line="199">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="199"
+          aria-label="Copy permalink for line 199"
+          title="Copy permalink for line 199"
+        >199</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L200" data-git-line="200">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="200"
+          aria-label="Copy permalink for line 200"
+          title="Copy permalink for line 200"
+        >200</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L201" data-git-line="201">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="201"
+          aria-label="Copy permalink for line 201"
+          title="Copy permalink for line 201"
+        >201</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Continuously improved and maintained software.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L202" data-git-line="202">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="202"
+          aria-label="Copy permalink for line 202"
+          title="Copy permalink for line 202"
+        >202</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L203" data-git-line="203">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="203"
+          aria-label="Copy permalink for line 203"
+          title="Copy permalink for line 203"
+        >203</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L204" data-git-line="204">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="204"
+          aria-label="Copy permalink for line 204"
+          title="Copy permalink for line 204"
+        >204</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L205" data-git-line="205">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="205"
+          aria-label="Copy permalink for line 205"
+          title="Copy permalink for line 205"
+        >205</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Maintenance tasks are handled in future sprints.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L206" data-git-line="206">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="206"
+          aria-label="Copy permalink for line 206"
+          title="Copy permalink for line 206"
+        >206</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L207" data-git-line="207">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="207"
+          aria-label="Copy permalink for line 207"
+          title="Copy permalink for line 207"
+        >207</button>
+        <span class="git-code-text">&lt;li&gt;Log issues in the product backlog for prioritization.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L208" data-git-line="208">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="208"
+          aria-label="Copy permalink for line 208"
+          title="Copy permalink for line 208"
+        >208</button>
+        <span class="git-code-text">&lt;li&gt;Resolve maintenance requests during sprint planning.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L209" data-git-line="209">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="209"
+          aria-label="Copy permalink for line 209"
+          title="Copy permalink for line 209"
+        >209</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L210" data-git-line="210">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="210"
+          aria-label="Copy permalink for line 210"
+          title="Copy permalink for line 210"
+        >210</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L211" data-git-line="211">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="211"
+          aria-label="Copy permalink for line 211"
+          title="Copy permalink for line 211"
+        >211</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Resolved issues and updated functionality in subsequent sprints.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L212" data-git-line="212">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="212"
+          aria-label="Copy permalink for line 212"
+          title="Copy permalink for line 212"
+        >212</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L213" data-git-line="213">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="213"
+          aria-label="Copy permalink for line 213"
+          title="Copy permalink for line 213"
+        >213</button>
+        <span class="git-code-text">&lt;h4&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/h4&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L214" data-git-line="214">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="214"
+          aria-label="Copy permalink for line 214"
+          title="Copy permalink for line 214"
+        >214</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L215" data-git-line="215">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="215"
+          aria-label="Copy permalink for line 215"
+          title="Copy permalink for line 215"
+        >215</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Approach&lt;/strong&gt;: Minimal maintenance, as the prototype is not a production-ready system.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L216" data-git-line="216">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="216"
+          aria-label="Copy permalink for line 216"
+          title="Copy permalink for line 216"
+        >216</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Activities&lt;/strong&gt;:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L217" data-git-line="217">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="217"
+          aria-label="Copy permalink for line 217"
+          title="Copy permalink for line 217"
+        >217</button>
+        <span class="git-code-text">&lt;li&gt;Fix critical issues in the prototype to ensure continued usability for demonstrations.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L218" data-git-line="218">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="218"
+          aria-label="Copy permalink for line 218"
+          title="Copy permalink for line 218"
+        >218</button>
+        <span class="git-code-text">&lt;li&gt;Incorporate lessons into the final system design and development.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L219" data-git-line="219">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="219"
+          aria-label="Copy permalink for line 219"
+          title="Copy permalink for line 219"
+        >219</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L220" data-git-line="220">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="220"
+          aria-label="Copy permalink for line 220"
+          title="Copy permalink for line 220"
+        >220</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L221" data-git-line="221">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="221"
+          aria-label="Copy permalink for line 221"
+          title="Copy permalink for line 221"
+        >221</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Output&lt;/strong&gt;: Lessons learned from prototype validation.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L222" data-git-line="222">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="222"
+          aria-label="Copy permalink for line 222"
+          title="Copy permalink for line 222"
+        >222</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L223" data-git-line="223">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="223"
+          aria-label="Copy permalink for line 223"
+          title="Copy permalink for line 223"
+        >223</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L224" data-git-line="224">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="224"
+          aria-label="Copy permalink for line 224"
+          title="Copy permalink for line 224"
+        >224</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;Comparison Summary&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L225" data-git-line="225">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="225"
+          aria-label="Copy permalink for line 225"
+          title="Copy permalink for line 225"
+        >225</button>
+        <span class="git-code-text">&lt;table&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L226" data-git-line="226">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="226"
+          aria-label="Copy permalink for line 226"
+          title="Copy permalink for line 226"
+        >226</button>
+        <span class="git-code-text">&lt;thead&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L227" data-git-line="227">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="227"
+          aria-label="Copy permalink for line 227"
+          title="Copy permalink for line 227"
+        >227</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L228" data-git-line="228">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="228"
+          aria-label="Copy permalink for line 228"
+          title="Copy permalink for line 228"
+        >228</button>
+        <span class="git-code-text">&lt;th&gt;SDLC Stage&lt;/th&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L229" data-git-line="229">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="229"
+          aria-label="Copy permalink for line 229"
+          title="Copy permalink for line 229"
+        >229</button>
+        <span class="git-code-text">&lt;th&gt;&lt;strong&gt;Agile&lt;/strong&gt;&lt;/th&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L230" data-git-line="230">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="230"
+          aria-label="Copy permalink for line 230"
+          title="Copy permalink for line 230"
+        >230</button>
+        <span class="git-code-text">&lt;th&gt;&lt;strong&gt;Scrum&lt;/strong&gt;&lt;/th&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L231" data-git-line="231">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="231"
+          aria-label="Copy permalink for line 231"
+          title="Copy permalink for line 231"
+        >231</button>
+        <span class="git-code-text">&lt;th&gt;&lt;strong&gt;Prototype&lt;/strong&gt;&lt;/th&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L232" data-git-line="232">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="232"
+          aria-label="Copy permalink for line 232"
+          title="Copy permalink for line 232"
+        >232</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L233" data-git-line="233">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="233"
+          aria-label="Copy permalink for line 233"
+          title="Copy permalink for line 233"
+        >233</button>
+        <span class="git-code-text">&lt;/thead&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L234" data-git-line="234">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="234"
+          aria-label="Copy permalink for line 234"
+          title="Copy permalink for line 234"
+        >234</button>
+        <span class="git-code-text">&lt;tbody&gt;&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L235" data-git-line="235">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="235"
+          aria-label="Copy permalink for line 235"
+          title="Copy permalink for line 235"
+        >235</button>
+        <span class="git-code-text">&lt;td&gt;Requirement Analysis&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L236" data-git-line="236">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="236"
+          aria-label="Copy permalink for line 236"
+          title="Copy permalink for line 236"
+        >236</button>
+        <span class="git-code-text">&lt;td&gt;Iterative backlog creation&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L237" data-git-line="237">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="237"
+          aria-label="Copy permalink for line 237"
+          title="Copy permalink for line 237"
+        >237</button>
+        <span class="git-code-text">&lt;td&gt;Sprint-specific backlog&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L238" data-git-line="238">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="238"
+          aria-label="Copy permalink for line 238"
+          title="Copy permalink for line 238"
+        >238</button>
+        <span class="git-code-text">&lt;td&gt;Feedback-driven requirements&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L239" data-git-line="239">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="239"
+          aria-label="Copy permalink for line 239"
+          title="Copy permalink for line 239"
+        >239</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L240" data-git-line="240">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="240"
+          aria-label="Copy permalink for line 240"
+          title="Copy permalink for line 240"
+        >240</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L241" data-git-line="241">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="241"
+          aria-label="Copy permalink for line 241"
+          title="Copy permalink for line 241"
+        >241</button>
+        <span class="git-code-text">&lt;td&gt;System Design&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L242" data-git-line="242">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="242"
+          aria-label="Copy permalink for line 242"
+          title="Copy permalink for line 242"
+        >242</button>
+        <span class="git-code-text">&lt;td&gt;Flexible, modular design&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L243" data-git-line="243">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="243"
+          aria-label="Copy permalink for line 243"
+          title="Copy permalink for line 243"
+        >243</button>
+        <span class="git-code-text">&lt;td&gt;Sprint-specific design&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L244" data-git-line="244">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="244"
+          aria-label="Copy permalink for line 244"
+          title="Copy permalink for line 244"
+        >244</button>
+        <span class="git-code-text">&lt;td&gt;Evolving design based on feedback&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L245" data-git-line="245">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="245"
+          aria-label="Copy permalink for line 245"
+          title="Copy permalink for line 245"
+        >245</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L246" data-git-line="246">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="246"
+          aria-label="Copy permalink for line 246"
+          title="Copy permalink for line 246"
+        >246</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L247" data-git-line="247">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="247"
+          aria-label="Copy permalink for line 247"
+          title="Copy permalink for line 247"
+        >247</button>
+        <span class="git-code-text">&lt;td&gt;Implementation&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L248" data-git-line="248">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="248"
+          aria-label="Copy permalink for line 248"
+          title="Copy permalink for line 248"
+        >248</button>
+        <span class="git-code-text">&lt;td&gt;Incremental development&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L249" data-git-line="249">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="249"
+          aria-label="Copy permalink for line 249"
+          title="Copy permalink for line 249"
+        >249</button>
+        <span class="git-code-text">&lt;td&gt;Sprint-driven development&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L250" data-git-line="250">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="250"
+          aria-label="Copy permalink for line 250"
+          title="Copy permalink for line 250"
+        >250</button>
+        <span class="git-code-text">&lt;td&gt;Rapid prototyping&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L251" data-git-line="251">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="251"
+          aria-label="Copy permalink for line 251"
+          title="Copy permalink for line 251"
+        >251</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L252" data-git-line="252">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="252"
+          aria-label="Copy permalink for line 252"
+          title="Copy permalink for line 252"
+        >252</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L253" data-git-line="253">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="253"
+          aria-label="Copy permalink for line 253"
+          title="Copy permalink for line 253"
+        >253</button>
+        <span class="git-code-text">&lt;td&gt;Testing&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L254" data-git-line="254">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="254"
+          aria-label="Copy permalink for line 254"
+          title="Copy permalink for line 254"
+        >254</button>
+        <span class="git-code-text">&lt;td&gt;Continuous, automated&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L255" data-git-line="255">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="255"
+          aria-label="Copy permalink for line 255"
+          title="Copy permalink for line 255"
+        >255</button>
+        <span class="git-code-text">&lt;td&gt;Sprint-end testing&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L256" data-git-line="256">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="256"
+          aria-label="Copy permalink for line 256"
+          title="Copy permalink for line 256"
+        >256</button>
+        <span class="git-code-text">&lt;td&gt;Usability-focused testing&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L257" data-git-line="257">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="257"
+          aria-label="Copy permalink for line 257"
+          title="Copy permalink for line 257"
+        >257</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L258" data-git-line="258">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="258"
+          aria-label="Copy permalink for line 258"
+          title="Copy permalink for line 258"
+        >258</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L259" data-git-line="259">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="259"
+          aria-label="Copy permalink for line 259"
+          title="Copy permalink for line 259"
+        >259</button>
+        <span class="git-code-text">&lt;td&gt;Deployment&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L260" data-git-line="260">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="260"
+          aria-label="Copy permalink for line 260"
+          title="Copy permalink for line 260"
+        >260</button>
+        <span class="git-code-text">&lt;td&gt;Frequent incremental releases&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L261" data-git-line="261">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="261"
+          aria-label="Copy permalink for line 261"
+          title="Copy permalink for line 261"
+        >261</button>
+        <span class="git-code-text">&lt;td&gt;End-of-sprint releases&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L262" data-git-line="262">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="262"
+          aria-label="Copy permalink for line 262"
+          title="Copy permalink for line 262"
+        >262</button>
+        <span class="git-code-text">&lt;td&gt;Minimal or test environment deployment&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L263" data-git-line="263">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="263"
+          aria-label="Copy permalink for line 263"
+          title="Copy permalink for line 263"
+        >263</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L264" data-git-line="264">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="264"
+          aria-label="Copy permalink for line 264"
+          title="Copy permalink for line 264"
+        >264</button>
+        <span class="git-code-text">&lt;tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L265" data-git-line="265">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="265"
+          aria-label="Copy permalink for line 265"
+          title="Copy permalink for line 265"
+        >265</button>
+        <span class="git-code-text">&lt;td&gt;Maintenance&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L266" data-git-line="266">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="266"
+          aria-label="Copy permalink for line 266"
+          title="Copy permalink for line 266"
+        >266</button>
+        <span class="git-code-text">&lt;td&gt;Continuous improvement&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L267" data-git-line="267">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="267"
+          aria-label="Copy permalink for line 267"
+          title="Copy permalink for line 267"
+        >267</button>
+        <span class="git-code-text">&lt;td&gt;Handled in future sprints&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L268" data-git-line="268">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="268"
+          aria-label="Copy permalink for line 268"
+          title="Copy permalink for line 268"
+        >268</button>
+        <span class="git-code-text">&lt;td&gt;Rare; primarily informs final system&lt;/td&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L269" data-git-line="269">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="269"
+          aria-label="Copy permalink for line 269"
+          title="Copy permalink for line 269"
+        >269</button>
+        <span class="git-code-text">&lt;/tr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L270" data-git-line="270">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="270"
+          aria-label="Copy permalink for line 270"
+          title="Copy permalink for line 270"
+        >270</button>
+        <span class="git-code-text">&lt;/tbody&gt;&lt;/table&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L271" data-git-line="271">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="271"
+          aria-label="Copy permalink for line 271"
+          title="Copy permalink for line 271"
+        >271</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L272" data-git-line="272">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="272"
+          aria-label="Copy permalink for line 272"
+          title="Copy permalink for line 272"
+        >272</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;Expected Pitfalls&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L273" data-git-line="273">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="273"
+          aria-label="Copy permalink for line 273"
+          title="Copy permalink for line 273"
+        >273</button>
+        <span class="git-code-text">&lt;ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L274" data-git-line="274">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="274"
+          aria-label="Copy permalink for line 274"
+          title="Copy permalink for line 274"
+        >274</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Misaligned Timelines&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L275" data-git-line="275">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="275"
+          aria-label="Copy permalink for line 275"
+          title="Copy permalink for line 275"
+        >275</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L276" data-git-line="276">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="276"
+          aria-label="Copy permalink for line 276"
+          title="Copy permalink for line 276"
+        >276</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: The delivery date is realistic for the web application but overly optimistic for the middleware. This creates pressure to compromise quality or skip iterative cycles in the middleware development.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L277" data-git-line="277">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="277"
+          aria-label="Copy permalink for line 277"
+          title="Copy permalink for line 277"
+        >277</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: Delays in the middleware delivery can block critical integration tasks for the web application, impacting overall project success.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L278" data-git-line="278">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="278"
+          aria-label="Copy permalink for line 278"
+          title="Copy permalink for line 278"
+        >278</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L279" data-git-line="279">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="279"
+          aria-label="Copy permalink for line 279"
+          title="Copy permalink for line 279"
+        >279</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L280" data-git-line="280">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="280"
+          aria-label="Copy permalink for line 280"
+          title="Copy permalink for line 280"
+        >280</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Dependency Mismanagement&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L281" data-git-line="281">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="281"
+          aria-label="Copy permalink for line 281"
+          title="Copy permalink for line 281"
+        >281</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L282" data-git-line="282">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="282"
+          aria-label="Copy permalink for line 282"
+          title="Copy permalink for line 282"
+        >282</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: Middleware serves as a foundation for certain web application features. If the middleware is incomplete or delayed, the web app team might face blockers or have to develop workarounds.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L283" data-git-line="283">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="283"
+          aria-label="Copy permalink for line 283"
+          title="Copy permalink for line 283"
+        >283</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: Rework or integration delays may lead to missed deadlines.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L284" data-git-line="284">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="284"
+          aria-label="Copy permalink for line 284"
+          title="Copy permalink for line 284"
+        >284</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L285" data-git-line="285">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="285"
+          aria-label="Copy permalink for line 285"
+          title="Copy permalink for line 285"
+        >285</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L286" data-git-line="286">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="286"
+          aria-label="Copy permalink for line 286"
+          title="Copy permalink for line 286"
+        >286</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Contrasting Methodologies&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L287" data-git-line="287">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="287"
+          aria-label="Copy permalink for line 287"
+          title="Copy permalink for line 287"
+        >287</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L288" data-git-line="288">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="288"
+          aria-label="Copy permalink for line 288"
+          title="Copy permalink for line 288"
+        >288</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: Agile/Scrum focuses on delivering increments, while the Prototype model emphasizes iterative validation of unknowns. Coordination between these differing models can be challenging.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L289" data-git-line="289">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="289"
+          aria-label="Copy permalink for line 289"
+          title="Copy permalink for line 289"
+        >289</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: Communication gaps may arise, resulting in misaligned deliverables or mismatched expectations.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L290" data-git-line="290">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="290"
+          aria-label="Copy permalink for line 290"
+          title="Copy permalink for line 290"
+        >290</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L291" data-git-line="291">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="291"
+          aria-label="Copy permalink for line 291"
+          title="Copy permalink for line 291"
+        >291</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L292" data-git-line="292">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="292"
+          aria-label="Copy permalink for line 292"
+          title="Copy permalink for line 292"
+        >292</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Scope Creep in Middleware&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L293" data-git-line="293">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="293"
+          aria-label="Copy permalink for line 293"
+          title="Copy permalink for line 293"
+        >293</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L294" data-git-line="294">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="294"
+          aria-label="Copy permalink for line 294"
+          title="Copy permalink for line 294"
+        >294</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: Prototypes for the middleware may expose additional requirements or complexities, leading to expanding scope and increased development time.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L295" data-git-line="295">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="295"
+          aria-label="Copy permalink for line 295"
+          title="Copy permalink for line 295"
+        >295</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: The middleware timeline may continue to slip, jeopardizing overall project delivery.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L296" data-git-line="296">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="296"
+          aria-label="Copy permalink for line 296"
+          title="Copy permalink for line 296"
+        >296</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L297" data-git-line="297">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="297"
+          aria-label="Copy permalink for line 297"
+          title="Copy permalink for line 297"
+        >297</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L298" data-git-line="298">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="298"
+          aria-label="Copy permalink for line 298"
+          title="Copy permalink for line 298"
+        >298</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Resource Allocation&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L299" data-git-line="299">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="299"
+          aria-label="Copy permalink for line 299"
+          title="Copy permalink for line 299"
+        >299</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L300" data-git-line="300">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="300"
+          aria-label="Copy permalink for line 300"
+          title="Copy permalink for line 300"
+        >300</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: Teams may need to switch focus or juggle responsibilities across both parts. Overlap of resources between Agile (web) and Prototype (middleware) workstreams may cause inefficiencies.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L301" data-git-line="301">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="301"
+          aria-label="Copy permalink for line 301"
+          title="Copy permalink for line 301"
+        >301</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: Reduced productivity and stretched resources may impact progress in both areas.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L302" data-git-line="302">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="302"
+          aria-label="Copy permalink for line 302"
+          title="Copy permalink for line 302"
+        >302</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L303" data-git-line="303">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="303"
+          aria-label="Copy permalink for line 303"
+          title="Copy permalink for line 303"
+        >303</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L304" data-git-line="304">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="304"
+          aria-label="Copy permalink for line 304"
+          title="Copy permalink for line 304"
+        >304</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Integration Challenges&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L305" data-git-line="305">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="305"
+          aria-label="Copy permalink for line 305"
+          title="Copy permalink for line 305"
+        >305</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L306" data-git-line="306">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="306"
+          aria-label="Copy permalink for line 306"
+          title="Copy permalink for line 306"
+        >306</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Issue&lt;/strong&gt;: Without sufficient coordination, integration of the web application with the middleware framework could reveal compatibility issues late in the project.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L307" data-git-line="307">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="307"
+          aria-label="Copy permalink for line 307"
+          title="Copy permalink for line 307"
+        >307</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Impact&lt;/strong&gt;: Delays and technical debt may accumulate during integration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L308" data-git-line="308">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="308"
+          aria-label="Copy permalink for line 308"
+          title="Copy permalink for line 308"
+        >308</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L309" data-git-line="309">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="309"
+          aria-label="Copy permalink for line 309"
+          title="Copy permalink for line 309"
+        >309</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L310" data-git-line="310">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="310"
+          aria-label="Copy permalink for line 310"
+          title="Copy permalink for line 310"
+        >310</button>
+        <span class="git-code-text">&lt;/ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L311" data-git-line="311">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="311"
+          aria-label="Copy permalink for line 311"
+          title="Copy permalink for line 311"
+        >311</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L312" data-git-line="312">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="312"
+          aria-label="Copy permalink for line 312"
+          title="Copy permalink for line 312"
+        >312</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;Where the Plan is Likely to Break Down&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L313" data-git-line="313">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="313"
+          aria-label="Copy permalink for line 313"
+          title="Copy permalink for line 313"
+        >313</button>
+        <span class="git-code-text">&lt;ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L314" data-git-line="314">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="314"
+          aria-label="Copy permalink for line 314"
+          title="Copy permalink for line 314"
+        >314</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Middleware Complexity Underestimated&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L315" data-git-line="315">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="315"
+          aria-label="Copy permalink for line 315"
+          title="Copy permalink for line 315"
+        >315</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L316" data-git-line="316">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="316"
+          aria-label="Copy permalink for line 316"
+          title="Copy permalink for line 316"
+        >316</button>
+        <span class="git-code-text">&lt;li&gt;Misjudging the number of iterations required for prototype validation could derail timelines.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L317" data-git-line="317">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="317"
+          aria-label="Copy permalink for line 317"
+          title="Copy permalink for line 317"
+        >317</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L318" data-git-line="318">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="318"
+          aria-label="Copy permalink for line 318"
+          title="Copy permalink for line 318"
+        >318</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L319" data-git-line="319">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="319"
+          aria-label="Copy permalink for line 319"
+          title="Copy permalink for line 319"
+        >319</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Lack of Integration Milestones&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L320" data-git-line="320">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="320"
+          aria-label="Copy permalink for line 320"
+          title="Copy permalink for line 320"
+        >320</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L321" data-git-line="321">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="321"
+          aria-label="Copy permalink for line 321"
+          title="Copy permalink for line 321"
+        >321</button>
+        <span class="git-code-text">&lt;li&gt;Delays in middleware readiness could delay web application integration testing, which may not be feasible within the set delivery date.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L322" data-git-line="322">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="322"
+          aria-label="Copy permalink for line 322"
+          title="Copy permalink for line 322"
+        >322</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L323" data-git-line="323">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="323"
+          aria-label="Copy permalink for line 323"
+          title="Copy permalink for line 323"
+        >323</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L324" data-git-line="324">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="324"
+          aria-label="Copy permalink for line 324"
+          title="Copy permalink for line 324"
+        >324</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Inadequate Risk Management&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L325" data-git-line="325">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="325"
+          aria-label="Copy permalink for line 325"
+          title="Copy permalink for line 325"
+        >325</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L326" data-git-line="326">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="326"
+          aria-label="Copy permalink for line 326"
+          title="Copy permalink for line 326"
+        >326</button>
+        <span class="git-code-text">&lt;li&gt;Without proper risk buffers, unforeseen challenges in middleware development (due to many unknowns) may spill over into the web app timeline.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L327" data-git-line="327">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="327"
+          aria-label="Copy permalink for line 327"
+          title="Copy permalink for line 327"
+        >327</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L328" data-git-line="328">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="328"
+          aria-label="Copy permalink for line 328"
+          title="Copy permalink for line 328"
+        >328</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L329" data-git-line="329">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="329"
+          aria-label="Copy permalink for line 329"
+          title="Copy permalink for line 329"
+        >329</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Communication Breakdown&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L330" data-git-line="330">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="330"
+          aria-label="Copy permalink for line 330"
+          title="Copy permalink for line 330"
+        >330</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L331" data-git-line="331">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="331"
+          aria-label="Copy permalink for line 331"
+          title="Copy permalink for line 331"
+        >331</button>
+        <span class="git-code-text">&lt;li&gt;Agile&amp;#39;s rapid iteration cycle and Prototype&amp;#39;s validation-focused loops may not sync up, causing misalignment in deliverable expectations and integration points.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L332" data-git-line="332">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="332"
+          aria-label="Copy permalink for line 332"
+          title="Copy permalink for line 332"
+        >332</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L333" data-git-line="333">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="333"
+          aria-label="Copy permalink for line 333"
+          title="Copy permalink for line 333"
+        >333</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L334" data-git-line="334">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="334"
+          aria-label="Copy permalink for line 334"
+          title="Copy permalink for line 334"
+        >334</button>
+        <span class="git-code-text">&lt;/ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L335" data-git-line="335">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="335"
+          aria-label="Copy permalink for line 335"
+          title="Copy permalink for line 335"
+        >335</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L336" data-git-line="336">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="336"
+          aria-label="Copy permalink for line 336"
+          title="Copy permalink for line 336"
+        >336</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;Suggested Plan Revisions&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L337" data-git-line="337">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="337"
+          aria-label="Copy permalink for line 337"
+          title="Copy permalink for line 337"
+        >337</button>
+        <span class="git-code-text">&lt;ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L338" data-git-line="338">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="338"
+          aria-label="Copy permalink for line 338"
+          title="Copy permalink for line 338"
+        >338</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Reevaluate Delivery Date&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L339" data-git-line="339">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="339"
+          aria-label="Copy permalink for line 339"
+          title="Copy permalink for line 339"
+        >339</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L340" data-git-line="340">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="340"
+          aria-label="Copy permalink for line 340"
+          title="Copy permalink for line 340"
+        >340</button>
+        <span class="git-code-text">&lt;li&gt;Separate delivery timelines for the web application and middleware framework:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L341" data-git-line="341">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="341"
+          aria-label="Copy permalink for line 341"
+          title="Copy permalink for line 341"
+        >341</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Web Application&lt;/strong&gt;: Stick to the existing delivery date with focus on delivering full functionality.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L342" data-git-line="342">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="342"
+          aria-label="Copy permalink for line 342"
+          title="Copy permalink for line 342"
+        >342</button>
+        <span class="git-code-text">&lt;li&gt;&lt;strong&gt;Middleware Framework&lt;/strong&gt;: Introduce a later, more realistic timeline with defined milestones for prototype iterations.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L343" data-git-line="343">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="343"
+          aria-label="Copy permalink for line 343"
+          title="Copy permalink for line 343"
+        >343</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L344" data-git-line="344">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="344"
+          aria-label="Copy permalink for line 344"
+          title="Copy permalink for line 344"
+        >344</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L345" data-git-line="345">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="345"
+          aria-label="Copy permalink for line 345"
+          title="Copy permalink for line 345"
+        >345</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L346" data-git-line="346">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="346"
+          aria-label="Copy permalink for line 346"
+          title="Copy permalink for line 346"
+        >346</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L347" data-git-line="347">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="347"
+          aria-label="Copy permalink for line 347"
+          title="Copy permalink for line 347"
+        >347</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Define Integration Points&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L348" data-git-line="348">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="348"
+          aria-label="Copy permalink for line 348"
+          title="Copy permalink for line 348"
+        >348</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L349" data-git-line="349">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="349"
+          aria-label="Copy permalink for line 349"
+          title="Copy permalink for line 349"
+        >349</button>
+        <span class="git-code-text">&lt;li&gt;Identify &lt;strong&gt;must-have middleware features&lt;/strong&gt; required for web app integration early and establish fixed deadlines for their readiness.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L350" data-git-line="350">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="350"
+          aria-label="Copy permalink for line 350"
+          title="Copy permalink for line 350"
+        >350</button>
+        <span class="git-code-text">&lt;li&gt;Create mock APIs or stubs for middleware to enable parallel development in the web app.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L351" data-git-line="351">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="351"
+          aria-label="Copy permalink for line 351"
+          title="Copy permalink for line 351"
+        >351</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L352" data-git-line="352">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="352"
+          aria-label="Copy permalink for line 352"
+          title="Copy permalink for line 352"
+        >352</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L353" data-git-line="353">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="353"
+          aria-label="Copy permalink for line 353"
+          title="Copy permalink for line 353"
+        >353</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Parallel Workstreams&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L354" data-git-line="354">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="354"
+          aria-label="Copy permalink for line 354"
+          title="Copy permalink for line 354"
+        >354</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L355" data-git-line="355">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="355"
+          aria-label="Copy permalink for line 355"
+          title="Copy permalink for line 355"
+        >355</button>
+        <span class="git-code-text">&lt;li&gt;Clearly separate teams and resources for the web app and middleware to prevent resource bottlenecks.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L356" data-git-line="356">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="356"
+          aria-label="Copy permalink for line 356"
+          title="Copy permalink for line 356"
+        >356</button>
+        <span class="git-code-text">&lt;li&gt;Ensure middleware prototypes are built with modularity to allow phased integration with the web app.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L357" data-git-line="357">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="357"
+          aria-label="Copy permalink for line 357"
+          title="Copy permalink for line 357"
+        >357</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L358" data-git-line="358">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="358"
+          aria-label="Copy permalink for line 358"
+          title="Copy permalink for line 358"
+        >358</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L359" data-git-line="359">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="359"
+          aria-label="Copy permalink for line 359"
+          title="Copy permalink for line 359"
+        >359</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Frequent Communication&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L360" data-git-line="360">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="360"
+          aria-label="Copy permalink for line 360"
+          title="Copy permalink for line 360"
+        >360</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L361" data-git-line="361">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="361"
+          aria-label="Copy permalink for line 361"
+          title="Copy permalink for line 361"
+        >361</button>
+        <span class="git-code-text">&lt;li&gt;Use regular cross-team meetings to synchronize progress between the Agile (web app) and Prototype (middleware) teams.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L362" data-git-line="362">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="362"
+          aria-label="Copy permalink for line 362"
+          title="Copy permalink for line 362"
+        >362</button>
+        <span class="git-code-text">&lt;li&gt;Share common documentation (e.g., APIs, protocols, and integration requirements) early and keep it updated.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L363" data-git-line="363">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="363"
+          aria-label="Copy permalink for line 363"
+          title="Copy permalink for line 363"
+        >363</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L364" data-git-line="364">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="364"
+          aria-label="Copy permalink for line 364"
+          title="Copy permalink for line 364"
+        >364</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L365" data-git-line="365">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="365"
+          aria-label="Copy permalink for line 365"
+          title="Copy permalink for line 365"
+        >365</button>
+        <span class="git-code-text">&lt;/ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L366" data-git-line="366">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="366"
+          aria-label="Copy permalink for line 366"
+          title="Copy permalink for line 366"
+        >366</button>
+        <span class="git-code-text">&lt;hr&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L367" data-git-line="367">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="367"
+          aria-label="Copy permalink for line 367"
+          title="Copy permalink for line 367"
+        >367</button>
+        <span class="git-code-text">&lt;h3&gt;&lt;strong&gt;Mitigations to Safeguard the Critical Path&lt;/strong&gt;&lt;/h3&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L368" data-git-line="368">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="368"
+          aria-label="Copy permalink for line 368"
+          title="Copy permalink for line 368"
+        >368</button>
+        <span class="git-code-text">&lt;ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L369" data-git-line="369">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="369"
+          aria-label="Copy permalink for line 369"
+          title="Copy permalink for line 369"
+        >369</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Risk Buffers&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L370" data-git-line="370">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="370"
+          aria-label="Copy permalink for line 370"
+          title="Copy permalink for line 370"
+        >370</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L371" data-git-line="371">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="371"
+          aria-label="Copy permalink for line 371"
+          title="Copy permalink for line 371"
+        >371</button>
+        <span class="git-code-text">&lt;li&gt;Add explicit buffer time for middleware development and integration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L372" data-git-line="372">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="372"
+          aria-label="Copy permalink for line 372"
+          title="Copy permalink for line 372"
+        >372</button>
+        <span class="git-code-text">&lt;li&gt;Treat &lt;strong&gt;middleware readiness&lt;/strong&gt; as a high-risk dependency and escalate blockers immediately.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L373" data-git-line="373">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="373"
+          aria-label="Copy permalink for line 373"
+          title="Copy permalink for line 373"
+        >373</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L374" data-git-line="374">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="374"
+          aria-label="Copy permalink for line 374"
+          title="Copy permalink for line 374"
+        >374</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L375" data-git-line="375">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="375"
+          aria-label="Copy permalink for line 375"
+          title="Copy permalink for line 375"
+        >375</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Incremental Middleware Prototypes&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L376" data-git-line="376">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="376"
+          aria-label="Copy permalink for line 376"
+          title="Copy permalink for line 376"
+        >376</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L377" data-git-line="377">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="377"
+          aria-label="Copy permalink for line 377"
+          title="Copy permalink for line 377"
+        >377</button>
+        <span class="git-code-text">&lt;li&gt;Ensure middleware prototypes deliver modular functionality that can be consumed incrementally by the web app.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L378" data-git-line="378">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="378"
+          aria-label="Copy permalink for line 378"
+          title="Copy permalink for line 378"
+        >378</button>
+        <span class="git-code-text">&lt;li&gt;Prioritize foundational modules first (e.g., APIs, communication protocols).&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L379" data-git-line="379">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="379"
+          aria-label="Copy permalink for line 379"
+          title="Copy permalink for line 379"
+        >379</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L380" data-git-line="380">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="380"
+          aria-label="Copy permalink for line 380"
+          title="Copy permalink for line 380"
+        >380</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L381" data-git-line="381">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="381"
+          aria-label="Copy permalink for line 381"
+          title="Copy permalink for line 381"
+        >381</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Web App Workarounds&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L382" data-git-line="382">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="382"
+          aria-label="Copy permalink for line 382"
+          title="Copy permalink for line 382"
+        >382</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L383" data-git-line="383">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="383"
+          aria-label="Copy permalink for line 383"
+          title="Copy permalink for line 383"
+        >383</button>
+        <span class="git-code-text">&lt;li&gt;Develop contingency plans (e.g., mocking middleware responses) to allow the web app team to proceed with testing and feature implementation without waiting for the middleware.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L384" data-git-line="384">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="384"
+          aria-label="Copy permalink for line 384"
+          title="Copy permalink for line 384"
+        >384</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L385" data-git-line="385">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="385"
+          aria-label="Copy permalink for line 385"
+          title="Copy permalink for line 385"
+        >385</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L386" data-git-line="386">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="386"
+          aria-label="Copy permalink for line 386"
+          title="Copy permalink for line 386"
+        >386</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Integration Testing&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L387" data-git-line="387">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="387"
+          aria-label="Copy permalink for line 387"
+          title="Copy permalink for line 387"
+        >387</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L388" data-git-line="388">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="388"
+          aria-label="Copy permalink for line 388"
+          title="Copy permalink for line 388"
+        >388</button>
+        <span class="git-code-text">&lt;li&gt;Start integration testing early with partial middleware functionality or stubs to identify compatibility issues ahead of time.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L389" data-git-line="389">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="389"
+          aria-label="Copy permalink for line 389"
+          title="Copy permalink for line 389"
+        >389</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L390" data-git-line="390">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="390"
+          aria-label="Copy permalink for line 390"
+          title="Copy permalink for line 390"
+        >390</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L391" data-git-line="391">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="391"
+          aria-label="Copy permalink for line 391"
+          title="Copy permalink for line 391"
+        >391</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Scope Control&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L392" data-git-line="392">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="392"
+          aria-label="Copy permalink for line 392"
+          title="Copy permalink for line 392"
+        >392</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L393" data-git-line="393">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="393"
+          aria-label="Copy permalink for line 393"
+          title="Copy permalink for line 393"
+        >393</button>
+        <span class="git-code-text">&lt;li&gt;For the middleware:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L394" data-git-line="394">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="394"
+          aria-label="Copy permalink for line 394"
+          title="Copy permalink for line 394"
+        >394</button>
+        <span class="git-code-text">&lt;li&gt;Limit scope by focusing only on essential features for the web app integration.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L395" data-git-line="395">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="395"
+          aria-label="Copy permalink for line 395"
+          title="Copy permalink for line 395"
+        >395</button>
+        <span class="git-code-text">&lt;li&gt;Defer additional features or enhancements to post-release phases.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L396" data-git-line="396">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="396"
+          aria-label="Copy permalink for line 396"
+          title="Copy permalink for line 396"
+        >396</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L397" data-git-line="397">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="397"
+          aria-label="Copy permalink for line 397"
+          title="Copy permalink for line 397"
+        >397</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L398" data-git-line="398">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="398"
+          aria-label="Copy permalink for line 398"
+          title="Copy permalink for line 398"
+        >398</button>
+        <span class="git-code-text">&lt;li&gt;For the web app:&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L399" data-git-line="399">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="399"
+          aria-label="Copy permalink for line 399"
+          title="Copy permalink for line 399"
+        >399</button>
+        <span class="git-code-text">&lt;li&gt;Avoid re-prioritizing features that depend on middleware until core functionality is stable.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L400" data-git-line="400">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="400"
+          aria-label="Copy permalink for line 400"
+          title="Copy permalink for line 400"
+        >400</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L401" data-git-line="401">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="401"
+          aria-label="Copy permalink for line 401"
+          title="Copy permalink for line 401"
+        >401</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L402" data-git-line="402">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="402"
+          aria-label="Copy permalink for line 402"
+          title="Copy permalink for line 402"
+        >402</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L403" data-git-line="403">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="403"
+          aria-label="Copy permalink for line 403"
+          title="Copy permalink for line 403"
+        >403</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L404" data-git-line="404">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="404"
+          aria-label="Copy permalink for line 404"
+          title="Copy permalink for line 404"
+        >404</button>
+        <span class="git-code-text">&lt;li&gt;&lt;p&gt;&lt;strong&gt;Centralized Coordination&lt;/strong&gt;&lt;/p&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L405" data-git-line="405">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="405"
+          aria-label="Copy permalink for line 405"
+          title="Copy permalink for line 405"
+        >405</button>
+        <span class="git-code-text">&lt;ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L406" data-git-line="406">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="406"
+          aria-label="Copy permalink for line 406"
+          title="Copy permalink for line 406"
+        >406</button>
+        <span class="git-code-text">&lt;li&gt;Assign a &lt;strong&gt;technical lead&lt;/strong&gt; to oversee integration and manage dependencies between the two parts.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L407" data-git-line="407">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="407"
+          aria-label="Copy permalink for line 407"
+          title="Copy permalink for line 407"
+        >407</button>
+        <span class="git-code-text">&lt;li&gt;Use tools like JIRA or Confluence to track dependencies and monitor progress transparently.&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L408" data-git-line="408">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="408"
+          aria-label="Copy permalink for line 408"
+          title="Copy permalink for line 408"
+        >408</button>
+        <span class="git-code-text">&lt;/ul&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L409" data-git-line="409">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="409"
+          aria-label="Copy permalink for line 409"
+          title="Copy permalink for line 409"
+        >409</button>
+        <span class="git-code-text">&lt;/li&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L410" data-git-line="410">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="410"
+          aria-label="Copy permalink for line 410"
+          title="Copy permalink for line 410"
+        >410</button>
+        <span class="git-code-text">&lt;/ol&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L411" data-git-line="411">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="411"
+          aria-label="Copy permalink for line 411"
+          title="Copy permalink for line 411"
+        >411</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L412" data-git-line="412">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="412"
+          aria-label="Copy permalink for line 412"
+          title="Copy permalink for line 412"
+        >412</button>
+        <span class="git-code-text">      &lt;/div&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L413" data-git-line="413">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="413"
+          aria-label="Copy permalink for line 413"
+          title="Copy permalink for line 413"
+        >413</button>
+        <span class="git-code-text">    &lt;/article&gt;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L414" data-git-line="414">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="414"
+          aria-label="Copy permalink for line 414"
+          title="Copy permalink for line 414"
+        >414</button>
+        <span class="git-code-text">  </span>
+      </li>
+    
+      </ol>
+    </div>
+  
+      </div>
+    </article>
+  

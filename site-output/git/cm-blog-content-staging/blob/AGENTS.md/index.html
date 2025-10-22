@@ -1,0 +1,55 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/AGENTS.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/AGENTS.md/raw.txt" data-git-line-count="33">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">AGENTS.md</h4>
+          <div class="git-file-meta">3.2 KB · 33 lines · AGENTS.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/AGENTS.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Repository Guidelines</h1>
+<h2>Project Structure &amp; Module Organization</h2>
+<ul>
+<li><code>sources/</code> stores research notes grouped by topic (for example <code>sources/OffSec/</code>). Keep supporting images in <code>sources/_resources/</code> so they ship with the draft that references them.</li>
+<li><code>content/</code> holds publish-ready Markdown ready to be formated for the static site generator, you can derive our &quot;tone&quot; and writing style from these works; place final posts under <code>blog/&lt;slug&gt;.md</code> and keep working copies elsewhere until the metadata is complete.</li>
+<li><code>templates/blog-model.md</code> documents the downstream layout, required front matter, and generator inputs—treat it as the source of truth and update it if the build contract changes.</li>
+</ul>
+<h2>Content Conversion Workflow</h2>
+<ul>
+<li>Structure posts derived from <code>sources/</code> notes with a concise <code>## TLDR;</code> section followed by <code>## Working Notes... In Graphic Detail...</code> that preserves the primer detail.</li>
+<li>Sanitize workstation identifiers (<code>m4xx3d0ut</code>, <code>h4ckt0p</code>, etc.) and private addresses such as <code>192.168.29.0/24</code>, swapping in neutral stand-ins like <code>operator@labhost</code> or <code>192.0.2.0/24</code> before publishing.</li>
+<li>Trim the working notes before the final <code>#### Exercises</code> block unless the exercise content is intentionally part of the post.</li>
+<li>While polishing the working notes, expand shorthand lists into readable sentences and fix spelling/grammar where context makes the intention clear; leave ambiguous fragments untouched and flag them for review.</li>
+</ul>
+<h2>Build, Test, and Development Commands</h2>
+<ul>
+<li><code>npx markdownlint-cli &quot;sources/**/*.md&quot; &quot;content/**/*.md&quot;</code> — run before every PR to catch heading levels, spacing, and trailing whitespace; install <code>markdownlint-cli</code> globally if you prefer.</li>
+<li><code>make preview</code> (in the sibling <code>chaosandmajesty-static-site-gen</code> project) — launches the static-site preview with HTMX routing so you can validate navigation against your updates.</li>
+<li><code>./build-site.sh</code> (same project) — produces the deployable HTML bundle; use it for pre-release smoke checks.</li>
+</ul>
+<h2>Coding Style &amp; Naming Conventions</h2>
+<ul>
+<li>Front matter must follow the contract in <code>templates/blog-model.md</code>: include <code>title</code>, <code>slug</code>, <code>author</code>, <code>summary</code>, ISO 8601 <code>publishedAt</code>/<code>updatedAt</code>, <code>readingMinutes</code>, and optional <code>tags</code>/<code>heroImage</code>.</li>
+<li>Final filenames use lowercase, hyphenated slugs (e.g. <code>content/blog/offsec-labs-week-01.md</code>); avoid spaces or uppercase characters once a post leaves <code>sources/</code>.</li>
+<li>Prefer ATX headings (<code>##</code>), wrap prose near 100 characters, and annotate fenced code blocks with language hints to improve highlighted output.</li>
+</ul>
+<h2>Testing Guidelines</h2>
+<ul>
+<li>Linting plus preview clicks are the primary quality gates; there are no automated unit tests for this repository.</li>
+<li>Verify the generated list, article fragment, and hero media render correctly when running <code>make preview</code>.</li>
+<li>Use <code>&lt;!-- TODO --&gt;</code> markers only for short-lived follow-ups and convert them to tracked issues before merge.</li>
+</ul>
+<h2>Commit &amp; Pull Request Guidelines</h2>
+<ul>
+<li>Write commits in imperative present tense (&quot;Add OffSec chapter summaries&quot;) and group related asset updates with the content change they support.</li>
+<li>PRs should link the driving issue, summarise reader impact, and attach a screenshot or preview URL for visual tweaks.</li>
+<li>Request review from another content maintainer and note any deferred follow-up tasks in the PR description checklist.</li>
+</ul>
+
+      </div>
+    </article>
+  

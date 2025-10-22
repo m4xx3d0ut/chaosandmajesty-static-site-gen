@@ -1,0 +1,192 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/LV VG Management.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/sources/m4xx3d/Core/LV VG Management.md/raw.txt" data-git-line-count="262">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">LV VG Management.md</h4>
+          <div class="git-file-meta">7.7 KB · 262 lines · sources/m4xx3d/Core/LV VG Management.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/sources/m4xx3d/Core/LV VG Management.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: LV VG Management
+updated: 2024-10-20 21:35:34Z
+created: 2024-10-20 21:34:45Z
+latitude: 33.86889000
+longitude: -118.38258000
+altitude: 13.2000</h2>
+<p>To format an SSD to ext4 and include it as part of the root volume (<code>ubuntu--vg-ubuntu--lv</code>) in Ubuntu Server from the command line, you can follow these steps:</p>
+<ol>
+<li><p><strong>Check Available Disks and Partitions:</strong></p>
+<p>First, list the available disks and logical volumes to identify the correct device for the SSD:</p>
+<pre><code class="language-bash">lsblk
+</code></pre>
+<p>This will show a tree of block devices, making it easier to locate your SSD and logical volume.</p>
+</li>
+<li><p><strong>Check Current LVM Configuration:</strong></p>
+<p>Since you want to extend <code>ubuntu--vg-ubuntu--lv</code>, check your LVM setup:</p>
+<pre><code class="language-bash">sudo vgdisplay
+sudo lvdisplay
+</code></pre>
+<p>This will show you the volume group and logical volumes. Ensure you note the correct paths for the volume group (<code>ubuntu-vg</code>) and logical volume (<code>ubuntu-lv</code>).</p>
+</li>
+<li><p><strong>Partition the SSD (if not already done):</strong></p>
+<p>If the SSD is unpartitioned, create a partition using <code>fdisk</code> or <code>parted</code>. Here&#39;s an example using <code>fdisk</code>:</p>
+<pre><code class="language-bash">sudo fdisk /dev/sdX  # Replace X with the correct letter for your SSD
+</code></pre>
+<p>Inside <code>fdisk</code>, create a new partition:</p>
+<ul>
+<li>Press <code>n</code> to create a new partition.</li>
+<li>Choose defaults for partition number and sector start/end.</li>
+<li>Press <code>w</code> to write changes.</li>
+</ul>
+</li>
+<li><p><strong>Create a Physical Volume (PV):</strong></p>
+<p>If the SSD is now partitioned, you&#39;ll need to turn it into an LVM physical volume:</p>
+<pre><code class="language-bash">sudo pvcreate /dev/sdX1  # Replace sdX1 with the partition path of the SSD
+</code></pre>
+</li>
+<li><p><strong>Extend the Volume Group (VG):</strong></p>
+<p>Add the new physical volume to the existing volume group:</p>
+<pre><code class="language-bash">sudo vgextend ubuntu-vg /dev/sdX1  # Replace ubuntu-vg and sdX1 with your VG and partition
+</code></pre>
+</li>
+<li><p><strong>Extend the Logical Volume (LV):</strong></p>
+<p>Now extend the logical volume to use the space from the SSD:</p>
+<pre><code class="language-bash">sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+</code></pre>
+<p>This command extends the logical volume (<code>ubuntu-lv</code>) to use all the available space from the volume group (<code>ubuntu-vg</code>).</p>
+</li>
+<li><p><strong>Resize the Filesystem:</strong></p>
+<p>After extending the logical volume, resize the filesystem to occupy the new space:</p>
+<pre><code class="language-bash">sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+</code></pre>
+</li>
+<li><p><strong>Verify the Changes:</strong></p>
+<p>Finally, check that the logical volume has been extended:</p>
+<pre><code class="language-bash">df -h
+</code></pre>
+<p>This should show that your root volume has increased, and the SSD&#39;s space has been added.</p>
+</li>
+</ol>
+<p>By following these steps, you&#39;ll format the SSD as ext4, add it to your existing volume group, and extend the root volume (<code>ubuntu--vg-ubuntu--lv</code>) on an Ubuntu Server.</p>
+<hr>
+<p>To delete an old Cinder volume from the disk on an Ubuntu server, you can follow these steps to safely remove it before formatting the disk. Assuming you are no longer using the volume in OpenStack&#39;s Cinder, proceed with the steps below.</p>
+<h3>Steps to Remove the Old Cinder Volume:</h3>
+<ol>
+<li><p><strong>Identify the Cinder Volume:</strong></p>
+<p>First, you need to identify the Cinder volume that is occupying the disk. You can list the volumes using <code>lsblk</code> or <code>fdisk</code>:</p>
+<pre><code class="language-bash">lsblk
+</code></pre>
+<p>You may also want to check the volume information with <code>pvdisplay</code> (if it&#39;s part of an LVM setup used by Cinder):</p>
+<pre><code class="language-bash">sudo pvdisplay
+</code></pre>
+</li>
+<li><p><strong>Stop OpenStack Cinder (if running):</strong></p>
+<p>If you&#39;re still running OpenStack Cinder services and the volume is managed by Cinder, you should stop them before making changes to the volume:</p>
+<pre><code class="language-bash">sudo systemctl stop cinder-volume
+sudo systemctl stop cinder-api
+</code></pre>
+<p>Alternatively, if you&#39;re using containers, stop the relevant container.</p>
+</li>
+<li><p><strong>Delete the Cinder Volume from OpenStack (if applicable):</strong></p>
+<p>If the Cinder volume is still active in OpenStack, delete it using the OpenStack CLI:</p>
+<pre><code class="language-bash">openstack volume delete &lt;volume-id&gt;
+</code></pre>
+<p>This will remove the volume from Cinder&#39;s management. To list the volumes before deletion:</p>
+<pre><code class="language-bash">openstack volume list
+</code></pre>
+</li>
+<li><p><strong>Wipe the Partition Table:</strong></p>
+<p>Once you have confirmed that the Cinder volume is no longer in use, you can wipe the disk or partition. To remove all existing partitions and any LVM metadata on the disk, use <code>wipefs</code> or <code>dd</code>:</p>
+<pre><code class="language-bash">sudo wipefs -a /dev/sdX  # Replace &#39;sdX&#39; with the correct disk
+</code></pre>
+<p>If <code>wipefs</code> doesn’t work or you want to fully zero out the beginning of the disk, use:</p>
+<pre><code class="language-bash">sudo dd if=/dev/zero of=/dev/sdX bs=512 count=1
+</code></pre>
+<p><strong>Caution:</strong> This will wipe all data on the disk. Ensure that you&#39;re targeting the correct device.</p>
+</li>
+<li><p><strong>Remove LVM (if applicable):</strong></p>
+<p>If the disk was part of an LVM setup, remove it from the volume group and physical volume:</p>
+<ul>
+<li><p>Deactivate the volume (if active):</p>
+<pre><code class="language-bash">sudo lvchange -an /dev/&lt;vg-name&gt;/&lt;lv-name&gt;
+</code></pre>
+</li>
+<li><p>Remove the logical volume:</p>
+<pre><code class="language-bash">sudo lvremove /dev/&lt;vg-name&gt;/&lt;lv-name&gt;
+</code></pre>
+</li>
+<li><p>Remove the physical volume:</p>
+<pre><code class="language-bash">sudo pvremove /dev/sdX
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p><strong>Partition and Format the Disk:</strong></p>
+<p>Now that the Cinder volume is deleted, you can proceed to partition and format the disk as ext4 (or any filesystem of your choice). Use <code>fdisk</code> or <code>parted</code> to create new partitions, then format them:</p>
+<pre><code class="language-bash">sudo mkfs.ext4 /dev/sdX1
+</code></pre>
+<p>Replace <code>/dev/sdX1</code> with the partition of the SSD you want to format.</p>
+</li>
+</ol>
+<p>After performing these steps, the disk should be free of the old Cinder volume and ready to be used as part of your new setup.</p>
+<hr>
+<p>Now that the drive has been cleared, you can add it to the existing volume group (<code>ubuntu-vg</code>) and extend the logical volume (<code>ubuntu-lv</code>). Below are the steps to complete this process.</p>
+<h3>Steps to Add the Cleared Drive to the Existing Volume Group and Extend the Logical Volume:</h3>
+<ol>
+<li><p><strong>Create a Physical Volume (PV) on the Drive:</strong></p>
+<p>First, turn the cleared drive into an LVM physical volume (PV). Replace <code>/dev/sdX</code> with the appropriate disk identifier:</p>
+<pre><code class="language-bash">sudo pvcreate /dev/sdX
+</code></pre>
+<p>This command initializes the drive to be used by LVM.</p>
+</li>
+<li><p><strong>Extend the Volume Group (VG):</strong></p>
+<p>Now, add the new physical volume to your existing volume group (<code>ubuntu-vg</code>):</p>
+<pre><code class="language-bash">sudo vgextend ubuntu-vg /dev/sdX
+</code></pre>
+<p>This command adds the cleared disk to the <code>ubuntu-vg</code> volume group.</p>
+</li>
+<li><p><strong>Check the Volume Group:</strong></p>
+<p>Verify that the new physical volume has been added to the volume group:</p>
+<pre><code class="language-bash">sudo vgdisplay
+</code></pre>
+<p>This should show the increased size of the volume group.</p>
+</li>
+<li><p><strong>Extend the Logical Volume (LV):</strong></p>
+<p>Now extend the logical volume (<code>ubuntu-lv</code>) to use the free space from the newly added physical volume:</p>
+<pre><code class="language-bash">sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+</code></pre>
+<p>This command extends the logical volume to use all available space in the volume group. If you want to extend the logical volume by a specific size (e.g., 50GB), you can use this command instead:</p>
+<pre><code class="language-bash">sudo lvextend -L +50G /dev/ubuntu-vg/ubuntu-lv
+</code></pre>
+</li>
+<li><p><strong>Resize the Filesystem:</strong></p>
+<p>After extending the logical volume, resize the filesystem to take advantage of the new space:</p>
+<p>For ext4 filesystems:</p>
+<pre><code class="language-bash">sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+</code></pre>
+<p>This resizes the filesystem on the logical volume so that it uses the newly extended space.</p>
+</li>
+<li><p><strong>Verify the Changes:</strong></p>
+<p>Finally, confirm that the root volume has been extended and that the additional space is available:</p>
+<pre><code class="language-bash">df -h
+</code></pre>
+<p>This should display the updated size of the root volume with the newly added space from the cleared drive.</p>
+</li>
+</ol>
+<h3>Summary</h3>
+<ul>
+<li>You created a physical volume with <code>pvcreate</code>.</li>
+<li>Added the new drive to the volume group using <code>vgextend</code>.</li>
+<li>Extended the logical volume with <code>lvextend</code>.</li>
+<li>Resized the filesystem with <code>resize2fs</code>.</li>
+</ul>
+<p>Now the space from the cleared drive should be part of your root volume (<code>ubuntu--vg-ubuntu--lv</code>).</p>
+
+      </div>
+    </article>
+  

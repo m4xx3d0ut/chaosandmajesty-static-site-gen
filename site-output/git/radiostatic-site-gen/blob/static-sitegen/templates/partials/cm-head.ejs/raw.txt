@@ -1,0 +1,53 @@
+<!-- RadioStatic head partial -->
+<%
+  const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || '');
+  const rawRootBase =
+    (typeof headRootBase !== 'undefined' && headRootBase) ||
+    (typeof page !== 'undefined' && (page.rootBase || (page.blog && page.blog.rootBase))) ||
+    (typeof site !== 'undefined' && site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : '');
+  const normalizedRoot = rawRootBase ? rawRootBase.replace(/\/+$/, '') : '';
+  const hasAbsoluteBase = !!normalizedRoot;
+  const depthValue =
+    (typeof headBaseDepth === 'number' && !Number.isNaN(headBaseDepth))
+      ? headBaseDepth
+      : (typeof baseDepth === 'number' && !Number.isNaN(baseDepth))
+        ? baseDepth
+        : (typeof page !== 'undefined' && typeof page.baseDepth === 'number' && !Number.isNaN(page.baseDepth))
+          ? page.baseDepth
+          : (typeof isSection !== 'undefined' && isSection ? 1 : 0);
+  const depthPrefix = hasAbsoluteBase
+    ? ''
+    : (depthValue > 0 ? '../'.repeat(depthValue) : '');
+  const resolveAsset = (value) => {
+    if (!value) {
+      return hasAbsoluteBase
+        ? (normalizedRoot || '/')
+        : (depthPrefix || './');
+    }
+    if (isExternal(value)) {
+      return value;
+    }
+    if (/^(?:\.\/|\.\.\/)/.test(value)) {
+      return value;
+    }
+    const cleaned = value.replace(/^\/+/, '');
+    if (hasAbsoluteBase) {
+      return cleaned
+        ? `${normalizedRoot}/${cleaned}`
+        : (normalizedRoot || '/');
+    }
+    return depthPrefix + cleaned;
+  };
+  const faviconPath = (page && page.favicon) || (site && site.favicon) || 'assets/static/img/site-icon-512.png';
+  const faviconType = (faviconPath && faviconPath.endsWith('.svg')) ? 'image/svg+xml' : 'image/png';
+  const appleTouchIconPath = (page && page.appleTouchIcon) || (site && site.appleTouchIcon) || 'assets/static/img/site-icon-180.png';
+%>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="<%= resolveAsset('assets/static/style/terminal-console.css') %>">
+<script type="text/javascript" src="<%= resolveAsset('assets/static/js/terminal-console.js') %>" defer></script>
+<link rel="manifest" href="<%= resolveAsset('site.webmanifest') %>"/>
+<link rel="icon" href="<%= resolveAsset(faviconPath) %>" type="<%= faviconType %>">
+<link rel="apple-touch-icon" sizes="180x180" href="<%= resolveAsset(appleTouchIconPath) %>">

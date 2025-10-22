@@ -1,0 +1,86 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/docs/blog-playbook.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/docs/blog-playbook.md/raw.txt" data-git-line-count="59">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">blog-playbook.md</h4>
+          <div class="git-file-meta">3.0 KB · 59 lines · docs/blog-playbook.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/docs/blog-playbook.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Blog Playbook</h1>
+<p>A quick reference for maintaining the Chaos &amp; Majesty blog, adding authors, and shipping new posts with the HTMX-enhanced experience.</p>
+<h2>1. Verify Author Access</h2>
+<ol>
+<li>Open <code>smoke-test.yaml</code> and locate the <code>blog.authors</code> list.</li>
+<li>If the writer already appears there, note their <code>id</code> (e.g., <code>m4xx3d0ut</code>).</li>
+<li>To add a new author:<ul>
+<li>Append an entry with a unique <code>id</code>, <code>name</code>, optional <code>title</code>, <code>avatar</code>, <code>bio</code>, and <code>social</code> links.</li>
+<li>Use repository-relative paths for avatars (e.g., <code>assets/static/img/authors/chaos.png</code>).</li>
+<li>Commit the asset to <code>static-sitegen/assets/static/img/</code> (or ensure <code>cm-source</code> supplies it), then re-run <code>./prepare-cm-files.sh</code> if needed.</li>
+</ul>
+</li>
+</ol>
+<h2>2. Create the Markdown Source</h2>
+<ol>
+<li>Inside <code>content/blog/</code>, copy an existing file or create <code>&lt;slug&gt;.md</code>.</li>
+<li><h2>Populate the YAML front matter:
+```yaml</h2>
+<h2>title: &quot;Console Resonance&quot;
+slug: console-resonance
+author: m4xx3d0ut
+summary: &quot;Why the prompt should hum when you start typing.&quot;
+publishedAt: 2024-06-01
+readingMinutes: 5
+tags:
+  - audio
+  - ux
+heroImage: assets/static/img/blog/console-resonance.webp</h2>
+<pre><code>
+</code></pre>
+</li>
+<li>Write the body in Markdown below the front matter. You can embed code fences, quotes, and headings freely; the generator converts it with <code>marked</code>.</li>
+<li>Optional fields:<ul>
+<li><code>updatedAt</code>: ISO date string if you revise later.</li>
+<li><code>seoDescription</code>: override summary for meta tags.</li>
+</ul>
+</li>
+</ol>
+<h2>3. Local Build &amp; Preview</h2>
+<ol>
+<li>Run <code>./build-site.sh</code> to regenerate <code>site-output/</code>.</li>
+<li>Browse <code>site-output/blog.html</code> to confirm:<ul>
+<li>The new post appears in the sidebar list with the right metadata.</li>
+<li>Clicking the post fetches <code>/blog/fragments/&lt;slug&gt;.html</code> (watch the network panel) and swaps in the article pane.</li>
+<li>The browser URL updates to <code>/blog/&lt;slug&gt;.html</code> and direct navigation works without JavaScript.</li>
+</ul>
+</li>
+<li>Serve the output for live validation: <code>make serve-local</code> (opens at <code>http://localhost:8080</code>).</li>
+</ol>
+<h2>4. Author &amp; Asset Tips</h2>
+<ul>
+<li>Keep author bios short; the card renders beneath each article.</li>
+<li>Prefer <code>.webp</code> for hero images to keep the static bundle light.</li>
+<li>Shared art belongs in <code>cm-source/</code>. After updating that directory, run <code>./prepare-cm-files.sh</code> so assets sync into <code>static-sitegen/assets/</code> for future builds.</li>
+</ul>
+<h2>5. HTMX Workflow Notes</h2>
+<ul>
+<li>Fragment paths live under <code>site-output/blog/fragments/</code>; ensure they are deployed with the rest of the static site so live swaps succeed.</li>
+<li>Because links are standard <code>&lt;a&gt;</code> tags, the blog still works without HTMX (progressive enhancement).</li>
+<li>If you tweak template HTML, rebuild and inspect both <code>blog.html</code> and the per-post pages (<code>site-output/blog/&lt;slug&gt;.html</code>) to maintain parity.</li>
+</ul>
+<h2>6. Pull Request Checklist</h2>
+<ul>
+<li>Include the new Markdown file(s) and any assets.</li>
+<li>Show the diff for <code>smoke-test.yaml</code> if author metadata changed.</li>
+<li>Paste the final <code>./build-site.sh</code> output in the PR description.</li>
+<li>Optional: attach screenshots or a short GIF demonstrating the HTMX swap for reviewers.</li>
+</ul>
+<p>The system remains configuration-first: keep metadata in YAML, prose in Markdown, and let the generator handle HTML output and interactivity.</p>
+
+      </div>
+    </article>
+  

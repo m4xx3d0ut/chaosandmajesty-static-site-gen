@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - helmrepo-gitea.yaml
+  - helmrepo-local-oci.yaml
+  - gitrepo-helm-actions.yaml
+  - helmrepo-grafana.yaml
+  - helmrepo-prometheus-community.yaml
+  - helmrepo-bitnami.yaml
+  - helmrepo-bitnami-oci.yaml
+  - helmrepo-nvidia.yaml
+  - runtimeclass-nvidia.yaml
+  - helmrepo-flagger.yaml
+  - helmrepo-jetstack.yaml

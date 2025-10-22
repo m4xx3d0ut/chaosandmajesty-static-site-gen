@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea
+  namespace: git-local
+  annotations:
+    # Allow large git pushes
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # Keep connections for git/HTTP(S)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [gitea.core.home.arpa]
+      secretName: gitea-tls
+  rules:
+    - host: gitea.core.home.arpa
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Use the *actual* service name created by the chart
+                name: gitea-http
+                # You can use the named port if present:
+                # port: { name: http }
+                port:
+                  number: 3000

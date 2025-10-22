@@ -1,0 +1,91 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: alloy
+      version: 1.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  values:
+    controller:
+      type: daemonset
+      volumes:
+        extra:
+          - name: varlog
+            hostPath: { path: /var/snap/microk8s/common/var/log }
+          - name: kubelet-pods
+            hostPath: { path: /var/snap/microk8s/common/var/lib/kubelet/pods }
+          - name: machine-id
+            hostPath:
+              path: /etc/machine-id
+              type: FileOrCreate
+          - name: positions
+            emptyDir: {}
+
+    alloy:
+      service:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+      image:
+        repository: grafana/alloy
+        tag: v1.10.1
+        pullPolicy: IfNotPresent
+      mounts:
+        extra:
+          - { name: varlog,        mountPath: /var/log,               readOnly: true }
+          - { name: kubelet-pods,  mountPath: /var/lib/kubelet/pods,  readOnly: true }
+          - { name: machine-id,    mountPath: /etc/machine-id,        readOnly: true }
+          - { name: positions,     mountPath: /tmp/alloy }
+      extraPorts:
+        - { name: otlp-grpc, port: 4317, targetPort: 4317, protocol: TCP }
+        - { name: otlp-http, port: 4318, targetPort: 4318, protocol: TCP }
+      configMap:
+        content: |
+          logging {
+            level  = "info"
+            format = "logfmt"
+          }
+
+          discovery.kubernetes "pods" { role = "pod" }
+
+          loki.source.kubernetes "pod_logs" {
+            targets    = discovery.kubernetes.pods.targets
+            forward_to = [loki.process.labels.receiver]
+          }
+
+          loki.process "labels" {
+            stage.static_labels { values = { cluster = "corelocal" } }
+            forward_to = [loki.write.loki.receiver]
+          }
+
+          loki.write "loki" {
+            endpoint {
+              url       = "http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push"
+              tenant_id = "core"
+            }
+          }
+
+          otelcol.receiver.otlp "ingest" {
+            grpc { endpoint = "0.0.0.0:4317" }
+            http { endpoint = "0.0.0.0:4318" }
+            output { traces = [otelcol.exporter.otlp.tempo.input] }
+          }
+
+          otelcol.exporter.otlp "tempo" {
+            client {
+              endpoint = "http://tempo.tempo.svc.cluster.local:4317"
+              tls { insecure = true }
+            }
+          }
+    rbac:
+      create: true
+    serviceAccount:
+      create: true

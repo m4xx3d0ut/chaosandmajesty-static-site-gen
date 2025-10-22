@@ -1,0 +1,50 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/docs/doom.md/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/docs/doom.md/raw.txt" data-git-line-count="32">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">doom.md</h4>
+          <div class="git-file-meta">1.4 KB · 32 lines · docs/doom.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/docs/doom.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>DOOM WASM Integration</h1>
+<p>This project embeds the shareware build of DOOM inside the console minigame. The
+runtime expects the wasm binary (<code>doom.wasm</code>) under
+<code>static-sitegen/assets/doom/</code>.</p>
+<h2>Building the assets</h2>
+<ol>
+<li>Run <code>./scripts/build-doom.sh</code>. By default the script downloads the published
+wasm artefact from the
+<a href="https://diekmann.github.io/wasm-fizzbuzz/doom/">wasm-fizzbuzz GitHub Pages</a>.<ul>
+<li>Set <code>DOOM_SOURCE_DIR</code> to copy from a local checkout (after building the
+wasm artefact yourself).</li>
+<li>Set <code>DOOM_WASM_URL</code> to override the download location.</li>
+</ul>
+</li>
+<li>Re-run <code>./build-site.sh</code> (or <code>ENABLE_DOOM_BUILD=1 ./build-site.sh</code> to let the
+build invoke the helper automatically) and <code>make serve-local</code>. Launch
+<code>play doom</code> from the console to verify.</li>
+</ol>
+<h2>Runtime notes</h2>
+<ul>
+<li>The loader looks under <code>assets/doom/</code> relative to the current page. Override
+<code>window.cmDoomConfig.assetBase</code> if you host the assets elsewhere.</li>
+<li>WebAssembly support, audio auto-play, and performance vary across devices.
+The terminal prints a friendly message when the browser is unsupported.</li>
+<li><code>exit doom</code> tears down the game and restores the terminal display.</li>
+</ul>
+<h2>Licensing</h2>
+<ul>
+<li>The original DOOM shareware data is © id Software. Ensure you only ship the
+redistributable shareware WAD when sharing builds.</li>
+<li>The wasm port inherits the GPL/other licensing from the upstream project.
+Consult the upstream repo for details.</li>
+</ul>
+
+      </div>
+    </article>
+  

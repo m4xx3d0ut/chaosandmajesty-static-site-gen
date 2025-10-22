@@ -1,0 +1,225 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/content/m4xx3d/lua-scripting.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/content/m4xx3d/lua-scripting.md/raw.txt" data-git-line-count="221">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">lua-scripting.md</h4>
+          <div class="git-file-meta">4.9 KB · 221 lines · content/m4xx3d/lua-scripting.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/content/m4xx3d/lua-scripting.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <hr>
+<h2>title: Lua Scripting
+slug: lua-scripting
+author: m4xx3d0ut
+summary: A beginner-friendly tour of Lua’s toolchain, syntax, and extensibility for automation, games, and embedded runtimes.
+tags:
+  - m4xx3d
+  - lua
+  - programming
+  - scripting
+  - automation
+publishedAt: 2024-12-19
+updatedAt: 2025-01-16</h2>
+<h2>TLDR;</h2>
+<ul>
+<li>Install Lua from your package manager (or lua.org) and pick an editor with syntax support so you can iterate quickly on <code>.lua</code> files.</li>
+<li>Learn the core language building blocks—tables, functions, control flow, and modules—then practice by wiring Lua into common host environments.</li>
+<li>Extend Lua with C libraries or popular ecosystems like LOVE2D and LuaRocks to build real projects beyond the REPL.</li>
+</ul>
+<h2>Working Notes... In Graphic Detail...</h2>
+<p>Lua is a lightweight, high-level programming language designed for embedding in other applications. It’s known for its simplicity, speed, and flexibility, making it ideal for scripting, game development, and configuration files. Below is a comprehensive introduction to Lua scripting for beginners:</p>
+<hr>
+<h3><strong>1. Key Features of Lua</strong></h3>
+<ul>
+<li><strong>Lightweight:</strong> Small memory footprint, ideal for embedded systems.</li>
+<li><strong>Extensible:</strong> Can be easily integrated with C and other languages.</li>
+<li><strong>Fast:</strong> Efficient execution with a simple virtual machine.</li>
+<li><strong>Simple Syntax:</strong> Easy to learn for beginners and concise for experienced developers.</li>
+<li><strong>Dynamic Typing:</strong> Variables can hold values of any type without explicit declarations.</li>
+</ul>
+<hr>
+<h3><strong>2. Setting Up Lua</strong></h3>
+<p>To start scripting in Lua:</p>
+<ol>
+<li><p><strong>Install Lua:</strong></p>
+<ul>
+<li>Download Lua from <a href="https://www.lua.org/download.html">lua.org</a>.</li>
+<li>Use a package manager (<code>apt</code>, <code>brew</code>, etc.) for easier installation:<ul>
+<li>Linux: <code>sudo apt-get install lua5.4</code></li>
+<li>macOS: <code>brew install lua</code></li>
+<li>Windows: Use Lua binaries from the official website.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Choose a Text Editor or IDE:</strong></p>
+<ul>
+<li>Use a simple editor like VS Code, Sublime Text, or Notepad++.</li>
+<li>Install Lua extensions for syntax highlighting and debugging.</li>
+</ul>
+</li>
+<li><p><strong>Run Lua Scripts:</strong></p>
+<ul>
+<li>Create a script, e.g., <code>script.lua</code>.</li>
+<li>Run it in the terminal with <code>lua script.lua</code>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3><strong>3. Lua Basics</strong></h3>
+<h4><strong>Variables and Data Types</strong></h4>
+<pre><code>lua
+local name = &quot;Lua&quot;
+local version = 5.4
+local isAwesome = true
+print(name, version, isAwesome)
+</code></pre>
+<h4><strong>Control Structures</strong></h4>
+<ul>
+<li><strong>If-Else:</strong><pre><code>
+</code></pre>
+</li>
+</ul>
+<p>lua
+  if score &gt; 90 then
+      print(&quot;A grade&quot;)
+  elseif score &gt; 75 then
+      print(&quot;B grade&quot;)
+  else
+      print(&quot;Keep trying!&quot;)
+  end</p>
+<pre><code>- **Loops:**
+</code></pre>
+<p>lua
+  for i = 1, 5 do
+      print(&quot;Loop iteration&quot;, i)
+  end</p>
+<p>  local i = 1
+  while i &lt;= 5 do
+      print(&quot;While loop&quot;, i)
+      i = i + 1
+  end</p>
+<pre><code>
+#### **Tables (Arrays &amp; Dictionaries)**
+Tables are the core data structure in Lua:
+</code></pre>
+<p>lua
+local player = {
+    name = &quot;Alex&quot;,
+    score = 1200,
+    inventory = {&quot;sword&quot;, &quot;shield&quot;, &quot;potion&quot;}
+}</p>
+<pre><code>Accessing table data:
+</code></pre>
+<p>lua
+print(player.name)
+print(player.inventory[2])</p>
+<pre><code>
+---
+
+### **4. Functions in Lua**
+</code></pre>
+<p>lua
+local function greet(name)
+    return &quot;Hello, &quot; .. name .. &quot;!&quot;
+end</p>
+<p>print(greet(&quot;Lua Developer&quot;))</p>
+<pre><code>
+Functions can be passed as arguments or stored in tables:
+</code></pre>
+<p>lua
+local actions = {
+    attack = function() print(&quot;Player attacks!&quot;) end,
+    heal = function() print(&quot;Player heals!&quot;) end
+}</p>
+<p>actions.attack()
+actions.heal()</p>
+<pre><code>
+---
+
+### **5. Modules and Packages**
+Create a module (`math_utils.lua`):
+</code></pre>
+<p>lua
+local math_utils = {}</p>
+<p>function math_utils.square(x)
+    return x * x
+end</p>
+<p>return math_utils</p>
+<pre><code>Use the module in another file:
+</code></pre>
+<p>lua
+local math_utils = require(&quot;math_utils&quot;)
+print(math_utils.square(5))</p>
+<pre><code>
+LuaRocks can be used to manage external packages:
+</code></pre>
+<p>bash
+luarocks install luasocket</p>
+<pre><code>
+---
+
+### **6. Error Handling**
+Use `pcall` (protected call) to catch errors without crashing the program:
+</code></pre>
+<p>lua
+local status, err = pcall(function()
+    error(&quot;Something went wrong!&quot;)
+end)</p>
+<p>if not status then
+    print(&quot;Error:&quot;, err)
+end</p>
+<pre><code>
+---
+
+### **7. Useful Lua Libraries**
+- **LOVE2D:** Game development framework using Lua.
+- **LuaSocket:** Networking library for Lua.
+- **Penlight:** Utility libraries for extended Lua functionality.
+- **MoonScript:** A higher-level language that compiles to Lua.
+
+---
+
+### **8. Embedding Lua in C**
+Sample C program embedding Lua:
+</code></pre>
+<p>c
+#include &lt;lua.h&gt;
+#include &lt;lauxlib.h&gt;
+#include &lt;lualib.h&gt;</p>
+<p>int main() {
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);</p>
+<pre><code>if (luaL_dofile(L, &quot;script.lua&quot;)) {
+    fprintf(stderr, &quot;%s\n&quot;, lua_tostring(L, -1));
+}
+
+lua_close(L);
+return 0;
+</code></pre>
+<p>}</p>
+<pre><code>Compile with:
+</code></pre>
+<p>bash
+gcc -o run_lua run_lua.c -llua -lm -ldl</p>
+<pre><code>
+---
+
+### **9. Next Steps**
+- Build mini-projects like calculators, configuration loaders, or simple games.
+- Explore metatables and coroutines for advanced Lua programming.
+- ...
+- Profit!
+
+---
+
+**Summary:** Lua’s simplicity and power make it an excellent language for beginners and seasoned developers alike. Mastering the basics and exploring real-world use cases opens the door to rapid automation, scripting, and game development.
+</code></pre>
+
+      </div>
+    </article>
+  

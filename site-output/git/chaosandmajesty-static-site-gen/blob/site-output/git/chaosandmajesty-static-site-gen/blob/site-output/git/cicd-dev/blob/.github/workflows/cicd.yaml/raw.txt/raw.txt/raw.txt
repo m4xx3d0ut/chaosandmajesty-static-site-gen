@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ dev, dev-actions ]
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # If your Gitea cert is trusted in the runner image, you can remove this.
+      - name: Configure Git SSL (temporary if using internal CA)
+        run: |
+          git config --global http.sslVerify false
+          git config --global http."https://gitea.core.home.arpa/".sslVerify false
+
+      - name: Verify Docker Environment (TLS Enabled)
+        run: |
+          set -x
+          echo "DOCKER_HOST=${DOCKER_HOST}"
+          echo "DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY}"
+          echo "DOCKER_CERT_PATH=${DOCKER_CERT_PATH}"
+          # Check TLS certificates
+          ls -la /certs/client/ || echo "TLS certs directory not found"
+          ls -la /certs/client/{ca.pem,cert.pem,key.pem} || echo "TLS cert files not found"
+          # Check Gitea CA cert
+          ls -la /usr/local/share/ca-certificates/gitea-ca.crt || echo "Gitea CA cert not found"
+          docker version
+          docker info
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t reg.microk8s.core.home.arpa:32000/testrepo:latest .
+
+      - name: Push image
+        run: docker push reg.microk8s.core.home.arpa:32000/testrepo:latest

@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+
+# Defensive: ensure no TLS field
+patches:
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+      name: ca-portal
+      namespace: ca-portal
+    patch: |
+      - op: remove
+        path: /spec/tls
+

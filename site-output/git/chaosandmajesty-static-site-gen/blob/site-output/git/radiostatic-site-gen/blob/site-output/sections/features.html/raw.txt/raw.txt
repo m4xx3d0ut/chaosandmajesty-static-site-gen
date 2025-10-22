@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RadioStatic Demo – Feature Tour</title>
+
+  
+    <meta name="description" content="RadioStatic demo site showcasing the retro signal theme and security-first workflow.">
+  
+  
+    <meta name="keywords" content="static site generator, yaml, markdown, radio static, demo">
+  
+
+  <!-- Include CM head content if specified -->
+  
+  
+    <!-- RadioStatic head partial -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../assets/static/style/terminal-console.css">
+<script type="text/javascript" src="../assets/static/js/terminal-console.js" defer></script>
+<link rel="manifest" href="../site.webmanifest"/>
+<link rel="icon" href="../assets/static/img/site-icon-512.png" type="image/png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/static/img/site-icon-180.png">
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../assets/modern.css">
+  
+</head>
+
+<body
+  class="
+    dark-mode
+     with-parallax
+    cm-body
+  "
+  data-theme="dark"
+  
+    style="--parallax-push:12vh;"
+  
+>
+
+  <!-- Optional Parallax Background DIV -->
+  
+    <div
+      class="parallax-bg"
+      style="background-image: url(
+        '../assets/static/img/hero-terminal.png'
+      );"
+    ></div>
+  
+
+  <!-- HEADER -->
+  <header>
+    <div class="container header-container">
+      
+        <a href="../index.html" class="logo-link">
+          <img
+            src="../assets/static/img/site-icon-512.png"
+            alt="RadioStatic Demo Logo"
+            class="logo"
+          >
+        </a>
+      
+
+      
+
+      
+        <!-- Hamburger toggle (only visible on ≤768px) -->
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            
+              <li><a href="../index.html">Home</a></li>
+            
+              <li><a href="../blog.html">Blog</a></li>
+            
+              <li><a href="../sections/git.html">Git</a></li>
+            
+            <li><button type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">DARK</button></li>
+          </ul>
+        </nav>
+      
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+    
+      <h2 class="page-title">Feature Tour</h2>
+    
+
+    
+      <div class="page-image">
+        <img src="../assets/static/img/hero-cards.svg" alt="Feature Tour image">
+      </div>
+    
+
+    <!-- Include 3D Logo if specified -->
+    
+
+    <!-- Include CM console if specified -->
+    
+
+    <div class="page-content
+      
+      ">
+      <h2>What ships in this demo</h2>
+<ul>
+<li><strong>Config-driven pages</strong> — adjust navigation, copy, and theme controls straight from YAML.</li>
+<li><strong>Reusable layouts</strong> — extend the EJS templates in <code>static-sitegen/templates/</code> to bring your own brand system.</li>
+<li><strong>Blog with fragments</strong> — serve HTMX fragments alongside full posts for instant previews.</li>
+</ul>
+
+    </div>
+
+    <!-- Column Layout Support -->
+    
+      <div class="two-column-layout 15-85">
+        <div class="left-column">
+          <h3>Quick Links</h3>
+<ul>
+<li><a href="../blog.html">Blog</a></li>
+<li><a href="../sections/git.html">Git Console</a></li>
+</ul>
+
+        </div>
+        <div class="right-column">
+          <h2>Customize every frequency</h2>
+<p>Set typography, palettes, and metadata without touching the templates. Rebuild anytime to keep your signal crisp.</p>
+
+        </div>
+      </div>
+    
+
+    
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <!-- Include CM footer if specified -->
+    
+      <!-- Terminal footer partial -->
+<div class="terminal-footer">
+  <p>
+    This is placeholder copy. Update cmFooterText in your YAML file.
+  </p>
+</div>
+
+    
+    
+    <div class="container footer-container">
+      
+        <nav>
+          <ul class="footer-links">
+            
+              <li>
+                <a href="https://github.com/example" target="_blank" rel="noopener">
+                  GitHub
+                </a>
+              </li>
+            
+              <li>
+                <a href="privacy.html" target="_blank" rel="noopener">
+                  Privacy
+                </a>
+              </li>
+            
+              <li>
+                <a href="terms.html" target="_blank" rel="noopener">
+                  Terms
+                </a>
+              </li>
+            
+          </ul>
+        </nav>
+      
+      <p class="footer-copy">
+        &copy; 2025 RadioStatic Demo
+      </p>
+    </div>
+  </footer>
+
+  
+  
+
+  
+  
+
+  
+  <script>
+    (function() {
+      var config = window.radiostaticDoomConfig = window.radiostaticDoomConfig || window.sitegenDoomConfig || window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '../assets/doom/';
+      }
+      window.sitegenDoomConfig = config;
+      window.cmDoomConfig = config;
+    })();
+  </script>
+
+  <!-- NAV TOGGLE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

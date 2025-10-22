@@ -1,0 +1,99 @@
+
+
+
+
+<article class="blog-article-body" data-slug="styling-your-pages">
+  <header class="blog-article-header">
+    <h1 class="blog-article-title">Styling Your Pages</h1>
+    <p class="blog-article-meta">
+      
+        <span>Mar 28, 2024</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>3 min read</span>
+      
+      
+        <span aria-hidden="true">•</span>
+        <span>Your Name</span>
+      
+    </p>
+  </header>
+
+  
+    <figure class="blog-hero">
+      <img src="assets/static/img/hero-colors.svg" alt="Styling Your Pages hero image">
+    </figure>
+  
+
+  <div class="blog-article-content">
+    <p>The demo theme is intentionally small so you can replace it without digging through hundreds of lines of styling. Here are a few quick wins:</p>
+<ol>
+<li>Duplicate <code>examples/demo-site/assets/modern.css</code> and adjust the color variables at the top.</li>
+<li>Swap the <code>styles</code> array in your YAML file so pages load your stylesheet.</li>
+<li>Update any assets referenced in the Markdown files to match your colors or illustrations.</li>
+</ol>
+<p>For teams that prefer utility classes, you can even pipe the generated HTML into your favorite framework—RadioStatic does not enforce a runtime.</p>
+<p>Need a terminal-style hero? Keep the <code>useTerminalConsole: true</code> flags in the configuration and customize the copy inside the Markdown sections.</p>
+
+  </div>
+
+  
+    <footer class="blog-author-card">
+      
+        <img class="blog-author-avatar" src="assets/static/img/avatar-alex.svg" alt="Your Name avatar">
+      
+      <div class="blog-author-details">
+        <strong class="blog-author-name">Your Name</strong>
+        
+          <div class="blog-author-title">Signal Keeper</div>
+        
+        
+          <p class="blog-author-bio">Introduce yourself or your crew with a quick sentence about why you broadcast.</p>
+        
+        
+          <ul class="blog-author-social">
+            
+              <li><a href="https://example.com/you" target="_blank" rel="noopener">@yourhandle</a></li>
+            
+          </ul>
+        
+      </div>
+    </footer>
+  
+
+  
+    <nav class="blog-article-nav" aria-label="Post navigation">
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="previous"
+        
+        href="blog/launch-checklist.html"
+        data-default-href="blog/launch-checklist.html"
+        data-default-fragment="blog/fragments/launch-checklist.html"
+        data-fragment-href="blog/fragments/launch-checklist.html"
+        data-target-slug="launch-checklist"
+        data-post-slug="launch-checklist"
+      >
+        <span class="blog-article-nav-meta">Previous</span>
+        <span class="blog-article-nav-title">Launch Checklist</span>
+      </a>
+      <span class="blog-article-nav-delimiter" aria-hidden="true">&nbsp;•&nbsp;</span>
+      <a
+        class="blog-article-nav-link"
+        data-blog-nav="next"
+        
+        href="blog/introducing-the-demo-site.html"
+        data-default-href="blog/introducing-the-demo-site.html"
+        data-default-fragment="blog/fragments/introducing-the-demo-site.html"
+        data-fragment-href="blog/fragments/introducing-the-demo-site.html"
+        data-target-slug="introducing-the-demo-site"
+        data-post-slug="introducing-the-demo-site"
+      >
+        <span class="blog-article-nav-meta">Next</span>
+        <span class="blog-article-nav-title">Introducing the Demo Site</span>
+      </a>
+    </nav>
+  
+</article>
+

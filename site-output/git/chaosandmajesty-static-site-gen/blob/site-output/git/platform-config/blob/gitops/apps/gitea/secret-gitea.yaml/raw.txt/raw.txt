@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: secret-gitea
+    namespace: git-local
+type: Opaque
+stringData:
+    values.yaml: ENC[AES256_GCM,data:9afMhlKh6M9Wa9iHjgLeFeN4PRQQbIvbACIe564NS0zNxeVOEeP3F8EBQcPrkaqtHNF12S1gnwz4KxEr4tJRHH1diFINnn/UPVKrPlfD7JX6w+TPQxr9+wUpyzlX0UnmuH8ztPh5o3qjyVDeMpmL6S64mTPSbQ==,iv:Sh7PswmoFCUPl/gQ/UT/IjYOrxhemvoVDGeSTG9tjqo=,tag:LiOW9mYjN0z0eqdRrYylqA==,type:str]
+sops:
+    age:
+        - recipient: age140hrm82vxn9t6mk8h6mwml063x525cqf5d0sy2qvv73v8ecq6c2s6kyv3x
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBWVGJhOTQzcytBUGdON1RS
+            NXR6dlFoQ2ZPcStVSjFaNE5pSTA1YzgwcW5nCjA2d1NiWThWdUs3T2lxMVpvU1dT
+            eDlQcUJrUmVmYmwybzY4elBrVEFEbjQKLS0tIE8xZnVhNklNWDdOZVA4MWJTWVd5
+            U1dWNDNVZStWT1JJV3FERDFwdnNEelEKd/NEFn7wUEhHx8Vb70H9HEF6vraH9AHu
+            Pw9QFWe8KYvdFJM3ZLtQ3vLhekwERA1hJLkgZ4icrJAlqm6gGBZ7KQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-08-31T22:05:52Z"
+    mac: ENC[AES256_GCM,data:A+EQwNbj7POzEn/tnY9/cFMPpuetuw1S7dXWXKC799BMSeYf/cqiWBk+WtBYe9kJ7xuheYMOGlsP7wN6/ATrAe4oR5KPSJmGUi8u3DwapcbOLkQHRrl+2SW39VmJ5GevQLl2iaTwJCo96WRZKrmEg/cg7rm0rSIMn1Z1nzKShyg=,iv:yeTEtXSTHezzQb1BfAMBNXrKe/DutMEQ2H7ltO+tP2E=,tag:tg98beNH6IhzxVrOqHgiKw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2

@@ -1,0 +1,68 @@
+
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/docs/cm-import-guide.md/index.html" data-git-raw-path="git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt" data-git-line-count="68">
+      <header class="git-file-header">
+        <div class="git-file-header-main">
+          <h4 class="git-file-title">cm-import-guide.md</h4>
+          <div class="git-file-meta">2.8 KB · 68 lines · docs/cm-import-guide.md</div>
+        </div>
+        <div class="git-file-actions">
+          <a class="git-file-action git-file-action--raw" href="./git/cm-blog-content-staging/blob/docs/cm-import-guide.md/raw.txt" target="_blank" rel="noopener">Raw</a>
+          <button type="button" class="git-file-action git-file-action--copy" data-git-file-copy>Copy</button>
+        </div>
+      </header>
+      <div class="git-file-body" data-git-file-body>
+        <h1>Chaos &amp; Majesty Sitegen Import Guide</h1>
+<p>Use this checklist whenever we promote fresh posts from <code>blog/</code> into the Chaos &amp; Majesty site generator tree at <code>../../sshfs-mnt/chaosandmajesty-static-site-gen</code>. You can run <code>scripts/sync_cm_blog.py &lt;posts-root&gt; &lt;cm-root&gt;</code> to automate steps 2–4; the manual commands below describe what the script performs.</p>
+<h2>1. Prep the Source Material</h2>
+<ul>
+<li>Regenerate publishable files so every markdown file contains the <code>## TLDR;</code> and <code>## Working Notes...</code> sections: <code>python3 scripts/apply_offsec_tldr.py &amp;&amp; python3 scripts/format_blog.py --force</code>.</li>
+<li>Keep the sanitized hero assets under <code>blog/assets/&lt;slug&gt;/</code>. Only posts that declare <code>heroImage</code> need assets.</li>
+<li>Confirm the front matter uses one of the configured author IDs (<code>m4xx3d0ut</code>, <code>reneerules</code>, …) from <code>docs/blog-model.md</code>.</li>
+</ul>
+<h2>2. Copy Markdown into the Sitegen Repo</h2>
+<p>From the root of this repo:</p>
+<pre><code class="language-bash">rsync -av blog/*.md ../../sshfs-mnt/chaosandmajesty-static-site-gen/content/blog/
+</code></pre>
+<p>The generator reads straight from <code>content/blog/</code>, so no additional conversion is required.</p>
+<h2>3. Move Supporting Assets</h2>
+<p>For each folder under <code>blog/assets/</code> copy the files into the site generator’s blog asset tree (create the destination if it does not exist):</p>
+<pre><code class="language-bash">for dir in blog/assets/*; do
+  slug=&quot;$(basename &quot;$dir&quot;)&quot;
+  rsync -av &quot;$dir&quot;/ \
+    ../../sshfs-mnt/chaosandmajesty-static-site-gen/static-sitegen/assets/static/img/blog/$slug/
+done
+</code></pre>
+<p>If you also curate the design source (<code>cm-source/</code>) keep it in sync so <code>prepare-cm-files.sh</code> can be re-run later:</p>
+<pre><code class="language-bash">rsync -av blog/assets/ \
+  ../../sshfs-mnt/chaosandmajesty-static-site-gen/cm-source/static/img/blog/
+</code></pre>
+<p>The build step copies everything from <code>static-sitegen/assets/</code> to <code>site-output/</code>, so a manual copy there is unnecessary.</p>
+<h2>4. Normalize <code>heroImage</code> Paths</h2>
+<p>Update each markdown file that references a hero image so the path matches the static asset location. Example replacement:</p>
+<pre><code class="language-yaml">heroImage: assets/rnd-methods-madness/freedom-glider-trash-panda.png
+# becomes
+heroImage: assets/static/img/blog/rnd-methods-madness/freedom-glider-trash-panda.png
+</code></pre>
+<p>Use <code>sed -i</code> for bulk edits or update manually before committing in the sitegen repo.</p>
+<h2>5. Build &amp; Verify</h2>
+<p>Inside <code>../../sshfs-mnt/chaosandmajesty-static-site-gen</code>:</p>
+<pre><code class="language-bash">npm install   # first run only
+npm run build || make preview
+</code></pre>
+<p>Open the generated <code>site-output/blog/index.html</code> (or run the preview server) and spot-check:</p>
+<ul>
+<li>TLDR and Working Notes render as expected.</li>
+<li>Hero images resolve correctly.</li>
+<li>Navigation lists the new posts by <code>publishedAt</code> order.</li>
+</ul>
+<h2>6. Commit &amp; Ship</h2>
+<ul>
+<li>Stage markdown plus any new assets in the sitegen repo.</li>
+<li>Reference the originating feature or issue in the commit message.</li>
+<li>Push and run the deployment workflow (or open a PR) per CM release practice.</li>
+</ul>
+<p>Keep this guide alongside the repo so future imports stay consistent.</p>
+
+      </div>
+    </article>
+  
