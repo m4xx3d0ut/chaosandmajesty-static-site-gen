@@ -280,6 +280,13 @@ cmImage: &quot;assets/static/img/logo.png&quot;  # Fallback image
 <li>Customizable prompt and responses</li>
 <li>Retro terminal styling</li>
 </ul>
+<h3><strong>Git Explorer</strong></h3>
+<p>The git page pulls repository metadata from a manifest (<code>pages[].git.manifest</code>) and mirrors repos locally at build time.  </p>
+<ul>
+<li><code>commitLimit</code>: caps how many commits are rendered per repository (default: <code>5</code>).  </li>
+<li>Override per repo via manual entries or <code>pages[].git.localRepoOverrides.&lt;repo&gt;.commitLimit</code>.</li>
+<li><code>skipGlobs</code>: array of glob patterns (supports <code>*</code>, <code>**</code>, <code>?</code>) that exclude directories/files from the mirrored output (<code>site-output/**</code>, <code>node_modules/**</code>, etc.).</li>
+</ul>
 <hr>
 <h2>🚀 Deployment</h2>
 <p>The generated <code>site-output/</code> directory contains:</p>

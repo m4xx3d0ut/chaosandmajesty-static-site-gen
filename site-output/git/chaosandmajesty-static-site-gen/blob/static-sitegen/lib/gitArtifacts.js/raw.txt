@@ -12,12 +12,50 @@ const FIELD_SEPARATOR = '\x1f';
 const LOG_FORMAT = '%H%x1f%h%x1f%an%x1f%ae%x1f%ad%x1f%ct%x1f%s%x1f%D%x1e';
 const DEFAULT_LICENSE_FILE_NAME = 'LICENSE';
 
-export const DEFAULT_COMMIT_LIMIT = 40;
+export const DEFAULT_COMMIT_LIMIT = 5;
 export const DEFAULT_INITIAL_LOG_LIMIT = 10;
 export const DEFAULT_CLONE_DEPTH = 1;
 
 const relativeTimeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 const dateTimeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+function escapeRegex(value) {
+  return value.replace(/[|\\{}()[\]^$+?.*]/g, '\\$&');
+}
+
+function globToRegex(pattern) {
+  let normalized = pattern.replace(/\\/g, '/').replace(/^\.\//, '');
+  if (!normalized) {
+    return null;
+  }
+  let regex = escapeRegex(normalized);
+  regex = regex.replace(/\\\*\\\*/g, '.*');
+  regex = regex.replace(/\\\*/g, '[^/]*');
+  regex = regex.replace(/\\\?/g, '[^/]');
+  return new RegExp(`^${regex}$`);
+}
+
+function createGlobMatcher(patterns) {
+  if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
+    return null;
+  }
+  const regexes = [];
+  for (const pattern of patterns) {
+    if (!pattern || typeof pattern !== 'string') continue;
+    const compiled = globToRegex(pattern.trim());
+    if (compiled) {
+      regexes.push(compiled);
+    }
+  }
+  if (regexes.length === 0) {
+    return null;
+  }
+  return value => {
+    if (!value) return false;
+    const candidate = value.replace(/\\/g, '/');
+    return regexes.some(regex => regex.test(candidate));
+  };
+}
 
 function toPosixPath(value) {
   if (!value) return '';
@@ -386,7 +424,8 @@ function defaultGeneratedKey(repo) {
   return (repo.detailUrl || repo.httpUrl || repo.id || repo.label || '').toLowerCase();
 }
 
-async function loadGitTree(repoPath, ref, verbose = false) {
+async function loadGitTree(repoPath, ref, verbose = false, options = {}) {
+  const skipMatcher = typeof options.skipMatcher === 'function' ? options.skipMatcher : null;
   const args = [
     '-C',
     repoPath,
@@ -404,7 +443,7 @@ async function loadGitTree(repoPath, ref, verbose = false) {
         LC_ALL: 'C'
       }
     });
-    return parseTreeOutput(stdout);
+    return parseTreeOutput(stdout, skipMatcher);
   } catch (error) {
     if (verbose) {
       console.error(`[git-artifacts] git ls-tree failed for ${repoPath}: ${error.stderr || error.stdout || error.message}`);
@@ -427,7 +466,7 @@ function createTreeNode(name, fullPath, type = 'tree') {
   };
 }
 
-function parseTreeOutput(output) {
+function parseTreeOutput(output, skipMatcher) {
   const root = createTreeNode('', '');
   const files = [];
   const directories = new Map();
@@ -445,6 +484,9 @@ function parseTreeOutput(output) {
     const meta = line.slice(0, tabIndex).split(/\s+/);
     const filePath = line.slice(tabIndex + 1);
     if (!filePath) continue;
+    if (skipMatcher && skipMatcher(filePath)) {
+      continue;
+    }
     const type = meta[1] || '';
     const size = meta[3] && meta[3] !== '-' ? Number(meta[3]) : 0;
 
@@ -514,7 +556,7 @@ function matchesLicenseOverride(filePath, licenseOverride) {
   return matchNames.includes(normalizedPath);
 }
 
-function applyLicenseOverrideToTree(treeData, licenseOverride) {
+function applyLicenseOverrideToTree(treeData, licenseOverride, skipMatcher) {
   if (!treeData || !treeData.root || !licenseOverride || !licenseOverride.enabled || !licenseOverride.content) {
     return;
   }
@@ -526,6 +568,10 @@ function applyLicenseOverrideToTree(treeData, licenseOverride) {
   const matchSet = new Set(matchNames.map(name => (typeof name === 'string' ? name.toLowerCase() : '')));
 
   let existing = treeData.files.find(node => node.path && matchSet.has(node.path.toLowerCase()));
+  if (skipMatcher && skipMatcher(fileName)) {
+    return;
+  }
+
   if (!existing) {
     existing = createTreeNode(fileName, fileName, 'blob');
     treeData.files.push(existing);
@@ -544,14 +590,66 @@ function applyLicenseOverrideToTree(treeData, licenseOverride) {
   sortTreeEntries(treeData.root);
 }
 
-async function loadGitRefs(repoPath, verbose = false) {
+function normalizeRefSelector(value) {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+  if (value.startsWith('refs/')) {
+    return value;
+  }
+  if (value.includes('/')) {
+    return `refs/remotes/${value.replace(/^\/+/, '')}`;
+  }
+  return `refs/heads/${value}`;
+}
+
+async function loadGitRefs(repoPath, verbose = false, options = {}) {
+  const selectors = [];
+  const normalizedRef = normalizeRefSelector(options.ref);
+  const normalizedBranch = !options.ref ? normalizeRefSelector(options.branch) : null;
+  if (normalizedRef) {
+    selectors.push(normalizedRef);
+  }
+  if (normalizedBranch) {
+    selectors.push(normalizedBranch);
+    if (normalizedBranch.startsWith('refs/heads/')) {
+      const branchName = normalizedBranch.replace(/^refs\/heads\//, '');
+      selectors.push(normalizeRefSelector(`origin/${branchName}`));
+    }
+  }
+
+  const includeTags = options.includeTags ?? (selectors.length === 0);
+
+  if (selectors.length === 0) {
+    selectors.push('refs/heads');
+    if (includeTags) {
+      selectors.push('refs/tags');
+    }
+  } else if (includeTags) {
+    selectors.push('refs/tags');
+  }
+
+  const selectorSet = [];
+  const seenSelectors = new Set();
+  for (const selector of selectors) {
+    if (!selector) {
+      continue;
+    }
+    if (!seenSelectors.has(selector)) {
+      seenSelectors.add(selector);
+      selectorSet.push(selector);
+    }
+  }
+  if (selectorSet.length === 0) {
+    selectorSet.push('refs/heads');
+  }
+
   const args = [
     '-C',
     repoPath,
     'for-each-ref',
     '--format=%(refname)\t%(objectname:short)\t%(committerdate:iso8601)\t%(committerdate:relative)\t%(authorname)\t%(subject)',
-    'refs/heads',
-    'refs/tags'
+    ...selectorSet
   ];
   try {
     const { stdout } = await execFileAsync('git', args, {
@@ -1124,15 +1222,21 @@ export async function ensureGitRepoArtifacts({
       commits
     });
 
-    const treeData = await loadGitTree(repo.localPath, ref, verbose);
+    const skipGlobs = Array.isArray(repo.skipGlobs) ? repo.skipGlobs : [];
+    const skipMatcher = createGlobMatcher(skipGlobs);
+
+    const treeData = await loadGitTree(repo.localPath, ref, verbose, { skipMatcher });
     if (licenseOverride && licenseOverride.enabled && licenseOverride.content) {
-      applyLicenseOverrideToTree(treeData, licenseOverride);
+      applyLicenseOverrideToTree(treeData, licenseOverride, skipMatcher);
     }
     const blobArtifacts = new Map();
     let readmeCandidateNode = null;
     let readmeBlob = null;
 
     for (const fileNode of treeData.files) {
+      if (skipMatcher && skipMatcher(fileNode.path)) {
+        continue;
+      }
       fileNode.isMarkdown = isLikelyMarkdown(fileNode.path);
       const blobInfo = await ensureBlobFragment({
         repoPath: repo.localPath,
@@ -1185,7 +1289,13 @@ export async function ensureGitRepoArtifacts({
     await fs.writeFile(filesOutputPath, filesHtml, 'utf8');
     const filesFragmentRel = toPosixPath(path.join('git', slug, 'files.html'));
 
-    const refsData = await loadGitRefs(repo.localPath, verbose);
+    const branchForRefs = repo.overrideBranch || repo.branch || display || '';
+    const refForRefs = ref && ref.startsWith('refs/') ? ref : null;
+    const refsData = await loadGitRefs(repo.localPath, verbose, {
+      ref: refForRefs,
+      branch: branchForRefs,
+      includeTags: false
+    });
     const refsPayload = {
       repo: payload.repo,
       heads: refsData.heads,

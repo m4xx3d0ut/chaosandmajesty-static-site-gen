@@ -12,7 +12,6 @@
   const initialLimit = Number.isFinite(logContext.initialLimit) ? logContext.initialLimit : displayedCommits;
   const showFullLink = !!(logContext && logContext.isTruncated && fullFragment);
   const showCollapseLink = !showFullLink && logMode === 'full' && limitedFragment && initialLimit > 0 && totalCommits > initialLimit;
-  const showOriginLink = !showFullLink && !showCollapseLink && repo.detailUrl;
 %>
 <article
   class="git-panel"
@@ -48,8 +47,6 @@
         <a class="git-panel-log-link" data-git-log-action="expand" href="<%= fullFragment %>">Open full log</a>
       <% } else if (showCollapseLink) { %>
         <a class="git-panel-log-link" data-git-log-action="collapse" href="<%= limitedFragment %>">Show latest <%= initialLimit %></a>
-      <% } else if (showOriginLink) { %>
-        <a class="git-panel-log-link" href="<%= repo.detailUrl %>" target="_blank" rel="noopener">View on origin</a>
       <% } %>
     </div>
   </header>

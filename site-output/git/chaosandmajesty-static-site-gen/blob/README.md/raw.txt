@@ -248,6 +248,12 @@ Interactive terminal interface with:
 - Customizable prompt and responses
 - Retro terminal styling
 
+### **Git Explorer**
+The git page pulls repository metadata from a manifest (`pages[].git.manifest`) and mirrors repos locally at build time.  
+- `commitLimit`: caps how many commits are rendered per repository (default: `5`).  
+- Override per repo via manual entries or `pages[].git.localRepoOverrides.<repo>.commitLimit`.
+- `skipGlobs`: array of glob patterns (supports `*`, `**`, `?`) that exclude directories/files from the mirrored output (`site-output/**`, `node_modules/**`, etc.).
+
 ---
 
 ## 🚀 Deployment
