@@ -7,15 +7,18 @@ ARG ALPINE_VERSION=3.20
 FROM node:20-slim AS builder
 WORKDIR /app
 ENV NODE_ENV=production
+ARG SYNC_GIT_MANIFEST_URL_REWRITE
+ENV SYNC_GIT_MANIFEST_URL_REWRITE=${SYNC_GIT_MANIFEST_URL_REWRITE}
 
 # Install build dependencies and clean apt cache afterwards
-RUN apt-get update \ 
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         git \
+        openssh-client \
         python3 \
-        build-essential \ 
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install JS dependencies
@@ -24,7 +27,8 @@ RUN npm ci --omit=dev
 
 # Copy source and build the site
 COPY . .
-RUN ./build-site.sh
+RUN --mount=type=ssh \
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" ./build-site.sh
 
 # Stage 2: lightweight Nginx image serving the static bundle
 FROM alpine:${ALPINE_VERSION}

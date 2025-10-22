@@ -55,6 +55,8 @@ jobs:
             echo "  IdentitiesOnly yes"
             echo "  StrictHostKeyChecking yes"
           } >> ~/.ssh/config
+          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
+          echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
       - name: Checkout repository (SSH)
         env:
@@ -145,6 +147,10 @@ jobs:
           context: .
           file: Dockerfile
           no-cache: true
+          ssh: |
+            default=${{ secrets.CI_DEPLOY_KEY }}
+          build-args: |
+            SYNC_GIT_MANIFEST_URL_REWRITE=ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
           push: true
           tags: |
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
@@ -190,6 +196,8 @@ jobs:
             echo "  IdentitiesOnly yes"
             echo "  StrictHostKeyChecking yes"
           } >> ~/.ssh/config
+          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
+          echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
       - name: Checkout repository (SSH)
         env:
