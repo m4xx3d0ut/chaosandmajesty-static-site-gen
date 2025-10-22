@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ca-portal
-  labels:
-    trust-bundle: "true"   # receives the org-root-bundle ConfigMap
-

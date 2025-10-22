@@ -1,2 +1,0 @@
----
-# Handlers intentionally left blank; docker_compose_v2 handles restarts.

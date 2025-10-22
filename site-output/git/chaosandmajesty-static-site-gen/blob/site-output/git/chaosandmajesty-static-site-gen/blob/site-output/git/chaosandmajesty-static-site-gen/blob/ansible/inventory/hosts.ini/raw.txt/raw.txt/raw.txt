@@ -1,4 +1,0 @@
-# Inventory for Chaos & Majesty production environment
-# Override ansible_host via --inventory if you prefer not to commit the VPS address.
-[vps]
-prod ansible_host=chaosandmajesty.com ansible_user=deploy ansible_port=22 ansible_ssh_private_key_file=~/.ssh/gitea-ci-prod

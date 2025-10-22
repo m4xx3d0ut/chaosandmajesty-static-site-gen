@@ -42,6 +42,20 @@ fi
 # Run the site generator
 ./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o site-output -v
 
+# Export shallow HTTP clones for Git repos so nginx can serve /git/<repo>.git
+if [ "${EXPORT_GIT_HTTP_CLONES:-1}" = "1" ]; then
+    if [ -f "$MANIFEST_PATH" ]; then
+        echo "Exporting HTTP-friendly Git mirrors..."
+        if ! ./scripts/export-git-http.sh --manifest "$MANIFEST_PATH" --source "$SITEGEN_GIT_MIRRORS_DIR" --output "site-output/git"; then
+            echo "Warning: Unable to export HTTP Git mirrors; clones may fail over HTTPS." >&2
+        fi
+    else
+        echo "Warning: Git manifest not found; skipping HTTP Git export."
+    fi
+else
+    echo "Skipping HTTP Git export (EXPORT_GIT_HTTP_CLONES=${EXPORT_GIT_HTTP_CLONES})."
+fi
+
 # Validate critical files exist
 echo "Validating build output..."
 if [ ! -f "site-output/index.html" ]; then

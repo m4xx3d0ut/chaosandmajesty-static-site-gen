@@ -1,8 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: ai
-resources:
-  - qwen2.5-coder-7b.yaml
-  - qwen2.5-coder-14b.yaml
-  - starcoder2-15b.yaml
-  - deepseek-coder-v2-lite-16b.yaml

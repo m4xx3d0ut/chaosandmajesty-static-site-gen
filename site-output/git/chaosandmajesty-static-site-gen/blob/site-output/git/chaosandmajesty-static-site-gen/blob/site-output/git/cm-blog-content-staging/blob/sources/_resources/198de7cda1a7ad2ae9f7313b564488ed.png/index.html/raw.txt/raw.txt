@@ -1,8 +1,0 @@
-
-      <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/_resources/198de7cda1a7ad2ae9f7313b564488ed.png/index.html">
-        <header class="git-file-header">
-          <h4 class="git-file-title">198de7cda1a7ad2ae9f7313b564488ed.png</h4>
-        </header>
-        <div class="git-file-empty">Binary file preview is not available.</div>
-      </article>
-    

@@ -1,8 +1,0 @@
-
-      <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/cm-blog-content-staging/blob/sources/_resources/sensors-23-03435-v2.pdf/index.html">
-        <header class="git-file-header">
-          <h4 class="git-file-title">sensors-23-03435-v2.pdf</h4>
-        </header>
-        <div class="git-file-empty">File is too large (5.2 MB).</div>
-      </article>
-    

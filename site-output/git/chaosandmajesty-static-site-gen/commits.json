@@ -21,6 +21,46 @@
   },
   "commits": [
     {
+      "sha": "75c2f0770d5d046d1b4195ccbed15187acc0c201",
+      "shortSha": "75c2f077",
+      "subject": "Merge branch 'dev' into prod",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T02:15:48+00:00",
+      "authoredEpochMs": 1761099348000,
+      "authoredDisplay": "Oct 22, 2025, 2:15 AM",
+      "relativeTime": "23 minutes ago",
+      "tags": [],
+      "heads": [
+        "prod"
+      ],
+      "refNames": [
+        "HEAD -> prod"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/75c2f0770d5d046d1b4195ccbed15187acc0c201.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/75c2f0770d5d046d1b4195ccbed15187acc0c201/"
+    },
+    {
+      "sha": "544d2a0094cae64e7f5b39d053a07742a5fac08b",
+      "shortSha": "544d2a00",
+      "subject": "cicd: fix shallow bare repo clone.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T02:13:43+00:00",
+      "authoredEpochMs": 1761099223000,
+      "authoredDisplay": "Oct 22, 2025, 2:13 AM",
+      "relativeTime": "25 minutes ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [
+        "origin/dev",
+        "origin/HEAD",
+        "dev"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/544d2a0094cae64e7f5b39d053a07742a5fac08b.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/544d2a0094cae64e7f5b39d053a07742a5fac08b/"
+    },
+    {
       "sha": "6fb12c6e8b10b4c85ed3571446ac4dfbff994256",
       "shortSha": "6fb12c6e",
       "subject": "Merge branch 'dev' into prod",
@@ -29,11 +69,11 @@
       "authoredIso": "2025-10-22T01:53:24+00:00",
       "authoredEpochMs": 1761098004000,
       "authoredDisplay": "Oct 22, 2025, 1:53 AM",
-      "relativeTime": "19 minutes ago",
+      "relativeTime": "46 minutes ago",
       "tags": [],
       "heads": [],
       "refNames": [
-        "prod"
+        "origin/prod"
       ],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/6fb12c6e8b10b4c85ed3571446ac4dfbff994256.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/6fb12c6e8b10b4c85ed3571446ac4dfbff994256/"
@@ -47,16 +87,10 @@
       "authoredIso": "2025-10-22T01:41:15+00:00",
       "authoredEpochMs": 1761097275000,
       "authoredDisplay": "Oct 22, 2025, 1:41 AM",
-      "relativeTime": "31 minutes ago",
+      "relativeTime": "58 minutes ago",
       "tags": [],
-      "heads": [
-        "dev"
-      ],
-      "refNames": [
-        "HEAD -> dev",
-        "origin/dev",
-        "origin/HEAD"
-      ],
+      "heads": [],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/96eaca5a79be1acfcfa995f961c913cc63a49514.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/96eaca5a79be1acfcfa995f961c913cc63a49514/"
     },
@@ -69,12 +103,10 @@
       "authoredIso": "2025-10-22T00:44:29+00:00",
       "authoredEpochMs": 1761093869000,
       "authoredDisplay": "Oct 22, 2025, 12:44 AM",
-      "relativeTime": "1 hour ago",
+      "relativeTime": "2 hours ago",
       "tags": [],
       "heads": [],
-      "refNames": [
-        "origin/prod"
-      ],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/6a2c4d4d235cdf3770a166d4ce204357a7e63f3a.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/6a2c4d4d235cdf3770a166d4ce204357a7e63f3a/"
     },
@@ -87,7 +119,7 @@
       "authoredIso": "2025-10-21T21:01:29+00:00",
       "authoredEpochMs": 1761080489000,
       "authoredDisplay": "Oct 21, 2025, 9:01 PM",
-      "relativeTime": "5 hours ago",
+      "relativeTime": "6 hours ago",
       "tags": [],
       "heads": [],
       "refNames": [],
@@ -119,44 +151,12 @@
       "authoredIso": "2025-10-21T16:45:38+00:00",
       "authoredEpochMs": 1761065138000,
       "authoredDisplay": "Oct 21, 2025, 4:45 PM",
-      "relativeTime": "9 hours ago",
+      "relativeTime": "10 hours ago",
       "tags": [],
       "heads": [],
       "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/4fc0f92b996f1de760b8c7b05d941f11fa7c86b1.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/4fc0f92b996f1de760b8c7b05d941f11fa7c86b1/"
-    },
-    {
-      "sha": "be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7",
-      "shortSha": "be0c1a08",
-      "subject": "feat: Git default license override for git mirrors.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T16:32:12+00:00",
-      "authoredEpochMs": 1761064332000,
-      "authoredDisplay": "Oct 21, 2025, 4:32 PM",
-      "relativeTime": "10 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7/"
-    },
-    {
-      "sha": "efc7f6d3ab9f5f8f038dc0186019e85ec4c64654",
-      "shortSha": "efc7f6d3",
-      "subject": "cm: Git page mobile view handling.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T15:56:48+00:00",
-      "authoredEpochMs": 1761062208000,
-      "authoredDisplay": "Oct 21, 2025, 3:56 PM",
-      "relativeTime": "10 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/efc7f6d3ab9f5f8f038dc0186019e85ec4c64654.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/efc7f6d3ab9f5f8f038dc0186019e85ec4c64654/"
     }
   ]
 }
