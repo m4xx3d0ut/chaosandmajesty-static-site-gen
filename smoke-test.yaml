@@ -31,6 +31,7 @@ pages:
       rightPaneTitle: "Repository Activity"
       rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
       commitLimit: 5
+      commitLinksEnabled: false
       skipGlobs:
         - "site-output/**"
         - "node_modules/**"
@@ -299,17 +300,17 @@ index:
 
     <br>
 
-    Every page is pre-rendered, every payload is deterministic, and every UI flourish is layered on top of static assets.
-    By keeping runtime dependencies out of production we minimize the attack surface, shrink the footprint exposed to bots,
-    and keep the trust boundary easy to reason about.  The HTMX flows that power our blog and Git explorers are compiled into
-    static fragments, so browsers only ever fetch first-party HTML, CSS, and JSON from the same origin.
+    Every page is pre-rendered, every payload is deterministic, and every flourish rides on top of static assets.
+    For an individual dev or maker that means fewer late-night patch cycles, a smaller blast radius when deployed,
+    and an artifact you can review yourself before publishing.  The HTMX flows that power our blog and Git explorers ship as
+    static fragments, so your browser only ever pulls first-party HTML, CSS, and JSON from the same origin you control.
 
     <br>
 
-    For teams with compliance needs, the generator can be wired into CI to lint third-party resources, diff security headers,
-    or snapshot the final HTML for offline review.  Shipping static artifacts also means you can front the entire site with
-    a CDN + WAF combo, disable origin server scripting entirely, and rotate mirrors or keys without redeploying the UI
-    shell.  If you fork this project, you inherit a hardened baseline that assumes a hostile network and keeps the
+    If you grow into a team—or need to satisfy compliance and audit trails—you can wire the generator into CI to lint
+    third-party resources, diff headers, and capture immutable build artifacts.  The static output plays nicely with CDN +
+    WAF layers, lets you turn off origin scripting, and keeps key rotations or mirror swaps low-risk.  Whether you are
+    shipping solo or coordinating a crew, you inherit a hardened baseline that assumes a hostile network and keeps the
     surface lean.
 
     ...and you can play DOOM on it!

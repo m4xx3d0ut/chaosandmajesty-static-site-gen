@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/.github/workflows/prod-deploy.yml/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/.github/workflows/prod-deploy.yml/raw.txt" data-git-line-count="250">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/.github/workflows/prod-deploy.yml/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/.github/workflows/prod-deploy.yml/raw.txt" data-git-line-count="258">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">prod-deploy.yml</h4>
-          <div class="git-file-meta">8.9 KB · 250 lines · .github/workflows/prod-deploy.yml</div>
+          <div class="git-file-meta">9.4 KB · 258 lines · .github/workflows/prod-deploy.yml</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/.github/workflows/prod-deploy.yml/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -707,7 +707,7 @@
           aria-label="Copy permalink for line 58"
           title="Copy permalink for line 58"
         >58</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk &#039;{print $2}&#039;)</span>
       </li>
     
 
@@ -719,7 +719,7 @@
           aria-label="Copy permalink for line 59"
           title="Copy permalink for line 59"
         >59</button>
-        <span class="git-code-text">      - name: Checkout repository (SSH)</span>
+        <span class="git-code-text">          echo &quot;CI deploy key fingerprint (sha256): ${FINGERPRINT}&quot;</span>
       </li>
     
 
@@ -731,7 +731,7 @@
           aria-label="Copy permalink for line 60"
           title="Copy permalink for line 60"
         >60</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -743,7 +743,7 @@
           aria-label="Copy permalink for line 61"
           title="Copy permalink for line 61"
         >61</button>
-        <span class="git-code-text">          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git</span>
+        <span class="git-code-text">      - name: Checkout repository (SSH)</span>
       </li>
     
 
@@ -755,7 +755,7 @@
           aria-label="Copy permalink for line 62"
           title="Copy permalink for line 62"
         >62</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -767,7 +767,7 @@
           aria-label="Copy permalink for line 63"
           title="Copy permalink for line 63"
         >63</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git</span>
       </li>
     
 
@@ -779,7 +779,7 @@
           aria-label="Copy permalink for line 64"
           title="Copy permalink for line 64"
         >64</button>
-        <span class="git-code-text">          TARGET_REF=&quot;${GITHUB_REF:-}&quot;</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -791,7 +791,7 @@
           aria-label="Copy permalink for line 65"
           title="Copy permalink for line 65"
         >65</button>
-        <span class="git-code-text">          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -803,7 +803,7 @@
           aria-label="Copy permalink for line 66"
           title="Copy permalink for line 66"
         >66</button>
-        <span class="git-code-text">            git clone --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">          TARGET_REF=&quot;${GITHUB_REF:-}&quot;</span>
       </li>
     
 
@@ -815,7 +815,7 @@
           aria-label="Copy permalink for line 67"
           title="Copy permalink for line 67"
         >67</button>
-        <span class="git-code-text">          elif [[ &quot;$TARGET_REF&quot; == refs/tags/* ]]; then</span>
+        <span class="git-code-text">          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then</span>
       </li>
     
 
@@ -827,7 +827,7 @@
           aria-label="Copy permalink for line 68"
           title="Copy permalink for line 68"
         >68</button>
-        <span class="git-code-text">            TAG=&quot;${TARGET_REF#refs/tags/}&quot;</span>
+        <span class="git-code-text">            git clone --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -839,7 +839,7 @@
           aria-label="Copy permalink for line 69"
           title="Copy permalink for line 69"
         >69</button>
-        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">          elif [[ &quot;$TARGET_REF&quot; == refs/tags/* ]]; then</span>
       </li>
     
 
@@ -851,7 +851,7 @@
           aria-label="Copy permalink for line 70"
           title="Copy permalink for line 70"
         >70</button>
-        <span class="git-code-text">            git fetch origin &quot;refs/tags/$TAG:refs/tags/$TAG&quot; || git fetch origin &quot;refs/tags/$TAG&quot;</span>
+        <span class="git-code-text">            TAG=&quot;${TARGET_REF#refs/tags/}&quot;</span>
       </li>
     
 
@@ -863,7 +863,7 @@
           aria-label="Copy permalink for line 71"
           title="Copy permalink for line 71"
         >71</button>
-        <span class="git-code-text">            git checkout &quot;tags/$TAG&quot;</span>
+        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -875,7 +875,7 @@
           aria-label="Copy permalink for line 72"
           title="Copy permalink for line 72"
         >72</button>
-        <span class="git-code-text">          elif [[ &quot;$TARGET_REF&quot; =~ ^[0-9a-fA-F]{40}$ ]]; then</span>
+        <span class="git-code-text">            git fetch origin &quot;refs/tags/$TAG:refs/tags/$TAG&quot; || git fetch origin &quot;refs/tags/$TAG&quot;</span>
       </li>
     
 
@@ -887,7 +887,7 @@
           aria-label="Copy permalink for line 73"
           title="Copy permalink for line 73"
         >73</button>
-        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">            git checkout &quot;tags/$TAG&quot;</span>
       </li>
     
 
@@ -899,7 +899,7 @@
           aria-label="Copy permalink for line 74"
           title="Copy permalink for line 74"
         >74</button>
-        <span class="git-code-text">            git fetch origin &quot;$TARGET_REF&quot; || git fetch origin</span>
+        <span class="git-code-text">          elif [[ &quot;$TARGET_REF&quot; =~ ^[0-9a-fA-F]{40}$ ]]; then</span>
       </li>
     
 
@@ -911,7 +911,7 @@
           aria-label="Copy permalink for line 75"
           title="Copy permalink for line 75"
         >75</button>
-        <span class="git-code-text">            git checkout --detach &quot;$TARGET_REF&quot;</span>
+        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -923,7 +923,7 @@
           aria-label="Copy permalink for line 76"
           title="Copy permalink for line 76"
         >76</button>
-        <span class="git-code-text">          elif [[ -n &quot;$TARGET_REF&quot; ]]; then</span>
+        <span class="git-code-text">            git fetch origin &quot;$TARGET_REF&quot; || git fetch origin</span>
       </li>
     
 
@@ -935,7 +935,7 @@
           aria-label="Copy permalink for line 77"
           title="Copy permalink for line 77"
         >77</button>
-        <span class="git-code-text">            git clone --branch &quot;$TARGET_REF&quot; &quot;$REPO_SSH&quot; . || {</span>
+        <span class="git-code-text">            git checkout --detach &quot;$TARGET_REF&quot;</span>
       </li>
     
 
@@ -947,7 +947,7 @@
           aria-label="Copy permalink for line 78"
           title="Copy permalink for line 78"
         >78</button>
-        <span class="git-code-text">              git clone &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">          elif [[ -n &quot;$TARGET_REF&quot; ]]; then</span>
       </li>
     
 
@@ -959,7 +959,7 @@
           aria-label="Copy permalink for line 79"
           title="Copy permalink for line 79"
         >79</button>
-        <span class="git-code-text">              git fetch origin &quot;$TARGET_REF&quot; || true</span>
+        <span class="git-code-text">            git clone --branch &quot;$TARGET_REF&quot; &quot;$REPO_SSH&quot; . || {</span>
       </li>
     
 
@@ -971,7 +971,7 @@
           aria-label="Copy permalink for line 80"
           title="Copy permalink for line 80"
         >80</button>
-        <span class="git-code-text">              git checkout --detach &quot;$TARGET_REF&quot; || git checkout &quot;$TARGET_REF&quot; || true</span>
+        <span class="git-code-text">              git clone &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -983,7 +983,7 @@
           aria-label="Copy permalink for line 81"
           title="Copy permalink for line 81"
         >81</button>
-        <span class="git-code-text">            }</span>
+        <span class="git-code-text">              git fetch origin &quot;$TARGET_REF&quot; || true</span>
       </li>
     
 
@@ -995,7 +995,7 @@
           aria-label="Copy permalink for line 82"
           title="Copy permalink for line 82"
         >82</button>
-        <span class="git-code-text">          else</span>
+        <span class="git-code-text">              git checkout --detach &quot;$TARGET_REF&quot; || git checkout &quot;$TARGET_REF&quot; || true</span>
       </li>
     
 
@@ -1007,7 +1007,7 @@
           aria-label="Copy permalink for line 83"
           title="Copy permalink for line 83"
         >83</button>
-        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">            }</span>
       </li>
     
 
@@ -1019,7 +1019,7 @@
           aria-label="Copy permalink for line 84"
           title="Copy permalink for line 84"
         >84</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          else</span>
       </li>
     
 
@@ -1031,7 +1031,7 @@
           aria-label="Copy permalink for line 85"
           title="Copy permalink for line 85"
         >85</button>
-        <span class="git-code-text">          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then</span>
+        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -1043,7 +1043,7 @@
           aria-label="Copy permalink for line 86"
           title="Copy permalink for line 86"
         >86</button>
-        <span class="git-code-text">            git fetch origin &quot;${GITHUB_SHA}&quot; || git fetch origin</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -1055,7 +1055,7 @@
           aria-label="Copy permalink for line 87"
           title="Copy permalink for line 87"
         >87</button>
-        <span class="git-code-text">            git checkout --detach &quot;${GITHUB_SHA}&quot;</span>
+        <span class="git-code-text">          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then</span>
       </li>
     
 
@@ -1067,7 +1067,7 @@
           aria-label="Copy permalink for line 88"
           title="Copy permalink for line 88"
         >88</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">            git fetch origin &quot;${GITHUB_SHA}&quot; || git fetch origin</span>
       </li>
     
 
@@ -1079,7 +1079,7 @@
           aria-label="Copy permalink for line 89"
           title="Copy permalink for line 89"
         >89</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">            git checkout --detach &quot;${GITHUB_SHA}&quot;</span>
       </li>
     
 
@@ -1091,7 +1091,7 @@
           aria-label="Copy permalink for line 90"
           title="Copy permalink for line 90"
         >90</button>
-        <span class="git-code-text">      - name: Setup Node.js</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -1103,7 +1103,7 @@
           aria-label="Copy permalink for line 91"
           title="Copy permalink for line 91"
         >91</button>
-        <span class="git-code-text">        uses: actions/setup-node@v4</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1115,7 +1115,7 @@
           aria-label="Copy permalink for line 92"
           title="Copy permalink for line 92"
         >92</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">      - name: Setup Node.js</span>
       </li>
     
 
@@ -1127,7 +1127,7 @@
           aria-label="Copy permalink for line 93"
           title="Copy permalink for line 93"
         >93</button>
-        <span class="git-code-text">          node-version: 20</span>
+        <span class="git-code-text">        uses: actions/setup-node@v4</span>
       </li>
     
 
@@ -1139,7 +1139,7 @@
           aria-label="Copy permalink for line 94"
           title="Copy permalink for line 94"
         >94</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -1151,7 +1151,7 @@
           aria-label="Copy permalink for line 95"
           title="Copy permalink for line 95"
         >95</button>
-        <span class="git-code-text">      - name: Install dependencies</span>
+        <span class="git-code-text">          node-version: 20</span>
       </li>
     
 
@@ -1163,7 +1163,7 @@
           aria-label="Copy permalink for line 96"
           title="Copy permalink for line 96"
         >96</button>
-        <span class="git-code-text">        run: npm ci</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1175,7 +1175,7 @@
           aria-label="Copy permalink for line 97"
           title="Copy permalink for line 97"
         >97</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Install dependencies</span>
       </li>
     
 
@@ -1187,7 +1187,7 @@
           aria-label="Copy permalink for line 98"
           title="Copy permalink for line 98"
         >98</button>
-        <span class="git-code-text">      - name: Smoke build static bundle</span>
+        <span class="git-code-text">        run: npm ci</span>
       </li>
     
 
@@ -1199,7 +1199,7 @@
           aria-label="Copy permalink for line 99"
           title="Copy permalink for line 99"
         >99</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1211,7 +1211,7 @@
           aria-label="Copy permalink for line 100"
           title="Copy permalink for line 100"
         >100</button>
-        <span class="git-code-text">          SYNC_GIT_MANIFEST_URL_REWRITE: ssh://git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/</span>
+        <span class="git-code-text">      - name: Smoke build static bundle</span>
       </li>
     
 
@@ -1223,7 +1223,7 @@
           aria-label="Copy permalink for line 101"
           title="Copy permalink for line 101"
         >101</button>
-        <span class="git-code-text">        run: ./build-site.sh</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -1235,7 +1235,7 @@
           aria-label="Copy permalink for line 102"
           title="Copy permalink for line 102"
         >102</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          SYNC_GIT_MANIFEST_URL_REWRITE: ssh://git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/</span>
       </li>
     
 
@@ -1247,7 +1247,7 @@
           aria-label="Copy permalink for line 103"
           title="Copy permalink for line 103"
         >103</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        run: ./build-site.sh</span>
       </li>
     
 
@@ -1259,7 +1259,7 @@
           aria-label="Copy permalink for line 104"
           title="Copy permalink for line 104"
         >104</button>
-        <span class="git-code-text">      - name: Normalize registry host</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1271,7 +1271,7 @@
           aria-label="Copy permalink for line 105"
           title="Copy permalink for line 105"
         >105</button>
-        <span class="git-code-text">        id: normalize-registry</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1283,7 +1283,7 @@
           aria-label="Copy permalink for line 106"
           title="Copy permalink for line 106"
         >106</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">      - name: Normalize registry host</span>
       </li>
     
 
@@ -1295,7 +1295,7 @@
           aria-label="Copy permalink for line 107"
           title="Copy permalink for line 107"
         >107</button>
-        <span class="git-code-text">          HOST=&quot;${REGISTRY_HOST:-}&quot;</span>
+        <span class="git-code-text">        id: normalize-registry</span>
       </li>
     
 
@@ -1307,7 +1307,7 @@
           aria-label="Copy permalink for line 108"
           title="Copy permalink for line 108"
         >108</button>
-        <span class="git-code-text">          if [ -z &quot;$HOST&quot; ]; then</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -1319,7 +1319,7 @@
           aria-label="Copy permalink for line 109"
           title="Copy permalink for line 109"
         >109</button>
-        <span class="git-code-text">            HOST=&quot;ghcr.io&quot;</span>
+        <span class="git-code-text">          HOST=&quot;${REGISTRY_HOST:-}&quot;</span>
       </li>
     
 
@@ -1331,7 +1331,7 @@
           aria-label="Copy permalink for line 110"
           title="Copy permalink for line 110"
         >110</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          if [ -z &quot;$HOST&quot; ]; then</span>
       </li>
     
 
@@ -1343,7 +1343,7 @@
           aria-label="Copy permalink for line 111"
           title="Copy permalink for line 111"
         >111</button>
-        <span class="git-code-text">          if [ &quot;$HOST&quot; = &quot;reg.microk8s.core.home.arpa:32000&quot; ]; then</span>
+        <span class="git-code-text">            HOST=&quot;ghcr.io&quot;</span>
       </li>
     
 
@@ -1355,7 +1355,7 @@
           aria-label="Copy permalink for line 112"
           title="Copy permalink for line 112"
         >112</button>
-        <span class="git-code-text">            echo &quot;::warning::REGISTRY_HOST secret points to the lab-only MicroK8s registry. Overriding to ghcr.io for prod deploys.&quot;</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -1367,7 +1367,7 @@
           aria-label="Copy permalink for line 113"
           title="Copy permalink for line 113"
         >113</button>
-        <span class="git-code-text">            HOST=&quot;ghcr.io&quot;</span>
+        <span class="git-code-text">          if [ &quot;$HOST&quot; = &quot;reg.microk8s.core.home.arpa:32000&quot; ]; then</span>
       </li>
     
 
@@ -1379,7 +1379,7 @@
           aria-label="Copy permalink for line 114"
           title="Copy permalink for line 114"
         >114</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">            echo &quot;::warning::REGISTRY_HOST secret points to the lab-only MicroK8s registry. Overriding to ghcr.io for prod deploys.&quot;</span>
       </li>
     
 
@@ -1391,7 +1391,7 @@
           aria-label="Copy permalink for line 115"
           title="Copy permalink for line 115"
         >115</button>
-        <span class="git-code-text">          echo &quot;Using registry host: $HOST&quot;</span>
+        <span class="git-code-text">            HOST=&quot;ghcr.io&quot;</span>
       </li>
     
 
@@ -1403,7 +1403,7 @@
           aria-label="Copy permalink for line 116"
           title="Copy permalink for line 116"
         >116</button>
-        <span class="git-code-text">          echo &quot;REGISTRY_HOST=$HOST&quot; &gt;&gt; &quot;$GITHUB_ENV&quot;</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -1415,7 +1415,7 @@
           aria-label="Copy permalink for line 117"
           title="Copy permalink for line 117"
         >117</button>
-        <span class="git-code-text">          echo &quot;host=$HOST&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
+        <span class="git-code-text">          echo &quot;Using registry host: $HOST&quot;</span>
       </li>
     
 
@@ -1427,7 +1427,7 @@
           aria-label="Copy permalink for line 118"
           title="Copy permalink for line 118"
         >118</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          echo &quot;REGISTRY_HOST=$HOST&quot; &gt;&gt; &quot;$GITHUB_ENV&quot;</span>
       </li>
     
 
@@ -1439,7 +1439,7 @@
           aria-label="Copy permalink for line 119"
           title="Copy permalink for line 119"
         >119</button>
-        <span class="git-code-text">      - name: Compute image metadata</span>
+        <span class="git-code-text">          echo &quot;host=$HOST&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
       </li>
     
 
@@ -1451,7 +1451,7 @@
           aria-label="Copy permalink for line 120"
           title="Copy permalink for line 120"
         >120</button>
-        <span class="git-code-text">        id: meta</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1463,7 +1463,7 @@
           aria-label="Copy permalink for line 121"
           title="Copy permalink for line 121"
         >121</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">      - name: Compute image metadata</span>
       </li>
     
 
@@ -1475,7 +1475,7 @@
           aria-label="Copy permalink for line 122"
           title="Copy permalink for line 122"
         >122</button>
-        <span class="git-code-text">          SHORT_SHA=$(git rev-parse --short HEAD)</span>
+        <span class="git-code-text">        id: meta</span>
       </li>
     
 
@@ -1487,7 +1487,7 @@
           aria-label="Copy permalink for line 123"
           title="Copy permalink for line 123"
         >123</button>
-        <span class="git-code-text">          if [ -n &quot;${REGISTRY_NAMESPACE}&quot; ]; then</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -1499,7 +1499,7 @@
           aria-label="Copy permalink for line 124"
           title="Copy permalink for line 124"
         >124</button>
-        <span class="git-code-text">            REGISTRY_PATH=&quot;${REGISTRY_HOST}/${REGISTRY_NAMESPACE}&quot;</span>
+        <span class="git-code-text">          SHORT_SHA=$(git rev-parse --short HEAD)</span>
       </li>
     
 
@@ -1511,7 +1511,7 @@
           aria-label="Copy permalink for line 125"
           title="Copy permalink for line 125"
         >125</button>
-        <span class="git-code-text">          else</span>
+        <span class="git-code-text">          if [ -n &quot;${REGISTRY_NAMESPACE}&quot; ]; then</span>
       </li>
     
 
@@ -1523,7 +1523,7 @@
           aria-label="Copy permalink for line 126"
           title="Copy permalink for line 126"
         >126</button>
-        <span class="git-code-text">            REGISTRY_PATH=&quot;${REGISTRY_HOST}&quot;</span>
+        <span class="git-code-text">            REGISTRY_PATH=&quot;${REGISTRY_HOST}/${REGISTRY_NAMESPACE}&quot;</span>
       </li>
     
 
@@ -1535,7 +1535,7 @@
           aria-label="Copy permalink for line 127"
           title="Copy permalink for line 127"
         >127</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          else</span>
       </li>
     
 
@@ -1547,7 +1547,7 @@
           aria-label="Copy permalink for line 128"
           title="Copy permalink for line 128"
         >128</button>
-        <span class="git-code-text">          echo &quot;short=${SHORT_SHA}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
+        <span class="git-code-text">            REGISTRY_PATH=&quot;${REGISTRY_HOST}&quot;</span>
       </li>
     
 
@@ -1559,7 +1559,7 @@
           aria-label="Copy permalink for line 129"
           title="Copy permalink for line 129"
         >129</button>
-        <span class="git-code-text">          echo &quot;registry_path=${REGISTRY_PATH}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -1571,7 +1571,7 @@
           aria-label="Copy permalink for line 130"
           title="Copy permalink for line 130"
         >130</button>
-        <span class="git-code-text">          echo &quot;image_ref=${REGISTRY_PATH}/${IMAGE_NAME}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
+        <span class="git-code-text">          echo &quot;short=${SHORT_SHA}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
       </li>
     
 
@@ -1583,7 +1583,7 @@
           aria-label="Copy permalink for line 131"
           title="Copy permalink for line 131"
         >131</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          echo &quot;registry_path=${REGISTRY_PATH}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
       </li>
     
 
@@ -1595,7 +1595,7 @@
           aria-label="Copy permalink for line 132"
           title="Copy permalink for line 132"
         >132</button>
-        <span class="git-code-text">      - name: Login to registry</span>
+        <span class="git-code-text">          echo &quot;image_ref=${REGISTRY_PATH}/${IMAGE_NAME}&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</span>
       </li>
     
 
@@ -1607,7 +1607,7 @@
           aria-label="Copy permalink for line 133"
           title="Copy permalink for line 133"
         >133</button>
-        <span class="git-code-text">        uses: docker/login-action@v3</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1619,7 +1619,7 @@
           aria-label="Copy permalink for line 134"
           title="Copy permalink for line 134"
         >134</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">      - name: Login to registry</span>
       </li>
     
 
@@ -1631,7 +1631,7 @@
           aria-label="Copy permalink for line 135"
           title="Copy permalink for line 135"
         >135</button>
-        <span class="git-code-text">          registry: ${{ env.REGISTRY_HOST }}</span>
+        <span class="git-code-text">        uses: docker/login-action@v3</span>
       </li>
     
 
@@ -1643,7 +1643,7 @@
           aria-label="Copy permalink for line 136"
           title="Copy permalink for line 136"
         >136</button>
-        <span class="git-code-text">          username: ${{ secrets.REGISTRY_USERNAME }}</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -1655,7 +1655,7 @@
           aria-label="Copy permalink for line 137"
           title="Copy permalink for line 137"
         >137</button>
-        <span class="git-code-text">          password: ${{ secrets.REGISTRY_PASSWORD }}</span>
+        <span class="git-code-text">          registry: ${{ env.REGISTRY_HOST }}</span>
       </li>
     
 
@@ -1667,7 +1667,7 @@
           aria-label="Copy permalink for line 138"
           title="Copy permalink for line 138"
         >138</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          username: ${{ secrets.REGISTRY_USERNAME }}</span>
       </li>
     
 
@@ -1679,7 +1679,7 @@
           aria-label="Copy permalink for line 139"
           title="Copy permalink for line 139"
         >139</button>
-        <span class="git-code-text">      - name: Configure Buildx</span>
+        <span class="git-code-text">          password: ${{ secrets.REGISTRY_PASSWORD }}</span>
       </li>
     
 
@@ -1691,7 +1691,7 @@
           aria-label="Copy permalink for line 140"
           title="Copy permalink for line 140"
         >140</button>
-        <span class="git-code-text">        uses: docker/setup-buildx-action@v3</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1703,7 +1703,7 @@
           aria-label="Copy permalink for line 141"
           title="Copy permalink for line 141"
         >141</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">      - name: Configure Buildx</span>
       </li>
     
 
@@ -1715,7 +1715,7 @@
           aria-label="Copy permalink for line 142"
           title="Copy permalink for line 142"
         >142</button>
-        <span class="git-code-text">      - name: Build and push image</span>
+        <span class="git-code-text">        uses: docker/setup-buildx-action@v3</span>
       </li>
     
 
@@ -1727,7 +1727,7 @@
           aria-label="Copy permalink for line 143"
           title="Copy permalink for line 143"
         >143</button>
-        <span class="git-code-text">        uses: docker/build-push-action@v6</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1739,7 +1739,7 @@
           aria-label="Copy permalink for line 144"
           title="Copy permalink for line 144"
         >144</button>
-        <span class="git-code-text">        with:</span>
+        <span class="git-code-text">      - name: Build and push image</span>
       </li>
     
 
@@ -1751,7 +1751,7 @@
           aria-label="Copy permalink for line 145"
           title="Copy permalink for line 145"
         >145</button>
-        <span class="git-code-text">          context: .</span>
+        <span class="git-code-text">        uses: docker/build-push-action@v6</span>
       </li>
     
 
@@ -1763,7 +1763,7 @@
           aria-label="Copy permalink for line 146"
           title="Copy permalink for line 146"
         >146</button>
-        <span class="git-code-text">          file: Dockerfile</span>
+        <span class="git-code-text">        with:</span>
       </li>
     
 
@@ -1775,7 +1775,7 @@
           aria-label="Copy permalink for line 147"
           title="Copy permalink for line 147"
         >147</button>
-        <span class="git-code-text">          no-cache: true</span>
+        <span class="git-code-text">          context: .</span>
       </li>
     
 
@@ -1787,7 +1787,7 @@
           aria-label="Copy permalink for line 148"
           title="Copy permalink for line 148"
         >148</button>
-        <span class="git-code-text">          push: true</span>
+        <span class="git-code-text">          file: Dockerfile</span>
       </li>
     
 
@@ -1799,7 +1799,7 @@
           aria-label="Copy permalink for line 149"
           title="Copy permalink for line 149"
         >149</button>
-        <span class="git-code-text">          tags: |</span>
+        <span class="git-code-text">          no-cache: true</span>
       </li>
     
 
@@ -1811,7 +1811,7 @@
           aria-label="Copy permalink for line 150"
           title="Copy permalink for line 150"
         >150</button>
-        <span class="git-code-text">            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}</span>
+        <span class="git-code-text">          ssh: |</span>
       </li>
     
 
@@ -1823,7 +1823,7 @@
           aria-label="Copy permalink for line 151"
           title="Copy permalink for line 151"
         >151</button>
-        <span class="git-code-text">            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}</span>
+        <span class="git-code-text">            default=${{ secrets.CI_DEPLOY_KEY }}</span>
       </li>
     
 
@@ -1835,7 +1835,7 @@
           aria-label="Copy permalink for line 152"
           title="Copy permalink for line 152"
         >152</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          build-args: |</span>
       </li>
     
 
@@ -1847,7 +1847,7 @@
           aria-label="Copy permalink for line 153"
           title="Copy permalink for line 153"
         >153</button>
-        <span class="git-code-text">  deploy:</span>
+        <span class="git-code-text">            SYNC_GIT_MANIFEST_URL_REWRITE=ssh://git@gitea.core.home.arpa:32222/=&gt;ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/</span>
       </li>
     
 
@@ -1859,7 +1859,7 @@
           aria-label="Copy permalink for line 154"
           title="Copy permalink for line 154"
         >154</button>
-        <span class="git-code-text">    runs-on: ubuntu-latest</span>
+        <span class="git-code-text">          push: true</span>
       </li>
     
 
@@ -1871,7 +1871,7 @@
           aria-label="Copy permalink for line 155"
           title="Copy permalink for line 155"
         >155</button>
-        <span class="git-code-text">    if: github.ref == &#039;refs/heads/prod&#039; || github.event_name == &#039;workflow_dispatch&#039;</span>
+        <span class="git-code-text">          tags: |</span>
       </li>
     
 
@@ -1883,7 +1883,7 @@
           aria-label="Copy permalink for line 156"
           title="Copy permalink for line 156"
         >156</button>
-        <span class="git-code-text">    needs: build</span>
+        <span class="git-code-text">            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}</span>
       </li>
     
 
@@ -1895,7 +1895,7 @@
           aria-label="Copy permalink for line 157"
           title="Copy permalink for line 157"
         >157</button>
-        <span class="git-code-text">    env:</span>
+        <span class="git-code-text">            ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}</span>
       </li>
     
 
@@ -1907,7 +1907,7 @@
           aria-label="Copy permalink for line 158"
           title="Copy permalink for line 158"
         >158</button>
-        <span class="git-code-text">      REGISTRY_HOST: ${{ needs.build.outputs.registry_host }}</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -1919,7 +1919,7 @@
           aria-label="Copy permalink for line 159"
           title="Copy permalink for line 159"
         >159</button>
-        <span class="git-code-text">      VPS_HOST: ${{ secrets.VPS_HOST }}</span>
+        <span class="git-code-text">  deploy:</span>
       </li>
     
 
@@ -1931,7 +1931,7 @@
           aria-label="Copy permalink for line 160"
           title="Copy permalink for line 160"
         >160</button>
-        <span class="git-code-text">      VPS_USER: ${{ secrets.VPS_USER }}</span>
+        <span class="git-code-text">    runs-on: ubuntu-latest</span>
       </li>
     
 
@@ -1943,7 +1943,7 @@
           aria-label="Copy permalink for line 161"
           title="Copy permalink for line 161"
         >161</button>
-        <span class="git-code-text">      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}</span>
+        <span class="git-code-text">    if: github.ref == &#039;refs/heads/prod&#039; || github.event_name == &#039;workflow_dispatch&#039;</span>
       </li>
     
 
@@ -1955,7 +1955,7 @@
           aria-label="Copy permalink for line 162"
           title="Copy permalink for line 162"
         >162</button>
-        <span class="git-code-text">      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}</span>
+        <span class="git-code-text">    needs: build</span>
       </li>
     
 
@@ -1967,7 +1967,7 @@
           aria-label="Copy permalink for line 163"
           title="Copy permalink for line 163"
         >163</button>
-        <span class="git-code-text">    steps:</span>
+        <span class="git-code-text">    env:</span>
       </li>
     
 
@@ -1979,7 +1979,7 @@
           aria-label="Copy permalink for line 164"
           title="Copy permalink for line 164"
         >164</button>
-        <span class="git-code-text">      - name: Install SSH client (if missing)</span>
+        <span class="git-code-text">      REGISTRY_HOST: ${{ needs.build.outputs.registry_host }}</span>
       </li>
     
 
@@ -1991,7 +1991,7 @@
           aria-label="Copy permalink for line 165"
           title="Copy permalink for line 165"
         >165</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">      VPS_HOST: ${{ secrets.VPS_HOST }}</span>
       </li>
     
 
@@ -2003,7 +2003,7 @@
           aria-label="Copy permalink for line 166"
           title="Copy permalink for line 166"
         >166</button>
-        <span class="git-code-text">          set -e</span>
+        <span class="git-code-text">      VPS_USER: ${{ secrets.VPS_USER }}</span>
       </li>
     
 
@@ -2015,7 +2015,7 @@
           aria-label="Copy permalink for line 167"
           title="Copy permalink for line 167"
         >167</button>
-        <span class="git-code-text">          if ! command -v ssh-keyscan &gt;/dev/null 2&gt;&amp;1; then</span>
+        <span class="git-code-text">      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}</span>
       </li>
     
 
@@ -2027,7 +2027,7 @@
           aria-label="Copy permalink for line 168"
           title="Copy permalink for line 168"
         >168</button>
-        <span class="git-code-text">            sudo apt-get update -y</span>
+        <span class="git-code-text">      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}</span>
       </li>
     
 
@@ -2039,7 +2039,7 @@
           aria-label="Copy permalink for line 169"
           title="Copy permalink for line 169"
         >169</button>
-        <span class="git-code-text">            sudo apt-get install -y --no-install-recommends openssh-client</span>
+        <span class="git-code-text">    steps:</span>
       </li>
     
 
@@ -2051,7 +2051,7 @@
           aria-label="Copy permalink for line 170"
           title="Copy permalink for line 170"
         >170</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">      - name: Install SSH client (if missing)</span>
       </li>
     
 
@@ -2063,7 +2063,7 @@
           aria-label="Copy permalink for line 171"
           title="Copy permalink for line 171"
         >171</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2075,7 +2075,7 @@
           aria-label="Copy permalink for line 172"
           title="Copy permalink for line 172"
         >172</button>
-        <span class="git-code-text">      - name: Prepare SSH for Gitea</span>
+        <span class="git-code-text">          set -e</span>
       </li>
     
 
@@ -2087,7 +2087,7 @@
           aria-label="Copy permalink for line 173"
           title="Copy permalink for line 173"
         >173</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">          if ! command -v ssh-keyscan &gt;/dev/null 2&gt;&amp;1; then</span>
       </li>
     
 
@@ -2099,7 +2099,7 @@
           aria-label="Copy permalink for line 174"
           title="Copy permalink for line 174"
         >174</button>
-        <span class="git-code-text">          CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}</span>
+        <span class="git-code-text">            sudo apt-get update -y</span>
       </li>
     
 
@@ -2111,7 +2111,7 @@
           aria-label="Copy permalink for line 175"
           title="Copy permalink for line 175"
         >175</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">            sudo apt-get install -y --no-install-recommends openssh-client</span>
       </li>
     
 
@@ -2123,7 +2123,7 @@
           aria-label="Copy permalink for line 176"
           title="Copy permalink for line 176"
         >176</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2135,7 +2135,7 @@
           aria-label="Copy permalink for line 177"
           title="Copy permalink for line 177"
         >177</button>
-        <span class="git-code-text">          if [ -z &quot;${CI_DEPLOY_KEY:-}&quot; ]; then</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2147,7 +2147,7 @@
           aria-label="Copy permalink for line 178"
           title="Copy permalink for line 178"
         >178</button>
-        <span class="git-code-text">            echo &quot;CI_DEPLOY_KEY secret is required for prod checkout&quot; &gt;&amp;2</span>
+        <span class="git-code-text">      - name: Prepare SSH for Gitea</span>
       </li>
     
 
@@ -2159,7 +2159,7 @@
           aria-label="Copy permalink for line 179"
           title="Copy permalink for line 179"
         >179</button>
-        <span class="git-code-text">            exit 1</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -2171,7 +2171,7 @@
           aria-label="Copy permalink for line 180"
           title="Copy permalink for line 180"
         >180</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}</span>
       </li>
     
 
@@ -2183,7 +2183,7 @@
           aria-label="Copy permalink for line 181"
           title="Copy permalink for line 181"
         >181</button>
-        <span class="git-code-text">          install -m 700 -d ~/.ssh</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2195,7 +2195,7 @@
           aria-label="Copy permalink for line 182"
           title="Copy permalink for line 182"
         >182</button>
-        <span class="git-code-text">          printf &quot;%s\n&quot; &quot;${CI_DEPLOY_KEY}&quot; &gt; ~/.ssh/id_ci</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -2207,7 +2207,7 @@
           aria-label="Copy permalink for line 183"
           title="Copy permalink for line 183"
         >183</button>
-        <span class="git-code-text">          chmod 600 ~/.ssh/id_ci</span>
+        <span class="git-code-text">          if [ -z &quot;${CI_DEPLOY_KEY:-}&quot; ]; then</span>
       </li>
     
 
@@ -2219,7 +2219,7 @@
           aria-label="Copy permalink for line 184"
           title="Copy permalink for line 184"
         >184</button>
-        <span class="git-code-text">          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local &gt; ~/.ssh/known_hosts</span>
+        <span class="git-code-text">            echo &quot;CI_DEPLOY_KEY secret is required for prod checkout&quot; &gt;&amp;2</span>
       </li>
     
 
@@ -2231,7 +2231,7 @@
           aria-label="Copy permalink for line 185"
           title="Copy permalink for line 185"
         >185</button>
-        <span class="git-code-text">          chmod 644 ~/.ssh/known_hosts</span>
+        <span class="git-code-text">            exit 1</span>
       </li>
     
 
@@ -2243,7 +2243,7 @@
           aria-label="Copy permalink for line 186"
           title="Copy permalink for line 186"
         >186</button>
-        <span class="git-code-text">          {</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2255,7 +2255,7 @@
           aria-label="Copy permalink for line 187"
           title="Copy permalink for line 187"
         >187</button>
-        <span class="git-code-text">            echo &quot;Host gitea-ssh.git-local.svc.cluster.local&quot;</span>
+        <span class="git-code-text">          install -m 700 -d ~/.ssh</span>
       </li>
     
 
@@ -2267,7 +2267,7 @@
           aria-label="Copy permalink for line 188"
           title="Copy permalink for line 188"
         >188</button>
-        <span class="git-code-text">            echo &quot;  User git&quot;</span>
+        <span class="git-code-text">          printf &quot;%s\n&quot; &quot;${CI_DEPLOY_KEY}&quot; &gt; ~/.ssh/id_ci</span>
       </li>
     
 
@@ -2279,7 +2279,7 @@
           aria-label="Copy permalink for line 189"
           title="Copy permalink for line 189"
         >189</button>
-        <span class="git-code-text">            echo &quot;  IdentityFile ~/.ssh/id_ci&quot;</span>
+        <span class="git-code-text">          chmod 600 ~/.ssh/id_ci</span>
       </li>
     
 
@@ -2291,7 +2291,7 @@
           aria-label="Copy permalink for line 190"
           title="Copy permalink for line 190"
         >190</button>
-        <span class="git-code-text">            echo &quot;  IdentitiesOnly yes&quot;</span>
+        <span class="git-code-text">          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local &gt; ~/.ssh/known_hosts</span>
       </li>
     
 
@@ -2303,7 +2303,7 @@
           aria-label="Copy permalink for line 191"
           title="Copy permalink for line 191"
         >191</button>
-        <span class="git-code-text">            echo &quot;  StrictHostKeyChecking yes&quot;</span>
+        <span class="git-code-text">          chmod 644 ~/.ssh/known_hosts</span>
       </li>
     
 
@@ -2315,7 +2315,7 @@
           aria-label="Copy permalink for line 192"
           title="Copy permalink for line 192"
         >192</button>
-        <span class="git-code-text">          } &gt;&gt; ~/.ssh/config</span>
+        <span class="git-code-text">          {</span>
       </li>
     
 
@@ -2327,7 +2327,7 @@
           aria-label="Copy permalink for line 193"
           title="Copy permalink for line 193"
         >193</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">            echo &quot;Host gitea-ssh.git-local.svc.cluster.local&quot;</span>
       </li>
     
 
@@ -2339,7 +2339,7 @@
           aria-label="Copy permalink for line 194"
           title="Copy permalink for line 194"
         >194</button>
-        <span class="git-code-text">      - name: Checkout repository (SSH)</span>
+        <span class="git-code-text">            echo &quot;  User git&quot;</span>
       </li>
     
 
@@ -2351,7 +2351,7 @@
           aria-label="Copy permalink for line 195"
           title="Copy permalink for line 195"
         >195</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">            echo &quot;  IdentityFile ~/.ssh/id_ci&quot;</span>
       </li>
     
 
@@ -2363,7 +2363,7 @@
           aria-label="Copy permalink for line 196"
           title="Copy permalink for line 196"
         >196</button>
-        <span class="git-code-text">          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git</span>
+        <span class="git-code-text">            echo &quot;  IdentitiesOnly yes&quot;</span>
       </li>
     
 
@@ -2375,7 +2375,7 @@
           aria-label="Copy permalink for line 197"
           title="Copy permalink for line 197"
         >197</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">            echo &quot;  StrictHostKeyChecking yes&quot;</span>
       </li>
     
 
@@ -2387,7 +2387,7 @@
           aria-label="Copy permalink for line 198"
           title="Copy permalink for line 198"
         >198</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          } &gt;&gt; ~/.ssh/config</span>
       </li>
     
 
@@ -2399,7 +2399,7 @@
           aria-label="Copy permalink for line 199"
           title="Copy permalink for line 199"
         >199</button>
-        <span class="git-code-text">          TARGET_REF=&quot;${GITHUB_REF:-}&quot;</span>
+        <span class="git-code-text">          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk &#039;{print $2}&#039;)</span>
       </li>
     
 
@@ -2411,7 +2411,7 @@
           aria-label="Copy permalink for line 200"
           title="Copy permalink for line 200"
         >200</button>
-        <span class="git-code-text">          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then</span>
+        <span class="git-code-text">          echo &quot;CI deploy key fingerprint (sha256): ${FINGERPRINT}&quot;</span>
       </li>
     
 
@@ -2423,7 +2423,7 @@
           aria-label="Copy permalink for line 201"
           title="Copy permalink for line 201"
         >201</button>
-        <span class="git-code-text">            git clone --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2435,7 +2435,7 @@
           aria-label="Copy permalink for line 202"
           title="Copy permalink for line 202"
         >202</button>
-        <span class="git-code-text">          else</span>
+        <span class="git-code-text">      - name: Checkout repository (SSH)</span>
       </li>
     
 
@@ -2447,7 +2447,7 @@
           aria-label="Copy permalink for line 203"
           title="Copy permalink for line 203"
         >203</button>
-        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -2459,7 +2459,7 @@
           aria-label="Copy permalink for line 204"
           title="Copy permalink for line 204"
         >204</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git</span>
       </li>
     
 
@@ -2471,7 +2471,7 @@
           aria-label="Copy permalink for line 205"
           title="Copy permalink for line 205"
         >205</button>
-        <span class="git-code-text">          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2483,7 +2483,7 @@
           aria-label="Copy permalink for line 206"
           title="Copy permalink for line 206"
         >206</button>
-        <span class="git-code-text">            git fetch origin &quot;${GITHUB_SHA}&quot;</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -2495,7 +2495,7 @@
           aria-label="Copy permalink for line 207"
           title="Copy permalink for line 207"
         >207</button>
-        <span class="git-code-text">            git checkout --detach &quot;${GITHUB_SHA}&quot;</span>
+        <span class="git-code-text">          TARGET_REF=&quot;${GITHUB_REF:-}&quot;</span>
       </li>
     
 
@@ -2507,7 +2507,7 @@
           aria-label="Copy permalink for line 208"
           title="Copy permalink for line 208"
         >208</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          if [[ &quot;$TARGET_REF&quot; == refs/heads/* ]]; then</span>
       </li>
     
 
@@ -2519,7 +2519,7 @@
           aria-label="Copy permalink for line 209"
           title="Copy permalink for line 209"
         >209</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">            git clone --branch &quot;${TARGET_REF#refs/heads/}&quot; &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -2531,7 +2531,7 @@
           aria-label="Copy permalink for line 210"
           title="Copy permalink for line 210"
         >210</button>
-        <span class="git-code-text">      - name: Install Ansible</span>
+        <span class="git-code-text">          else</span>
       </li>
     
 
@@ -2543,7 +2543,7 @@
           aria-label="Copy permalink for line 211"
           title="Copy permalink for line 211"
         >211</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">            git clone &quot;$REPO_SSH&quot; .</span>
       </li>
     
 
@@ -2555,7 +2555,7 @@
           aria-label="Copy permalink for line 212"
           title="Copy permalink for line 212"
         >212</button>
-        <span class="git-code-text">          set -euo pipefail</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2567,7 +2567,7 @@
           aria-label="Copy permalink for line 213"
           title="Copy permalink for line 213"
         >213</button>
-        <span class="git-code-text">          python3 -m venv ~/.ansible-venv</span>
+        <span class="git-code-text">          if [ -n &quot;${GITHUB_SHA:-}&quot; ]; then</span>
       </li>
     
 
@@ -2579,7 +2579,7 @@
           aria-label="Copy permalink for line 214"
           title="Copy permalink for line 214"
         >214</button>
-        <span class="git-code-text">          echo &quot;$HOME/.ansible-venv/bin&quot; &gt;&gt; &quot;$GITHUB_PATH&quot;</span>
+        <span class="git-code-text">            git fetch origin &quot;${GITHUB_SHA}&quot;</span>
       </li>
     
 
@@ -2591,7 +2591,7 @@
           aria-label="Copy permalink for line 215"
           title="Copy permalink for line 215"
         >215</button>
-        <span class="git-code-text">          source ~/.ansible-venv/bin/activate</span>
+        <span class="git-code-text">            git checkout --detach &quot;${GITHUB_SHA}&quot;</span>
       </li>
     
 
@@ -2603,7 +2603,7 @@
           aria-label="Copy permalink for line 216"
           title="Copy permalink for line 216"
         >216</button>
-        <span class="git-code-text">          export PIP_NO_CACHE_DIR=1</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2615,7 +2615,7 @@
           aria-label="Copy permalink for line 217"
           title="Copy permalink for line 217"
         >217</button>
-        <span class="git-code-text">          TRUSTED_HOST_ARGS=&quot;--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org&quot;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2627,7 +2627,7 @@
           aria-label="Copy permalink for line 218"
           title="Copy permalink for line 218"
         >218</button>
-        <span class="git-code-text">          python -m pip install --upgrade pip ${TRUSTED_HOST_ARGS}</span>
+        <span class="git-code-text">      - name: Install Ansible</span>
       </li>
     
 
@@ -2639,7 +2639,7 @@
           aria-label="Copy permalink for line 219"
           title="Copy permalink for line 219"
         >219</button>
-        <span class="git-code-text">          pip install ${TRUSTED_HOST_ARGS} &quot;ansible&gt;=9.1&quot; &quot;docker&quot; &quot;jmespath&quot;</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2651,7 +2651,7 @@
           aria-label="Copy permalink for line 220"
           title="Copy permalink for line 220"
         >220</button>
-        <span class="git-code-text">          ansible-galaxy collection install -r ansible/requirements.yml</span>
+        <span class="git-code-text">          set -euo pipefail</span>
       </li>
     
 
@@ -2663,7 +2663,7 @@
           aria-label="Copy permalink for line 221"
           title="Copy permalink for line 221"
         >221</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          python3 -m venv ~/.ansible-venv</span>
       </li>
     
 
@@ -2675,7 +2675,7 @@
           aria-label="Copy permalink for line 222"
           title="Copy permalink for line 222"
         >222</button>
-        <span class="git-code-text">      - name: Configure SSH</span>
+        <span class="git-code-text">          echo &quot;$HOME/.ansible-venv/bin&quot; &gt;&gt; &quot;$GITHUB_PATH&quot;</span>
       </li>
     
 
@@ -2687,7 +2687,7 @@
           aria-label="Copy permalink for line 223"
           title="Copy permalink for line 223"
         >223</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">          source ~/.ansible-venv/bin/activate</span>
       </li>
     
 
@@ -2699,7 +2699,7 @@
           aria-label="Copy permalink for line 224"
           title="Copy permalink for line 224"
         >224</button>
-        <span class="git-code-text">          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}</span>
+        <span class="git-code-text">          export PIP_NO_CACHE_DIR=1</span>
       </li>
     
 
@@ -2711,7 +2711,7 @@
           aria-label="Copy permalink for line 225"
           title="Copy permalink for line 225"
         >225</button>
-        <span class="git-code-text">          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}</span>
+        <span class="git-code-text">          TRUSTED_HOST_ARGS=&quot;--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org&quot;</span>
       </li>
     
 
@@ -2723,7 +2723,7 @@
           aria-label="Copy permalink for line 226"
           title="Copy permalink for line 226"
         >226</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          python -m pip install --upgrade pip ${TRUSTED_HOST_ARGS}</span>
       </li>
     
 
@@ -2735,7 +2735,7 @@
           aria-label="Copy permalink for line 227"
           title="Copy permalink for line 227"
         >227</button>
-        <span class="git-code-text">          install -m 700 -d ~/.ssh</span>
+        <span class="git-code-text">          pip install ${TRUSTED_HOST_ARGS} &quot;ansible&gt;=9.1&quot; &quot;docker&quot; &quot;jmespath&quot;</span>
       </li>
     
 
@@ -2747,7 +2747,7 @@
           aria-label="Copy permalink for line 228"
           title="Copy permalink for line 228"
         >228</button>
-        <span class="git-code-text">          KEY_PATH=&quot;$HOME/.ssh/gitea-ci-prod&quot;</span>
+        <span class="git-code-text">          ansible-galaxy collection install -r ansible/requirements.yml</span>
       </li>
     
 
@@ -2759,7 +2759,7 @@
           aria-label="Copy permalink for line 229"
           title="Copy permalink for line 229"
         >229</button>
-        <span class="git-code-text">          printf &quot;%s&quot; &quot;$SSH_PRIVATE_KEY&quot; &gt; &quot;$KEY_PATH&quot;</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2771,7 +2771,7 @@
           aria-label="Copy permalink for line 230"
           title="Copy permalink for line 230"
         >230</button>
-        <span class="git-code-text">          chmod 600 &quot;$KEY_PATH&quot;</span>
+        <span class="git-code-text">      - name: Configure SSH</span>
       </li>
     
 
@@ -2783,7 +2783,7 @@
           aria-label="Copy permalink for line 231"
           title="Copy permalink for line 231"
         >231</button>
-        <span class="git-code-text">          if [ -n &quot;$KNOWN_HOSTS&quot; ]; then</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -2795,7 +2795,7 @@
           aria-label="Copy permalink for line 232"
           title="Copy permalink for line 232"
         >232</button>
-        <span class="git-code-text">            printf &quot;%s\n&quot; &quot;$KNOWN_HOSTS&quot; &gt; ~/.ssh/known_hosts</span>
+        <span class="git-code-text">          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}</span>
       </li>
     
 
@@ -2807,7 +2807,7 @@
           aria-label="Copy permalink for line 233"
           title="Copy permalink for line 233"
         >233</button>
-        <span class="git-code-text">          else</span>
+        <span class="git-code-text">          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}</span>
       </li>
     
 
@@ -2819,7 +2819,7 @@
           aria-label="Copy permalink for line 234"
           title="Copy permalink for line 234"
         >234</button>
-        <span class="git-code-text">            ssh-keyscan -H &quot;$VPS_HOST&quot; &gt;&gt; ~/.ssh/known_hosts</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -2831,7 +2831,7 @@
           aria-label="Copy permalink for line 235"
           title="Copy permalink for line 235"
         >235</button>
-        <span class="git-code-text">          fi</span>
+        <span class="git-code-text">          install -m 700 -d ~/.ssh</span>
       </li>
     
 
@@ -2843,7 +2843,7 @@
           aria-label="Copy permalink for line 236"
           title="Copy permalink for line 236"
         >236</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">          KEY_PATH=&quot;$HOME/.ssh/gitea-ci-prod&quot;</span>
       </li>
     
 
@@ -2855,7 +2855,7 @@
           aria-label="Copy permalink for line 237"
           title="Copy permalink for line 237"
         >237</button>
-        <span class="git-code-text">      - name: Deploy with Ansible</span>
+        <span class="git-code-text">          printf &quot;%s&quot; &quot;$SSH_PRIVATE_KEY&quot; &gt; &quot;$KEY_PATH&quot;</span>
       </li>
     
 
@@ -2867,7 +2867,7 @@
           aria-label="Copy permalink for line 238"
           title="Copy permalink for line 238"
         >238</button>
-        <span class="git-code-text">        working-directory: ansible</span>
+        <span class="git-code-text">          chmod 600 &quot;$KEY_PATH&quot;</span>
       </li>
     
 
@@ -2879,7 +2879,7 @@
           aria-label="Copy permalink for line 239"
           title="Copy permalink for line 239"
         >239</button>
-        <span class="git-code-text">        env:</span>
+        <span class="git-code-text">          if [ -n &quot;$KNOWN_HOSTS&quot; ]; then</span>
       </li>
     
 
@@ -2891,7 +2891,7 @@
           aria-label="Copy permalink for line 240"
           title="Copy permalink for line 240"
         >240</button>
-        <span class="git-code-text">          ANSIBLE_FORCE_COLOR: &#039;1&#039;</span>
+        <span class="git-code-text">            printf &quot;%s\n&quot; &quot;$KNOWN_HOSTS&quot; &gt; ~/.ssh/known_hosts</span>
       </li>
     
 
@@ -2903,7 +2903,7 @@
           aria-label="Copy permalink for line 241"
           title="Copy permalink for line 241"
         >241</button>
-        <span class="git-code-text">        run: |</span>
+        <span class="git-code-text">          else</span>
       </li>
     
 
@@ -2915,7 +2915,7 @@
           aria-label="Copy permalink for line 242"
           title="Copy permalink for line 242"
         >242</button>
-        <span class="git-code-text">          ansible-playbook -i inventory/hosts.ini deploy.yml \</span>
+        <span class="git-code-text">            ssh-keyscan -H &quot;$VPS_HOST&quot; &gt;&gt; ~/.ssh/known_hosts</span>
       </li>
     
 
@@ -2927,7 +2927,7 @@
           aria-label="Copy permalink for line 243"
           title="Copy permalink for line 243"
         >243</button>
-        <span class="git-code-text">            -e &quot;ansible_host=${VPS_HOST}&quot; \</span>
+        <span class="git-code-text">          fi</span>
       </li>
     
 
@@ -2939,7 +2939,7 @@
           aria-label="Copy permalink for line 244"
           title="Copy permalink for line 244"
         >244</button>
-        <span class="git-code-text">            -e &quot;ansible_user=${VPS_USER}&quot; \</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -2951,7 +2951,7 @@
           aria-label="Copy permalink for line 245"
           title="Copy permalink for line 245"
         >245</button>
-        <span class="git-code-text">            -e &quot;image_registry=${REGISTRY_HOST}&quot; \</span>
+        <span class="git-code-text">      - name: Deploy with Ansible</span>
       </li>
     
 
@@ -2963,7 +2963,7 @@
           aria-label="Copy permalink for line 246"
           title="Copy permalink for line 246"
         >246</button>
-        <span class="git-code-text">            -e &quot;image_namespace=${REGISTRY_NAMESPACE}&quot; \</span>
+        <span class="git-code-text">        working-directory: ansible</span>
       </li>
     
 
@@ -2975,7 +2975,7 @@
           aria-label="Copy permalink for line 247"
           title="Copy permalink for line 247"
         >247</button>
-        <span class="git-code-text">            -e &quot;image_name=${IMAGE_NAME}&quot; \</span>
+        <span class="git-code-text">        env:</span>
       </li>
     
 
@@ -2987,7 +2987,7 @@
           aria-label="Copy permalink for line 248"
           title="Copy permalink for line 248"
         >248</button>
-        <span class="git-code-text">            -e &quot;image_tag=${IMAGE_TAG}&quot; \</span>
+        <span class="git-code-text">          ANSIBLE_FORCE_COLOR: &#039;1&#039;</span>
       </li>
     
 
@@ -2999,7 +2999,7 @@
           aria-label="Copy permalink for line 249"
           title="Copy permalink for line 249"
         >249</button>
-        <span class="git-code-text">            -e &quot;registry_username=${REGISTRY_USERNAME}&quot; \</span>
+        <span class="git-code-text">        run: |</span>
       </li>
     
 
@@ -3011,6 +3011,102 @@
           aria-label="Copy permalink for line 250"
           title="Copy permalink for line 250"
         >250</button>
+        <span class="git-code-text">          ansible-playbook -i inventory/hosts.ini deploy.yml \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L251" data-git-line="251">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="251"
+          aria-label="Copy permalink for line 251"
+          title="Copy permalink for line 251"
+        >251</button>
+        <span class="git-code-text">            -e &quot;ansible_host=${VPS_HOST}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L252" data-git-line="252">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="252"
+          aria-label="Copy permalink for line 252"
+          title="Copy permalink for line 252"
+        >252</button>
+        <span class="git-code-text">            -e &quot;ansible_user=${VPS_USER}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L253" data-git-line="253">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="253"
+          aria-label="Copy permalink for line 253"
+          title="Copy permalink for line 253"
+        >253</button>
+        <span class="git-code-text">            -e &quot;image_registry=${REGISTRY_HOST}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L254" data-git-line="254">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="254"
+          aria-label="Copy permalink for line 254"
+          title="Copy permalink for line 254"
+        >254</button>
+        <span class="git-code-text">            -e &quot;image_namespace=${REGISTRY_NAMESPACE}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L255" data-git-line="255">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="255"
+          aria-label="Copy permalink for line 255"
+          title="Copy permalink for line 255"
+        >255</button>
+        <span class="git-code-text">            -e &quot;image_name=${IMAGE_NAME}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L256" data-git-line="256">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="256"
+          aria-label="Copy permalink for line 256"
+          title="Copy permalink for line 256"
+        >256</button>
+        <span class="git-code-text">            -e &quot;image_tag=${IMAGE_TAG}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L257" data-git-line="257">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="257"
+          aria-label="Copy permalink for line 257"
+          title="Copy permalink for line 257"
+        >257</button>
+        <span class="git-code-text">            -e &quot;registry_username=${REGISTRY_USERNAME}&quot; \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L258" data-git-line="258">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="258"
+          aria-label="Copy permalink for line 258"
+          title="Copy permalink for line 258"
+        >258</button>
         <span class="git-code-text">            -e &quot;registry_password=${REGISTRY_PASSWORD}&quot;</span>
       </li>
     

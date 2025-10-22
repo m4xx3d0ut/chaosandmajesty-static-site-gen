@@ -33,6 +33,23 @@ else
     echo "Skipping Git manifest sync (SKIP_GIT_MANIFEST_SYNC=${SKIP_GIT_MANIFEST_SYNC})."
 fi
 
+# Ensure the pinned default repository branch is available locally when using
+# the working tree override (prevents missing refs when CI clones a single branch).
+PINNED_REPO_BRANCH="${PINNED_REPO_BRANCH:-prod}"
+PINNED_REPO_REMOTE="${PINNED_REPO_REMOTE:-origin}"
+PINNED_REPO_FETCH_DEPTH="${PINNED_REPO_FETCH_DEPTH:-200}"
+if [ -d ".git" ] && [ -n "$PINNED_REPO_BRANCH" ]; then
+    if git rev-parse --verify "refs/heads/${PINNED_REPO_BRANCH}" >/dev/null 2>&1 || \
+       git rev-parse --verify "refs/remotes/${PINNED_REPO_REMOTE}/${PINNED_REPO_BRANCH}" >/dev/null 2>&1; then
+        :
+    else
+        echo "Fetching ${PINNED_REPO_REMOTE}/${PINNED_REPO_BRANCH} for pinned Git fragments..."
+        if ! git fetch "$PINNED_REPO_REMOTE" "$PINNED_REPO_BRANCH" --depth "$PINNED_REPO_FETCH_DEPTH"; then
+            echo "Warning: Unable to fetch ${PINNED_REPO_REMOTE}/${PINNED_REPO_BRANCH}; pinned repository refs may be incomplete." >&2
+        fi
+    fi
+fi
+
 # Check if config file exists
 if [ ! -f "smoke-test.yaml" ]; then
     echo "Error: smoke-test.yaml not found"

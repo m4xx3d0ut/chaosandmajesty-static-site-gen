@@ -755,7 +755,10 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
         nextRepo.overrideCommitLimit = matchedOverride.commitLimit;
       }
       nextRepo.localOverride = matchedOverride;
-    } else if (!nextRepo.localPath && mirrorDirs.length > 0) {
+    }
+
+    let resolvedMirrorPath = null;
+    if (mirrorDirs.length > 0) {
       const slugSources = [
         nextRepo.id,
         nextRepo.label,
@@ -805,11 +808,14 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
         }
       }
 
-      const resolvedMirrorPath = await findFirstExistingDirectory(candidatePaths);
-      if (resolvedMirrorPath) {
+      resolvedMirrorPath = await findFirstExistingDirectory(candidatePaths);
+    }
+
+    if (resolvedMirrorPath) {
+      nextRepo.mirrorPath = resolvedMirrorPath;
+      nextRepo.manifestMirror = resolvedMirrorPath;
+      if (!nextRepo.localPath) {
         nextRepo.localPath = resolvedMirrorPath;
-        nextRepo.mirrorPath = resolvedMirrorPath;
-        nextRepo.manifestMirror = resolvedMirrorPath;
       }
     }
 

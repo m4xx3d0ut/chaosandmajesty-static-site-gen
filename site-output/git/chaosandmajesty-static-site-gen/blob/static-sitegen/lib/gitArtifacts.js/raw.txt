@@ -1113,9 +1113,14 @@ export async function ensureGitRepoArtifacts({
     if (!repo || generatedSet.has(generatedKey)) {
       continue;
     }
-    if (!repo.localPath) {
+    const hasAnyPath =
+      Boolean(repo.localPath) ||
+      Boolean(repo.mirrorPath) ||
+      Boolean(repo.manifestMirror) ||
+      (Array.isArray(repo.fallbackPaths) && repo.fallbackPaths.length > 0);
+    if (!hasAnyPath) {
       if (verbose) {
-        console.warn(`[git-artifacts] Skipping ${repo.label || repo.id || repo.httpUrl}: no localPath specified.`);
+        console.warn(`[git-artifacts] Skipping ${repo.label || repo.id || repo.httpUrl}: no local Git mirror available.`);
       }
       continue;
     }
@@ -1128,8 +1133,77 @@ export async function ensureGitRepoArtifacts({
       ? Math.floor(repo.commitLimit)
       : DEFAULT_COMMIT_LIMIT;
 
-    const { ref, display } = await resolveGitRef(repo.localPath, repo.branch, verbose);
-    const commitsRaw = await loadGitCommits(repo.localPath, ref, commitLimit, verbose);
+    const skipGlobs = Array.isArray(repo.skipGlobs) ? repo.skipGlobs : [];
+    const skipMatcher = createGlobMatcher(skipGlobs);
+
+    const candidatePaths = [];
+    const seenPaths = new Set();
+    const pushCandidate = candidate => {
+      if (!candidate || typeof candidate !== 'string') {
+        return;
+      }
+      let normalized;
+      try {
+        normalized = path.resolve(candidate);
+      } catch {
+        normalized = candidate;
+      }
+      if (seenPaths.has(normalized)) {
+        return;
+      }
+      seenPaths.add(normalized);
+      candidatePaths.push(candidate);
+    };
+
+    pushCandidate(repo.localPath);
+    pushCandidate(repo.mirrorPath);
+    pushCandidate(repo.manifestMirror);
+    if (Array.isArray(repo.fallbackPaths)) {
+      for (const candidate of repo.fallbackPaths) {
+        pushCandidate(candidate);
+      }
+    }
+
+    let activeRepoPath = null;
+    let ref = null;
+    let display = null;
+    let commitsRaw = null;
+    let treeData = null;
+    let lastError = null;
+
+    for (const candidatePath of candidatePaths) {
+      if (!candidatePath) {
+        continue;
+      }
+      try {
+        const refInfo = await resolveGitRef(candidatePath, repo.branch, verbose);
+        const candidateCommits = await loadGitCommits(candidatePath, refInfo.ref, commitLimit, verbose);
+        const candidateTree = await loadGitTree(candidatePath, refInfo.ref, verbose, { skipMatcher });
+        activeRepoPath = candidatePath;
+        ref = refInfo.ref;
+        display = refInfo.display;
+        commitsRaw = candidateCommits;
+        treeData = candidateTree;
+        if (verbose && repo.localPath && path.resolve(candidatePath) !== path.resolve(repo.localPath)) {
+          console.warn(`[git-artifacts] Fallback git source selected for ${repo.label || repo.id || repo.detailUrl || 'repository'}: ${candidatePath}`);
+        }
+        break;
+      } catch (error) {
+        lastError = error;
+        if (verbose) {
+          console.warn(`[git-artifacts] Unable to load git data for ${repo.label || repo.id || repo.detailUrl || 'repository'} at ${candidatePath}: ${error.message}`);
+        }
+      }
+    }
+
+    if (!activeRepoPath || !commitsRaw || !treeData) {
+      if (verbose) {
+        const reason = lastError ? lastError.message : 'no candidate paths resolved';
+        console.warn(`[git-artifacts] Skipping ${repo.label || repo.id || repo.detailUrl || 'repository'} – unable to fetch git metadata (${reason}).`);
+      }
+      continue;
+    }
+
     const detailBaseUrl = deriveCommitDetailBase(repo.detailUrl);
     const commits = enrichCommits(commitsRaw, detailBaseUrl, display);
     const cloneUrl = buildCloneUrl(repo);
@@ -1222,10 +1296,6 @@ export async function ensureGitRepoArtifacts({
       commits
     });
 
-    const skipGlobs = Array.isArray(repo.skipGlobs) ? repo.skipGlobs : [];
-    const skipMatcher = createGlobMatcher(skipGlobs);
-
-    const treeData = await loadGitTree(repo.localPath, ref, verbose, { skipMatcher });
     if (licenseOverride && licenseOverride.enabled && licenseOverride.content) {
       applyLicenseOverrideToTree(treeData, licenseOverride, skipMatcher);
     }
@@ -1239,7 +1309,7 @@ export async function ensureGitRepoArtifacts({
       }
       fileNode.isMarkdown = isLikelyMarkdown(fileNode.path);
       const blobInfo = await ensureBlobFragment({
-        repoPath: repo.localPath,
+        repoPath: activeRepoPath,
         repoOutputDir,
         slug,
         fileNode,
@@ -1291,7 +1361,7 @@ export async function ensureGitRepoArtifacts({
 
     const branchForRefs = repo.overrideBranch || repo.branch || display || '';
     const refForRefs = ref && ref.startsWith('refs/') ? ref : null;
-    const refsData = await loadGitRefs(repo.localPath, verbose, {
+    const refsData = await loadGitRefs(activeRepoPath, verbose, {
       ref: refForRefs,
       branch: branchForRefs,
       includeTags: false

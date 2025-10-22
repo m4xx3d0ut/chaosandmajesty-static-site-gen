@@ -21,6 +21,73 @@
   },
   "commits": [
     {
+      "sha": "c594b20c91fa43a167cfd7cd16a989dd0e63cbf2",
+      "shortSha": "c594b20c",
+      "subject": "cicd: prod build pipeline updates for new git page.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T14:34:21+00:00",
+      "authoredEpochMs": 1761143661000,
+      "authoredDisplay": "Oct 22, 2025, 2:34 PM",
+      "relativeTime": "2 hours ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [
+        "origin/prod",
+        "prod"
+      ],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/c594b20c91fa43a167cfd7cd16a989dd0e63cbf2.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/c594b20c91fa43a167cfd7cd16a989dd0e63cbf2/"
+    },
+    {
+      "sha": "8981cb0588297634c8a2307b4948eb813b41b152",
+      "shortSha": "8981cb05",
+      "subject": "site-output: trim git viewer recursion",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T02:46:03+00:00",
+      "authoredEpochMs": 1761101163000,
+      "authoredDisplay": "Oct 22, 2025, 2:46 AM",
+      "relativeTime": "13 hours ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/8981cb0588297634c8a2307b4948eb813b41b152.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/8981cb0588297634c8a2307b4948eb813b41b152/"
+    },
+    {
+      "sha": "75c2f0770d5d046d1b4195ccbed15187acc0c201",
+      "shortSha": "75c2f077",
+      "subject": "Merge branch 'dev' into prod",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T02:15:48+00:00",
+      "authoredEpochMs": 1761099348000,
+      "authoredDisplay": "Oct 22, 2025, 2:15 AM",
+      "relativeTime": "14 hours ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/75c2f0770d5d046d1b4195ccbed15187acc0c201.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/75c2f0770d5d046d1b4195ccbed15187acc0c201/"
+    },
+    {
+      "sha": "544d2a0094cae64e7f5b39d053a07742a5fac08b",
+      "shortSha": "544d2a00",
+      "subject": "cicd: fix shallow bare repo clone.",
+      "authorName": "m4xx3d0ut",
+      "authorEmail": "hakr@theinfinitereality.com",
+      "authoredIso": "2025-10-22T02:13:43+00:00",
+      "authoredEpochMs": 1761099223000,
+      "authoredDisplay": "Oct 22, 2025, 2:13 AM",
+      "relativeTime": "14 hours ago",
+      "tags": [],
+      "heads": [],
+      "refNames": [],
+      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/544d2a0094cae64e7f5b39d053a07742a5fac08b.html",
+      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/544d2a0094cae64e7f5b39d053a07742a5fac08b/"
+    },
+    {
       "sha": "6fb12c6e8b10b4c85ed3571446ac4dfbff994256",
       "shortSha": "6fb12c6e",
       "subject": "Merge branch 'dev' into prod",
@@ -29,12 +96,10 @@
       "authoredIso": "2025-10-22T01:53:24+00:00",
       "authoredEpochMs": 1761098004000,
       "authoredDisplay": "Oct 22, 2025, 1:53 AM",
-      "relativeTime": "19 minutes ago",
+      "relativeTime": "14 hours ago",
       "tags": [],
       "heads": [],
-      "refNames": [
-        "prod"
-      ],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/6fb12c6e8b10b4c85ed3571446ac4dfbff994256.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/6fb12c6e8b10b4c85ed3571446ac4dfbff994256/"
     },
@@ -47,16 +112,10 @@
       "authoredIso": "2025-10-22T01:41:15+00:00",
       "authoredEpochMs": 1761097275000,
       "authoredDisplay": "Oct 22, 2025, 1:41 AM",
-      "relativeTime": "31 minutes ago",
+      "relativeTime": "14 hours ago",
       "tags": [],
-      "heads": [
-        "dev"
-      ],
-      "refNames": [
-        "HEAD -> dev",
-        "origin/dev",
-        "origin/HEAD"
-      ],
+      "heads": [],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/96eaca5a79be1acfcfa995f961c913cc63a49514.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/96eaca5a79be1acfcfa995f961c913cc63a49514/"
     },
@@ -69,12 +128,10 @@
       "authoredIso": "2025-10-22T00:44:29+00:00",
       "authoredEpochMs": 1761093869000,
       "authoredDisplay": "Oct 22, 2025, 12:44 AM",
-      "relativeTime": "1 hour ago",
+      "relativeTime": "15 hours ago",
       "tags": [],
       "heads": [],
-      "refNames": [
-        "origin/prod"
-      ],
+      "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/6a2c4d4d235cdf3770a166d4ce204357a7e63f3a.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/6a2c4d4d235cdf3770a166d4ce204357a7e63f3a/"
     },
@@ -87,76 +144,12 @@
       "authoredIso": "2025-10-21T21:01:29+00:00",
       "authoredEpochMs": 1761080489000,
       "authoredDisplay": "Oct 21, 2025, 9:01 PM",
-      "relativeTime": "5 hours ago",
+      "relativeTime": "19 hours ago",
       "tags": [],
       "heads": [],
       "refNames": [],
       "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/7e4a1715ec45e9336861da2832fc13fccdece291.html",
       "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/7e4a1715ec45e9336861da2832fc13fccdece291/"
-    },
-    {
-      "sha": "964241fe875c2e3996f1e1109e39c4a599ec7357",
-      "shortSha": "964241fe",
-      "subject": "cm: pp and tos update.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T17:31:45+00:00",
-      "authoredEpochMs": 1761067905000,
-      "authoredDisplay": "Oct 21, 2025, 5:31 PM",
-      "relativeTime": "9 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/964241fe875c2e3996f1e1109e39c4a599ec7357.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/964241fe875c2e3996f1e1109e39c4a599ec7357/"
-    },
-    {
-      "sha": "4fc0f92b996f1de760b8c7b05d941f11fa7c86b1",
-      "shortSha": "4fc0f92b",
-      "subject": "cm: mini terminal UX improvements.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T16:45:38+00:00",
-      "authoredEpochMs": 1761065138000,
-      "authoredDisplay": "Oct 21, 2025, 4:45 PM",
-      "relativeTime": "9 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/4fc0f92b996f1de760b8c7b05d941f11fa7c86b1.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/4fc0f92b996f1de760b8c7b05d941f11fa7c86b1/"
-    },
-    {
-      "sha": "be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7",
-      "shortSha": "be0c1a08",
-      "subject": "feat: Git default license override for git mirrors.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T16:32:12+00:00",
-      "authoredEpochMs": 1761064332000,
-      "authoredDisplay": "Oct 21, 2025, 4:32 PM",
-      "relativeTime": "10 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/be0c1a088fcd2c12910ba50c4cb51f3d62ab8bf7/"
-    },
-    {
-      "sha": "efc7f6d3ab9f5f8f038dc0186019e85ec4c64654",
-      "shortSha": "efc7f6d3",
-      "subject": "cm: Git page mobile view handling.",
-      "authorName": "m4xx3d0ut",
-      "authorEmail": "hakr@theinfinitereality.com",
-      "authoredIso": "2025-10-21T15:56:48+00:00",
-      "authoredEpochMs": 1761062208000,
-      "authoredDisplay": "Oct 21, 2025, 3:56 PM",
-      "relativeTime": "10 hours ago",
-      "tags": [],
-      "heads": [],
-      "refNames": [],
-      "commitUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/commit/efc7f6d3ab9f5f8f038dc0186019e85ec4c64654.html",
-      "treeUrl": "https://cm.core.home.arpa/git/chaosandmajesty-static-site-gen/tree/prod/efc7f6d3ab9f5f8f038dc0186019e85ec4c64654/"
     }
   ]
 }

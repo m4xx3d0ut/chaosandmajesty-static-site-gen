@@ -315,6 +315,34 @@ function parsePositiveInteger(value) {
   return null;
 }
 
+function parseBooleanFlag(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+    return value !== 0;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+    if (['true', 'yes', 'y', '1', 'on', 'enable', 'enabled'].includes(normalized)) {
+      return true;
+    }
+    if (['false', 'no', 'n', '0', 'off', 'disable', 'disabled'].includes(normalized)) {
+      return false;
+    }
+  }
+  return null;
+}
+
 function normalizeStringArray(value) {
   if (value === undefined || value === null) {
     return [];
@@ -701,6 +729,25 @@ async function hydrateGitPageConfig(pageConfig, siteConfig, verbose = false) {
     defaultCommitLimit = DEFAULT_GIT_COMMIT_LIMIT;
   }
   gitConfig.commitLimit = defaultCommitLimit;
+
+  const commitLinkFlagCandidates = [
+    gitConfig.commitLinksEnabled,
+    siteGitConfig.commitLinksEnabled,
+    gitConfig.enableCommitLinks,
+    siteGitConfig.enableCommitLinks
+  ];
+  let commitLinksEnabled = null;
+  for (const candidate of commitLinkFlagCandidates) {
+    const parsed = parseBooleanFlag(candidate);
+    if (parsed !== null) {
+      commitLinksEnabled = parsed;
+      break;
+    }
+  }
+  if (commitLinksEnabled === null) {
+    commitLinksEnabled = true;
+  }
+  gitConfig.commitLinksEnabled = commitLinksEnabled;
 
   const processedRepos = [];
   for (const repo of combinedRepos) {

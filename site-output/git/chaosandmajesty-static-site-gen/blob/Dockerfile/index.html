@@ -1,9 +1,9 @@
 
-    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/Dockerfile/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/Dockerfile/raw.txt" data-git-line-count="61">
+    <article class="git-file-panel" data-git-panel-section="blob" data-git-fragment-path="git/chaosandmajesty-static-site-gen/blob/Dockerfile/index.html" data-git-raw-path="git/chaosandmajesty-static-site-gen/blob/Dockerfile/raw.txt" data-git-line-count="65">
       <header class="git-file-header">
         <div class="git-file-header-main">
           <h4 class="git-file-title">Dockerfile</h4>
-          <div class="git-file-meta">2.2 KB · 61 lines · Dockerfile</div>
+          <div class="git-file-meta">2.4 KB · 65 lines · Dockerfile</div>
         </div>
         <div class="git-file-actions">
           <a class="git-file-action git-file-action--raw" href="./git/chaosandmajesty-static-site-gen/blob/Dockerfile/raw.txt" target="_blank" rel="noopener">Raw</a>
@@ -131,7 +131,7 @@
           aria-label="Copy permalink for line 10"
           title="Copy permalink for line 10"
         >10</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">ARG SYNC_GIT_MANIFEST_URL_REWRITE</span>
       </li>
     
 
@@ -143,7 +143,7 @@
           aria-label="Copy permalink for line 11"
           title="Copy permalink for line 11"
         >11</button>
-        <span class="git-code-text"># Install build dependencies and clean apt cache afterwards</span>
+        <span class="git-code-text">ENV SYNC_GIT_MANIFEST_URL_REWRITE=${SYNC_GIT_MANIFEST_URL_REWRITE}</span>
       </li>
     
 
@@ -155,7 +155,7 @@
           aria-label="Copy permalink for line 12"
           title="Copy permalink for line 12"
         >12</button>
-        <span class="git-code-text">RUN apt-get update \ </span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -167,7 +167,7 @@
           aria-label="Copy permalink for line 13"
           title="Copy permalink for line 13"
         >13</button>
-        <span class="git-code-text">    &amp;&amp; apt-get install -y --no-install-recommends \</span>
+        <span class="git-code-text"># Install build dependencies and clean apt cache afterwards</span>
       </li>
     
 
@@ -179,7 +179,7 @@
           aria-label="Copy permalink for line 14"
           title="Copy permalink for line 14"
         >14</button>
-        <span class="git-code-text">        ca-certificates \</span>
+        <span class="git-code-text">RUN apt-get update \</span>
       </li>
     
 
@@ -191,7 +191,7 @@
           aria-label="Copy permalink for line 15"
           title="Copy permalink for line 15"
         >15</button>
-        <span class="git-code-text">        curl \</span>
+        <span class="git-code-text">    &amp;&amp; apt-get install -y --no-install-recommends \</span>
       </li>
     
 
@@ -203,7 +203,7 @@
           aria-label="Copy permalink for line 16"
           title="Copy permalink for line 16"
         >16</button>
-        <span class="git-code-text">        git \</span>
+        <span class="git-code-text">        ca-certificates \</span>
       </li>
     
 
@@ -215,7 +215,7 @@
           aria-label="Copy permalink for line 17"
           title="Copy permalink for line 17"
         >17</button>
-        <span class="git-code-text">        python3 \</span>
+        <span class="git-code-text">        curl \</span>
       </li>
     
 
@@ -227,7 +227,7 @@
           aria-label="Copy permalink for line 18"
           title="Copy permalink for line 18"
         >18</button>
-        <span class="git-code-text">        build-essential \ </span>
+        <span class="git-code-text">        git \</span>
       </li>
     
 
@@ -239,7 +239,7 @@
           aria-label="Copy permalink for line 19"
           title="Copy permalink for line 19"
         >19</button>
-        <span class="git-code-text">    &amp;&amp; rm -rf /var/lib/apt/lists/*</span>
+        <span class="git-code-text">        openssh-client \</span>
       </li>
     
 
@@ -251,7 +251,7 @@
           aria-label="Copy permalink for line 20"
           title="Copy permalink for line 20"
         >20</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">        python3 \</span>
       </li>
     
 
@@ -263,7 +263,7 @@
           aria-label="Copy permalink for line 21"
           title="Copy permalink for line 21"
         >21</button>
-        <span class="git-code-text"># Install JS dependencies</span>
+        <span class="git-code-text">        build-essential \</span>
       </li>
     
 
@@ -275,7 +275,7 @@
           aria-label="Copy permalink for line 22"
           title="Copy permalink for line 22"
         >22</button>
-        <span class="git-code-text">COPY package*.json ./</span>
+        <span class="git-code-text">    &amp;&amp; rm -rf /var/lib/apt/lists/*</span>
       </li>
     
 
@@ -287,7 +287,7 @@
           aria-label="Copy permalink for line 23"
           title="Copy permalink for line 23"
         >23</button>
-        <span class="git-code-text">RUN npm ci --omit=dev</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -299,7 +299,7 @@
           aria-label="Copy permalink for line 24"
           title="Copy permalink for line 24"
         >24</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text"># Install JS dependencies</span>
       </li>
     
 
@@ -311,7 +311,7 @@
           aria-label="Copy permalink for line 25"
           title="Copy permalink for line 25"
         >25</button>
-        <span class="git-code-text"># Copy source and build the site</span>
+        <span class="git-code-text">COPY package*.json ./</span>
       </li>
     
 
@@ -323,7 +323,7 @@
           aria-label="Copy permalink for line 26"
           title="Copy permalink for line 26"
         >26</button>
-        <span class="git-code-text">COPY . .</span>
+        <span class="git-code-text">RUN npm ci --omit=dev</span>
       </li>
     
 
@@ -335,7 +335,7 @@
           aria-label="Copy permalink for line 27"
           title="Copy permalink for line 27"
         >27</button>
-        <span class="git-code-text">RUN ./build-site.sh</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -347,7 +347,7 @@
           aria-label="Copy permalink for line 28"
           title="Copy permalink for line 28"
         >28</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text"># Copy source and build the site</span>
       </li>
     
 
@@ -359,7 +359,7 @@
           aria-label="Copy permalink for line 29"
           title="Copy permalink for line 29"
         >29</button>
-        <span class="git-code-text"># Stage 2: lightweight Nginx image serving the static bundle</span>
+        <span class="git-code-text">COPY . .</span>
       </li>
     
 
@@ -371,7 +371,7 @@
           aria-label="Copy permalink for line 30"
           title="Copy permalink for line 30"
         >30</button>
-        <span class="git-code-text">FROM alpine:${ALPINE_VERSION}</span>
+        <span class="git-code-text">RUN --mount=type=ssh \</span>
       </li>
     
 
@@ -383,7 +383,7 @@
           aria-label="Copy permalink for line 31"
           title="Copy permalink for line 31"
         >31</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    GIT_SSH_COMMAND=&quot;ssh -o StrictHostKeyChecking=no&quot; ./build-site.sh</span>
       </li>
     
 
@@ -395,7 +395,7 @@
           aria-label="Copy permalink for line 32"
           title="Copy permalink for line 32"
         >32</button>
-        <span class="git-code-text"># Allow choosing which nginx config to bake into the runtime image (prod vs dev)</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -407,7 +407,7 @@
           aria-label="Copy permalink for line 33"
           title="Copy permalink for line 33"
         >33</button>
-        <span class="git-code-text">ARG NGINX_CONFIG=&quot;nginx/default.conf&quot;</span>
+        <span class="git-code-text"># Stage 2: lightweight Nginx image serving the static bundle</span>
       </li>
     
 
@@ -419,7 +419,7 @@
           aria-label="Copy permalink for line 34"
           title="Copy permalink for line 34"
         >34</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">FROM alpine:${ALPINE_VERSION}</span>
       </li>
     
 
@@ -431,7 +431,7 @@
           aria-label="Copy permalink for line 35"
           title="Copy permalink for line 35"
         >35</button>
-        <span class="git-code-text">LABEL org.opencontainers.image.source=&quot;https://gitea.core.home.arpa/m4xx3d0ut/chaosandmajesty-static-site-gen&quot; \</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -443,7 +443,7 @@
           aria-label="Copy permalink for line 36"
           title="Copy permalink for line 36"
         >36</button>
-        <span class="git-code-text">      org.opencontainers.image.description=&quot;Chaos &amp; Majesty static site served by hardened Nginx&quot;</span>
+        <span class="git-code-text"># Allow choosing which nginx config to bake into the runtime image (prod vs dev)</span>
       </li>
     
 
@@ -455,7 +455,7 @@
           aria-label="Copy permalink for line 37"
           title="Copy permalink for line 37"
         >37</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">ARG NGINX_CONFIG=&quot;nginx/default.conf&quot;</span>
       </li>
     
 
@@ -467,7 +467,7 @@
           aria-label="Copy permalink for line 38"
           title="Copy permalink for line 38"
         >38</button>
-        <span class="git-code-text">RUN set -eux; \</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -479,7 +479,7 @@
           aria-label="Copy permalink for line 39"
           title="Copy permalink for line 39"
         >39</button>
-        <span class="git-code-text">    apk add --no-cache curl nginx nginx-mod-http-dav-ext; \</span>
+        <span class="git-code-text">LABEL org.opencontainers.image.source=&quot;https://gitea.core.home.arpa/m4xx3d0ut/chaosandmajesty-static-site-gen&quot; \</span>
       </li>
     
 
@@ -491,7 +491,7 @@
           aria-label="Copy permalink for line 40"
           title="Copy permalink for line 40"
         >40</button>
-        <span class="git-code-text">    addgroup -S -g 33 www-data 2&gt;/dev/null || true; \</span>
+        <span class="git-code-text">      org.opencontainers.image.description=&quot;Chaos &amp; Majesty static site served by hardened Nginx&quot;</span>
       </li>
     
 
@@ -503,7 +503,7 @@
           aria-label="Copy permalink for line 41"
           title="Copy permalink for line 41"
         >41</button>
-        <span class="git-code-text">    adduser -S -D -H -u 33 -G www-data www-data 2&gt;/dev/null || true; \</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -515,7 +515,7 @@
           aria-label="Copy permalink for line 42"
           title="Copy permalink for line 42"
         >42</button>
-        <span class="git-code-text">    rm -f /etc/nginx/http.d/default.conf /etc/nginx/conf.d/default.conf; \</span>
+        <span class="git-code-text">RUN set -eux; \</span>
       </li>
     
 
@@ -527,7 +527,7 @@
           aria-label="Copy permalink for line 43"
           title="Copy permalink for line 43"
         >43</button>
-        <span class="git-code-text">    install -d -o www-data -g www-data /etc/nginx/auth; \</span>
+        <span class="git-code-text">    apk add --no-cache curl nginx nginx-mod-http-dav-ext; \</span>
       </li>
     
 
@@ -539,7 +539,7 @@
           aria-label="Copy permalink for line 44"
           title="Copy permalink for line 44"
         >44</button>
-        <span class="git-code-text">    install -d -o www-data -g www-data /usr/share/nginx/html/dav; \</span>
+        <span class="git-code-text">    addgroup -S -g 33 www-data 2&gt;/dev/null || true; \</span>
       </li>
     
 
@@ -551,7 +551,7 @@
           aria-label="Copy permalink for line 45"
           title="Copy permalink for line 45"
         >45</button>
-        <span class="git-code-text">    install -d -o www-data -g www-data /var/www/letsencrypt/.well-known/acme-challenge; \</span>
+        <span class="git-code-text">    adduser -S -D -H -u 33 -G www-data www-data 2&gt;/dev/null || true; \</span>
       </li>
     
 
@@ -563,7 +563,7 @@
           aria-label="Copy permalink for line 46"
           title="Copy permalink for line 46"
         >46</button>
-        <span class="git-code-text">    install -d -o www-data -g www-data /tmp/webdav; \</span>
+        <span class="git-code-text">    rm -f /etc/nginx/http.d/default.conf /etc/nginx/conf.d/default.conf; \</span>
       </li>
     
 
@@ -575,7 +575,7 @@
           aria-label="Copy permalink for line 47"
           title="Copy permalink for line 47"
         >47</button>
-        <span class="git-code-text">    chown -R www-data:www-data /var/lib/nginx /var/log/nginx</span>
+        <span class="git-code-text">    install -d -o www-data -g www-data /etc/nginx/auth; \</span>
       </li>
     
 
@@ -587,7 +587,7 @@
           aria-label="Copy permalink for line 48"
           title="Copy permalink for line 48"
         >48</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    install -d -o www-data -g www-data /usr/share/nginx/html/dav; \</span>
       </li>
     
 
@@ -599,7 +599,7 @@
           aria-label="Copy permalink for line 49"
           title="Copy permalink for line 49"
         >49</button>
-        <span class="git-code-text"># Workers run as www-data (uid 33) to match the host WebDAV htpasswd ownership</span>
+        <span class="git-code-text">    install -d -o www-data -g www-data /var/www/letsencrypt/.well-known/acme-challenge; \</span>
       </li>
     
 
@@ -611,7 +611,7 @@
           aria-label="Copy permalink for line 50"
           title="Copy permalink for line 50"
         >50</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">    install -d -o www-data -g www-data /tmp/webdav; \</span>
       </li>
     
 
@@ -623,7 +623,7 @@
           aria-label="Copy permalink for line 51"
           title="Copy permalink for line 51"
         >51</button>
-        <span class="git-code-text"># Copy the generated site and nginx configuration</span>
+        <span class="git-code-text">    chown -R www-data:www-data /var/lib/nginx /var/log/nginx</span>
       </li>
     
 
@@ -635,7 +635,7 @@
           aria-label="Copy permalink for line 52"
           title="Copy permalink for line 52"
         >52</button>
-        <span class="git-code-text">COPY --from=builder --chown=www-data:www-data /app/site-output/ /usr/share/nginx/html/</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -647,7 +647,7 @@
           aria-label="Copy permalink for line 53"
           title="Copy permalink for line 53"
         >53</button>
-        <span class="git-code-text">COPY --from=builder --chown=www-data:www-data /app/${NGINX_CONFIG} /etc/nginx/http.d/default.conf</span>
+        <span class="git-code-text"># Workers run as www-data (uid 33) to match the host WebDAV htpasswd ownership</span>
       </li>
     
 
@@ -659,7 +659,7 @@
           aria-label="Copy permalink for line 54"
           title="Copy permalink for line 54"
         >54</button>
-        <span class="git-code-text">COPY nginx/nginx.conf /etc/nginx/nginx.conf</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -671,7 +671,7 @@
           aria-label="Copy permalink for line 55"
           title="Copy permalink for line 55"
         >55</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text"># Copy the generated site and nginx configuration</span>
       </li>
     
 
@@ -683,7 +683,7 @@
           aria-label="Copy permalink for line 56"
           title="Copy permalink for line 56"
         >56</button>
-        <span class="git-code-text">EXPOSE 8080 8443</span>
+        <span class="git-code-text">COPY --from=builder --chown=www-data:www-data /app/site-output/ /usr/share/nginx/html/</span>
       </li>
     
 
@@ -695,7 +695,7 @@
           aria-label="Copy permalink for line 57"
           title="Copy permalink for line 57"
         >57</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">COPY --from=builder --chown=www-data:www-data /app/${NGINX_CONFIG} /etc/nginx/http.d/default.conf</span>
       </li>
     
 
@@ -707,7 +707,7 @@
           aria-label="Copy permalink for line 58"
           title="Copy permalink for line 58"
         >58</button>
-        <span class="git-code-text">HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \</span>
+        <span class="git-code-text">COPY nginx/nginx.conf /etc/nginx/nginx.conf</span>
       </li>
     
 
@@ -719,7 +719,7 @@
           aria-label="Copy permalink for line 59"
           title="Copy permalink for line 59"
         >59</button>
-        <span class="git-code-text">    CMD curl --fail --silent http://127.0.0.1:8080/health &gt;/dev/null || exit 1</span>
+        <span class="git-code-text">&#8203;</span>
       </li>
     
 
@@ -731,7 +731,7 @@
           aria-label="Copy permalink for line 60"
           title="Copy permalink for line 60"
         >60</button>
-        <span class="git-code-text">&#8203;</span>
+        <span class="git-code-text">EXPOSE 8080 8443</span>
       </li>
     
 
@@ -743,6 +743,54 @@
           aria-label="Copy permalink for line 61"
           title="Copy permalink for line 61"
         >61</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L62" data-git-line="62">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="62"
+          aria-label="Copy permalink for line 62"
+          title="Copy permalink for line 62"
+        >62</button>
+        <span class="git-code-text">HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L63" data-git-line="63">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="63"
+          aria-label="Copy permalink for line 63"
+          title="Copy permalink for line 63"
+        >63</button>
+        <span class="git-code-text">    CMD curl --fail --silent http://127.0.0.1:8080/health &gt;/dev/null || exit 1</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L64" data-git-line="64">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="64"
+          aria-label="Copy permalink for line 64"
+          title="Copy permalink for line 64"
+        >64</button>
+        <span class="git-code-text">&#8203;</span>
+      </li>
+    
+
+      <li class="git-code-line" id="L65" data-git-line="65">
+        <button
+          type="button"
+          class="git-code-anchor"
+          data-git-line-anchor="65"
+          aria-label="Copy permalink for line 65"
+          title="Copy permalink for line 65"
+        >65</button>
         <span class="git-code-text">CMD [&quot;nginx&quot;, &quot;-g&quot;, &quot;daemon off;&quot;]</span>
       </li>
     

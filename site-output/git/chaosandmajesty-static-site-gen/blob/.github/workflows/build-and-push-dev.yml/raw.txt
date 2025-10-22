@@ -76,6 +76,8 @@ jobs:
             echo "  IdentitiesOnly yes"
             echo "  StrictHostKeyChecking yes"
           } >> ~/.ssh/config
+          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
+          echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
       - name: Clone repo (SSH via in-cluster service)
         run: |

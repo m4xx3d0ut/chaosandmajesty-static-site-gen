@@ -12,6 +12,7 @@
   const initialLimit = Number.isFinite(logContext.initialLimit) ? logContext.initialLimit : displayedCommits;
   const showFullLink = !!(logContext && logContext.isTruncated && fullFragment);
   const showCollapseLink = !showFullLink && logMode === 'full' && limitedFragment && initialLimit > 0 && totalCommits > initialLimit;
+  const allowCommitLinks = typeof commitLinksEnabled === 'boolean' ? commitLinksEnabled : false;
 %>
 <article
   class="git-panel"
@@ -71,7 +72,7 @@
         <% commits.forEach(function(commit) { %>
           <li class="git-commit-item">
             <div class="git-commit-summary">
-              <% if (commit.commitUrl) { %>
+              <% if (allowCommitLinks && commit.commitUrl) { %>
                 <a class="git-commit-title" href="<%= commit.commitUrl %>" target="_blank" rel="noopener"><%= commit.subject %></a>
               <% } else { %>
                 <span class="git-commit-title"><%= commit.subject %></span>

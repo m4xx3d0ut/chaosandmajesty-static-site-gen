@@ -661,6 +661,7 @@ async function loadGitRefs(repoPath, verbose = false, options = {}) {
     });
     const heads = [];
     const tags = [];
+    const remoteCandidates = [];
     stdout.split('\n').forEach(line => {
       if (!line.trim()) return;
       const [refname, shortSha, isoDate, relativeDate, authorName, subject] = line.split('\t');
@@ -678,8 +679,36 @@ async function loadGitRefs(repoPath, verbose = false, options = {}) {
       } else if (refname.startsWith('refs/tags/')) {
         entry.display = refname.replace(/^refs\/tags\//, '');
         tags.push(entry);
+      } else if (refname.startsWith('refs/remotes/')) {
+        const remoteDisplay = refname.replace(/^refs\/remotes\//, '');
+        const branchDisplay = remoteDisplay.includes('/')
+          ? remoteDisplay.split('/').slice(1).join('/')
+          : remoteDisplay;
+        if (!branchDisplay || branchDisplay === 'HEAD') {
+          return;
+        }
+        remoteCandidates.push({
+          ...entry,
+          remote: true,
+          remoteDisplay,
+          display: branchDisplay
+        });
       }
     });
+    if (heads.length === 0 && remoteCandidates.length > 0) {
+      const seen = new Set();
+      for (const remoteEntry of remoteCandidates) {
+        const display = remoteEntry.display || remoteEntry.remoteDisplay;
+        if (!display || seen.has(display)) {
+          continue;
+        }
+        seen.add(display);
+        heads.push({
+          ...remoteEntry,
+          display
+        });
+      }
+    }
     return { heads, tags };
   } catch (error) {
     if (verbose) {
@@ -1107,6 +1136,12 @@ export async function ensureGitRepoArtifacts({
     (pageConfig && pageConfig.git && pageConfig.git.licenseOverride)
       || (siteConfig && siteConfig.git && siteConfig.git.licenseOverride)
       || null;
+  let commitLinksEnabled = true;
+  if (pageConfig && pageConfig.git && typeof pageConfig.git.commitLinksEnabled === 'boolean') {
+    commitLinksEnabled = pageConfig.git.commitLinksEnabled;
+  } else if (siteConfig && siteConfig.git && typeof siteConfig.git.commitLinksEnabled === 'boolean') {
+    commitLinksEnabled = siteConfig.git.commitLinksEnabled;
+  }
 
   for (const repo of repos) {
     const generatedKey = defaultGeneratedKey(repo);
@@ -1142,6 +1177,7 @@ export async function ensureGitRepoArtifacts({
     const payload = {
       site: siteConfig,
       page: pageConfig,
+      commitLinksEnabled,
       repo: buildRepoSummary(repo, display, detailBaseUrl),
       commits,
       clone: {
