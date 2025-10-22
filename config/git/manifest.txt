@@ -7,19 +7,19 @@
 ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/chaosandmajesty-static-site-gen.git|prod|chaosandmajesty-static-site-gen|m4xx3d0ut|Chaosandmajesty.com static site gen project with wasm32 DOOM shareware integration|https://chaosandmajesty.com/git/chaosandmajesty-static-site-gen
 
 # CM Blog Content Staging
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cm-blog-content-staging.git|dev|cm-blog-content-staging|m4xx3d0ut|Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content|https://cm.core.home.arpa/git/cm-blog-content-staging
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cm-blog-content-staging.git|dev|cm-blog-content-staging|m4xx3d0ut|Helpful scripts to format and sync both publish ready md and raw notes into site-gen blog content|https://chaosandmajesty.com/git/cm-blog-content-staging
 
 # Local Lab Platform Config
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-config.git|dev|platform-config|m4xx3d0ut|Flux GitOps platform configuration|https://cm.core.home.arpa/git/platform-config
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-config.git|dev|platform-config|m4xx3d0ut|Flux GitOps platform configuration|https://chaosandmajesty.com/git/platform-config
 
 # Local Lab AI System Config
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/ai-system-config.git|dev|ai-system-config|m4xx3d0ut|Flux LlmOps system configuration|https://cm.core.home.arpa/git/ai-system-config
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/ai-system-config.git|dev|ai-system-config|m4xx3d0ut|Flux LlmOps system configuration|https://chaosandmajesty.com/git/ai-system-config
 
 # Local Lab Nvidia Compute Platform
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-nvidia-compute.git|dev|platform-nvidia-compute|m4xx3d0ut|Nvidia compute platform configuration|https://cm.core.home.arpa/git/platform-nvidia-compute
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/platform-nvidia-compute.git|dev|platform-nvidia-compute|m4xx3d0ut|Nvidia compute platform configuration|https://chaosandmajesty.com/git/platform-nvidia-compute
 
 # Actions CICD Skeleton
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cicd-dev.git|dev|cicd-dev|m4xx3d0ut|CICD Skeleton|https://cm.core.home.arpa/git/cicd-dev
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cicd-dev.git|dev|cicd-dev|m4xx3d0ut|CICD Skeleton|https://chaosandmajesty.com/git/cicd-dev
 
 # RadioStatic
-ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/radiostatic-site-gen.git|dev|radiostatic-site-gen|m4xx3d0ut|RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal|https://cm.core.home.arpa/git/radiostatic-site-gen
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/radiostatic-site-gen.git|dev|radiostatic-site-gen|m4xx3d0ut|RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal|https://chaosandmajesty.com/git/radiostatic-site-gen
