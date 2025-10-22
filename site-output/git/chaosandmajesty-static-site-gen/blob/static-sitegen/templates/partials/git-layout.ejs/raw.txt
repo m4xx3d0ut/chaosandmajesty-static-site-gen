@@ -639,8 +639,6 @@
       var linkHtml = '';
       if (entry && entry.detailUrl && tab === 'log') {
         linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">Open full log</a>.';
-      } else if (entry && entry.detailUrl) {
-        linkHtml = ' <a href="' + escapeHtml(entry.detailUrl) + '" target="_blank" rel="noopener">View on origin</a>.';
       }
       var message = 'No ' + escapeHtml(label) + ' is available for this repository.' + linkHtml;
       setPanelContent(renderPanelMessage('empty', message), tab);

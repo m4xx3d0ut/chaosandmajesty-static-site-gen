@@ -30,8 +30,14 @@ pages:
       leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt)."
       rightPaneTitle: "Repository Activity"
       rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
+      commitLimit: 5
+      skipGlobs:
+        - "site-output/**"
+        - "node_modules/**"
       localRepoOverrides:
-        chaosandmajesty-static-site-gen: .
+        chaosandmajesty-static-site-gen:
+          path: .
+          commitLimit: 8
 
   - title: Privacy Policy
     slug: privacy
