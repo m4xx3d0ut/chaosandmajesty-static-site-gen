@@ -58,6 +58,13 @@ jobs:
           FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
           echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
+      - name: Start SSH agent
+        run: |
+          set -euo pipefail
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ci
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+
       - name: Checkout repository (SSH)
         env:
           REPO_SSH: ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/${{ github.repository }}.git
@@ -148,7 +155,7 @@ jobs:
           file: Dockerfile
           no-cache: true
           ssh: |
-            default=/home/runner/.ssh/id_ci
+            default=${{ env.SSH_AUTH_SOCK }}
           build-args: |
             SYNC_GIT_MANIFEST_URL_REWRITE=ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
           push: true
