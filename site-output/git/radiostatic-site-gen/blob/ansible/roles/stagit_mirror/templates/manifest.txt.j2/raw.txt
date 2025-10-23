@@ -1,9 +1,0 @@
-# Managed by Ansible. Format: url|branch|name|owner|description|homepage
-# Lines beginning with '#' are ignored. Avoid using the '|' character within fields.
-{% for repo in stagit_repositories %}
-{% set repo_name = repo.name | default(repo.url | regex_replace('.*/', '') | regex_replace('\\.git$', '')) %}
-{% set repo_owner = repo.owner | default(stagit_default_owner) %}
-{% set repo_description = repo.description | default(repo_name) %}
-{% set repo_homepage = repo.homepage | default('') %}
-{{ repo.url }}|{{ repo.branch | default('main') }}|{{ repo_name }}|{{ repo_owner }}|{{ repo_description }}|{{ repo_homepage }}
-{% endfor %}

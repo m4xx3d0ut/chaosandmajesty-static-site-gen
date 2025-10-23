@@ -1,6 +1,0 @@
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = true
-[remote "origin"]
-	url = /home/m4xx3d0ut/git/chaosandmajesty-static-site-gen/tmp/git-mirrors/cm-blog-content-staging

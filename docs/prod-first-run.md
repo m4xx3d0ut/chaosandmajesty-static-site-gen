@@ -115,18 +115,20 @@ so the anonymous pull policy is more than enough.
    and `write:packages` scopes. For self-hosted registries, use a robot/service
    account. Paste the username as-is; paste the token/password exactly, without
    extra whitespace.
-5. **`VPS_HOST`** – Public hostname or IP for the VPS. Use
+5. **`CI_KNOWN_HOSTS`** – Pinned `ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local`
+   output. Capture once from a trusted network, verify the fingerprint, and paste the line
+   verbatim so the CI refuses unexpected host keys.
+6. **`VPS_HOST`** – Public hostname or IP for the VPS. Use
    `chaosandmajesty.com` unless you are targeting a different environment.
-6. **`VPS_USER`** – SSH username the playbook uses. This repository assumes the
+7. **`VPS_USER`** – SSH username the playbook uses. This repository assumes the
    `deploy` user exists and has passwordless sudo for the managed services.
-7. **`SSH_PRIVATE_KEY`** – Private key that matches the public key installed on
+8. **`SSH_PRIVATE_KEY`** – Private key that matches the public key installed on
    the `deploy` account. Copy the key contents (including the `-----BEGIN` and
    `-----END` lines) directly into the secret. Ensure the key is not protected
    by a passphrase; the workflow cannot prompt for one.
-8. **`KNOWN_HOSTS`** *(optional)* – Pre-seeded line from `ssh-keyscan -H
-   chaosandmajesty.com`. Run the command locally and paste the output to avoid
-   first-connection prompts. If omitted, the workflow will scan the host at
-   runtime.
+9. **`KNOWN_HOSTS`** – Pre-seeded line from `ssh-keyscan -H chaosandmajesty.com`.
+   Capture this from a trusted workstation and paste the output; the workflow no longer
+   attempts runtime scans, so this secret is required.
 
 After saving each secret, use the **Test secret** button (if available in your
 Gitea version) or re-run the `prod` workflow to confirm the value is

@@ -3,8 +3,14 @@ name: prod build and deploy
 on:
   push:
     branches: [ prod ]
-    # Only run if site-output/ changes
-    paths: [ 'site-output/**' ]
+    paths:
+      - 'site-output/**'
+      - 'Dockerfile'
+      - 'nginx/**'
+      - 'ansible/**'
+      - '.github/workflows/prod-deploy.yml'
+      - 'static-sitegen/**'
+      - 'build-site.sh'
   # Enable manual triggering
   workflow_dispatch: {}
 
@@ -18,6 +24,7 @@ env:
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   IMAGE_TAG: prod
   NODE_OPTIONS: --max-old-space-size=8192
+  CI_KNOWN_HOSTS: ${{ secrets.CI_KNOWN_HOSTS }}
 
 jobs:
   build:
@@ -37,6 +44,7 @@ jobs:
       - name: Prepare SSH for Gitea
         env:
           CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}
+          CI_KNOWN_HOSTS: ${{ env.CI_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           if [ -z "${CI_DEPLOY_KEY:-}" ]; then
@@ -44,25 +52,30 @@ jobs:
             exit 1
           fi
           install -m 700 -d ~/.ssh
-          printf "%s\n" "${CI_DEPLOY_KEY}" > ~/.ssh/id_ci
-          chmod 600 ~/.ssh/id_ci
-          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          CI_KEY_PATH="$HOME/.ssh/id_ci"
+          printf "%s\n" "${CI_DEPLOY_KEY}" > "${CI_KEY_PATH}"
+          chmod 600 "${CI_KEY_PATH}"
+          if [ -n "${CI_KNOWN_HOSTS:-}" ]; then
+            printf "%s\n" "${CI_KNOWN_HOSTS}" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > "$HOME/.ssh/known_hosts"
+          fi
+          chmod 644 "$HOME/.ssh/known_hosts"
           {
             echo "Host gitea-ssh.git-local.svc.cluster.local"
             echo "  User git"
             echo "  IdentityFile ~/.ssh/id_ci"
             echo "  IdentitiesOnly yes"
             echo "  StrictHostKeyChecking yes"
-          } >> ~/.ssh/config
-          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
+          } >> "$HOME/.ssh/config"
+          FINGERPRINT=$(ssh-keygen -E sha256 -lf "${CI_KEY_PATH}" | awk '{print $2}')
           echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
       - name: Start SSH agent
         run: |
           set -euo pipefail
           eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ci
+          ssh-add "$HOME/.ssh/id_ci"
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
 
       - name: Checkout repository (SSH)
@@ -162,6 +175,8 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
+          secrets: |
+            ssh_known_hosts=${{ env.CI_KNOWN_HOSTS }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -185,6 +200,7 @@ jobs:
       - name: Prepare SSH for Gitea
         env:
           CI_DEPLOY_KEY: ${{ secrets.CI_DEPLOY_KEY }}
+          CI_KNOWN_HOSTS: ${{ env.CI_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           if [ -z "${CI_DEPLOY_KEY:-}" ]; then
@@ -192,18 +208,23 @@ jobs:
             exit 1
           fi
           install -m 700 -d ~/.ssh
-          printf "%s\n" "${CI_DEPLOY_KEY}" > ~/.ssh/id_ci
-          chmod 600 ~/.ssh/id_ci
-          ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          CI_KEY_PATH="$HOME/.ssh/id_ci"
+          printf "%s\n" "${CI_DEPLOY_KEY}" > "${CI_KEY_PATH}"
+          chmod 600 "${CI_KEY_PATH}"
+          if [ -n "${CI_KNOWN_HOSTS:-}" ]; then
+            printf "%s\n" "${CI_KNOWN_HOSTS}" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -p 2222 gitea-ssh.git-local.svc.cluster.local > "$HOME/.ssh/known_hosts"
+          fi
+          chmod 644 "$HOME/.ssh/known_hosts"
           {
             echo "Host gitea-ssh.git-local.svc.cluster.local"
             echo "  User git"
             echo "  IdentityFile ~/.ssh/id_ci"
             echo "  IdentitiesOnly yes"
             echo "  StrictHostKeyChecking yes"
-          } >> ~/.ssh/config
-          FINGERPRINT=$(ssh-keygen -E sha256 -lf ~/.ssh/id_ci | awk '{print $2}')
+          } >> "$HOME/.ssh/config"
+          FINGERPRINT=$(ssh-keygen -E sha256 -lf "${CI_KEY_PATH}" | awk '{print $2}')
           echo "CI deploy key fingerprint (sha256): ${FINGERPRINT}"
 
       - name: Checkout repository (SSH)
@@ -229,9 +250,20 @@ jobs:
           echo "$HOME/.ansible-venv/bin" >> "$GITHUB_PATH"
           source ~/.ansible-venv/bin/activate
           export PIP_NO_CACHE_DIR=1
-          TRUSTED_HOST_ARGS="--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org"
-          python -m pip install --upgrade pip ${TRUSTED_HOST_ARGS}
-          pip install ${TRUSTED_HOST_ARGS} "ansible>=9.1" "docker" "jmespath"
+          # Build a temporary CA bundle that keeps both system CAs and the runner-provided root.
+          CA_BUNDLE_PATH="$(mktemp)"
+          SYSTEM_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
+          if [ -f "$SYSTEM_CA_BUNDLE" ]; then
+            cat "$SYSTEM_CA_BUNDLE" > "$CA_BUNDLE_PATH"
+            if [ -n "${SSL_CERT_FILE:-}" ] && [ -f "$SSL_CERT_FILE" ]; then
+              cat "$SSL_CERT_FILE" >> "$CA_BUNDLE_PATH"
+            fi
+            export SSL_CERT_FILE="$CA_BUNDLE_PATH"
+            export REQUESTS_CA_BUNDLE="$CA_BUNDLE_PATH"
+            export CURL_CA_BUNDLE="$CA_BUNDLE_PATH"
+          fi
+          python -m pip install --upgrade pip
+          pip install "ansible>=9.1" "docker" "jmespath"
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Configure SSH
@@ -243,10 +275,11 @@ jobs:
           KEY_PATH="$HOME/.ssh/gitea-ci-prod"
           printf "%s" "$SSH_PRIVATE_KEY" > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
-          if [ -n "$KNOWN_HOSTS" ]; then
-            printf "%s\n" "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          if [ -z "$KNOWN_HOSTS" ]; then
+            echo "KNOWN_HOSTS secret empty; discovering fingerprint via ssh-keyscan." >&2
+            ssh-keyscan -H "$VPS_HOST" > ~/.ssh/known_hosts
           else
-            ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+            printf "%s\n" "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           fi
 
       - name: Deploy with Ansible

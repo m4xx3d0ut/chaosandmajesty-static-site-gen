@@ -10,6 +10,7 @@ yarn-error.log*
 build/
 dist/
 .cache/
+site-output/
 
 # Environment files
 .env
@@ -56,3 +57,5 @@ backup_*
 *.tgz
 *.tar.gz
 !scripts/stagit/*.tar.gz
+
+*known-hosts*

@@ -89,6 +89,8 @@ jobs:
 ## Registry & Secrets Checklist
 - `CR_PAT`: a GitHub personal access token or GitHub Actions OIDC with `packages:write` to push to GHCR.
 - `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`: credentials for SSH access. Use a deploy-only user on the server.
+- `CI_KNOWN_HOSTS`: pinned `ssh-ed25519`/`rsa` host key lines for `gitea-ssh.git-local.svc.cluster.local:2222` (capture once with `ssh-keyscan -p 2222`, verify, and paste the line verbatim).
+- `KNOWN_HOSTS`: pinned line for the public VPS (`ssh-keyscan -H chaosandmajesty.com`). The deployment job refuses to trust first-use fingerprints now.
 - Optional `NGINX_RELOAD_CMD` secret (e.g., `sudo systemctl reload nginx`) if you want the Action to refresh Nginx after updating upstreams.
 - Store environment-specific toggles (e.g., basic auth) as Action secrets; never commit them to `smoke-test.yaml`.
 

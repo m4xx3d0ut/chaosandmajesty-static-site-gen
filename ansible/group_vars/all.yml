@@ -14,6 +14,10 @@ healthcheck_port: 80
 app_owner: deploy
 app_group: deploy
 
+# Container runtime UID/GID (matches nginx-unprivileged base image)
+container_runtime_group: cm_nginx_runtime
+container_runtime_gid: 101
+
 # Container image reference (registry/namespace/name:tag)
 image_registry: ghcr.io
 image_namespace: chaosandmajesty
@@ -40,6 +44,7 @@ letsencrypt_host_path: /etc/letsencrypt
 letsencrypt_container_path: /etc/letsencrypt
 acme_webroot_host_path: /var/www/letsencrypt
 acme_webroot_container_path: /var/www/letsencrypt
+letsencrypt_primary_domain: chaosandmajesty.com
 
 # Optional mount for sharing an nginx auth file with the container.
 auth_file_host_path: /etc/nginx/auth

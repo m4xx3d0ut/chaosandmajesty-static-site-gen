@@ -25,6 +25,21 @@
     mode: '0755'
   when: letsencrypt_mount_enabled | bool
 
+- name: Prepare Let's Encrypt permissions
+  include_tasks:
+    file: letsencrypt.yml
+  vars:
+    letsencrypt_runtime_files:
+      - path: "{{ letsencrypt_host_path }}/live/{{ letsencrypt_primary_domain }}/fullchain.pem"
+        mode: '0640'
+      - path: "{{ letsencrypt_host_path }}/live/{{ letsencrypt_primary_domain }}/privkey.pem"
+        mode: '0640'
+      - path: "{{ letsencrypt_host_path }}/options-ssl-nginx.conf"
+        mode: '0644'
+      - path: "{{ letsencrypt_host_path }}/ssl-dhparams.pem"
+        mode: '0644'
+  when: letsencrypt_mount_enabled | bool
+
 - name: Render docker-compose configuration
   template:
     src: docker-compose.yml.j2
