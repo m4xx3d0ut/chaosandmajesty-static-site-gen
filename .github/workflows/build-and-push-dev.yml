@@ -4,8 +4,18 @@ name: Build & Push (dev / site-output)
 on:
   push:
     branches: [ dev ]
-    # Only run if site-output/ changes
-    paths: [ 'site-output/**' ]
+    paths:
+      - '.github/workflows/build-and-push-dev.yml'
+      - 'build-site.sh'
+      - 'static-sitegen/**'
+      - 'content/**'
+      - 'config/**'
+      - 'cm-source/**'
+      - 'nginx/**'
+      - 'smoke-test.yaml'
+      - 'smoke-test.yaml.example'
+      - 'package.json'
+      - 'package-lock.json'
   # Enable manual triggering
   workflow_dispatch:
     inputs:
