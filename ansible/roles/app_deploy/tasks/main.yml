@@ -7,6 +7,41 @@
     group: "{{ app_group }}"
     mode: '0755'
 
+- name: Prepare runtime group metadata
+  include_tasks:
+    file: runtime_group.yml
+
+- name: Ensure nginx auth directory exists with runtime permissions
+  file:
+    path: "{{ auth_file_host_path }}"
+    state: directory
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0750'
+  when: auth_file_host_path | default('') | length > 0
+
+- name: Gather nginx auth files
+  find:
+    paths: "{{ auth_file_host_path }}"
+    file_type: file
+    recurse: false
+  register: auth_files
+  when: auth_file_host_path | default('') | length > 0
+
+- name: Ensure nginx auth files inherit runtime permissions
+  file:
+    path: "{{ item.path }}"
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0640'
+  loop: "{{ auth_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - auth_file_host_path | default('') | length > 0
+    - auth_files is defined
+    - (auth_files.files | default([])) | length > 0
+
 - name: Ensure WebDAV directory exists on host
   file:
     path: "{{ webdav_host_path }}"

@@ -1,25 +1,3 @@
----
-- name: Lookup existing group for runtime gid
-  command: getent group {{ container_runtime_gid }}
-  register: runtime_gid_lookup
-  failed_when: runtime_gid_lookup.rc not in [0, 2]
-  changed_when: false
-
-- name: Ensure dedicated runtime group exists
-  group:
-    name: "{{ container_runtime_group }}"
-    gid: "{{ container_runtime_gid }}"
-    system: true
-    state: present
-  when: runtime_gid_lookup.rc != 0
-
-- name: Set effective runtime group fact
-  set_fact:
-    container_runtime_group_effective: >-
-      {{ runtime_gid_lookup.stdout.split(':')[0]
-         if runtime_gid_lookup.rc == 0
-         else container_runtime_group }}
-
 - name: Ensure Let's Encrypt directories are accessible to runtime group
   file:
     path: "{{ item }}"
