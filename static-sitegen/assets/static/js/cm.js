@@ -796,7 +796,14 @@
       sampleRate: 11025,
       enabled: false,
       bufferCache: new Map(),
-      memoryBuffer: null
+      memoryBuffer: null,
+      musicEnabled: false,
+      musicGain: null,
+      musicNextTime: 0,
+      musicSources: [],
+      musicSampleRate: 11025,
+      musicVolume: 1,
+      musicPaused: false
   };
   var doomTextDecoder = (typeof TextDecoder === 'function') ? new TextDecoder('utf8') : null;
   var DOOM_SAVE_MAX_SLOT = 5;
@@ -1034,7 +1041,257 @@
       }
   }
 
+  function ensureDoomMusicGain() {
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return null;
+      }
+      if (!doomAudioState.musicGain) {
+          try {
+              var gain = context.createGain();
+              if (doomAudioState.masterGain) {
+                  gain.connect(doomAudioState.masterGain);
+              } else {
+                  gain.connect(context.destination);
+              }
+              doomAudioState.musicGain = gain;
+          } catch (_err) {
+              return null;
+          }
+      }
+      return doomAudioState.musicGain;
+  }
+
+  function setDoomMusicGainValue(value) {
+      if (value < 0 || !isFinite(value)) {
+          value = 0;
+      }
+      if (value > 1) {
+          value = 1;
+      }
+      var gainNode = ensureDoomMusicGain();
+      if (!gainNode || !gainNode.gain) {
+          return;
+      }
+      var context = doomAudioState.context;
+      if (context && typeof gainNode.gain.cancelScheduledValues === 'function' && typeof gainNode.gain.setValueAtTime === 'function') {
+          var now = context.currentTime;
+          try {
+              gainNode.gain.cancelScheduledValues(now);
+              gainNode.gain.setValueAtTime(value, now);
+          } catch (_err) {
+              gainNode.gain.value = value;
+          }
+      } else {
+          gainNode.gain.value = value;
+      }
+  }
+
+  function initDoomMusic(sampleRate) {
+      doomAudioState.enabled = true;
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          doomAudioState.musicEnabled = false;
+          return;
+      }
+      doomAudioState.musicEnabled = true;
+      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : 11025;
+      if (!isFinite(rate) || rate <= 0) {
+          rate = 11025;
+      }
+      doomAudioState.musicSampleRate = rate;
+      doomAudioState.musicPaused = false;
+      doomAudioState.musicNextTime = context.currentTime;
+      setDoomMusicGainValue(doomAudioState.musicVolume);
+      resumeDoomAudio();
+  }
+
+  function stopDoomMusic() {
+      var sources = doomAudioState.musicSources;
+      if (Array.isArray(sources) && sources.length) {
+          for (var i = 0; i < sources.length; i++) {
+              var source = sources[i];
+              if (!source) {
+                  continue;
+              }
+              try {
+                  source.onended = null;
+                  source.stop();
+              } catch (_err) {
+                  // ignore
+              }
+              try {
+                  source.disconnect();
+              } catch (_err2) {
+                  // ignore
+              }
+          }
+          sources.length = 0;
+      }
+      doomAudioState.musicNextTime = doomAudioState.context ? doomAudioState.context.currentTime : 0;
+  }
+
+  function shutdownDoomMusic() {
+      stopDoomMusic();
+      doomAudioState.musicEnabled = false;
+      doomAudioState.musicPaused = false;
+      doomAudioState.musicSampleRate = 11025;
+      var gainNode = doomAudioState.musicGain;
+      if (gainNode && gainNode.gain) {
+          try {
+              gainNode.gain.value = 0;
+          } catch (_err) {
+              // ignore
+          }
+      }
+      if (doomAudioState.musicGain) {
+          try {
+              doomAudioState.musicGain.disconnect();
+          } catch (_err) {
+              // ignore
+          }
+          doomAudioState.musicGain = null;
+      }
+      doomAudioState.musicNextTime = 0;
+  }
+
+  function enqueueDoomMusic(ptr, frames, sampleRate) {
+      if (!doomState.memory || !doomState.memory.buffer) {
+          return;
+      }
+      if (!frames || frames <= 0) {
+          return;
+      }
+      doomAudioState.enabled = true;
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return;
+      }
+      var gainNode = ensureDoomMusicGain();
+      if (!gainNode) {
+          return;
+      }
+      doomAudioState.musicEnabled = true;
+      resumeDoomAudio();
+      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : doomAudioState.musicSampleRate;
+      if (!isFinite(rate) || rate <= 0) {
+          rate = doomAudioState.musicSampleRate || 11025;
+      }
+      doomAudioState.musicSampleRate = rate;
+      var sampleCount = frames * 2;
+      var pcm;
+      try {
+          pcm = new Int16Array(doomState.memory.buffer, ptr, sampleCount);
+      } catch (_err) {
+          return;
+      }
+      var buffer;
+      try {
+          buffer = context.createBuffer(2, frames, rate);
+      } catch (_err2) {
+          return;
+      }
+      var left = buffer.getChannelData(0);
+      var right = buffer.getChannelData(1);
+      for (var i = 0; i < frames; i++) {
+          var leftSample = pcm[i * 2] / 32768;
+          var rightSample = pcm[i * 2 + 1] / 32768;
+          if (leftSample > 1) {
+              leftSample = 1;
+          }
+          if (leftSample < -1) {
+              leftSample = -1;
+          }
+          if (rightSample > 1) {
+              rightSample = 1;
+          }
+          if (rightSample < -1) {
+              rightSample = -1;
+          }
+          left[i] = leftSample;
+          right[i] = rightSample;
+      }
+      var source;
+      try {
+          source = context.createBufferSource();
+      } catch (_err3) {
+          return;
+      }
+      source.buffer = buffer;
+      source.connect(gainNode);
+      var now = context.currentTime;
+      var scheduledTime = doomAudioState.musicNextTime;
+      if (!scheduledTime || scheduledTime < now) {
+          scheduledTime = now + 0.01;
+      }
+      try {
+          source.start(scheduledTime);
+      } catch (_err4) {
+          try {
+              source.start();
+              scheduledTime = now;
+          } catch (_err5) {
+              return;
+          }
+      }
+      doomAudioState.musicNextTime = scheduledTime + buffer.duration;
+      doomAudioState.musicSources.push(source);
+      source.onended = function() {
+          var sources = doomAudioState.musicSources;
+          if (Array.isArray(sources)) {
+              for (var idx = 0; idx < sources.length; idx++) {
+                  if (sources[idx] === source) {
+                      sources.splice(idx, 1);
+                      break;
+                  }
+              }
+          }
+          if (!doomAudioState.musicPaused && doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
+              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
+          }
+      };
+      if (doomAudioState.musicPaused) {
+          setDoomMusicGainValue(0);
+      } else {
+          setDoomMusicGainValue(doomAudioState.musicVolume);
+      }
+  }
+
+  function pauseDoomMusic(paused) {
+      doomAudioState.musicPaused = !!paused;
+      if (doomAudioState.musicPaused) {
+          setDoomMusicGainValue(0);
+      } else {
+          resumeDoomAudio();
+          setDoomMusicGainValue(doomAudioState.musicVolume);
+          if (doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
+              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
+          }
+      }
+  }
+
+  function setDoomMusicVolume(volume) {
+      var normalized = 1;
+      if (typeof volume === 'number') {
+          normalized = volume / 127;
+          if (!isFinite(normalized)) {
+              normalized = 1;
+          }
+      }
+      if (normalized < 0) {
+          normalized = 0;
+      }
+      if (normalized > 1) {
+          normalized = 1;
+      }
+      doomAudioState.musicVolume = normalized;
+      if (!doomAudioState.musicPaused) {
+          setDoomMusicGainValue(normalized);
+      }
+  }
+
   function shutdownDoomAudio() {
+      shutdownDoomMusic();
       doomAudioState.enabled = false;
       doomAudioState.nextTime = 0;
       doomAudioState.bufferCache.clear();
@@ -2325,6 +2582,24 @@
               },
               js_save_state_clear: function(slot) {
                   return wasmClearDoomSave(slot);
+              },
+              js_music_init: function(sampleRate) {
+                  initDoomMusic(sampleRate);
+              },
+              js_music_shutdown: function() {
+                  shutdownDoomMusic();
+              },
+              js_music_enqueue: function(ptr, frames, sampleRate) {
+                  enqueueDoomMusic(ptr, frames, sampleRate);
+              },
+              js_music_stop: function() {
+                  stopDoomMusic();
+              },
+              js_music_pause: function(paused) {
+                  pauseDoomMusic(paused);
+              },
+              js_music_set_volume: function(volume) {
+                  setDoomMusicVolume(volume);
               }
           },
           env: {
