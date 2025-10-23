@@ -22,7 +22,7 @@ pages:
     hideTitle: true
     git:
       intro: |
-        <p>Browse the Core Git currated mirrors. Pick a repository on the left; the activity feed loads on the right.</p>
+        <p>Browse the Core Git curated mirrors. Pick a repository on the left; the activity feed loads on the right.</p>
       manifest: "config/git/manifest.txt"
       defaultRepoLabel: "chaosandmajesty-static-site-gen"
       repoDetailSuffix: "log.html"
@@ -288,7 +288,7 @@ index:
 
     Gather round, denizens of the internet, for we have something to share.
     A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
-    Fellow denizians, this is our place, welcome to our home.
+    Fellow denizens, this is our place, welcome to our home.
 
     <br>
 
