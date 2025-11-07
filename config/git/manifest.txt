@@ -23,3 +23,7 @@ ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cicd-dev.git|dev|cicd-dev|m4xx3d0
 
 # RadioStatic
 ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/radiostatic-site-gen.git|dev|radiostatic-site-gen|m4xx3d0ut|RadioStatic - static site generator with blog, git mirror, and a wonky mini-terminal|https://chaosandmajesty.com/git/radiostatic-site-gen
+
+# K1s App Engine Distro
+ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/k1s.git|dev|k1s|m4xx3d0ut|K1s - a tiny, self-contained, Kubernetes-ish distro for local development|https://chaosandmajesty.com/git/k1s
+
