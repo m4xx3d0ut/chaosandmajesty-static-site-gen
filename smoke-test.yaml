@@ -286,34 +286,13 @@ index:
 
     <br>
 
-    Gather round, denizens of the internet, for we have something to share.
-    A place was needed to collect thoughts, ideas, and projects.  A place to share knowledge and learn.  A place to be free.
-    Fellow denizens, this is our place, welcome to our home.
+    Welcome to our corner of the internet—where we publish ideas, prototypes, and notes from the workbench. It’s a place to share what we’re learning, ship projects in the open, and build a small archive that may be useful to others.
 
-    <br>
+    If you like to read code alongside the writing, check out the site’s Git mirror. The site is open source, and so is the generator that powers it. You’re encouraged to fork it, break it, improve it, and make it yours.
 
-    Enjoy browsing some of our code on the site's Git mirror, the site itself is open source and available.  There is also a
-    base static site generator project that powers the site, which is also open source and available.  I encourage you to
-    build off of these projects.  The "RadioStatic" site generator leans heavily into HTMX for responsive, dynamic content,
-    while still serving only static content reducing potential attack vectors.  The git mirrors can be configured to mirror
-    single or multiple branches and can be configured to mirror curated branches of private repositories through CI/CD.
+    We built the site on RadioStatic, our lightweight static generator that uses HTMX to make things feel interactive without turning the whole thing into an app. Everything is pre-rendered; the “dynamic” pieces are just static fragments. In practice, that means deterministic builds, fewer runtime dependencies, a smaller blast radius, and a surface area you can actually reason about.
 
-    <br>
-
-    Every page is pre-rendered, every payload is deterministic, and every flourish rides on top of static assets.
-    For an individual dev or maker that means fewer late-night patch cycles, a smaller blast radius when deployed,
-    and an artifact you can review yourself before publishing.  The HTMX flows that power our blog and Git explorers ship as
-    static fragments, so your browser only ever pulls first-party HTML, CSS, and JSON from the same origin you control.
-
-    <br>
-
-    If you grow into a team—or need to satisfy compliance and audit trails—you can wire the generator into CI to lint
-    third-party resources, diff headers, and capture immutable build artifacts.  The static output plays nicely with CDN +
-    WAF layers, lets you turn off origin scripting, and keeps key rotations or mirror swaps low-risk.  Whether you are
-    shipping solo or coordinating a crew, you inherit a hardened baseline that assumes a hostile network and keeps the
-    surface lean.
-
-    ...and you can play DOOM on it!
+    …also: you can play DOOM on it.
 
     <br>
 
