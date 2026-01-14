@@ -213,7 +213,7 @@ body.contrast-mode .blog-author-card {
   margin-bottom: 1.2em;
   color: #66ff00;
   font-size: 2em;
-  opacity: 0;
+  opacity: 0.85;
 }
 
 @media (max-width: 768px) {

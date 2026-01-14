@@ -732,9 +732,13 @@
     }
   }
 
-  var opacity = 0;
+  var opacity = 0.85;
   var intervalID = null;
   var out = 0;
+  var taglineMinOpacity = 0.7;
+  var taglineMaxOpacity = 1;
+  var taglineStep = 0.02;
+  var taglineIntervalMs = 120;
   var terminalRestored = false;
   var hello = [
       'GREETINGS PROFESSOR FALKEN.',
@@ -1781,21 +1785,28 @@
         var body = document.getElementById("tagline");
         if (!body) return;
         show();
-      }, 200);
+      }, taglineIntervalMs);
   }
 
   function show() {
       var body = document.getElementById("tagline");
       if (!body) return; // ultra-defensive
       opacity = Number(window.getComputedStyle(body).getPropertyValue("opacity"));
-      if (opacity < 1 && out === 0) {
-        opacity += 0.1;
-      } else if (opacity > 0) {
-        out = 1;
-        opacity -= 0.1;
+      if (!Number.isFinite(opacity)) {
+        opacity = taglineMaxOpacity;
+      }
+      if (out === 0) {
+        opacity += taglineStep;
+        if (opacity >= taglineMaxOpacity) {
+          opacity = taglineMaxOpacity;
+          out = 1;
+        }
       } else {
-        out = 0;
-        opacity += 0.1;
+        opacity -= taglineStep;
+        if (opacity <= taglineMinOpacity) {
+          opacity = taglineMinOpacity;
+          out = 0;
+        }
       }
       body.style.opacity = opacity;
   }
