@@ -160,7 +160,7 @@ while IFS= read -r raw_line || [ -n "$raw_line" ]; do
       warn_or_exit "Failed to update remote URL for ${name}."
       continue
     fi
-    if ! git -C "$repo_dir" fetch --depth "$CLONE_DEPTH" origin "$branch"; then
+    if ! git -C "$repo_dir" fetch --depth "$CLONE_DEPTH" origin "refs/heads/$branch:refs/remotes/origin/$branch"; then
       warn_or_exit "git fetch failed for ${name}."
       continue
     fi
