@@ -37,7 +37,7 @@ sections:
       - Easy customization
   - id: "contact"
     heading: "Contact Us"
-    content: "Reach out via email at [info@example.com](mailto:info@example.com) or fill the form below."
+    content: "Reach out via email at [test@test.com](mailto:test@test.com) or fill the form below."
 footer:
   text: "© 2025 Example Inc. All rights reserved."
   links:

@@ -97,7 +97,7 @@ pages:
 
       Reach out to us via email!
 
-      For general inquiries: [info@example.com](mailto:info@example.com)
+      For general inquiries: [test@test.com](mailto:test@test.com)
 
       Or use our contact form (coming soon!).
 
@@ -236,4 +236,3 @@ footer:
 meta:
   description: A modern example static website generated from YAML using Node.js and EJS.
   keywords: static site, nodejs, ejs, yaml, markdown, example
-
