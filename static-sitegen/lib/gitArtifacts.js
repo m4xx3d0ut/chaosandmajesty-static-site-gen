@@ -300,6 +300,17 @@ const MARKDOWN_EXTENSIONS = new Set([
   '.mkdn',
   '.mdx'
 ]);
+const IMAGE_EXTENSIONS = new Set([
+  '.apng',
+  '.avif',
+  '.bmp',
+  '.gif',
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.svg',
+  '.webp'
+]);
 const README_CANDIDATES = [
   'README.md',
   'README.MD',
@@ -333,6 +344,12 @@ function isLikelyMarkdown(filePath) {
   return false;
 }
 
+function isImagePath(filePath) {
+  if (!filePath) return false;
+  const ext = path.extname(filePath).toLowerCase();
+  return IMAGE_EXTENSIONS.has(ext);
+}
+
 function isBinaryBuffer(buffer) {
   if (!buffer || buffer.length === 0) {
     return false;
@@ -345,6 +362,72 @@ function isBinaryBuffer(buffer) {
     }
   }
   return false;
+}
+
+function splitUrlSuffix(value) {
+  const raw = value || '';
+  let cutIndex = raw.length;
+  const hashIndex = raw.indexOf('#');
+  const queryIndex = raw.indexOf('?');
+  if (hashIndex >= 0) {
+    cutIndex = Math.min(cutIndex, hashIndex);
+  }
+  if (queryIndex >= 0) {
+    cutIndex = Math.min(cutIndex, queryIndex);
+  }
+  return {
+    path: raw.slice(0, cutIndex),
+    suffix: raw.slice(cutIndex)
+  };
+}
+
+function isAbsoluteUrl(value) {
+  if (!value) return false;
+  if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(value)) {
+    return true;
+  }
+  return /^[a-z][a-z0-9+.-]*:/i.test(value);
+}
+
+function resolveRepoRelativePath(basePath, relativePath) {
+  if (!relativePath) return '';
+  const normalizedRelative = relativePath.replace(/\\/g, '/');
+  if (!normalizedRelative) return '';
+  const normalizedBase = basePath ? basePath.replace(/\\/g, '/') : '';
+  const baseDir = normalizedBase ? path.posix.dirname(normalizedBase) : '';
+  const joined = normalizedRelative.startsWith('/')
+    ? normalizedRelative.replace(/^\/+/, '')
+    : path.posix.join(baseDir === '.' ? '' : baseDir, normalizedRelative);
+  const normalized = path.posix.normalize(joined)
+    .replace(/^(\.\.\/)+/, '')
+    .replace(/^\.\/+/, '');
+  return normalized === '.' ? '' : normalized;
+}
+
+function resolveMarkdownImageHref(href, options = {}) {
+  const { slug, markdownPath } = options;
+  if (!href || !slug) return href;
+  const trimmed = href.trim();
+  if (!trimmed) return href;
+  if (trimmed.startsWith('#')) return trimmed;
+  if (isAbsoluteUrl(trimmed)) return trimmed;
+  const { path: pathPart, suffix } = splitUrlSuffix(trimmed);
+  if (!pathPart) return trimmed;
+  const resolvedPath = resolveRepoRelativePath(markdownPath, pathPart);
+  if (!resolvedPath) return trimmed;
+  const rawRel = toPosixPath(path.join('git', slug, 'raw', resolvedPath));
+  const rawHref = rawRel.startsWith('/') || rawRel.startsWith('.') ? rawRel : `./${rawRel}`;
+  return `${rawHref}${suffix}`;
+}
+
+function createMarkdownRenderer(options) {
+  const renderer = new marked.Renderer();
+  const baseImageRenderer = renderer.image.bind(renderer);
+  renderer.image = (href, title, text) => {
+    const resolvedHref = resolveMarkdownImageHref(href, options);
+    return baseImageRenderer(resolvedHref, title, text);
+  };
+  return renderer;
 }
 
 function formatFileSize(bytes) {
@@ -741,10 +824,10 @@ async function loadGitBlob(repoPath, ref, filePath, verbose = false) {
     });
     const buffer = Buffer.from(stdout);
     if (isBinaryBuffer(buffer)) {
-      return { skipped: true, reason: 'Binary file preview is not available.' };
+      return { buffer, isBinary: true };
     }
     const content = buffer.toString('utf8');
-    return { content };
+    return { buffer, content, isBinary: false };
   } catch (error) {
     const message = error.stderr || error.stdout || error.message;
     if (verbose) {
@@ -1030,18 +1113,35 @@ async function ensureBlobFragment({
   let lineCount = null;
   let lineCountLabel = '';
   let textContent = '';
+  let blobBuffer = null;
+  let isBinary = false;
+  const isImage = isImagePath(fileNode.path);
 
   if (overrideActive) {
     textContent = typeof licenseOverride.content === 'string' ? licenseOverride.content : '';
     fileNode.size = Buffer.byteLength(textContent, 'utf8');
+    blobBuffer = Buffer.from(textContent, 'utf8');
   } else {
     const result = await loadGitBlob(repoPath, ref, fileNode.path, verbose);
     if (result.skipped) {
       skipped = true;
       reason = result.reason;
     } else {
+      blobBuffer = result.buffer || null;
+      isBinary = !!result.isBinary;
       textContent = typeof result.content === 'string' ? result.content : '';
     }
+  }
+
+  if (!skipped && isImage && blobBuffer) {
+    const rawAssetPath = path.join(repoOutputDir, 'raw', ...segments);
+    await fs.mkdir(path.dirname(rawAssetPath), { recursive: true });
+    await fs.writeFile(rawAssetPath, blobBuffer);
+  }
+
+  if (!skipped && isBinary) {
+    skipped = true;
+    reason = 'Binary file preview is not available.';
   }
 
   if (!skipped) {
@@ -1050,7 +1150,8 @@ async function ensureBlobFragment({
     lineCountLabel = `${lineCount} line${lineCount === 1 ? '' : 's'}`;
 
     if (isLikelyMarkdown(fileNode.path)) {
-      bodyHtml = marked.parse(textContent);
+      const renderer = createMarkdownRenderer({ slug, markdownPath: fileNode.path });
+      bodyHtml = marked.parse(textContent, { renderer });
     } else {
       bodyHtml = renderCodeListingHtml(textContent);
     }
