@@ -2187,6 +2187,41 @@ body[data-page-slug="git"] .git-code-shell::-webkit-scrollbar {
   overflow: auto;
 }
 
+.git-readme-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.git-readme-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.git-readme-body table thead {
+  font-family: 'Syne Mono', monospace;
+}
+
+.git-readme-body table th,
+.git-readme-body table td {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--git-panel-border-subtle);
+  min-width: 8rem;
+  word-break: break-word;
+}
+
+.git-readme-body table caption {
+  caption-side: bottom;
+  font-size: 0.9rem;
+  color: rgba(190, 255, 190, 0.75);
+  padding-top: 0.75rem;
+}
+
 .git-file-panel {
   display: flex;
   flex-direction: column;

@@ -62,6 +62,14 @@ function toPosixPath(value) {
   return value.split(path.sep).join('/');
 }
 
+function normalizeBaseUrl(baseUrl) {
+  if (!baseUrl) return '';
+  const trimmed = baseUrl.toString().trim();
+  if (!trimmed || trimmed === '/') return '';
+  const withLeading = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return withLeading.replace(/\/+$/, '');
+}
+
 function sanitizeSlug(value) {
   if (!value) {
     return 'repo';
@@ -292,6 +300,12 @@ function enrichCommits(commits, detailBaseUrl, displayBranch) {
 }
 
 const MAX_BLOB_BYTES = 512 * 1024;
+const MAX_IMAGE_BLOB_BYTES = 5 * 1024 * 1024;
+const MARKDOWN_PARSE_OPTIONS = {
+  gfm: true,
+  tables: true,
+  breaks: false
+};
 const MARKDOWN_EXTENSIONS = new Set([
   '.md',
   '.markdown',
@@ -405,7 +419,7 @@ function resolveRepoRelativePath(basePath, relativePath) {
 }
 
 function resolveMarkdownImageHref(href, options = {}) {
-  const { slug, markdownPath } = options;
+  const { slug, markdownPath, baseUrl } = options;
   if (!href || !slug) return href;
   const trimmed = href.trim();
   if (!trimmed) return href;
@@ -415,9 +429,60 @@ function resolveMarkdownImageHref(href, options = {}) {
   if (!pathPart) return trimmed;
   const resolvedPath = resolveRepoRelativePath(markdownPath, pathPart);
   if (!resolvedPath) return trimmed;
+  const basePrefix = normalizeBaseUrl(baseUrl);
   const rawRel = toPosixPath(path.join('git', slug, 'raw', resolvedPath));
-  const rawHref = rawRel.startsWith('/') || rawRel.startsWith('.') ? rawRel : `./${rawRel}`;
+  const rawHref = basePrefix
+    ? toPosixPath(path.join(basePrefix, rawRel))
+    : (rawRel.startsWith('/') || rawRel.startsWith('.') ? rawRel : `./${rawRel}`);
   return `${rawHref}${suffix}`;
+}
+
+function rewriteSrcsetValue(value, options) {
+  if (!value) return value;
+  const parts = value.split(',');
+  const rewritten = parts.map(part => {
+    const trimmed = part.trim();
+    if (!trimmed) return '';
+    const segments = trimmed.split(/\s+/);
+    const url = segments.shift();
+    const resolved = resolveMarkdownImageHref(url, options);
+    if (segments.length > 0) {
+      return `${resolved} ${segments.join(' ')}`;
+    }
+    return resolved;
+  }).filter(Boolean);
+  return rewritten.join(', ');
+}
+
+function rewriteTagAttribute(tag, attribute, options, transform) {
+  if (!tag) return tag;
+  const regex = new RegExp(`\\s${attribute}=(\"[^\"]*\"|'[^']*'|[^\\s>]+)`, 'i');
+  if (!regex.test(tag)) {
+    return tag;
+  }
+  return tag.replace(regex, (match, rawValue) => {
+    const quote = rawValue[0] === '"' || rawValue[0] === '\'' ? rawValue[0] : '';
+    const unquoted = quote ? rawValue.slice(1, -1) : rawValue;
+    const updated = transform(unquoted, options);
+    if (!updated || updated === unquoted) {
+      return match;
+    }
+    const wrapped = quote ? `${quote}${updated}${quote}` : `"${updated}"`;
+    return ` ${attribute}=${wrapped}`;
+  });
+}
+
+function rewriteHtmlImageSources(html, options = {}) {
+  if (!html || typeof html !== 'string') return html;
+  if (!/<img\b/i.test(html) && !/<source\b/i.test(html)) return html;
+  const rewriteTag = (tag) => {
+    let updated = rewriteTagAttribute(tag, 'src', options, resolveMarkdownImageHref);
+    updated = rewriteTagAttribute(updated, 'srcset', options, rewriteSrcsetValue);
+    return updated;
+  };
+  let updatedHtml = html.replace(/<img\b[^>]*>/gi, rewriteTag);
+  updatedHtml = updatedHtml.replace(/<source\b[^>]*>/gi, rewriteTag);
+  return updatedHtml;
 }
 
 function createMarkdownRenderer(options) {
@@ -427,6 +492,7 @@ function createMarkdownRenderer(options) {
     const resolvedHref = resolveMarkdownImageHref(href, options);
     return baseImageRenderer(resolvedHref, title, text);
   };
+  renderer.html = (html) => rewriteHtmlImageSources(html, options);
   return renderer;
 }
 
@@ -801,14 +867,15 @@ async function loadGitRefs(repoPath, verbose = false, options = {}) {
   }
 }
 
-async function loadGitBlob(repoPath, ref, filePath, verbose = false) {
+async function loadGitBlob(repoPath, ref, filePath, verbose = false, options = {}) {
+  const maxBytes = Number.isFinite(options.maxBytes) ? options.maxBytes : MAX_BLOB_BYTES;
   try {
     const { stdout } = await execFileAsync('git', ['-C', repoPath, 'cat-file', '-s', `${ref}:${filePath}`], {
       maxBuffer: 64 * 1024,
       encoding: 'utf8'
     });
     const size = Number(stdout.trim());
-    if (Number.isFinite(size) && size > MAX_BLOB_BYTES) {
+    if (Number.isFinite(size) && size > maxBytes) {
       return { skipped: true, reason: `File is too large (${formatFileSize(size)}).` };
     }
   } catch (error) {
@@ -819,7 +886,7 @@ async function loadGitBlob(repoPath, ref, filePath, verbose = false) {
 
   try {
     const { stdout } = await execFileAsync('git', ['-C', repoPath, 'show', `${ref}:${filePath}`], {
-      maxBuffer: MAX_BLOB_BYTES + 64 * 1024,
+      maxBuffer: maxBytes + 64 * 1024,
       encoding: 'buffer'
     });
     const buffer = Buffer.from(stdout);
@@ -1091,7 +1158,8 @@ async function ensureBlobFragment({
   ref,
   templatesDir,
   verbose = false,
-  licenseOverride = null
+  licenseOverride = null,
+  baseUrl = ''
 }) {
   if (!fileNode || fileNode.type !== 'blob') {
     return null;
@@ -1116,13 +1184,14 @@ async function ensureBlobFragment({
   let blobBuffer = null;
   let isBinary = false;
   const isImage = isImagePath(fileNode.path);
+  const maxBytes = isImage ? MAX_IMAGE_BLOB_BYTES : MAX_BLOB_BYTES;
 
   if (overrideActive) {
     textContent = typeof licenseOverride.content === 'string' ? licenseOverride.content : '';
     fileNode.size = Buffer.byteLength(textContent, 'utf8');
     blobBuffer = Buffer.from(textContent, 'utf8');
   } else {
-    const result = await loadGitBlob(repoPath, ref, fileNode.path, verbose);
+    const result = await loadGitBlob(repoPath, ref, fileNode.path, verbose, { maxBytes });
     if (result.skipped) {
       skipped = true;
       reason = result.reason;
@@ -1150,8 +1219,8 @@ async function ensureBlobFragment({
     lineCountLabel = `${lineCount} line${lineCount === 1 ? '' : 's'}`;
 
     if (isLikelyMarkdown(fileNode.path)) {
-      const renderer = createMarkdownRenderer({ slug, markdownPath: fileNode.path });
-      bodyHtml = marked.parse(textContent, { renderer });
+      const renderer = createMarkdownRenderer({ slug, markdownPath: fileNode.path, baseUrl });
+      bodyHtml = marked.parse(textContent, { ...MARKDOWN_PARSE_OPTIONS, renderer });
     } else {
       bodyHtml = renderCodeListingHtml(textContent);
     }
@@ -1243,6 +1312,7 @@ export async function ensureGitRepoArtifacts({
   } else if (siteConfig && siteConfig.git && typeof siteConfig.git.commitLinksEnabled === 'boolean') {
     commitLinksEnabled = siteConfig.git.commitLinksEnabled;
   }
+  const baseUrl = siteConfig && typeof siteConfig.baseUrl === 'string' ? siteConfig.baseUrl : '';
 
   for (const repo of repos) {
     const generatedKey = defaultGeneratedKey(repo);
@@ -1453,7 +1523,8 @@ export async function ensureGitRepoArtifacts({
         ref,
         templatesDir,
         verbose,
-        licenseOverride
+        licenseOverride,
+        baseUrl
       });
       if (blobInfo && blobInfo.fragmentPath) {
         fileNode.blobFragment = blobInfo.fragmentPath;
