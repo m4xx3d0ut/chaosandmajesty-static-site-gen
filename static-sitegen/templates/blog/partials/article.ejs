@@ -19,6 +19,7 @@
   const nextFragmentValue = navNext ? (navNext.fragmentPath || navNext.fragmentHref || '') : '';
   const prevFragmentHref = prevFragmentValue ? resolveInternal(prevFragmentValue) : '';
   const nextFragmentHref = nextFragmentValue ? resolveInternal(nextFragmentValue) : '';
+  const permalinkHref = post.canonicalHref || post.publicHref || post.relativeHref || '';
 %>
 
 <article class="blog-article-body" data-slug="<%= post.slug %>">
@@ -37,6 +38,13 @@
         <span><%= post.author.name %></span>
       <% } %>
     </p>
+    <% if (permalinkHref) { %>
+      <div class="blog-article-actions">
+        <button type="button" class="blog-permalink-button" data-permalink="<%= permalinkHref %>" aria-label="Copy permalink">
+          <span class="blog-permalink-label" data-permalink-label>Copy permalink</span>
+        </button>
+      </div>
+    <% } %>
   </header>
 
   <% if (post.heroImagePath) { %>

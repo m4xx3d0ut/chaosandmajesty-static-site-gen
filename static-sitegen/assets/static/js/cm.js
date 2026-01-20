@@ -161,6 +161,118 @@
     toggleVisibility();
   }
 
+  function fallbackCopyText(text) {
+    return new Promise(function(resolve) {
+      if (typeof document === 'undefined' || !document.body) {
+        resolve(false);
+        return;
+      }
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('aria-hidden', 'true');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      var succeeded = false;
+      try {
+        succeeded = document.execCommand('copy');
+      } catch (copyError) {
+        console.warn('Copy failed', copyError);
+      }
+      document.body.removeChild(textarea);
+      resolve(!!succeeded);
+    });
+  }
+
+  function copyTextToClipboard(text) {
+    if (!text) {
+      return Promise.resolve(false);
+    }
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      return navigator.clipboard.writeText(text).then(function() {
+        return true;
+      }).catch(function() {
+        return fallbackCopyText(text);
+      });
+    }
+    return fallbackCopyText(text);
+  }
+
+  function resolvePermalink(value) {
+    if (!value) return '';
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value)) {
+      return value;
+    }
+    if (typeof window === 'undefined' || !window.location) {
+      return value;
+    }
+    try {
+      return new URL(value, window.location.href).toString();
+    } catch (err) {
+      return value;
+    }
+  }
+
+  function setPermalinkLabel(button, text) {
+    if (!button) return;
+    var label = button.querySelector('[data-permalink-label]');
+    if (label) {
+      label.textContent = text;
+      return;
+    }
+    button.textContent = text;
+  }
+
+  function updatePermalinkButton(button, success) {
+    if (!button) return;
+    var defaultLabel = button.getAttribute('data-default-label');
+    if (!defaultLabel) {
+      var labelNode = button.querySelector('[data-permalink-label]');
+      defaultLabel = (labelNode ? labelNode.textContent : button.textContent || '').trim() || 'Copy permalink';
+      button.setAttribute('data-default-label', defaultLabel);
+    }
+    var message = success ? 'Permalink copied' : 'Copy failed';
+    setPermalinkLabel(button, message);
+    button.classList.toggle('is-copied', success);
+    button.classList.toggle('is-error', !success);
+    if (button.__permalinkTimeout) {
+      window.clearTimeout(button.__permalinkTimeout);
+    }
+    button.__permalinkTimeout = window.setTimeout(function() {
+      setPermalinkLabel(button, defaultLabel);
+      button.classList.remove('is-copied');
+      button.classList.remove('is-error');
+    }, 1600);
+  }
+
+  function initBlogPermalinks() {
+    if (typeof document === 'undefined' || !document.body) return;
+    if (document.body.getAttribute('data-permalink-ready') === 'true') {
+      return;
+    }
+    document.body.setAttribute('data-permalink-ready', 'true');
+    document.body.addEventListener('click', function(event) {
+      if (!event.target || typeof event.target.closest !== 'function') return;
+      var button = event.target.closest('.blog-permalink-button');
+      if (!button) return;
+      event.preventDefault();
+      if (button.getAttribute('data-copy-loading') === 'true') return;
+      var raw = button.getAttribute('data-permalink') || '';
+      var resolved = resolvePermalink(raw);
+      if (!resolved) {
+        updatePermalinkButton(button, false);
+        return;
+      }
+      button.setAttribute('data-copy-loading', 'true');
+      copyTextToClipboard(resolved).then(function(success) {
+        button.removeAttribute('data-copy-loading');
+        updatePermalinkButton(button, success);
+      });
+    });
+  }
+
   function isLikelyMobileViewport() {
     if (typeof window === 'undefined') {
       return false;
@@ -3765,6 +3877,7 @@
       initThemeToggle();
       initBackToTop();
       initBlogImageLightbox();
+      initBlogPermalinks();
 
       var termOut = document.getElementById("tOut");
       var tagline = document.getElementById("tagline");

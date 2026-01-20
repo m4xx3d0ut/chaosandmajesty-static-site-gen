@@ -223,6 +223,31 @@ body.contrast-mode .blog-author-card {
   background: rgba(18, 28, 38, 0.85);
 }
 
+body.contrast-mode .blog-permalink-button {
+  border-color: rgba(214, 232, 255, 0.5);
+  color: #d6e8ff;
+  background: rgba(18, 28, 38, 0.85);
+}
+
+body.contrast-mode .blog-permalink-button:hover,
+body.contrast-mode .blog-permalink-button:focus {
+  border-color: rgba(214, 232, 255, 0.8);
+  color: #f5f8ff;
+  background: rgba(233, 240, 255, 0.2);
+}
+
+body.contrast-mode .blog-permalink-button.is-copied {
+  border-color: #d6e8ff;
+  color: #0b1523;
+  background: #d6e8ff;
+}
+
+body.contrast-mode .blog-permalink-button.is-error {
+  border-color: rgba(255, 170, 170, 0.9);
+  color: #ffe6e6;
+  background: rgba(60, 20, 30, 0.85);
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;
@@ -1626,6 +1651,57 @@ body.contrast-mode .blog-back-to-top:focus {
   letter-spacing: 0.04em;
   justify-content: center;
   text-align: center;
+}
+
+.blog-article-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.65rem;
+}
+
+.blog-permalink-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(102, 255, 0, 0.45);
+  background: rgba(2, 27, 2, 0.7);
+  color: rgba(190, 255, 190, 0.88);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.blog-permalink-button:hover,
+.blog-permalink-button:focus {
+  border-color: rgba(102, 255, 0, 0.75);
+  color: rgba(214, 255, 214, 0.98);
+  background: rgba(6, 40, 6, 0.9);
+  transform: translateY(-1px);
+}
+
+.blog-permalink-button:focus-visible {
+  outline: 2px solid rgba(102, 255, 0, 0.6);
+  outline-offset: 2px;
+}
+
+.blog-permalink-button.is-copied {
+  border-color: rgba(102, 255, 0, 0.9);
+  color: #001100;
+  background: rgba(102, 255, 0, 0.9);
+  transform: translateY(0);
+}
+
+.blog-permalink-button.is-error {
+  border-color: rgba(255, 120, 120, 0.9);
+  color: #ffdada;
+  background: rgba(90, 20, 20, 0.85);
 }
 
 .blog-article-content {
