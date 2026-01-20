@@ -6,6 +6,7 @@
   <title><%= site.title %> – <%= page.title %></title>
 
   <%- include('../partials/cm-head.ejs') %>
+  <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js" defer></script>
 
   <% const rawRootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
   <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
@@ -616,6 +617,26 @@
       if (article) {
         article.setAttribute('aria-busy', 'false');
       }
+    });
+  </script>
+  <script>
+    function initMermaid(root) {
+      if (!window.mermaid) return;
+      var scope = root || document;
+      var nodes = Array.prototype.slice.call(scope.querySelectorAll('.mermaid'))
+        .filter(function(node) { return !node.hasAttribute('data-processed'); });
+      if (!nodes.length) return;
+      window.mermaid.run({ nodes: nodes });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!window.mermaid) return;
+      window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+      initMermaid(document);
+    });
+
+    document.addEventListener('htmx:afterSwap', function(event) {
+      initMermaid(event.target || document);
     });
   </script>
 </body>

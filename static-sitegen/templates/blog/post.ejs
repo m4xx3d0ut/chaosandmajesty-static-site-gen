@@ -12,6 +12,7 @@
       <link rel="stylesheet" href="<%= style %>">
     <% }); %>
   <% } %>
+  <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js" defer></script>
 
   <% const rawRootBase = page.rootBase || page.blog?.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
   <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
@@ -116,6 +117,22 @@
           headerEl.classList.toggle('nav-open');
         });
       }
+    });
+  </script>
+  <script>
+    function initMermaid(root) {
+      if (!window.mermaid) return;
+      var scope = root || document;
+      var nodes = Array.prototype.slice.call(scope.querySelectorAll('.mermaid'))
+        .filter(function(node) { return !node.hasAttribute('data-processed'); });
+      if (!nodes.length) return;
+      window.mermaid.run({ nodes: nodes });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!window.mermaid) return;
+      window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+      initMermaid(document);
     });
   </script>
 </body>

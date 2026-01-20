@@ -959,6 +959,28 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     if (!p) return publicBase || '/';
     return `${publicBase}${p.startsWith('/') ? p : '/' + p}`;
   };
+  const escapeHtml = (value) => (value || '')
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+  const blogMarkdownRenderer = (() => {
+    const renderer = new marked.Renderer();
+    const baseCodeRenderer = renderer.code ? renderer.code.bind(renderer) : null;
+    renderer.code = (code, infostring, escaped) => {
+      const lang = (infostring || '').trim().split(/\s+/)[0].toLowerCase();
+      if (lang === 'mermaid') {
+        return `<div class="mermaid">${escapeHtml(code)}</div>`;
+      }
+      if (baseCodeRenderer) {
+        return baseCodeRenderer(code, infostring, escaped);
+      }
+      return `<pre><code>${escapeHtml(code)}</code></pre>`;
+    };
+    return renderer;
+  })();
   let files;
 
   try {
@@ -1016,7 +1038,7 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
     const updatedAtIso = attributes.updatedAt;
     const updatedAt = updatedAtIso ? new Date(updatedAtIso) : null;
 
-    const html = marked.parse(body || '');
+    const html = marked.parse(body || '', { renderer: blogMarkdownRenderer });
     const summary = attributes.summary || truncateSummary(body || '');
     const readingMinutes = attributes.readingMinutes || estimateReadingMinutes(body);
     const heroImageNormalized = normalizeAssetPath(attributes.heroImage);
