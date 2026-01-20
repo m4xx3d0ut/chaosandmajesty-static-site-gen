@@ -113,6 +113,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -166,12 +168,13 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          no-cache: true
           ssh: |
             default
           build-args: |
             SYNC_GIT_MANIFEST_URL_REWRITE=ssh://git@gitea.core.home.arpa:32222/=>ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/
           push: true
+          cache-from: type=registry,ref=${{ steps.meta.outputs.image_ref }}:buildcache-prod
+          cache-to: type=registry,ref=${{ steps.meta.outputs.image_ref }}:buildcache-prod,mode=max
           tags: |
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
