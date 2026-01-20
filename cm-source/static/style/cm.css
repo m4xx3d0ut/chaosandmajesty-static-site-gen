@@ -2152,6 +2152,24 @@ body.contrast-mode .blog-image-lightbox-close {
     padding: 0 0.5rem;
   }
 
+  .blog-article-actions {
+    padding: 0 0.5rem;
+  }
+
+  .blog-permalink-button {
+    max-width: 100%;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .blog-permalink-button .blog-permalink-label {
+    min-width: 0;
+  }
+
   .blog-article-content {
     max-width: 100%;
     font-size: 1.05rem;
