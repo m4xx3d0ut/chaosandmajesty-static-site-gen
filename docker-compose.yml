@@ -8,10 +8,25 @@ services:
     container_name: cm-local
     ports:
       - "8080:8080"
+    volumes:
+      - ./site-output:/usr/share/nginx/html
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    restart: unless-stopped
+
+  rss-proxy:
+    build:
+      context: .
+      dockerfile: rss-proxy/Dockerfile
+    container_name: cm-rss-proxy
+    environment:
+      RSS_CONFIG_PATH: /app/smoke-test.yaml
+      RSS_OUTPUT_DIR: /app/site-output
+      RSS_REFRESH_INTERVAL: 600000
+    volumes:
+      - ./site-output:/app/site-output
     restart: unless-stopped

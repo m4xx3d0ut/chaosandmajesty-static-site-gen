@@ -1,40 +1,223 @@
-<%- include('base.ejs', { 
-  site: site, 
-  page: page,
-  content: content,
-  isSection: isSection
-}) %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= site.title %> – <%= page.title %></title>
 
-<% if (page.useCmConsole) { %>
-<script>
-  // Terminal-style console script
-  document.addEventListener('DOMContentLoaded', function() {
-    const content = document.querySelector('.page-content');
-    if (content && <%= !!page.terminalStyle %>) {
-      content.classList.add('terminal-style');
-      
-      // Add blinking cursor
-      const cursor = document.createElement('span');
-      cursor.className = 'terminal-cursor';
-      cursor.innerHTML = '█';
-      content.appendChild(cursor);
-      
-      // Add scanline effect
-      const scanline = document.createElement('div');
-      scanline.className = 'scanline';
-      content.appendChild(scanline);
-    }
-    
-    // Apply terminal font if specified
-    if ('<%= page.contentFont %>') {
-      content.classList.add('font-<%= page.contentFont %>');
-    }
-  });
-</script>
-<% } %>
+  <%- include('partials/cm-head.ejs') %>
 
-<% if (page.latestPostsByAuthor) { %>
-<script>
-  window.cmLatestArticles = <%- JSON.stringify(page.latestPostsByAuthor) %>;
-</script>
-<% } %>
+  <% const rawRootBase = page.rootBase || (site.baseUrl && site.baseUrl !== '/' ? site.baseUrl : ''); %>
+  <% const normalizedRootBase = rawRootBase ? rawRootBase.replace(/\/+$/, '') : ''; %>
+  <% const hasAbsoluteBase = !!normalizedRootBase; %>
+  <% const baseDepth = (typeof page.baseDepth === 'number') ? page.baseDepth : 0; %>
+  <% const depthPrefix = hasAbsoluteBase ? '' : (baseDepth > 0 ? '../'.repeat(baseDepth) : ''); %>
+  <% const isExternal = (href) => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href || ''); %>
+  <% const resolvePath = (value) => {
+       if (!value) {
+         return depthPrefix || (hasAbsoluteBase ? (normalizedRootBase || '/') : './');
+       }
+       if (/^(\.\/|\.\.\/)/.test(value)) {
+         return value;
+       }
+       const cleaned = value.replace(/^\/+/, '');
+       if (hasAbsoluteBase) {
+         return cleaned ? `${normalizedRootBase}/${cleaned}` : (normalizedRootBase || '/');
+       }
+       return depthPrefix + cleaned;
+     }; %>
+  <% const buildInternalHref = (href) => {
+       if (!href) return '#';
+       if (isExternal(href)) return href;
+       if (href.startsWith('#')) {
+         const target = href.slice(1);
+         if (!target) {
+           return resolvePath('');
+         }
+         return resolvePath(`sections/${target}.html`);
+       }
+       return resolvePath(href);
+     }; %>
+  <% const buildAssetHref = (asset) => {
+       if (!asset) return '';
+       if (isExternal(asset)) return asset;
+       return resolvePath(asset);
+     }; %>
+</head>
+<body class="cm-body blog-page home-page">
+  <header>
+    <div class="container header-container">
+      <% const logoPath = site.logo || 'assets/static/img/not-dead.webp'; %>
+      <% const resolvedLogo = buildAssetHref(logoPath); %>
+      <% if (resolvedLogo) { %>
+        <a href="<%= buildInternalHref('index.html') %>" class="logo-link">
+          <img src="<%= resolvedLogo %>" alt="<%= site.title %> Logo" class="logo">
+        </a>
+      <% } else { %>
+        <h1 class="logo-text"><%= site.title %></h1>
+      <% } %>
+      <% var navLinks = (site.header && site.header.links) ? site.header.links : []; %>
+      <% if (navLinks.length > 0) { %>
+        <button type="button" class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </button>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            <% navLinks.forEach(function(link) { %>
+              <li><a href="<%= buildInternalHref(link.href) %>"><%= link.label %></a></li>
+            <% }); %>
+            <li><button type="button" class="theme-toggle" aria-label="Toggle 1337 Mode" title="1337 Mode">1337</button></li>
+          </ul>
+        </nav>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="blog-container home-container">
+    <section class="blog-hero-slab home-hero-slab">
+      <div class="home-hero-stack">
+        <div id="tagline" class="home-hero-text">
+          <h1><%= page.cmTitle || site.cmTitle || site.title %></h1>
+          <p><%= page.tagline || page.cmTagline || site.cmTagline || site.description %></p>
+        </div>
+
+        <% if (page.use3DLogo || site.use3DLogo) { %>
+          <div id="cm-logo-container" class="home-hero-logo" style="width:100%; height:260px; position:relative; z-index:1;"></div>
+          <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/SVGLoader.js"></script>
+          <script>
+            window.cmLogoSvgPath = '<%= resolvePath('assets/static/img/bunny-punx.svg') %>';
+          </script>
+          <script src="<%= resolvePath('assets/static/js/cmLogo.js') %>"></script>
+        <% } else if (page.cmImage || site.cmImage) { %>
+          <div class="home-hero-logo">
+            <img src="<%= buildAssetHref(page.cmImage || site.cmImage) %>"
+                 alt="<%= page.cmImageAlt || site.cmImageAlt || 'Main image' %>" class="center">
+          </div>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="blog-layout home-layout">
+      <aside class="blog-sidebar home-sidebar" aria-label="Signal feed">
+        <%- include('partials/rss-widget.ejs', { page, site, buildAssetHref, buildInternalHref }) %>
+      </aside>
+
+      <section class="blog-article-shell home-article-shell">
+        <div class="home-terminal">
+          <div class="console-center">
+            <div class="console-stack">
+              <div id="console">
+                <div class="screen hscroll" id="tOut">$</div>
+                <input class="term" type="text" id="uIn" placeholder="Enter a command or ?">
+              </div>
+              <button type="button" id="cm-terminal-reset" class="console-reset" aria-label="Reset terminal">Reset terminal</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-article-content home-article-content">
+          <%- content %>
+        </div>
+
+        <% if (page.cta) { %>
+          <div class="cta-wrapper">
+            <a class="cta-btn" href="<%= page.cta.href %>">
+              <%= page.cta.label %>
+            </a>
+          </div>
+        <% } %>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <%- include('partials/cm-footer.ejs') %>
+    <div class="container footer-container">
+      <p class="footer-copy">
+        &copy; <%= new Date().getFullYear() %> <%= site.title || 'Static Site' %>
+      </p>
+    </div>
+  </footer>
+
+  <% 
+    const latestArticleMap = page.latestPostsByAuthor || site.latestPostsByAuthor || null;
+    const hasLatestArticleMap = latestArticleMap && Object.keys(latestArticleMap).length > 0;
+  %>
+  <% if (hasLatestArticleMap) { %>
+  <script>
+    (function(seed) {
+      var existing = window.cmLatestArticles || {};
+      if (seed && typeof seed === 'object') {
+        for (var key in seed) {
+          if (Object.prototype.hasOwnProperty.call(seed, key)) {
+            existing[key] = seed[key];
+          }
+        }
+      }
+      window.cmLatestArticles = existing;
+    })(<%- JSON.stringify(latestArticleMap) %>);
+  </script>
+  <% } %>
+
+  <% 
+    const dispatchData = page.consoleDispatches || site.consoleDispatches || null;
+    const hasDispatchData = dispatchData && dispatchData.length > 0;
+  %>
+  <% if (hasDispatchData) { %>
+  <script>
+    (function(seed) {
+      var existing = Array.isArray(window.cmConsoleDispatches) ? window.cmConsoleDispatches.slice() : [];
+      var seen = new Set();
+      existing.forEach(function(entry) {
+        if (entry && entry.slug) {
+          seen.add(entry.slug);
+        }
+      });
+      if (Array.isArray(seed)) {
+        seed.forEach(function(entry) {
+          if (!entry || (entry.slug && seen.has(entry.slug))) {
+            return;
+          }
+          existing.push(entry);
+          if (entry.slug) {
+            seen.add(entry.slug);
+          }
+        });
+      }
+      window.cmConsoleDispatches = existing;
+    })(<%- JSON.stringify(dispatchData) %>);
+  </script>
+  <% } %>
+
+  <% 
+    const doomBaseDepthValue = (typeof page.baseDepth === 'number' && page.baseDepth > 0) ? '../'.repeat(page.baseDepth) : '';
+    const rootBaseValue = (typeof page.rootBase === 'string' && page.rootBase.length > 0)
+      ? page.rootBase.replace(/\/+$/, '')
+      : ((site.baseUrl && site.baseUrl !== '/') ? site.baseUrl.replace(/\/+$/, '') : '');
+    const doomAssetBase = rootBaseValue ? `${rootBaseValue}/assets/doom/` : `${doomBaseDepthValue}assets/doom/`;
+  %>
+  <script>
+    (function() {
+      var config = window.cmDoomConfig = window.cmDoomConfig || {};
+      if (!config.assetBase) {
+        config.assetBase = '<%= doomAssetBase %>';
+      }
+    })();
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggleBtn = document.querySelector('.nav-toggle');
+      var headerEl = document.querySelector('header');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          headerEl.classList.toggle('nav-open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

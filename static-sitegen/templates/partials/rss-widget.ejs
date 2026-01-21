@@ -1,0 +1,94 @@
+<%
+  const widget = (page && page.rssWidget) || (site && site.rssWidget) || null;
+  const enabled = widget && widget.enabled !== false;
+  const feedUrl = (widget && widget.feedUrl) ? widget.feedUrl : 'feeds/combined.json';
+  const sseUrl = (widget && widget.sseUrl) ? widget.sseUrl : '/sse/feeds';
+  const pageSize = (widget && widget.pageSize) ? widget.pageSize : 6;
+  const sortMode = (widget && widget.sort) ? widget.sort : 'date';
+  const defaultSource = (widget && widget.defaultSource) ? widget.defaultSource : 'all';
+  const openInNewTab = (widget && widget.openInNewTab) !== false;
+  const showSearch = (widget && widget.showSearch) !== false;
+  const showTags = (widget && widget.showTags) !== false;
+  const showSources = (widget && widget.showSources) !== false;
+  const title = (widget && widget.title) ? widget.title : 'Signal Feed';
+%>
+
+<% if (!enabled) { %>
+  <p class="blog-empty-state">Feed disabled.</p>
+<% } else { %>
+  <div
+    class="rss-widget"
+    data-rss-widget
+    data-feed-url="<%= feedUrl %>"
+    data-page-size="<%= pageSize %>"
+    data-sort="<%= sortMode %>"
+    data-default-source="<%= defaultSource %>"
+    data-sse-url="<%= sseUrl %>"
+    data-open-new-tab="<%= openInNewTab ? 'true' : 'false' %>"
+  >
+    <h3 class="blog-sidebar-title rss-widget-title"><%= title %></h3>
+
+    <div class="rss-widget-controls">
+      <% if (showSources) { %>
+        <label class="visually-hidden" for="rss-source-select">Filter by source</label>
+        <select id="rss-source-select" class="rss-select" data-rss-source>
+          <option value="all">All sources</option>
+        </select>
+      <% } %>
+
+      <label class="visually-hidden" for="rss-sort-select">Sort feed</label>
+      <select id="rss-sort-select" class="rss-select" data-rss-sort>
+        <option value="date"<%= sortMode === 'date' ? ' selected' : '' %>>Newest</option>
+        <option value="title"<%= sortMode === 'title' ? ' selected' : '' %>>Title</option>
+      </select>
+    </div>
+
+    <% if (showSearch) { %>
+      <div class="blog-sidebar-search rss-search">
+        <label class="visually-hidden" for="rss-search-input">Search feed</label>
+        <input
+          id="rss-search-input"
+          type="search"
+          class="post-search-input"
+          placeholder="Search feed..."
+          autocomplete="off"
+          spellcheck="false"
+          data-rss-search
+        >
+      </div>
+    <% } %>
+
+    <% if (showTags) { %>
+      <div class="rss-tag-filter">
+        <label class="visually-hidden" for="rss-tag-select">Filter by tag</label>
+        <select id="rss-tag-select" class="rss-select" data-rss-tag>
+          <option value="all">All tags</option>
+        </select>
+      </div>
+    <% } %>
+
+    <div class="blog-sidebar-pagination rss-pagination is-hidden" data-rss-pagination>
+      <button type="button" class="sidebar-nav-btn" data-rss-prev>Prev</button>
+      <button type="button" class="sidebar-nav-btn" data-rss-next>Next</button>
+    </div>
+
+    <ul class="blog-post-list rss-list" data-rss-list></ul>
+
+    <div class="blog-sidebar-pagination rss-pagination is-hidden" data-rss-pagination>
+      <button type="button" class="sidebar-nav-btn" data-rss-prev>Prev</button>
+      <button type="button" class="sidebar-nav-btn" data-rss-next>Next</button>
+    </div>
+
+    <div class="rss-reader is-hidden" data-rss-reader>
+      <button type="button" class="rss-reader-back" data-rss-back>Back to feed</button>
+      <div class="rss-reader-body" data-rss-reader-body></div>
+      <a class="rss-reader-link" href="#" data-rss-reader-link target="_blank" rel="noopener">Open in new tab</a>
+    </div>
+
+    <div class="rss-empty-state is-hidden" data-rss-empty>No signal detected.</div>
+
+    <div class="rss-sse-hook" hx-ext="sse" sse-connect="<%= sseUrl %>">
+      <div id="rss-sse-trigger" hx-get="<%= feedUrl %>" hx-trigger="sse:rss-update" hx-swap="none"></div>
+    </div>
+  </div>
+<% } %>

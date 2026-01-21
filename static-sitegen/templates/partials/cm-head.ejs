@@ -43,5 +43,12 @@
 <link rel="stylesheet" type="text/css" href="<%= cmHeadResolve('assets/static/style/cm.css') %>">
 <script type="text/javascript" src="<%= cmHeadResolve('assets/static/js/cm.js') %>"></script>
 <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js" defer></script>
+<% const rssOutputPath = (typeof site !== 'undefined' && site.rss && site.rss.enabled !== false)
+  ? (site.rss.outputPath || 'rss.xml')
+  : null; %>
+<% if (rssOutputPath) { %>
+<link rel="alternate" type="application/rss+xml" title="<%= site.title %> RSS" href="<%= cmHeadResolve(rssOutputPath) %>">
+<% } %>
 <link rel="manifest" href="<%= cmHeadResolve('site.webmanifest') %>"/>
 <link rel="icon" type="image/x-icon" href="<%= cmHeadResolve('assets/static/img/favicon.ico') %>">

@@ -1,0 +1,11 @@
+{
+  "name": "rss-proxy",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "fast-xml-parser": "^4.4.0",
+    "js-yaml": "^4.1.0",
+    "sanitize-html": "^2.12.1"
+  }
+}

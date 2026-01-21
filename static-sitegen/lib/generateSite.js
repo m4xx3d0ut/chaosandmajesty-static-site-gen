@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import * as ejs from 'ejs';
 import yaml from 'js-yaml';
 import { ensureGitRepoArtifacts, DEFAULT_COMMIT_LIMIT as DEFAULT_GIT_COMMIT_LIMIT } from './gitArtifacts.js';
+import { normalizeRssConfig, generateRssArtifacts } from './rssFeeds.js';
 
 // Default template for when no template is found
 const DEFAULT_TEMPLATE = `
@@ -1620,6 +1621,8 @@ export async function generateSite(config, outputDir, verbose = false) {
   const normalizedStaticDocs = normalizeStaticDocsConfig(updatedConfig.staticDocs);
   updatedConfig = appendStaticDocsNavLinks(updatedConfig, normalizedStaticDocs);
   updatedConfig.staticDocs = normalizedStaticDocs;
+  const rssConfig = normalizeRssConfig(updatedConfig);
+  const gitFeedRepoMap = new Map();
 
   try {
     // Clean and create output directory
@@ -1826,6 +1829,12 @@ export async function generateSite(config, outputDir, verbose = false) {
               verbose,
               context: gitArtifactsContext
             });
+            pageCopy.git.resolvedRepos.forEach(repo => {
+              if (!repo) return;
+              const key = repo.id || repo.label || repo.detailUrl || repo.httpUrl;
+              if (!key) return;
+              gitFeedRepoMap.set(key, repo);
+            });
           }
         }
         
@@ -1911,6 +1920,18 @@ export async function generateSite(config, outputDir, verbose = false) {
     //   console.log(`Site generated successfully in ${outputDir}`);
     // }
     
+    if (rssConfig && rssConfig.enabled) {
+      await generateRssArtifacts({
+        rssConfig,
+        siteConfig: updatedConfig,
+        blogArtifacts,
+        gitRepos: Array.from(gitFeedRepoMap.values()),
+        outputDir,
+        verbose,
+        fetchExternal: rssConfig.fetchExternalAtBuild
+      });
+    }
+
     return { success: true };
   } catch (error) {
     console.error(`Error generating site: ${error.message}`);

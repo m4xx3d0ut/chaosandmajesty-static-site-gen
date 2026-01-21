@@ -1,4 +1,4 @@
-.PHONY: help build up down dev logs clean test rebuild health install build-local serve-local \
+.PHONY: help build up down dev logs clean test rebuild health install build-local serve-local serve-local-sse \
         microk8s-build microk8s-push microk8s-deploy
 
 # MicroK8s registry configuration
@@ -68,6 +68,14 @@ build-local: ## Build site locally (without Docker)
 serve-local: ## Serve built site locally
 	cd site-output && python3 -m http.server 8080
 
+serve-local-sse: ## Serve built site locally with RSS SSE proxy
+	@RSS_CONFIG_PATH="$(PWD)/smoke-test.yaml" RSS_OUTPUT_DIR="$(PWD)/site-output" RSS_REFRESH_INTERVAL=600000 \
+	  node rss-proxy/index.mjs & \
+	  proxy_pid=$$!; \
+	  trap 'kill $$proxy_pid' INT TERM EXIT; \
+	  LOCAL_SERVE_HOST=0.0.0.0 LOCAL_SERVE_PORT=8888 SITE_OUTPUT_DIR="$(PWD)/site-output" SSE_PROXY_TARGET="http://127.0.0.1:7070" \
+	    node scripts/serve-local-sse.mjs
+
 microk8s-build: ## Build image for MicroK8s registry (supports multiple tags)
 	@if [ -n "$(PLATFORMS)" ]; then \
 	  echo ">> Using buildx for platforms: $(PLATFORMS)"; \
@@ -82,4 +90,3 @@ microk8s-push: microk8s-build ## Build once and push all tags to MicroK8s regist
 	  echo ">> Pushing $(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t"; \
 	  docker push "$(MICROK8S_REG)/$(MICROK8S_IMAGE):$$t"; \
 	done
-

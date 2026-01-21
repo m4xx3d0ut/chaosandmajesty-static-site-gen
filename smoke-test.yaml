@@ -262,6 +262,29 @@ blog:
         - label: "@ReneeRules"
           href: "https://www.linkedin.com/in/rene%C3%A9-k-025083bb/"
 
+rssFeeds:
+  - id: codeberg-k1s
+    label: Codeberg K1S
+    url: https://codeberg.org/th3_4rchit3ct/k1s.rss
+    maxItems: 20
+    tags:
+      - k1s
+      - codeberg
+
+rss:
+  enabled: true
+  outputPath: rss.xml
+  maxItems: 40
+  includeBlog: true
+  includeGit: true
+  includeExternal: true
+  fetchExternalAtBuild: true
+  git:
+    includeRepos:
+      - k1s
+      - chaosandmajesty-static-site-gen
+    maxCommits: 10
+
 index: 
   title: Home
 
@@ -269,6 +292,7 @@ index:
   useCmHead: true
   useCmConsole: true
   useCmFooter: true
+  template: home.ejs
   # cmImage: "assets/static/img/bunny-punx.webp"
   use3DLogo: true
   hideTitle: true
@@ -281,6 +305,18 @@ index:
   # mainImage: "assets/static/img/bunny-punx.webp"
   # mainImageAlt: "Punks not dead"
   footerText: "Warning! Chaosandmajesty.com accepts no responsibility for your interactions with WOPR."
+
+  rssWidget:
+    enabled: true
+    feedUrl: "feeds/combined.json"
+    sseUrl: "/sse/feeds"
+    defaultSource: "all"
+    pageSize: 6
+    sort: "date"
+    openInNewTab: true
+    showSearch: true
+    showTags: true
+    showSources: true
 
   content: |
 

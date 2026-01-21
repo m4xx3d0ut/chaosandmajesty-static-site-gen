@@ -161,6 +161,342 @@
     toggleVisibility();
   }
 
+  function initRssWidget() {
+    const widget = document.querySelector('[data-rss-widget]');
+    if (!widget) return;
+
+    const feedUrl = widget.getAttribute('data-feed-url') || 'feeds/combined.json';
+    const sseUrl = widget.getAttribute('data-sse-url') || '';
+    const pageSize = parseInt(widget.getAttribute('data-page-size') || '6', 10) || 6;
+    const defaultSort = widget.getAttribute('data-sort') || 'date';
+    const defaultSource = widget.getAttribute('data-default-source') || 'all';
+    const openInNewTab = widget.getAttribute('data-open-new-tab') === 'true';
+
+    const listEl = widget.querySelector('[data-rss-list]');
+    const emptyEl = widget.querySelector('[data-rss-empty]');
+    const readerEl = widget.querySelector('[data-rss-reader]');
+    const readerBody = widget.querySelector('[data-rss-reader-body]');
+    const readerLink = widget.querySelector('[data-rss-reader-link]');
+    const backBtn = widget.querySelector('[data-rss-back]');
+    const searchInput = widget.querySelector('[data-rss-search]');
+    const sourceSelect = widget.querySelector('[data-rss-source]');
+    const tagSelect = widget.querySelector('[data-rss-tag]');
+    const sortSelect = widget.querySelector('[data-rss-sort]');
+    const paginationEls = Array.prototype.slice.call(widget.querySelectorAll('[data-rss-pagination]'));
+    const prevButtons = Array.prototype.slice.call(widget.querySelectorAll('[data-rss-prev]'));
+    const nextButtons = Array.prototype.slice.call(widget.querySelectorAll('[data-rss-next]'));
+
+    const state = {
+      items: [],
+      filtered: [],
+      pageIndex: 0,
+      query: '',
+      source: defaultSource,
+      tag: 'all',
+      sort: defaultSort
+    };
+
+    function normaliseText(value) {
+      return (value || '').toString().toLowerCase();
+    }
+
+    function applySort(items) {
+      if (state.sort === 'title') {
+        return items.slice().sort(function(a, b) {
+          return normaliseText(a.title).localeCompare(normaliseText(b.title));
+        });
+      }
+      return items.slice().sort(function(a, b) {
+        return (b.publishedTimestamp || 0) - (a.publishedTimestamp || 0);
+      });
+    }
+
+    function applyFilters() {
+      let next = state.items.slice();
+      if (state.source && state.source !== 'all') {
+        next = next.filter(function(item) {
+          return item.sourceId === state.source;
+        });
+      }
+      if (state.tag && state.tag !== 'all') {
+        next = next.filter(function(item) {
+          return Array.isArray(item.tags) && item.tags.indexOf(state.tag) !== -1;
+        });
+      }
+      if (state.query) {
+        const needle = normaliseText(state.query);
+        next = next.filter(function(item) {
+          const hay = [
+            item.title,
+            item.summaryText,
+            item.contentText,
+            (item.tags || []).join(' '),
+            item.sourceLabel
+          ].filter(Boolean).join(' ');
+          return normaliseText(hay).indexOf(needle) !== -1;
+        });
+      }
+      state.filtered = applySort(next);
+      state.pageIndex = 0;
+      renderList();
+    }
+
+    function buildMeta(item) {
+      const parts = [];
+      if (item.sourceLabel) {
+        parts.push(item.sourceLabel);
+      }
+      if (item.publishedAt) {
+        try {
+          const date = new Date(item.publishedAt);
+          if (!Number.isNaN(date.getTime())) {
+            parts.push(date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            }));
+          }
+        } catch (_err) {
+          // ignore date errors
+        }
+      }
+      return parts.join(' • ');
+    }
+
+    function renderList() {
+      if (!listEl) return;
+      listEl.innerHTML = '';
+
+      const total = state.filtered.length;
+      if (!total) {
+        if (emptyEl) emptyEl.classList.remove('is-hidden');
+        paginationEls.forEach(function(el) { el.classList.add('is-hidden'); });
+        return;
+      }
+      if (emptyEl) emptyEl.classList.add('is-hidden');
+
+      const totalPages = Math.ceil(total / pageSize);
+      state.pageIndex = Math.min(state.pageIndex, totalPages - 1);
+      const start = state.pageIndex * pageSize;
+      const pageItems = state.filtered.slice(start, start + pageSize);
+
+      pageItems.forEach(function(item) {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.className = 'blog-post-link rss-item-link';
+        link.href = item.link || '#';
+        link.setAttribute('data-rss-item', item.id);
+        link.addEventListener('click', function(event) {
+          event.preventDefault();
+          openReader(item);
+        });
+
+        const title = document.createElement('h3');
+        title.textContent = item.title || 'Untitled';
+        link.appendChild(title);
+
+        const meta = buildMeta(item);
+        if (meta) {
+          const metaEl = document.createElement('div');
+          metaEl.className = 'blog-post-meta';
+          metaEl.textContent = meta;
+          link.appendChild(metaEl);
+        }
+
+        if (item.summaryText) {
+          const summary = document.createElement('p');
+          summary.textContent = item.summaryText;
+          link.appendChild(summary);
+        }
+
+        li.appendChild(link);
+        listEl.appendChild(li);
+      });
+
+      paginationEls.forEach(function(el) {
+        el.classList.toggle('is-hidden', totalPages <= 1);
+      });
+      prevButtons.forEach(function(btn) {
+        btn.disabled = state.pageIndex <= 0;
+      });
+      nextButtons.forEach(function(btn) {
+        btn.disabled = state.pageIndex >= totalPages - 1;
+      });
+    }
+
+    function openReader(item) {
+      if (!readerEl || !readerBody) return;
+      widget.classList.add('is-reading');
+      readerBody.innerHTML = item.contentHtml || item.summaryHtml || '<p>No content available.</p>';
+      if (readerLink) {
+        readerLink.href = item.link || '#';
+        readerLink.style.display = openInNewTab ? 'inline-flex' : 'none';
+      }
+    }
+
+    function closeReader() {
+      widget.classList.remove('is-reading');
+      if (readerBody) {
+        readerBody.innerHTML = '';
+      }
+    }
+
+    function populateSources(sources) {
+      if (!sourceSelect || !Array.isArray(sources)) return;
+      sourceSelect.innerHTML = '<option value="all">All sources</option>';
+      sources.forEach(function(source) {
+        if (!source || !source.id) return;
+        const option = document.createElement('option');
+        option.value = source.id;
+        option.textContent = source.label || source.id;
+        sourceSelect.appendChild(option);
+      });
+      sourceSelect.value = state.source;
+      if (sourceSelect.value !== state.source) {
+        state.source = 'all';
+        sourceSelect.value = 'all';
+      }
+    }
+
+    function populateTags(items) {
+      if (!tagSelect) return;
+      const tagSet = new Set();
+      items.forEach(function(item) {
+        if (!item || !Array.isArray(item.tags)) return;
+        item.tags.forEach(function(tag) {
+          if (tag) tagSet.add(tag);
+        });
+      });
+      const tags = Array.from(tagSet).sort();
+      tagSelect.innerHTML = '<option value="all">All tags</option>';
+      tags.forEach(function(tag) {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        tagSelect.appendChild(option);
+      });
+      tagSelect.value = state.tag;
+      if (tagSelect.value !== state.tag) {
+        state.tag = 'all';
+        tagSelect.value = 'all';
+      }
+    }
+
+    function ingestFeed(data) {
+      if (!data || !Array.isArray(data.items)) {
+        state.items = [];
+      } else {
+        state.items = data.items.map(function(item) {
+          const published = item.publishedAt ? new Date(item.publishedAt) : null;
+          return Object.assign({}, item, {
+            publishedTimestamp: published && !Number.isNaN(published.getTime()) ? published.getTime() : (item.publishedTimestamp || 0)
+          });
+        });
+      }
+      populateSources(data.sources || []);
+      populateTags(state.items);
+      applyFilters();
+    }
+
+    function fetchFeed() {
+      const resolved = resolvePermalink(feedUrl);
+      return fetch(resolved, { cache: 'no-store' })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Feed fetch failed');
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          ingestFeed(data || {});
+          return data;
+        })
+        .catch(function() {
+          ingestFeed({ items: [], sources: [] });
+        });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function(event) {
+        state.query = event.target.value || '';
+        applyFilters();
+      });
+    }
+
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', function(event) {
+        state.source = event.target.value || 'all';
+        applyFilters();
+      });
+    }
+
+    if (tagSelect) {
+      tagSelect.addEventListener('change', function(event) {
+        state.tag = event.target.value || 'all';
+        applyFilters();
+      });
+    }
+
+    if (sortSelect) {
+      sortSelect.addEventListener('change', function(event) {
+        state.sort = event.target.value || 'date';
+        applyFilters();
+      });
+    }
+
+    prevButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        state.pageIndex = Math.max(0, state.pageIndex - 1);
+        renderList();
+      });
+    });
+
+    nextButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const totalPages = Math.ceil(state.filtered.length / pageSize);
+        state.pageIndex = Math.min(totalPages - 1, state.pageIndex + 1);
+        renderList();
+      });
+    });
+
+    if (backBtn) {
+      backBtn.addEventListener('click', function() {
+        closeReader();
+      });
+    }
+
+    document.addEventListener('htmx:afterRequest', function(event) {
+      const target = event && event.target;
+      if (!target || target.id !== 'rss-sse-trigger') return;
+      try {
+        const payload = event.detail && event.detail.xhr && event.detail.xhr.responseText
+          ? JSON.parse(event.detail.xhr.responseText)
+          : null;
+        if (payload) ingestFeed(payload);
+      } catch (_err) {
+        fetchFeed();
+      }
+    });
+
+    if (sseUrl && (!window.htmx || !widget.querySelector('[sse-connect]'))) {
+      try {
+        const eventSource = new EventSource(sseUrl);
+        eventSource.addEventListener('rss-update', function() {
+          fetchFeed();
+        });
+      } catch (_err) {
+        // ignore SSE failures
+      }
+    }
+
+    fetchFeed();
+
+    window.cmRssWidget = {
+      refresh: fetchFeed,
+      ingest: ingestFeed
+    };
+  }
+
   function fallbackCopyText(text) {
     return new Promise(function(resolve) {
       if (typeof document === 'undefined' || !document.body) {
@@ -912,14 +1248,7 @@
       sampleRate: 11025,
       enabled: false,
       bufferCache: new Map(),
-      memoryBuffer: null,
-      musicEnabled: false,
-      musicGain: null,
-      musicNextTime: 0,
-      musicSources: [],
-      musicSampleRate: 11025,
-      musicVolume: 1,
-      musicPaused: false
+      memoryBuffer: null
   };
   var doomTextDecoder = (typeof TextDecoder === 'function') ? new TextDecoder('utf8') : null;
   var DOOM_SAVE_MAX_SLOT = 5;
@@ -1157,257 +1486,7 @@
       }
   }
 
-  function ensureDoomMusicGain() {
-      var context = ensureDoomAudioContext();
-      if (!context) {
-          return null;
-      }
-      if (!doomAudioState.musicGain) {
-          try {
-              var gain = context.createGain();
-              if (doomAudioState.masterGain) {
-                  gain.connect(doomAudioState.masterGain);
-              } else {
-                  gain.connect(context.destination);
-              }
-              doomAudioState.musicGain = gain;
-          } catch (_err) {
-              return null;
-          }
-      }
-      return doomAudioState.musicGain;
-  }
-
-  function setDoomMusicGainValue(value) {
-      if (value < 0 || !isFinite(value)) {
-          value = 0;
-      }
-      if (value > 1) {
-          value = 1;
-      }
-      var gainNode = ensureDoomMusicGain();
-      if (!gainNode || !gainNode.gain) {
-          return;
-      }
-      var context = doomAudioState.context;
-      if (context && typeof gainNode.gain.cancelScheduledValues === 'function' && typeof gainNode.gain.setValueAtTime === 'function') {
-          var now = context.currentTime;
-          try {
-              gainNode.gain.cancelScheduledValues(now);
-              gainNode.gain.setValueAtTime(value, now);
-          } catch (_err) {
-              gainNode.gain.value = value;
-          }
-      } else {
-          gainNode.gain.value = value;
-      }
-  }
-
-  function initDoomMusic(sampleRate) {
-      doomAudioState.enabled = true;
-      var context = ensureDoomAudioContext();
-      if (!context) {
-          doomAudioState.musicEnabled = false;
-          return;
-      }
-      doomAudioState.musicEnabled = true;
-      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : 11025;
-      if (!isFinite(rate) || rate <= 0) {
-          rate = 11025;
-      }
-      doomAudioState.musicSampleRate = rate;
-      doomAudioState.musicPaused = false;
-      doomAudioState.musicNextTime = context.currentTime;
-      setDoomMusicGainValue(doomAudioState.musicVolume);
-      resumeDoomAudio();
-  }
-
-  function stopDoomMusic() {
-      var sources = doomAudioState.musicSources;
-      if (Array.isArray(sources) && sources.length) {
-          for (var i = 0; i < sources.length; i++) {
-              var source = sources[i];
-              if (!source) {
-                  continue;
-              }
-              try {
-                  source.onended = null;
-                  source.stop();
-              } catch (_err) {
-                  // ignore
-              }
-              try {
-                  source.disconnect();
-              } catch (_err2) {
-                  // ignore
-              }
-          }
-          sources.length = 0;
-      }
-      doomAudioState.musicNextTime = doomAudioState.context ? doomAudioState.context.currentTime : 0;
-  }
-
-  function shutdownDoomMusic() {
-      stopDoomMusic();
-      doomAudioState.musicEnabled = false;
-      doomAudioState.musicPaused = false;
-      doomAudioState.musicSampleRate = 11025;
-      var gainNode = doomAudioState.musicGain;
-      if (gainNode && gainNode.gain) {
-          try {
-              gainNode.gain.value = 0;
-          } catch (_err) {
-              // ignore
-          }
-      }
-      if (doomAudioState.musicGain) {
-          try {
-              doomAudioState.musicGain.disconnect();
-          } catch (_err) {
-              // ignore
-          }
-          doomAudioState.musicGain = null;
-      }
-      doomAudioState.musicNextTime = 0;
-  }
-
-  function enqueueDoomMusic(ptr, frames, sampleRate) {
-      if (!doomState.memory || !doomState.memory.buffer) {
-          return;
-      }
-      if (!frames || frames <= 0) {
-          return;
-      }
-      doomAudioState.enabled = true;
-      var context = ensureDoomAudioContext();
-      if (!context) {
-          return;
-      }
-      var gainNode = ensureDoomMusicGain();
-      if (!gainNode) {
-          return;
-      }
-      doomAudioState.musicEnabled = true;
-      resumeDoomAudio();
-      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : doomAudioState.musicSampleRate;
-      if (!isFinite(rate) || rate <= 0) {
-          rate = doomAudioState.musicSampleRate || 11025;
-      }
-      doomAudioState.musicSampleRate = rate;
-      var sampleCount = frames * 2;
-      var pcm;
-      try {
-          pcm = new Int16Array(doomState.memory.buffer, ptr, sampleCount);
-      } catch (_err) {
-          return;
-      }
-      var buffer;
-      try {
-          buffer = context.createBuffer(2, frames, rate);
-      } catch (_err2) {
-          return;
-      }
-      var left = buffer.getChannelData(0);
-      var right = buffer.getChannelData(1);
-      for (var i = 0; i < frames; i++) {
-          var leftSample = pcm[i * 2] / 32768;
-          var rightSample = pcm[i * 2 + 1] / 32768;
-          if (leftSample > 1) {
-              leftSample = 1;
-          }
-          if (leftSample < -1) {
-              leftSample = -1;
-          }
-          if (rightSample > 1) {
-              rightSample = 1;
-          }
-          if (rightSample < -1) {
-              rightSample = -1;
-          }
-          left[i] = leftSample;
-          right[i] = rightSample;
-      }
-      var source;
-      try {
-          source = context.createBufferSource();
-      } catch (_err3) {
-          return;
-      }
-      source.buffer = buffer;
-      source.connect(gainNode);
-      var now = context.currentTime;
-      var scheduledTime = doomAudioState.musicNextTime;
-      if (!scheduledTime || scheduledTime < now) {
-          scheduledTime = now + 0.01;
-      }
-      try {
-          source.start(scheduledTime);
-      } catch (_err4) {
-          try {
-              source.start();
-              scheduledTime = now;
-          } catch (_err5) {
-              return;
-          }
-      }
-      doomAudioState.musicNextTime = scheduledTime + buffer.duration;
-      doomAudioState.musicSources.push(source);
-      source.onended = function() {
-          var sources = doomAudioState.musicSources;
-          if (Array.isArray(sources)) {
-              for (var idx = 0; idx < sources.length; idx++) {
-                  if (sources[idx] === source) {
-                      sources.splice(idx, 1);
-                      break;
-                  }
-              }
-          }
-          if (!doomAudioState.musicPaused && doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
-              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
-          }
-      };
-      if (doomAudioState.musicPaused) {
-          setDoomMusicGainValue(0);
-      } else {
-          setDoomMusicGainValue(doomAudioState.musicVolume);
-      }
-  }
-
-  function pauseDoomMusic(paused) {
-      doomAudioState.musicPaused = !!paused;
-      if (doomAudioState.musicPaused) {
-          setDoomMusicGainValue(0);
-      } else {
-          resumeDoomAudio();
-          setDoomMusicGainValue(doomAudioState.musicVolume);
-          if (doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
-              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
-          }
-      }
-  }
-
-  function setDoomMusicVolume(volume) {
-      var normalized = 1;
-      if (typeof volume === 'number') {
-          normalized = volume / 127;
-          if (!isFinite(normalized)) {
-              normalized = 1;
-          }
-      }
-      if (normalized < 0) {
-          normalized = 0;
-      }
-      if (normalized > 1) {
-          normalized = 1;
-      }
-      doomAudioState.musicVolume = normalized;
-      if (!doomAudioState.musicPaused) {
-          setDoomMusicGainValue(normalized);
-      }
-  }
-
   function shutdownDoomAudio() {
-      shutdownDoomMusic();
       doomAudioState.enabled = false;
       doomAudioState.nextTime = 0;
       doomAudioState.bufferCache.clear();
@@ -1861,8 +1940,8 @@
           'LinkedIn: ',
           'https://www.linkedin.com/in/paul-k-a3a18196/',
           'The Architect',
-          'About: Paul (m4xx3d0ut) is a Principal Technologist focused on cloud architecture and building cloud-native, edge, and full-stack systems. He\’s led R&D, platform, and AI tiger teams, with a reputation for rapid prototyping across languages and frameworks. His approach is grounded in a seminal start in InfoSec as a penetration tester—shaped by a lifelong passion for technology and hacking—and broadened through work spanning the automotive industry as well as live broadcast and studio production technology. A patented inventor in the media tech space, he works by a simple rule: \“The more you observe and adapt, the greater your chances are for victory.\” —Sun Tzu',
-          'Specialties: Python, Node, JS, React/TS, WASM, Kubernetes, Docker, AWS, GCP, OpenStack, InfoSec, DevOps/DevSecOps, GitOps, LlmOps',
+          'About: Paul (m4xx3d0ut) is Napster\'s Swiss Army Knife! Currently serving as Principal Technologist on the AI Tiger Team, he embeds with teams as an IC and arhitectural advisor. A Pythonista at heart, with an expansive background from InfoSec to Studio Production/Broadcast, he is capable of working across a number of languages and frameworks.',
+          'Specialties: Python, Node, JS, React/TS, Kubernetes, Docker, AWS, GCP, OpenStack, Microk8s, InfoSec, DevOps/DevSecOps, GitOps, LlmOps',
           '---',
           'End of transmission...'
       ],
@@ -1885,8 +1964,6 @@
   var TERMINAL_INITIAL_SPEED = 75;
   var tSpeed = TERMINAL_INITIAL_SPEED;
   var terminalTimeoutId = null;
-  var currentTerminalBuffer = null;
-  var terminalFlushMode = false;
   String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g, "");
   };
@@ -2705,24 +2782,6 @@
               },
               js_save_state_clear: function(slot) {
                   return wasmClearDoomSave(slot);
-              },
-              js_music_init: function(sampleRate) {
-                  initDoomMusic(sampleRate);
-              },
-              js_music_shutdown: function() {
-                  shutdownDoomMusic();
-              },
-              js_music_enqueue: function(ptr, frames, sampleRate) {
-                  enqueueDoomMusic(ptr, frames, sampleRate);
-              },
-              js_music_stop: function() {
-                  stopDoomMusic();
-              },
-              js_music_pause: function(paused) {
-                  pauseDoomMusic(paused);
-              },
-              js_music_set_volume: function(volume) {
-                  setDoomMusicVolume(volume);
               }
           },
           env: {
@@ -3487,20 +3546,6 @@
       }
   }
 
-  function flushTerminalPlayback() {
-      if (allowIn) {
-          return;
-      }
-      if (!currentTerminalBuffer || !Array.isArray(currentTerminalBuffer)) {
-          allowIn = true;
-          terminalFlushMode = false;
-          return;
-      }
-      cancelTerminalPlayback();
-      terminalFlushMode = true;
-      terminal(currentTerminalBuffer);
-  }
-
   function resetTerminalSession() {
       var termIn = document.getElementById('uIn');
       if (termIn) {
@@ -3773,89 +3818,48 @@
   }
 
   function terminal(msgOut) {
-      var term = document.getElementById('tOut');
-      if (!term || !Array.isArray(msgOut)) return;
-
-      currentTerminalBuffer = msgOut;
-
+      var term = document.getElementById("tOut");
+      if (!term) return; // Avoid error if missing
       if (terminalTimeoutId !== null) {
           clearTimeout(terminalTimeoutId);
           terminalTimeoutId = null;
       }
-
-      var flushActive = terminalFlushMode;
-
-      while (true) {
-          var msg = msgOut[elementId];
-          if (msg === undefined) {
-              if (flushActive) {
-                  elementId = 0;
-                  allowIn = true;
-                  terminalFlushMode = false;
-                  currentTerminalBuffer = null;
-              }
-              return;
-          }
-
-          allowIn = false;
-          var msgLen = msg.length;
-
-          if (i < msgLen) {
-              if (flushActive) {
-                  term.innerHTML += msg.slice(i);
-                  i = msgLen;
-              } else {
-                  term.innerHTML += msg.charAt(i);
-                  i++;
-                  scrollTerm(term);
-                  terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
-                  return;
-              }
-          }
-
-          if (i < msgLen) {
-              return;
-          }
-
+      var msg = msgOut[elementId];
+      if (msg === undefined) {
+          return;
+      }
+      allowIn = false;
+      var msgLen = msg.length;
+      if (i < msg.length) {
+          term.innerHTML += msg.charAt(i);
+          i++;
+      } else {
           i = 0;
-
           if (msg === 'Email: ' || msg === 'LinkedIn: ' || msg === 'Read: ') {
               var a = document.createElement('a');
-              var link = document.createTextNode(msgOut[elementId + 2]);
+              var link = document.createTextNode(msgOut[elementId+2])
               a.appendChild(link);
-              a.title = msgOut[elementId + 2];
-              a.href = msgOut[elementId + 1];
+              a.title = msgOut[elementId+2];
+              a.href = msgOut[elementId+1];
               a.target = '_blank';
               term.append(a);
               elementId += 2;
           }
-
           elementId++;
           term.innerHTML += '<br>$ ';
           persistTerminalBuffer(term);
-
-          if (tSpeed > 25 && elementId >= 3) {
-              tSpeed = 25;
-          }
-
-          scrollTerm(term);
-
-          if (elementId < msgOut.length) {
-              if (flushActive) {
-                  continue;
-              }
-              terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
-              return;
-          }
-
+      }
+      scrollTerm(term);
+      if (elementId < msgOut.length) {
+          terminalTimeoutId = setTimeout(terminal, tSpeed, msgOut, elementId);
+      }
+      if (tSpeed > 25 && elementId >= 3) {
+          tSpeed = 25;
+      }
+      if (elementId === msgOut.length) {
           elementId = 0;
           allowIn = true;
           terminalTimeoutId = null;
-          currentTerminalBuffer = null;
-          if (flushActive) {
-              terminalFlushMode = false;
-          }
-          return;
       }
   }
 
@@ -3878,6 +3882,7 @@
       initBackToTop();
       initBlogImageLightbox();
       initBlogPermalinks();
+      initRssWidget();
 
       var termOut = document.getElementById("tOut");
       var tagline = document.getElementById("tagline");
@@ -3911,34 +3916,14 @@
           });
 
           termIn.addEventListener('keyup', function(e) {
-              if (e.key !== 'Enter' && e.which !== 13) {
-                  return;
+              if ((e.key === 'Enter' || e.which === 13) && allowIn) {
+                  var cli = e.target.value;
+                  recordCommand(cli);
+                  terminal([cli]);
+                  checkIn(cli);
+                  e.target.value = "";
+                  applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
               }
-
-              var cli = e.target.value || '';
-              var trimmedCli = cli.trim();
-              var wasBusy = !allowIn;
-
-              if (wasBusy) {
-                  flushTerminalPlayback();
-              }
-
-              if (!trimmedCli) {
-                  e.target.value = '';
-                  if (wasBusy) {
-                      return;
-                  }
-              }
-
-              if (!allowIn) {
-                  return;
-              }
-
-              recordCommand(cli);
-              terminal([cli]);
-              checkIn(cli);
-              e.target.value = '';
-              applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
           });
 
           termIn.addEventListener('pointerdown', function() {
