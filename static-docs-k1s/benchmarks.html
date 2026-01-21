@@ -1,0 +1,862 @@
+<!doctype html>
+<html data-theme="dark">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Memory</title>
+    <link rel="icon" href="static/favicon.ico" sizes="any"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png"/>
+    <link rel="icon" type="image/png" sizes="48x48" href="static/favicon-48x48.png"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="static/icon-180x180.png"/>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --k1s-bg: #121212;
+        --k1s-surface: #181818;
+        --k1s-panel: #2c2c2c;
+        --k1s-border: #404040;
+        --k1s-border-soft: #4a4a4a;
+        --k1s-text: #e5e7eb;
+        --k1s-text-muted: #9ca3af;
+        --k1s-primary: #2563eb;
+        --k1s-primary-soft: #3b82f6;
+        --k1s-highlight: #60a5fa;
+        --k1s-info: #0284c7;
+        --k1s-info-bg: #e0f2fe;
+        --k1s-success: #16a34a;
+        --k1s-success-bg: #16a34a33;
+        --k1s-warn: #f59e0b;
+        --k1s-warn-bg: #f59e0b33;
+        --k1s-danger: #ef4444;
+        --k1s-danger-bg: #ef444433;
+        --k1s-card-bg: #2c2c2c;
+        --k1s-header-bg: #0a0a0a10;
+        --k1s-radius: 8px;
+        --k1s-radius-pill: 999px;
+        --k1s-gap: 12px;
+        --k1s-brand-gold: #fbc02d;
+        --k1s-brand-graphite: #404040;
+        --k1s-brand-mist: #f1f1f1;
+        /* Legacy aliases used by docs/labs styles */
+        --bg: var(--k1s-bg);
+        --fg: var(--k1s-text);
+        --muted: var(--k1s-panel);
+        --link: #5a86c9;
+        --link-hover: #7aa0e8;
+        --code-bg: #1b1b1b;
+        --border: var(--k1s-border);
+      }
+      html[data-theme="light"] {
+        --k1s-bg: #f4f5f7;
+        --k1s-surface: #f8fafb;
+        --k1s-panel: #ffffff;
+        --k1s-border: #d4d7dd;
+        --k1s-border-soft: #e6e8ec;
+        --k1s-text: #0f141c;
+        --k1s-text-muted: #4a5565;
+        --k1s-card-bg: #ffffff;
+        --k1s-header-bg: rgba(255,255,255,0.82);
+        --code-bg: #f5f6f8;
+        --bg: var(--k1s-bg);
+        --fg: var(--k1s-text);
+        --muted: var(--k1s-panel);
+        --link: #2f59b9;
+        --link-hover: #3b63c5;
+        --border: var(--k1s-border);
+      }
+    </style>
+    <style>
+      /* Base layout aligned to dashboard palette */
+      html { height: 100%; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", "Roboto", sans-serif;
+        margin: 0;
+        padding: 2rem;
+        line-height: 1.55;
+        box-sizing: border-box;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .6rem;
+        justify-content: center;
+        margin: 0 auto 1.25rem auto;
+        width: min(100%, 1320px);
+        padding: 10px 16px;
+        box-sizing: border-box;
+        background: var(--k1s-panel);
+        border: 1px solid var(--k1s-border);
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        position: sticky;
+        top: 12px;
+        z-index: 10;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      nav::after {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 6px;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, var(--k1s-brand-gold), transparent);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      nav a {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        padding: 7px 12px;
+        border: 1px solid var(--k1s-border);
+        border-radius: 10px;
+        background: var(--k1s-card-bg);
+        color: var(--fg);
+        text-decoration: none;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.16);
+        transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
+        font-weight: 600;
+      }
+      nav a:hover {
+        background: var(--k1s-surface);
+        border-color: var(--k1s-brand-gold);
+        color: var(--link-hover);
+        transform: translateY(-1px);
+      }
+      nav .nav-brand {
+        gap: 10px;
+        padding: 6px 10px;
+        border: 1px solid transparent;
+        background: transparent;
+        box-shadow: none;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 11px;
+        color: var(--k1s-text-muted);
+      }
+      nav .nav-brand:hover {
+        background: color-mix(in srgb, var(--k1s-card-bg) 60%, transparent);
+        border-color: var(--k1s-brand-gold);
+        color: var(--fg);
+        transform: translateY(0);
+      }
+      nav .nav-brand img {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      }
+      nav a:active { transform: translateY(0); }
+      .spacer { flex: 1 1 auto; }
+      button#api-mode-toggle {
+        background: var(--k1s-card-bg);
+        color: var(--fg);
+        border: 1px solid var(--k1s-border);
+        border-radius: 8px;
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: background .15s ease, border-color .15s ease;
+      }
+      button#api-mode-toggle:hover {
+        background: var(--k1s-surface);
+        border-color: var(--k1s-border-soft);
+      }
+      .theme-fab {
+        position: fixed;
+        right: 18px;
+        bottom: 140px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid var(--k1s-border);
+        background: var(--k1s-card-bg);
+        color: var(--fg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.32);
+        cursor: pointer;
+        z-index: 20;
+        transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+      }
+      .theme-fab:hover {
+        background: var(--k1s-surface);
+        border-color: var(--k1s-border-soft);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 40px rgba(0,0,0,0.38);
+      }
+      .theme-fab:active { transform: translateY(0); }
+      .theme-fab svg { width: 26px; height: 26px; fill: currentColor; }
+      .theme-fab .icon-sun { display: none; }
+      html[data-theme="light"] .theme-fab .icon-sun { display: block; }
+      html[data-theme="light"] .theme-fab .icon-moon { display: none; }
+      html[data-theme="dark"] .theme-fab .icon-moon { display: block; }
+      @media (max-height: 740px) {
+        .theme-fab { bottom: 32px; }
+      }
+      code, pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        color: var(--fg);
+        border-radius: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        background: var(--k1s-panel);
+        border: 1px solid var(--k1s-border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      thead th {
+        text-align: left;
+        padding: 12px 14px;
+        background: var(--k1s-card-bg);
+        border-bottom: 1px solid var(--k1s-border);
+        color: var(--fg);
+        font-weight: 600;
+      }
+      tbody td {
+        padding: 12px 14px;
+        border-top: 1px solid var(--k1s-border-soft);
+        color: var(--fg);
+        vertical-align: top;
+      }
+      tbody tr:nth-child(even) td {
+        background: color-mix(in srgb, var(--k1s-panel) 92%, #000000 8%);
+      }
+      html[data-theme="light"] tbody tr:nth-child(even) td {
+        background: color-mix(in srgb, var(--k1s-panel) 92%, #ffffff 8%);
+      }
+      pre {
+        padding: 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        position: relative;
+      }
+      pre::-webkit-scrollbar { width: 0; height: 0; }
+      pre.has-copy { padding-top: 32px; }
+      .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--k1s-border);
+        background: var(--k1s-surface);
+        color: var(--fg);
+        font-size: 12px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0,0,0,0.24);
+        opacity: 0;
+        transition: opacity .14s ease, transform .12s ease, background .12s ease, border-color .12s ease;
+        z-index: 1;
+      }
+      pre:hover .copy-btn,
+      pre:focus-within .copy-btn {
+        opacity: .96;
+      }
+      .copy-btn:hover {
+        background: var(--k1s-panel);
+        border-color: var(--k1s-border-soft);
+      }
+      .copy-btn:active { transform: translateY(0); }
+      .copy-btn svg { width: 16px; height: 16px; fill: currentColor; }
+      .copy-btn.copied { color: var(--k1s-success); border-color: var(--k1s-success); }
+      h1 { margin-top: 0; font-size: 28px; letter-spacing: 0.01em; }
+      h2 { margin-top: 1.5em; font-size: 20px; }
+      h3 { margin-top: 1.1em; font-size: 17px; }
+      a { color: var(--link); }
+      a:hover { color: var(--link-hover); }
+      a:focus-visible { outline: 2px solid var(--k1s-highlight); outline-offset: 2px; border-radius: 4px; }
+      .container {
+        width: min(100%, 1320px);
+        max-width: 1320px;
+        margin: 0 auto;
+        flex: 1 0 auto;
+      }
+      .card {
+        border: 1px solid var(--k1s-border);
+        background: var(--k1s-card-bg);
+        border-radius: var(--k1s-radius);
+        padding: 10px 12px;
+      }
+      .hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+        padding: 22px;
+        border: 1px solid var(--k1s-border);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--k1s-brand-gold) 22%, transparent) 0%, transparent 55%),
+          linear-gradient(135deg, color-mix(in srgb, var(--k1s-panel) 86%, #000000 14%) 0%, var(--k1s-panel) 55%, color-mix(in srgb, var(--k1s-brand-gold) 14%, var(--k1s-panel)) 100%);
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+      }
+      html[data-theme="light"] .hero {
+        background:
+          radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--k1s-brand-gold) 26%, transparent) 0%, transparent 60%),
+          linear-gradient(135deg, #ffffff 0%, #f8f7f2 60%, color-mix(in srgb, var(--k1s-brand-gold) 18%, #ffffff) 100%);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -24px;
+        bottom: -36px;
+        width: 220px;
+        height: 220px;
+        background: url('static/k1s-logo-circle.png') no-repeat center / contain;
+        opacity: 0.12;
+        pointer-events: none;
+      }
+      .hero-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 1;
+      }
+      .hero-logo-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .hero-logo {
+        width: min(320px, 90%);
+        height: auto;
+      }
+      .hero-pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: var(--k1s-brand-gold);
+        color: #2b2b2b;
+        box-shadow: 0 10px 22px rgba(251, 192, 45, 0.25);
+      }
+      .hero h1 {
+        font-size: 32px;
+        margin: 4px 0 0;
+      }
+      .hero-tagline {
+        max-width: 52ch;
+        color: var(--k1s-text-muted);
+        font-size: 15px;
+      }
+      .hero-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .hero-link {
+        text-decoration: none;
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--k1s-border-soft);
+        background: color-mix(in srgb, var(--k1s-card-bg) 70%, transparent);
+        color: var(--fg);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .hero-link--stack {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .hero-link-title {
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .hero-link-sub {
+        font-weight: 400;
+        font-size: 11px;
+        line-height: 1.3;
+        color: var(--k1s-text-muted);
+      }
+      .hero-link:hover {
+        border-color: var(--k1s-brand-gold);
+        color: var(--fg);
+      }
+      .hero-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        align-items: start;
+        z-index: 1;
+      }
+      .hero-card {
+        border: 1px solid var(--k1s-border-soft);
+        background: color-mix(in srgb, var(--k1s-card-bg) 85%, transparent);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+      }
+      .hero-card h2 {
+        margin: 0 0 6px;
+        font-size: 16px;
+      }
+      .hero-card p {
+        margin: 0 0 10px;
+        color: var(--k1s-text-muted);
+        font-size: 13px;
+      }
+      .hero-card pre {
+        margin: 8px 0 0;
+        font-size: 12px;
+      }
+      .hero-index {
+        grid-template-columns: minmax(280px, 1.1fr) minmax(320px, 2fr);
+      }
+      .hero-index .hero-actions {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .hero-card--section {
+        min-height: 180px;
+      }
+      .hero-links--dense {
+        gap: 8px;
+      }
+      .hero-links--dense .hero-link {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+      .callout, blockquote {
+        border-left: 4px solid var(--k1s-primary-soft);
+        background: var(--k1s-card-bg);
+        border: 1px solid var(--k1s-border);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .muted, .note { color: var(--k1s-text-muted); }
+      /* Shared helper to allow scrolling without visible bars */
+      .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+      .scrollbar-hide::-webkit-scrollbar { width: 0; height: 0; }
+      /* Improve Mermaid readability in dark mode by inverting SVG colors */
+      html[data-theme="dark"] .mermaid svg { filter: invert(1) hue-rotate(180deg) contrast(1.05) saturate(1.1); }
+      html[data-theme="dark"] .mermaid { background: var(--bg); }
+      footer.site-footer {
+        margin-top: 3rem;
+        border-top: 1px solid var(--k1s-border);
+        flex: 0 0 auto;
+      }
+      footer.site-footer .inner {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: 14px 0;
+        opacity: .85;
+      }
+    </style>
+    <script>
+      (function() {
+        const key = 'k1s-theme';
+        const saved = localStorage.getItem(key);
+        const initial = saved || 'dark';
+        document.documentElement.setAttribute('data-theme', initial);
+        const labels = {
+          dark: 'Switch to light mode',
+          light: 'Switch to dark mode',
+        };
+        function update(btn) {
+          var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+          var label = labels[cur] || 'Toggle theme';
+          btn.setAttribute('aria-label', label);
+          btn.setAttribute('title', label);
+        }
+        function wire() {
+          var btn = document.getElementById('theme-toggle');
+          if (!btn) return;
+          update(btn);
+          btn.addEventListener('click', function() {
+            var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = (cur === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem(key, next);
+            update(btn);
+          });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', wire);
+        } else {
+          wire();
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({ startOnLoad: true });</script>
+    <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>
+      // Attach copy buttons to all code blocks client-side
+      (function() {
+        function addButtons() {
+          var blocks = document.querySelectorAll('pre > code');
+          blocks.forEach(function(code) {
+            var pre = code.parentElement;
+            if (pre.dataset.hasCopy) return;
+            pre.dataset.hasCopy = '1';
+            pre.classList.add('has-copy');
+
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1Zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2Zm0 16H8V7h11v14Z"/></svg><span>Copy</span>';
+
+            btn.addEventListener('click', function() {
+              var text = code.textContent || '';
+              var setState = function(ok) {
+                btn.classList.toggle('copied', ok);
+                btn.lastChild.textContent = ok ? 'Copied!' : 'Copy';
+                setTimeout(function() {
+                  btn.classList.remove('copied');
+                  btn.lastChild.textContent = 'Copy';
+                }, 1400);
+              };
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { setState(true); }, function() { setState(false); });
+              } else {
+                try {
+                  var ta = document.createElement('textarea');
+                  ta.value = text;
+                  ta.style.position = 'fixed';
+                  ta.style.opacity = '0';
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(ta);
+                  setState(true);
+                } catch (e) {
+                  setState(false);
+                }
+              }
+            });
+
+            pre.style.position = 'relative';
+            pre.insertBefore(btn, code);
+          });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', addButtons);
+        } else {
+          addButtons();
+        }
+      })();
+    </script>
+    
+  </head>
+  <body>
+    <nav>
+      <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.png" alt="k1s logo" /><span>k1s docs</span></a>
+      <a href="start-here.html">Start Here</a>
+      <a href="overview.html">Overview</a>
+      <a href="examples.html">Demos</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="multinode-lab.html">Multi-Node</a>
+      <a href="http-api.html">HTTP API</a>
+      <a href="apishim-compatibility-matrix.html">API Shim</a>
+      <a href="ingress.html">Ingress</a>
+      <a href="api-auth.html">API Auth</a>
+      <a href="concepts.html">Concepts</a>
+      <a href="benchmarks.html">Benchmarks</a>
+      <a href="concepts-in-practice.html">Concepts in Practice</a>
+    </nav>
+    <button id="theme-toggle" class="theme-fab" aria-label="Toggle theme" title="Toggle theme">
+      <svg class="icon-sun" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+        <path d="M480-360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0 80q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
+        <path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/>
+      </svg>
+    </button>
+    <div class="container">
+    <h1>Memory Overhead Benchmarks</h1>
+<p>This guide describes how to profile and compare memory overhead for k1s versus k3s on a single host. It consolidates the k1s memory profiling and k3s comparison workflows in one place.</p>
+<p>Goals</p>
+<ul>
+<li>Separate app memory from control-plane/system overhead.</li>
+<li>Produce repeatable snapshots with raw artifacts and lightweight summaries.</li>
+<li>Keep tooling simple: bash + Python, no invasive agents.</li>
+</ul>
+<p>What we measure</p>
+<ul>
+<li>Processes (PSS/RSS/USS) via <code>/proc/&lt;pid&gt;/smaps_rollup</code> and <code>/proc/&lt;pid&gt;/status</code>:
+<ul>
+<li>k1s: <code>python -m ae.controller</code>, ingress proxy (Caddy), Docker/Podman runtime processes.</li>
+<li>k3s: <code>k3s</code>, <code>containerd</code>, <code>coredns</code>, ingress controller (Traefik if enabled).</li>
+</ul>
+</li>
+<li>Containers (cgroups): <code>memory.current</code> for each container cgroup via the container PID (split into app vs non‑app based on labels/names).</li>
+<li>Host services (cgroups): sum of <code>memory.current</code> for leaf cgroups under <code>system.slice</code> plus <code>init.scope</code> (cgroup v2), excluding <code>user.slice</code> entirely. This avoids parent+child double counting.</li>
+</ul>
+<p>Outputs</p>
+<ul>
+<li><code>snapshots/&lt;label&gt;/&lt;timestamp&gt;/raw/*</code>: raw text and JSON (ps, free, vmstat, smaps_rollup, docker/podman inspect, per‑container memory CSV).</li>
+<li><code>summary.json</code>: totals and breakdowns for processes, container cgroups, host system cgroups, and MemAvailable before/after from <code>free -b</code>.</li>
+<li><code>summary.csv</code>: one‑line rollup: total PSS, control‑plane PSS, app/system container bytes, host system cgroup bytes.</li>
+<li><code>combined/combined.{json,csv}</code>: merged rollups across labels (for charts and reports).</li>
+<li><code>charts/*.png</code>: control‑plane/system charts and per‑pod overhead plots.</li>
+</ul>
+<p>Quick start 1) Take a snapshot (k1s):</p>
+<pre><code>make bench-mem-k1s LABEL=idle DURATION=30</code></pre>
+<p>2) Aggregate latest snapshot for a label:</p>
+<pre><code>make bench-mem-agg LABEL=idle</code></pre>
+<p>3) Compare scenarios by repeating with different labels:</p>
+<pre><code>make bench-mem-k1s LABEL=pods-1 DURATION=30
+make bench-mem-agg LABEL=pods-1
+
+make bench-mem-k1s LABEL=pods-5 DURATION=30
+make bench-mem-agg LABEL=pods-5</code></pre>
+<p>Scenarios (suggested)</p>
+<ul>
+<li><code>idle</code>: controller running, no apps.</li>
+<li><code>pods-1</code>: one app with 1 replica.</li>
+<li><code>pods-5</code>: one app with 5 replicas.</li>
+<li><code>rollout-5</code>: rolling update across 5 replicas (start snapshot while rollout is in progress).</li>
+<li><code>logs-5</code>: 5 replicas with the dashboard logs panel open.</li>
+</ul>
+<p>Tips for consistency</p>
+<ul>
+<li>Use the same host and OS between runs; minimize background services.</li>
+<li>Keep ingress enabled or disabled across both systems for apples-to-apples.</li>
+<li>Allow a 2-minute warm-up before snapshotting busy scenarios.</li>
+<li>If Podman/Docker is not installed, snapshots still run but container-level cgroup metrics are skipped (process PSS totals are still reported).</li>
+<li>CI or advanced users can bypass safety checks by setting <code>SKIP_GUARDS=1</code> in the environment.</li>
+</ul>
+<p>OCI runtime note</p>
+<ul>
+<li>Using Podman (<code>AE_RUNTIME_BACKEND=podman</code>) typically reduces idle control‑plane footprint on long‑lived hosts compared to Docker. Keep the runtime consistent across runs when comparing results.</li>
+</ul>
+<p>Interpreting results</p>
+<ul>
+<li>Process PSS approximates unique+fair‑share memory for control‑plane processes.</li>
+<li>Container <code>memory.current</code> shows cgroup‑resident memory per container (includes cache); we split into app vs non‑app containers.</li>
+<li>Host system cgroups reflects only OS services under <code>system.slice</code> and <code>init.scope</code> (excludes user/container trees), summed over leaf cgroups to avoid double counting.</li>
+<li>Per‑pod app footprint (rough) ≈ app_container_bytes / pod_count.</li>
+<li>MemAvailable Δ validates totals at the kernel level: <code>delta = MemAvailable(before) − MemAvailable(after)</code> for the snapshot window. Small negatives are clamped to 0.</li>
+</ul>
+<p>Limitations</p>
+<ul>
+<li>cgroup paths vary across distros; the snapshotter falls back gracefully.</li>
+<li>If Docker is unavailable, container-level stats are skipped; process PSS is still reported.</li>
+<li>USS is approximated from <code>Private_*</code> in <code>smaps_rollup</code>.</li>
+</ul>
+<p>Caveats</p>
+<ul>
+<li>k3s (via k3d) enables Traefik by default; the provided Ingress uses class <code>traefik</code>. Keep ingress turned on in k1s for apples-to-apples, or disable both.</li>
+<li>The echo image <code>ealen/echo-server:0.7.0</code> serves <code>/</code> on port 80 and has a lightweight memory footprint suitable for baseline comparisons.</li>
+<li>If you prefer your demo image, push it to a registry and update <code>specs/examples/k3s-echo.yaml</code> accordingly.</li>
+</ul>
+<p>Automate a small matrix (k1s)</p>
+<ul>
+<li>Run idle + scale-out snapshots in one go (requires controller running and echo example available):</li>
+</ul>
+<pre><code>make bench-mem-matrix-k1s LABEL_SUITE=baseline APP=specs/examples/echo.yaml REPLICAS=1,5,10 DURATION=30</code></pre>
+<ul>
+<li>Combine all summaries into one CSV/JSON for charting:</li>
+</ul>
+<pre><code>make bench-mem-combine GLOB=&#x27;snapshots/*/*&#x27;</code></pre>
+<p>End-to-end (k1s one-liner)</p>
+<pre><code>make bench-mem-e2e-k1s LABEL_SUITE=baseline APP=specs/examples/echo.yaml REPLICAS=1,5,10 DURATION=30 ROLL_REPLICAS=5</code></pre>
+<p>This runs matrix + rollout, combines all summaries, and writes charts/.</p>
+<p>End-to-end (k1nd one-liner; compose must be up)</p>
+<pre><code>make bench-mem-e2e-k1nd LABEL_SUITE=baseline APP=specs/examples/echo.yaml REPLICAS=1,5,10 DURATION=30 ROLL_REPLICAS=5</code></pre>
+<ul>
+<li>Brings up the k1s-in-Docker dev stack (<code>labs-aio</code> compose) and then runs the same matrix + rollout sequence against that environment.</li>
+<li>Uses Docker for host-side preflights and container cgroup metrics; ensure the current user can run <code>docker ps</code>.</li>
+<li>Leave it running for repeated runs, or tear down with <code>make labs-aio-down</code> when done.</li>
+</ul>
+<p>End-to-end (k1nd with teardown)</p>
+<pre><code>make bench-mem-e2e-k1nd-down LABEL_SUITE=baseline APP=specs/examples/echo.yaml REPLICAS=1,5,10 DURATION=30 ROLL_REPLICAS=5</code></pre>
+<ul>
+<li>Runs the same k1nd sequence and then executes <code>make labs-aio-down</code> to stop the compose stack.</li>
+</ul>
+<p>End-to-end (all suites, automated prep)</p>
+<pre><code>make bench-mem-e2e-all DURATION=30 REPLICAS=1,5,10 ROLL_REPLICAS=5</code></pre>
+<ul>
+<li>Stops the dev/labs compose stacks, clones <code>specs/</code> into <code>state/bench-env/</code>, prunes every App manifest except the requested one (defaults to <code>specs/examples/echo.yaml</code>), and launches a dedicated controller against that sandbox.</li>
+<li>Runs k1s rootful (snapshots elevated), k1s rootless, and k1nd in one shot, then backfills OCI labels, recombines, regenerates charts, and rebuilds docs. Only the snapshot helpers call <code>sudo</code>; the top-level <code>make</code> runs as your user.</li>
+<li>Defaults: <code>OCI_RUNTIME=crun</code>, <code>AE_ENGINE_STRICT=1</code>, <code>AE_ALLOW_PLAINTEXT_SECRETS=1</code>, <code>PRUNE_OLD=1</code>. Override <code>LABEL_ROOTFUL</code>, <code>LABEL_ROOTLESS</code>, or <code>LABEL_K1ND</code> to tag the suites differently.</li>
+</ul>
+<p>Minimal smoke (rootful only)</p>
+<pre><code>make bench-mem-e2e-minimal DURATION=10 REPLICAS=1 ROLL_REPLICAS=2</code></pre>
+<ul>
+<li>Uses the same prep/teardown scripts but only runs the k1s rootful matrix (single replica) plus a tiny rollout. Handy while iterating on manifests or Podman tuning before committing to the full matrix.</li>
+</ul>
+<p>Backfill OCI runtime into past snapshots</p>
+<pre><code>make bench-mem-backfill-oci LABEL=r20251110+podman+rootless+cg2* REBUILD_DOCS=1</code></pre>
+<ul>
+<li>Detects the OCI runtime per-snapshot by reading <code>raw/podman_inspect.json</code> (<code>.OCIRuntime</code>) or <code>raw/docker_inspect.json</code> (<code>HostConfig.Runtime</code>), then writes it to <code>meta.json</code> and injects <code>+&lt;oci&gt;+</code> into the label (e.g., <code>+crun+</code>) without renaming folders.</li>
+<li>Then recombines and regenerates charts. Add <code>OCI=runc</code> to force an override if needed. Use <code>GLOB=&#x27;snapshots/r2025*/*&#x27;</code> to target explicit paths.</li>
+</ul>
+<p>Backfill just the latest label</p>
+<pre><code>make bench-mem-backfill-oci-latest REBUILD_DOCS=1</code></pre>
+<ul>
+<li>Picks the most recently modified label directory under <code>snapshots/</code> and runs the same backfill → recombine → charts (and docs) sequence. Pass <code>OCI=crun</code> to override detection if desired.</li>
+</ul>
+<p>Automate a small matrix (k3s via k3d)</p>
+<ul>
+<li>Create cluster and expose ports 80/443 for Traefik:</li>
+</ul>
+<pre><code>make bench-k3s-up K3S_NAME=bench</code></pre>
+<ul>
+<li>Run idle + scale-out snapshots using a simple echo Deployment/Service/Ingress:</li>
+</ul>
+<pre><code>make bench-mem-matrix-k3s LABEL_SUITE=baseline MANIFEST=specs/examples/k3s-echo.yaml REPLICAS=1,5,10 DURATION=30</code></pre>
+<ul>
+<li>Combine across runs:</li>
+</ul>
+<pre><code>make bench-mem-combine GLOB=&#x27;snapshots/*/*&#x27;</code></pre>
+<ul>
+<li>Tear down cluster when finished:</li>
+</ul>
+<pre><code>make bench-k3s-down K3S_NAME=bench</code></pre>
+<p>End-to-end (k3s one-liner; cluster must be up)</p>
+<pre><code>make bench-mem-e2e-k3s LABEL_SUITE=baseline MANIFEST=specs/examples/k3s-echo.yaml REPLICAS=1,5,10 DURATION=30 ROLL_REPLICAS=5</code></pre>
+<h2>Runbook: Successful Benchmark Runs</h2>
+<ul>
+<li>Environment
+<ul>
+<li><code>PYTHONPATH=src</code> in the shell running commands.</li>
+<li>Runtime backend: <code>AE_RUNTIME_BACKEND=podman</code> (preferred) or <code>docker</code>.</li>
+<li>Secrets (demo-friendly): set <code>AE_ALLOW_PLAINTEXT_SECRETS=1</code> unless SOPS is configured (or run <code>init_demo.sh --with-secrets-env</code>).</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Controller
+<ul>
+<li>Keep the controller running for the full duration:
+<ul>
+<li>Terminal A: <code>python -m ae.controller --loop --specs specs/ --watch</code></li>
+</ul>
+</li>
+<li>The bench scripts auto-start it if missing and log to <code>/tmp/k1s_ctrl_bench.log</code>, but a dedicated terminal is more predictable.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Images
+<ul>
+<li>Podman: <code>podman build -t localhost/demo-blue:latest samples/servers/blue</code> and <code>localhost/demo-green:latest samples/servers/green</code>.</li>
+<li>Docker: <code>docker build -t demo-blue:latest samples/servers/blue</code> and <code>demo-green:latest</code>.</li>
+<li>Verify: <code>podman images | rg &#x27;demo-(blue|green)&#x27;</code> or <code>docker images | rg &#x27;demo-(blue|green)&#x27;</code>.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Commands (Podman-first)
+<ul>
+<li>Terminal B:
+<ul>
+<li><code>export PYTHONPATH=src AE_RUNTIME_BACKEND=podman AE_ALLOW_PLAINTEXT_SECRETS=1</code> (or start with <code>./scripts/init_demo.sh --with-secrets-env</code>)</li>
+<li><code>make bench-mem-e2e-k1s LABEL_SUITE=report-YYYYMMDD APP=specs/examples/echo.yaml REPLICAS=1,5,10 DURATION=30 ROLL_REPLICAS=5</code></li>
+<li><code>python scripts/bench/mem_combine.py snapshots/*/*</code></li>
+<li><code>python scripts/bench/plot_overhead.py combined/combined.csv charts</code></li>
+<li><code>python docs/build_docs.py</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Docker fallback
+<ul>
+<li><code>export AE_RUNTIME_BACKEND=docker</code> and re-run the same commands.</li>
+<li>Ensure the current user can run <code>docker ps</code> without sudo (group membership or rootless config).</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Preflights and guardrails
+<ul>
+<li>Podman readiness: <code>podman info</code> must succeed. If not, try:
+<ul>
+<li><code>systemctl --user reset-failed; systemctl --user daemon-reload</code></li>
+<li><code>systemctl --user start podman.socket || systemctl --user start podman.service</code></li>
+<li><code>loginctl enable-linger &quot;$USER&quot;</code>; open a new login shell</li>
+<li><code>podman system migrate</code></li>
+</ul>
+</li>
+<li>Secrets guard: if <code>AE_ALLOW_PLAINTEXT_SECRETS!=1</code> and <code>sops</code> is missing or cannot decrypt, the scripts will fail fast with guidance.</li>
+<li>Logs: controller auto-start logs at <code>/tmp/k1s_ctrl_bench.log</code>.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>After run</li>
+<li>Combined table: <code>combined/combined.csv</code> and <code>combined/combined.json</code>.
+<ul>
+<li>Charts: <code>charts/control_plane_pss.png</code>, <code>charts/system_cgroups.png</code>, <code>charts/per_pod_overhead.png</code>.</li>
+</ul>
+</li>
+<li>Docs page <code>benchmarks.html</code> auto-appends a “Latest Benchmarks (Auto)” section from <code>combined/combined.csv</code>.</li>
+</ul>
+<h2>Automated Prep/Teardown</h2>
+<p>The helper scripts <code>scripts/bench/bench_env_prep.sh</code> and <code>scripts/bench/bench_env_teardown.sh</code> power both <code>make bench-mem-e2e-all</code> and <code>make bench-mem-e2e-minimal</code>:</p>
+<ul>
+<li>Prep copies <code>specs/</code> into <code>state/bench-env/specs/</code>, removes every App manifest except the allowlist, and leaves shared configs/secrets intact so relative <code>configRefs</code> still work.</li>
+<li>A dedicated controller (log + pid under <code>state/bench-env/</code>) watches only that sandbox, so background demos or labs can’t steal ports or replicas.</li>
+<li>The scripts set <code>AE_SPECS_DIR</code>, <code>AE_STATE_DB</code>, <code>AE_CADDY_DIR</code>, and the primary manifest/app name in an env file; each benchmark stage sources it before calling <code>run_matrix.sh</code>/<code>run_rollout_k1s.sh</code>.</li>
+<li>Teardown stops the sandbox controller and deletes <code>state/bench-env/</code> unless you set <code>BENCH_KEEP_ENV=1</code> to inspect artifacts.</li>
+<li>If rootful Podman containers with the <code>ae.app</code> label are still running, prep lists them and asks whether to remove them (set <code>BENCH_AUTOCLEAN_PODMAN=1</code> to auto-approve in CI, or <code>=0</code> to refuse). This prevents stray demos from holding ports like 18080.</li>
+<li>Ingress writes are disabled by default for benches (<code>BENCH_DISABLE_INGRESS=1</code>). Set <code>BENCH_DISABLE_INGRESS=0</code> if a scenario actually needs Caddy updates; otherwise the sandbox exports <code>AE_DISABLE_INGRESS=1</code> and skips writing to <code>ops/dev/caddy/*</code>, avoiding permission chatter.</li>
+</ul>
+<h2>All-in-one Run (sudo once)</h2>
+<p>Run k1s rootful, k1s rootless, and k1nd in one go and rebuild docs:</p>
+<pre><code>sudo make bench-mem-e2e-all DURATION=30 REPLICAS=1,5,10 ROLL_REPLICAS=5</code></pre>
+<p>Defaults: <code>OCI_RUNTIME=crun</code>, <code>AE_ENGINE_STRICT=1</code>, <code>AE_ALLOW_PLAINTEXT_SECRETS=1</code>, <code>PRUNE_OLD=1</code>.</p>
+<hr/>
+<h2>Latest Benchmarks (Auto)</h2>
+<p>Summarized from <code>combined/combined.csv</code> at build time. (k1s only)</p>
+<table border=1 cellpadding=6 cellspacing=0>
+<tr><th>Label</th><th>Mode</th><th>Timestamp</th><th>Ctrl‑Plane PSS (MiB)</th><th>App Cgroups (MiB)</th><th>Infra Cgroups (MiB)</th><th>Host System (MiB)</th><th>MemAvail Δ (MiB)</th></tr>
+<tr><td>r20251202+podman+crun+rootless+cg2-pods-1</td><td>k1s</td><td>20251202-135920</td><td style='text-align:right'>50.9</td><td style='text-align:right'>0.0</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1256.7</td><td style='text-align:right'>70.8</td></tr>
+<tr><td>r20251202+podman+crun+rootless+cg2-pods-5</td><td>k1s</td><td>20251202-140652</td><td style='text-align:right'>54.2</td><td style='text-align:right'>0.0</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1265.6</td><td style='text-align:right'>103.0</td></tr>
+<tr><td>r20251202+podman+crun+rootless+cg2-pods-10</td><td>k1s</td><td>20251202-141422</td><td style='text-align:right'>54.3</td><td style='text-align:right'>0.0</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1272.8</td><td style='text-align:right'>315.5</td></tr>
+<tr><td>baseline-rollout-2-during</td><td>k1s</td><td>20251202-141508</td><td style='text-align:right'>54.3</td><td style='text-align:right'>0.0</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1273.4</td><td style='text-align:right'>202.6</td></tr>
+<tr><td>baseline-rollout-2-post</td><td>k1s</td><td>20251202-142017</td><td style='text-align:right'>54.3</td><td style='text-align:right'>0.0</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1280.1</td><td style='text-align:right'>258.0</td></tr>
+<tr><td>r20251202+podman+crun+priv+cg2-rollout-2-during</td><td>k1s</td><td>20251202-150629</td><td style='text-align:right'>73.0</td><td style='text-align:right'>143.6</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1309.1</td><td style='text-align:right'>148.3</td></tr>
+<tr><td>r20251202+podman+crun+priv+cg2-rollout-2-during</td><td>k1s</td><td>20251202-151203</td><td style='text-align:right'>76.9</td><td style='text-align:right'>61.7</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1319.9</td><td style='text-align:right'>24.1</td></tr>
+<tr><td>r20251202+podman+crun+priv+cg2-rollout-2-post</td><td>k1s</td><td>20251202-151737</td><td style='text-align:right'>77.0</td><td style='text-align:right'>61.8</td><td style='text-align:right'>0.0</td><td style='text-align:right'>1323.8</td><td style='text-align:right'>184.1</td></tr>
+</table>
+<style>table.mini td, table.mini th { border:1px solid var(--border); padding:6px; }</style>
+<h2>Latest Comparison Matrix</h2>
+<style> .pill { display:inline-block; padding:4px 10px; border:1px solid var(--border); border-radius:999px; margin-right:8px; } .pill.win { background:#144d2a; color:#fff; border-color:#1f6f3e; } .pill.place2 { background:#4d4a14; color:#fff; border-color:#6f6a1f; } .pill.place3 { background:#4d2b14; color:#fff; border-color:#6f3f1f; } .pill.dim { opacity:.7; } .band { margin:6px 0 12px 0 }</style>
+<div class='band'><strong>Overall Ranking:</strong> <span class='pill win' title='comparisons:32 coverage:100%'> k1nd <span style='opacity:.85'>&nbsp;(22)</span></span><span class='pill place2' title='comparisons:32 coverage:100%'> k1s rootless <span style='opacity:.85'>&nbsp;(34)</span></span><span class='pill place3' title='comparisons:32 coverage:100%'> k1s rootful <span style='opacity:.85'>&nbsp;(36)</span></span><span class='pill dim' title='comparisons:32 coverage:100%'> k3d <span style='opacity:.85'>&nbsp;(62)</span></span></div>
+<h3>Control Plane PSS (MiB) — lower is better</h3><table class='mini' style='border-collapse:collapse;width:100%'><thead><tr><th>Stage</th><th>k1nd</th><th>k1s rootless</th><th>k1s rootful</th><th>k3d</th></tr></thead><tbody><tr><td>idle</td><td style='text-align:right;background:hsl(109,60%,25%); color:#fff'>90.3</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>48.6</td><td style='text-align:right;background:hsl(115,60%,25%); color:#fff'>64.4</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>515.9</td></tr><tr><td>pods-1</td><td style='text-align:right;background:hsl(110,60%,25%); color:#fff'>89.7</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>50.9</td><td style='text-align:right;background:hsl(116,60%,25%); color:#fff'>64.5</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>517.1</td></tr><tr><td>pods-10</td><td style='text-align:right;background:hsl(107,60%,25%); color:#fff'>94.8</td><td style='text-align:right;background:hsl(117,60%,25%); color:#fff'>54.3</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>43.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>526.5</td></tr><tr><td>pods-5</td><td style='text-align:right;background:hsl(110,60%,25%); color:#fff'>89.8</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>54.2</td><td style='text-align:right;background:hsl(115,60%,25%); color:#fff'>71.4</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>522.9</td></tr><tr><td>rollout-2-during</td><td style='text-align:right;background:hsl(94,60%,25%); color:#fff'>144.3</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>45.3</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>76.9</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>514.1</td></tr><tr><td>rollout-2-post</td><td style='text-align:right;background:hsl(94,60%,25%); color:#fff'>144.4</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>45.3</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>77.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>514.3</td></tr><tr><td>rollout-5-during</td><td style='text-align:right;background:hsl(110,60%,25%); color:#fff'>90.0</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>51.3</td><td style='text-align:right;background:hsl(104,60%,25%); color:#fff'>116.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>541.4</td></tr><tr><td>rollout-5-post</td><td style='text-align:right;background:hsl(110,60%,25%); color:#fff'>90.0</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>51.4</td><td style='text-align:right;background:hsl(104,60%,25%); color:#fff'>116.3</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>543.6</td></tr></tbody></table>
+<h3>App Cgroups (MiB) — lower is better</h3><table class='mini' style='border-collapse:collapse;width:100%'><thead><tr><th>Stage</th><th>k1nd</th><th>k1s rootless</th><th>k1s rootful</th><th>k3d</th></tr></thead><tbody><tr><td>idle</td><td style='text-align:right;background:hsl(107,60%,25%); color:#fff'>32.5</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>304.3</td><td style='text-align:right;background:hsl(84,60%,25%); color:#fff'>91.1</td></tr><tr><td>pods-1</td><td style='text-align:right;background:hsl(103,60%,25%); color:#fff'>48.9</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>354.4</td><td style='text-align:right;background:hsl(82,60%,25%); color:#fff'>110.0</td></tr><tr><td>pods-10</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>710.7</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(75,60%,25%); color:#fff'>264.3</td><td style='text-align:right;background:hsl(71,60%,25%); color:#fff'>289.7</td></tr><tr><td>pods-5</td><td style='text-align:right;background:hsl(83,60%,25%); color:#fff'>131.1</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>429.4</td><td style='text-align:right;background:hsl(66,60%,25%); color:#fff'>193.1</td></tr><tr><td>rollout-2-during</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>217.0</td><td style='text-align:right;background:hsl(85,60%,25%); color:#fff'>61.7</td><td style='text-align:right;background:hsl(52,60%,25%); color:#fff'>122.7</td></tr><tr><td>rollout-2-post</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>0.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>218.9</td><td style='text-align:right;background:hsl(86,60%,25%); color:#fff'>61.8</td><td style='text-align:right;background:hsl(52,60%,25%); color:#fff'>122.5</td></tr><tr><td>rollout-5-during</td><td style='text-align:right;background:hsl(89,60%,25%); color:#fff'>203.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>290.6</td><td style='text-align:right;background:hsl(17,60%,25%); color:#fff'>273.9</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>174.5</td></tr><tr><td>rollout-5-post</td><td style='text-align:right;background:hsl(94,60%,25%); color:#fff'>203.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>290.6</td><td style='text-align:right;background:hsl(18,60%,25%); color:#fff'>273.9</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>180.5</td></tr></tbody></table>
+<h3>Host System Cgroups (MiB) — lower is better</h3><table class='mini' style='border-collapse:collapse;width:100%'><thead><tr><th>Stage</th><th>k1nd</th><th>k1s rootless</th><th>k1s rootful</th><th>k3d</th></tr></thead><tbody><tr><td>idle</td><td style='text-align:right;background:hsl(67,60%,25%); color:#fff'>1865.3</td><td style='text-align:right;background:hsl(105,60%,25%); color:#fff'>1257.4</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1018.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>2943.7</td></tr><tr><td>pods-1</td><td style='text-align:right;background:hsl(70,60%,25%); color:#fff'>1897.6</td><td style='text-align:right;background:hsl(106,60%,25%); color:#fff'>1256.7</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1018.8</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>3162.2</td></tr><tr><td>pods-10</td><td style='text-align:right;background:hsl(114,60%,25%); color:#fff'>1372.6</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1272.8</td><td style='text-align:right;background:hsl(114,60%,25%); color:#fff'>1372.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>3588.8</td></tr><tr><td>pods-5</td><td style='text-align:right;background:hsl(69,60%,25%); color:#fff'>2046.2</td><td style='text-align:right;background:hsl(108,60%,25%); color:#fff'>1265.6</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1027.4</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>3470.3</td></tr><tr><td>rollout-2-during</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>1606.6</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>1607.4</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1319.9</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>5493.2</td></tr><tr><td>rollout-2-post</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>1606.9</td><td style='text-align:right;background:hsl(111,60%,25%); color:#fff'>1606.9</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1323.8</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>5493.9</td></tr><tr><td>rollout-5-during</td><td style='text-align:right;background:hsl(80,60%,25%); color:#fff'>2195.7</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1372.8</td><td style='text-align:right;background:hsl(119,60%,25%); color:#fff'>1373.5</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>3862.4</td></tr><tr><td>rollout-5-post</td><td style='text-align:right;background:hsl(80,60%,25%); color:#fff'>2185.7</td><td style='text-align:right;background:hsl(119,60%,25%); color:#fff'>1373.0</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>1372.9</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>3860.2</td></tr></tbody></table>
+<h3>MemAvail Δ (MiB) — lower is better</h3><table class='mini' style='border-collapse:collapse;width:100%'><thead><tr><th>Stage</th><th>k1nd</th><th>k1s rootless</th><th>k1s rootful</th><th>k3d</th></tr></thead><tbody><tr><td>idle</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>48.1</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>483.5</td><td style='text-align:right;background:hsl(87,60%,25%); color:#fff'>167.4</td><td style='text-align:right;background:hsl(102,60%,25%); color:#fff'>110.1</td></tr><tr><td>pods-1</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>33.4</td><td style='text-align:right;background:hsl(37,60%,25%); color:#fff'>70.8</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>87.8</td><td style='text-align:right;background:hsl(105,60%,25%); color:#fff'>40.0</td></tr><tr><td>pods-10</td><td style='text-align:right;background:hsl(108,60%,25%); color:#fff'>58.8</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>315.5</td><td style='text-align:right;background:hsl(5,60%,25%); color:#fff'>302.9</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>32.8</td></tr><tr><td>pods-5</td><td style='text-align:right;background:hsl(119,60%,25%); color:#fff'>10.5</td><td style='text-align:right;background:hsl(94,60%,25%); color:#fff'>103.0</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>453.8</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>8.8</td></tr><tr><td>rollout-2-during</td><td style='text-align:right;background:hsl(48,60%,25%); color:#fff'>82.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>122.6</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>24.1</td><td style='text-align:right;background:hsl(13,60%,25%); color:#fff'>111.9</td></tr><tr><td>rollout-2-post</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>202.7</td><td style='text-align:right;background:hsl(43,60%,25%); color:#fff'>139.2</td><td style='text-align:right;background:hsl(12,60%,25%); color:#fff'>184.1</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>27.9</td></tr><tr><td>rollout-5-during</td><td style='text-align:right;background:hsl(81,60%,25%); color:#fff'>68.7</td><td style='text-align:right;background:hsl(8,60%,25%); color:#fff'>178.6</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>191.2</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>11.8</td></tr><tr><td>rollout-5-post</td><td style='text-align:right;background:hsl(120,60%,25%); color:#fff'>54.8</td><td style='text-align:right;background:hsl(0,60%,25%); color:#fff'>300.9</td><td style='text-align:right;background:hsl(103,60%,25%); color:#fff'>88.7</td><td style='text-align:right;background:hsl(117,60%,25%); color:#fff'>59.9</td></tr></tbody></table>
+<h2>Charts</h2><h3>Control‑plane PSS — Timeline (k3s)</h3><img src='charts/control_plane_pss_k3d.png' alt='Control‑plane PSS — Timeline (k3s)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control‑plane PSS — Timeline (k1s rootless)</h3><img src='charts/control_plane_pss_k1s_rootless.png' alt='Control‑plane PSS — Timeline (k1s rootless)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control‑plane PSS — Timeline (k1s rootful)</h3><img src='charts/control_plane_pss_k1s_rootful.png' alt='Control‑plane PSS — Timeline (k1s rootful)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control‑plane PSS — Timeline (k1nd)</h3><img src='charts/control_plane_pss_k1nd.png' alt='Control‑plane PSS — Timeline (k1nd)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>System Cgroups — Timeline (k3s)</h3><img src='charts/system_cgroups_k3d.png' alt='System Cgroups — Timeline (k3s)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>System Cgroups — Timeline (k1s rootless)</h3><img src='charts/system_cgroups_k1s_rootless.png' alt='System Cgroups — Timeline (k1s rootless)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>System Cgroups — Timeline (k1s rootful)</h3><img src='charts/system_cgroups_k1s_rootful.png' alt='System Cgroups — Timeline (k1s rootful)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>System Cgroups — Timeline (k1nd)</h3><img src='charts/system_cgroups_k1nd.png' alt='System Cgroups — Timeline (k1nd)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Per‑Pod Overhead (MiB)</h3><img src='charts/per_pod_overhead.png' alt='Per‑Pod Overhead (MiB)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Per‑Pod Scaling (MiB)</h3><img src='charts/per_pod_scaling.png' alt='Per‑Pod Scaling (MiB)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Rollout During vs Post (CP PSS)</h3><img src='charts/rollout_pairs.png' alt='Rollout During vs Post (CP PSS)' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Latest Comparison Heatmap</h3><img src='charts/matrix_heatmap.png' alt='Latest Comparison Heatmap' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Pods-1</h3><img src='charts/comparison_memavail_delta_pods-1.png' alt='Memavail Delta Pods-1' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Rollout-5-During</h3><img src='charts/comparison_host_system_cgroups_rollout-5-during.png' alt='Host System Cgroups Rollout-5-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Idle</h3><img src='charts/comparison_control_plane_pss_idle.png' alt='Control Plane Pss Idle' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Pods-5</h3><img src='charts/comparison_app_cgroups_pods-5.png' alt='App Cgroups Pods-5' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Rollout-2-Post</h3><img src='charts/comparison_memavail_delta_rollout-2-post.png' alt='Memavail Delta Rollout-2-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Idle</h3><img src='charts/comparison_memavail_delta_idle.png' alt='Memavail Delta Idle' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Rollout-5-During</h3><img src='charts/comparison_app_cgroups_rollout-5-during.png' alt='App Cgroups Rollout-5-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Rollout-5-During</h3><img src='charts/comparison_control_plane_pss_rollout-5-during.png' alt='Control Plane Pss Rollout-5-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Pods-10</h3><img src='charts/comparison_app_cgroups_pods-10.png' alt='App Cgroups Pods-10' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Idle</h3><img src='charts/comparison_host_system_cgroups_idle.png' alt='Host System Cgroups Idle' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Rollout-2-Post</h3><img src='charts/comparison_app_cgroups_rollout-2-post.png' alt='App Cgroups Rollout-2-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Rollout-2-During</h3><img src='charts/comparison_host_system_cgroups_rollout-2-during.png' alt='Host System Cgroups Rollout-2-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Rollout-2-Post</h3><img src='charts/comparison_host_system_cgroups_rollout-2-post.png' alt='Host System Cgroups Rollout-2-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Rollout-5-Post</h3><img src='charts/comparison_app_cgroups_rollout-5-post.png' alt='App Cgroups Rollout-5-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Pods-5</h3><img src='charts/comparison_control_plane_pss_pods-5.png' alt='Control Plane Pss Pods-5' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Pods-1</h3><img src='charts/comparison_host_system_cgroups_pods-1.png' alt='Host System Cgroups Pods-1' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Pods-1</h3><img src='charts/comparison_control_plane_pss_pods-1.png' alt='Control Plane Pss Pods-1' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Pods-10</h3><img src='charts/comparison_host_system_cgroups_pods-10.png' alt='Host System Cgroups Pods-10' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Pods-1</h3><img src='charts/comparison_app_cgroups_pods-1.png' alt='App Cgroups Pods-1' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Pods-10</h3><img src='charts/comparison_control_plane_pss_pods-10.png' alt='Control Plane Pss Pods-10' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Idle</h3><img src='charts/comparison_app_cgroups_idle.png' alt='App Cgroups Idle' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Rollout-2-During</h3><img src='charts/comparison_control_plane_pss_rollout-2-during.png' alt='Control Plane Pss Rollout-2-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Rollout-2-During</h3><img src='charts/comparison_memavail_delta_rollout-2-during.png' alt='Memavail Delta Rollout-2-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Rollout-5-Post</h3><img src='charts/comparison_control_plane_pss_rollout-5-post.png' alt='Control Plane Pss Rollout-5-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Pods-10</h3><img src='charts/comparison_memavail_delta_pods-10.png' alt='Memavail Delta Pods-10' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Control Plane Pss Rollout-2-Post</h3><img src='charts/comparison_control_plane_pss_rollout-2-post.png' alt='Control Plane Pss Rollout-2-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Pods-5</h3><img src='charts/comparison_host_system_cgroups_pods-5.png' alt='Host System Cgroups Pods-5' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Host System Cgroups Rollout-5-Post</h3><img src='charts/comparison_host_system_cgroups_rollout-5-post.png' alt='Host System Cgroups Rollout-5-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>App Cgroups Rollout-2-During</h3><img src='charts/comparison_app_cgroups_rollout-2-during.png' alt='App Cgroups Rollout-2-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Rollout-5-During</h3><img src='charts/comparison_memavail_delta_rollout-5-during.png' alt='Memavail Delta Rollout-5-During' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Rollout-5-Post</h3><img src='charts/comparison_memavail_delta_rollout-5-post.png' alt='Memavail Delta Rollout-5-Post' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/><h3>Memavail Delta Pods-5</h3><img src='charts/comparison_memavail_delta_pods-5.png' alt='Memavail Delta Pods-5' style='max-width:100%;height:auto;border:1px solid var(--border);margin:8px 0'/>
+    </div>
+    <footer class="site-footer">
+      <div class="container inner">
+        <span>k1s Documentation</span>
+        <span class="spacer"></span>
+
+        <span>Built 2026-01-20 18:39:18</span>
+      </div>
+    </footer>
+
+  </body>
+</html>

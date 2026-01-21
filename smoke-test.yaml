@@ -13,6 +13,11 @@ parallaxPush: "10vh"
 assets: static-sitegen/assets
 templates: static-sitegen/templates
 
+staticDocs:
+  - path: static-docs-k1s
+    basename: k1s
+    label: K1S Docs
+
 pages:
   - title: Git
     slug: git

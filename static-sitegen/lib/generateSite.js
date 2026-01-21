@@ -71,6 +71,18 @@ const DEFAULT_TEMPLATE = `
 
 const DEFAULT_LICENSE_FILE_NAME = 'LICENSE';
 const DEFAULT_LICENSE_MATCH_NAMES = ['license', 'license.txt', 'license.md', 'license.markdown'];
+const STATIC_DOCS_BASENAME_PATTERN = /^[a-z0-9-]+$/;
+const RESERVED_STATIC_DOCS_BASENAMES = new Set([
+  'assets',
+  'sections',
+  'static',
+  'blog',
+  'fragments',
+  'index.html',
+  'sitemap.html',
+  'robots.txt',
+  'site.webmanifest'
+]);
 
 function buildDefaultMitLicense(holder) {
   const year = new Date().getFullYear();
@@ -341,6 +353,117 @@ function parseBooleanFlag(value) {
     }
   }
   return null;
+}
+
+function normalizeStaticDocsConfig(staticDocs) {
+  if (staticDocs === undefined || staticDocs === null) {
+    return [];
+  }
+  if (!Array.isArray(staticDocs)) {
+    throw new Error('staticDocs must be an array');
+  }
+  const normalized = [];
+  const seenBasenames = new Set();
+  staticDocs.forEach((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      throw new Error(`staticDocs[${index}] must be an object`);
+    }
+    const rawPath = typeof entry.path === 'string' ? entry.path.trim() : '';
+    const rawBasename = typeof entry.basename === 'string' ? entry.basename.trim() : '';
+    if (!rawPath) {
+      throw new Error(`staticDocs[${index}] missing required field: path`);
+    }
+    if (!rawBasename) {
+      throw new Error(`staticDocs[${index}] missing required field: basename`);
+    }
+    if (!STATIC_DOCS_BASENAME_PATTERN.test(rawBasename)) {
+      throw new Error(`staticDocs[${index}] basename "${rawBasename}" must match ${STATIC_DOCS_BASENAME_PATTERN}`);
+    }
+    if (RESERVED_STATIC_DOCS_BASENAMES.has(rawBasename)) {
+      throw new Error(`staticDocs[${index}] basename "${rawBasename}" is reserved`);
+    }
+    if (seenBasenames.has(rawBasename)) {
+      throw new Error(`staticDocs basename "${rawBasename}" is duplicated`);
+    }
+    seenBasenames.add(rawBasename);
+    const label = typeof entry.label === 'string' && entry.label.trim() ? entry.label.trim() : null;
+    const includeInSitemapFlag = parseBooleanFlag(entry.includeInSitemap);
+    const includeInSitemap = includeInSitemapFlag === null ? false : includeInSitemapFlag;
+    normalized.push({
+      ...entry,
+      path: rawPath,
+      basename: rawBasename,
+      label,
+      includeInSitemap
+    });
+  });
+  return normalized;
+}
+
+function appendStaticDocsNavLinks(siteConfig, staticDocs) {
+  if (!staticDocs || staticDocs.length === 0) {
+    return siteConfig;
+  }
+  const docsWithLabels = staticDocs.filter(doc => doc.label);
+  if (docsWithLabels.length === 0) {
+    return siteConfig;
+  }
+  const header = { ...(siteConfig.header || {}) };
+  const existingLinks = Array.isArray(header.links) ? [...header.links] : [];
+  const existingHrefs = new Set(existingLinks.map(link => (link && link.href ? link.href : '')));
+  const appendedLinks = docsWithLabels
+    .map(doc => ({ label: doc.label, href: `${doc.basename}/index.html` }))
+    .filter(link => !existingHrefs.has(link.href));
+  if (appendedLinks.length === 0) {
+    return siteConfig;
+  }
+  header.links = [...existingLinks, ...appendedLinks];
+  return { ...siteConfig, header };
+}
+
+function isPathInside(parentPath, candidatePath) {
+  const relative = path.relative(parentPath, candidatePath);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+async function copyStaticDocs(staticDocs, outputDir, verbose = false) {
+  if (!staticDocs || staticDocs.length === 0) {
+    return [];
+  }
+  const outputRoot = path.resolve(outputDir);
+  const copied = [];
+
+  for (const doc of staticDocs) {
+    const sourcePath = path.resolve(process.cwd(), doc.path);
+    if (isPathInside(outputRoot, sourcePath)) {
+      throw new Error(`staticDocs path "${doc.path}" must not be inside the output directory`);
+    }
+    let stats;
+    try {
+      stats = await fs.stat(sourcePath);
+    } catch (error) {
+      throw new Error(`staticDocs path "${doc.path}" does not exist`);
+    }
+    if (!stats.isDirectory()) {
+      throw new Error(`staticDocs path "${doc.path}" must be a directory`);
+    }
+
+    const indexPath = path.join(sourcePath, 'index.html');
+    try {
+      await fs.access(indexPath);
+    } catch {
+      console.warn(`Warning: static docs export at ${doc.path} is missing index.html`);
+    }
+
+    const destination = path.join(outputRoot, doc.basename);
+    if (verbose) {
+      console.log(`Copying static docs: ${sourcePath} -> ${destination}`);
+    }
+    await copyDirRecursive(sourcePath, destination, verbose);
+    copied.push({ ...doc, sourcePath, outputPath: destination });
+  }
+
+  return copied;
 }
 
 function normalizeStringArray(value) {
@@ -1360,7 +1483,10 @@ function slugFromFilename(filename) {
  * @returns {Object} Result object
  */
 export async function generateSite(config, outputDir, verbose = false) {
-  const updatedConfig = ensureCssIsLoaded(config);
+  let updatedConfig = ensureCssIsLoaded(config);
+  const normalizedStaticDocs = normalizeStaticDocsConfig(updatedConfig.staticDocs);
+  updatedConfig = appendStaticDocsNavLinks(updatedConfig, normalizedStaticDocs);
+  updatedConfig.staticDocs = normalizedStaticDocs;
 
   try {
     // Clean and create output directory
@@ -1388,6 +1514,8 @@ export async function generateSite(config, outputDir, verbose = false) {
         // File doesn't exist, skip
       }
     }
+
+    await copyStaticDocs(normalizedStaticDocs, outputDir, verbose);
     
     // Create a mapping of section IDs for navigation
     const sectionMap = {};
@@ -1502,6 +1630,8 @@ export async function generateSite(config, outputDir, verbose = false) {
       }
       pages.push(...updatedConfig.sections.map(s => `sections/${s.id}.html`));
     }
+
+    const staticDocsForSitemap = normalizedStaticDocs.filter(doc => doc.includeInSitemap);
     
     // Generate sitemap content with proper links and descriptions
     const sitemapContent = `
@@ -1520,6 +1650,10 @@ export async function generateSite(config, outputDir, verbose = false) {
         ${updatedConfig.sections ? updatedConfig.sections.map(s => 
           `<li><a href="sections/${s.id}.html">${s.heading || s.id}</a></li>`
         ).join('\n') : ''}
+        ${staticDocsForSitemap.length > 0 ? `
+          <li><strong>Docs:</strong></li>
+          ${staticDocsForSitemap.map(doc => `<li><a href="${doc.basename}/index.html">${doc.label || doc.basename}</a></li>`).join('\n')}
+        ` : ''}
       </ul>`;
 
     await generatePage({
