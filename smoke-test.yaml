@@ -236,8 +236,7 @@ blog:
     heroTitle: "Chaos & Majesty Journal"
     heroTagline: "Dispatches from the underground console"
     intro: |
-      Terminal-born perspectives on building the experience.
-      Read the latest dispatches from Chaos and Majesty without leaving the console.
+      Terminal-born perspectives on architecting the experience.
     useCmHead: true
     useCmFooter: true
     cmImage: "assets/static/img/bunny-punx.webp"
