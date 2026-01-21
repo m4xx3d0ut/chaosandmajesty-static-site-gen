@@ -8,19 +8,19 @@
 
 /* === Home layout (RSS widget + console) === */
 .home-page .home-hero-slab {
-  padding: clamp(2rem, 4vw, 2.6rem) clamp(1.5rem, 3vw, 2.6rem);
+  padding: clamp(1.2rem, 2.6vw, 1.8rem) clamp(1.5rem, 3vw, 2.6rem);
 }
 
 .home-hero-stack {
   display: grid;
-  gap: 1.5rem;
+  gap: 0.35rem;
   justify-items: center;
 }
 
 .home-hero-text h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.8vw, 3rem);
-  letter-spacing: 0.08em;
+  font-size: calc(clamp(2.1rem, 4.2vw, 3.2rem) + 2px);
+  letter-spacing: 0.26em;
   margin-bottom: 0.5rem;
   color: var(--blog-accent);
   text-transform: uppercase;
@@ -29,6 +29,7 @@
 .home-hero-text p {
   font-family: var(--font-heading);
   font-size: clamp(1rem, 2vw, 1.25rem);
+  letter-spacing: 0.26em;
   color: rgba(150, 255, 200, 0.82);
   margin: 0;
 }
@@ -1800,7 +1801,7 @@ body.contrast-mode .blog-permalink-button.is-error {
 }
 #tagline {
   text-align: center;
-  margin-bottom: 1.2em;
+  margin-bottom: 0.2em;
   color: #66ff00;
   font-size: 2em;
   opacity: 0.85;
@@ -2240,7 +2241,7 @@ body > footer {
   height: 220px;
   position: relative;
   z-index: 1;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2251,6 +2252,8 @@ body > footer {
   max-height: 100%;
   display: block;
   margin: 0 auto;
+  transform: translateY(12%);
+  transform-origin: center;
 }
 
 .cm-logo-interactive {
