@@ -1964,6 +1964,29 @@
   var TERMINAL_INITIAL_SPEED = 75;
   var tSpeed = TERMINAL_INITIAL_SPEED;
   var terminalTimeoutId = null;
+  var terminalActiveOutput = null;
+  var terminalSuppressEnter = false;
+  var terminalAutocompleteSeed = '';
+  var terminalAutocompleteMatches = [];
+  var terminalAutocompleteIndex = 0;
+  var TERMINAL_AUTOCOMPLETE_COMMANDS = [
+      'help',
+      '?',
+      'latest',
+      'top',
+      'search',
+      'random',
+      'profile',
+      'play doom',
+      'exit doom',
+      'clear',
+      'clear doom',
+      'clear doom all',
+      'theme',
+      'theme contrast',
+      'theme 1337',
+      'theme toggle'
+  ];
   String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g, "");
   };
@@ -3546,6 +3569,47 @@
       }
   }
 
+  function completeTerminalPlayback() {
+      var msgOut = terminalActiveOutput;
+      if (!msgOut || !msgOut.length) {
+          return false;
+      }
+      var term = document.getElementById("tOut");
+      if (!term) {
+          return false;
+      }
+      cancelTerminalPlayback();
+      allowIn = false;
+      for (var idx = elementId; idx < msgOut.length; idx += 1) {
+          var msg = msgOut[idx];
+          if (msg === undefined) {
+              break;
+          }
+          var startAt = (idx === elementId) ? i : 0;
+          if (startAt < msg.length) {
+              term.innerHTML += msg.slice(startAt);
+          }
+          if (msg === 'Email: ' || msg === 'LinkedIn: ' || msg === 'Read: ') {
+              var a = document.createElement('a');
+              var link = document.createTextNode(msgOut[idx + 2]);
+              a.appendChild(link);
+              a.title = msgOut[idx + 2];
+              a.href = msgOut[idx + 1];
+              a.target = '_blank';
+              term.append(a);
+              idx += 2;
+          }
+          term.innerHTML += '<br>$ ';
+      }
+      scrollTerm(term);
+      persistTerminalBuffer(term);
+      elementId = 0;
+      i = 0;
+      allowIn = true;
+      terminalActiveOutput = null;
+      return true;
+  }
+
   function resetTerminalSession() {
       var termIn = document.getElementById('uIn');
       if (termIn) {
@@ -3563,6 +3627,7 @@
       elementId = 0;
       i = 0;
       allowIn = true;
+      terminalActiveOutput = null;
       tSpeed = TERMINAL_INITIAL_SPEED;
       clearTerminal();
       terminal(hello);
@@ -3603,6 +3668,69 @@
               inputEl.setSelectionRange(caretPos, caretPos);
           }
       }
+  }
+
+  function resetTerminalAutocomplete() {
+      terminalAutocompleteSeed = '';
+      terminalAutocompleteMatches = [];
+      terminalAutocompleteIndex = 0;
+  }
+
+  function applyTerminalAutocomplete(inputEl, reverse) {
+      if (!inputEl) {
+          return false;
+      }
+      var currentValue = inputEl.value || '';
+      var trimmed = currentValue.trim();
+      if (!trimmed) {
+          resetTerminalAutocomplete();
+          return false;
+      }
+      var lower = trimmed.toLowerCase();
+      var isSameSeed = terminalAutocompleteSeed &&
+          terminalAutocompleteSeed.toLowerCase() === lower &&
+          terminalAutocompleteMatches.length;
+
+      if (!isSameSeed) {
+          terminalAutocompleteSeed = trimmed;
+          terminalAutocompleteMatches = TERMINAL_AUTOCOMPLETE_COMMANDS.filter(function(cmd) {
+              return cmd.indexOf(lower) === 0;
+          });
+          terminalAutocompleteIndex = reverse ? terminalAutocompleteMatches.length - 1 : 0;
+      } else {
+          if (reverse) {
+              terminalAutocompleteIndex -= 1;
+          } else {
+              terminalAutocompleteIndex += 1;
+          }
+      }
+
+      if (!terminalAutocompleteMatches.length) {
+          resetTerminalAutocomplete();
+          return false;
+      }
+
+      if (terminalAutocompleteIndex < 0) {
+          terminalAutocompleteIndex = terminalAutocompleteMatches.length - 1;
+      }
+      if (terminalAutocompleteIndex >= terminalAutocompleteMatches.length) {
+          terminalAutocompleteIndex = 0;
+      }
+
+      var choice = terminalAutocompleteMatches[terminalAutocompleteIndex];
+      var shouldSpace = (choice === 'latest' ||
+          choice === 'top' ||
+          choice === 'search' ||
+          choice === 'random' ||
+          choice === 'profile' ||
+          choice === 'theme' ||
+          choice === 'clear doom');
+      inputEl.value = shouldSpace ? choice + ' ' : choice;
+      var caret = inputEl.value.length;
+      if (typeof inputEl.setSelectionRange === 'function') {
+          inputEl.setSelectionRange(caret, caret);
+      }
+      return true;
   }
 
   function setThemePreference(mode) {
@@ -3824,10 +3952,16 @@
           clearTimeout(terminalTimeoutId);
           terminalTimeoutId = null;
       }
-      var msg = msgOut[elementId];
-      if (msg === undefined) {
+      if (!msgOut || !msgOut.length) {
+          terminalActiveOutput = null;
           return;
       }
+      var msg = msgOut[elementId];
+      if (msg === undefined) {
+          terminalActiveOutput = null;
+          return;
+      }
+      terminalActiveOutput = msgOut;
       allowIn = false;
       var msgLen = msg.length;
       if (i < msg.length) {
@@ -3860,6 +3994,7 @@
           elementId = 0;
           allowIn = true;
           terminalTimeoutId = null;
+          terminalActiveOutput = null;
       }
   }
 
@@ -3909,13 +4044,38 @@
               if (e.key === 'ArrowUp') {
                   e.preventDefault();
                   navigateHistory(-1, termIn);
+                  resetTerminalAutocomplete();
               } else if (e.key === 'ArrowDown') {
                   e.preventDefault();
                   navigateHistory(1, termIn);
+                  resetTerminalAutocomplete();
+              } else if (e.key === 'Enter') {
+                  if (!allowIn) {
+                      e.preventDefault();
+                      terminalSuppressEnter = true;
+                      completeTerminalPlayback();
+                  }
+                  resetTerminalAutocomplete();
+              } else if (e.key === 'Tab') {
+                  if (!allowIn) {
+                      return;
+                  }
+                  e.preventDefault();
+                  applyTerminalAutocomplete(termIn, !!e.shiftKey);
+              } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === ' ' || e.key === 'Spacebar') {
+                  resetTerminalAutocomplete();
+              } else if (e.key && e.key.length === 1) {
+                  resetTerminalAutocomplete();
               }
           });
 
           termIn.addEventListener('keyup', function(e) {
+              if ((e.key === 'Enter' || e.which === 13)) {
+                  if (terminalSuppressEnter) {
+                      terminalSuppressEnter = false;
+                      return;
+                  }
+              }
               if ((e.key === 'Enter' || e.which === 13) && allowIn) {
                   var cli = e.target.value;
                   recordCommand(cli);
@@ -3923,6 +4083,7 @@
                   checkIn(cli);
                   e.target.value = "";
                   applyContrastPreference(window.localStorage.getItem(CONTRAST_KEY) || 'soft');
+                  resetTerminalAutocomplete();
               }
           });
 
