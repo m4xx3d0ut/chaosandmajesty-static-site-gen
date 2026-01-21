@@ -83,6 +83,8 @@ const RESERVED_STATIC_DOCS_BASENAMES = new Set([
   'robots.txt',
   'site.webmanifest'
 ]);
+const STATIC_DOCS_HOME_STYLE_MARKER = '<!-- cm-static-docs-home-style -->';
+const STATIC_DOCS_HOME_LINK_MARKER = '<!-- cm-static-docs-home-link -->';
 
 function buildDefaultMitLicense(holder) {
   const year = new Date().getFullYear();
@@ -464,6 +466,137 @@ async function copyStaticDocs(staticDocs, outputDir, verbose = false) {
   }
 
   return copied;
+}
+
+async function listHtmlFiles(rootDir) {
+  const files = [];
+  const entries = await fs.readdir(rootDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const entryPath = path.join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      const nested = await listHtmlFiles(entryPath);
+      files.push(...nested);
+    } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
+
+function buildStaticDocsHomeStyle() {
+  return `
+  ${STATIC_DOCS_HOME_STYLE_MARKER}
+  <style>
+    .cm-static-docs-home {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 999;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      text-decoration: none;
+    }
+
+    .cm-static-docs-home img {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: block;
+    }
+
+    .cm-static-docs-home:hover,
+    .cm-static-docs-home:focus-visible {
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    @media (max-width: 640px) {
+      .cm-static-docs-home {
+        top: 10px;
+        left: 10px;
+        padding: 4px 8px;
+      }
+
+      .cm-static-docs-home img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  </style>
+`;
+}
+
+function buildStaticDocsHomeLink(homeHref, iconHref) {
+  return `
+  ${STATIC_DOCS_HOME_LINK_MARKER}
+  <a class="cm-static-docs-home" href="${homeHref}" aria-label="Home">
+    <img src="${iconHref}" alt="Home">
+  </a>
+`;
+}
+
+function injectStaticDocsHomeMarkup(html, homeHref, iconHref) {
+  let updated = html;
+
+  if (!updated.includes(STATIC_DOCS_HOME_STYLE_MARKER)) {
+    const styleBlock = buildStaticDocsHomeStyle();
+    if (updated.includes('</head>')) {
+      updated = updated.replace(/<\/head>/i, `${styleBlock}\n</head>`);
+    } else {
+      updated = `${styleBlock}\n${updated}`;
+    }
+  }
+
+  if (!updated.includes(STATIC_DOCS_HOME_LINK_MARKER)) {
+    const linkBlock = buildStaticDocsHomeLink(homeHref, iconHref);
+    const bodyMatch = updated.match(/<body[^>]*>/i);
+    if (bodyMatch) {
+      const insertAt = bodyMatch.index + bodyMatch[0].length;
+      updated = `${updated.slice(0, insertAt)}${linkBlock}${updated.slice(insertAt)}`;
+    } else {
+      updated = `${linkBlock}\n${updated}`;
+    }
+  }
+
+  return updated;
+}
+
+async function injectStaticDocsHomeLinks(staticDocs, siteConfig, verbose = false) {
+  if (!staticDocs || staticDocs.length === 0) {
+    return;
+  }
+
+  const baseUrlRaw = siteConfig.baseUrl || '/';
+  const normalizedBase = baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : baseUrlRaw;
+  const rootPrefix = normalizedBase && normalizedBase !== '/' ? normalizedBase : '';
+  const homeHref = `${rootPrefix}/index.html`;
+  const iconHref = `${rootPrefix}/assets/static/img/not-dead.webp`;
+
+  for (const doc of staticDocs) {
+    const docRoot = doc.outputPath || path.join(process.cwd(), doc.basename);
+    const htmlFiles = await listHtmlFiles(docRoot);
+    for (const htmlPath of htmlFiles) {
+      const original = await fs.readFile(htmlPath, 'utf8');
+      const updated = injectStaticDocsHomeMarkup(original, homeHref, iconHref);
+      if (updated !== original) {
+        await fs.writeFile(htmlPath, updated, 'utf8');
+        if (verbose) {
+          console.log(`Injected home link into ${htmlPath}`);
+        }
+      }
+    }
+  }
 }
 
 function normalizeStringArray(value) {
@@ -1515,7 +1648,8 @@ export async function generateSite(config, outputDir, verbose = false) {
       }
     }
 
-    await copyStaticDocs(normalizedStaticDocs, outputDir, verbose);
+    const copiedStaticDocs = await copyStaticDocs(normalizedStaticDocs, outputDir, verbose);
+    await injectStaticDocsHomeLinks(copiedStaticDocs, updatedConfig, verbose);
     
     // Create a mapping of section IDs for navigation
     const sectionMap = {};
