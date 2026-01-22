@@ -11,6 +11,14 @@
   const showTags = (widget && widget.showTags) !== false;
   const showSources = (widget && widget.showSources) !== false;
   const title = (widget && widget.title) ? widget.title : 'Signal Feed';
+  const rssCopyUrl = (widget && widget.copyUrl)
+    ? widget.copyUrl
+    : (site && site.rss && site.rss.enabled !== false)
+      ? (site.rss.outputPath || 'rss.xml')
+      : '';
+  const resolvedCopyUrl = (rssCopyUrl && typeof buildInternalHref === 'function')
+    ? buildInternalHref(rssCopyUrl)
+    : rssCopyUrl;
 %>
 
 <% if (!enabled) { %>
@@ -26,7 +34,19 @@
     data-sse-url="<%= sseUrl %>"
     data-open-new-tab="<%= openInNewTab ? 'true' : 'false' %>"
   >
-    <h3 class="blog-sidebar-title rss-widget-title"><%= title %></h3>
+    <div class="rss-widget-header">
+      <h3 class="blog-sidebar-title rss-widget-title"><%= title %></h3>
+      <% if (resolvedCopyUrl) { %>
+        <button
+          type="button"
+          class="blog-permalink-button rss-copy-button"
+          data-permalink="<%= resolvedCopyUrl %>"
+          aria-label="Copy RSS feed URL"
+        >
+          <span data-permalink-label>Copy RSS</span>
+        </button>
+      <% } %>
+    </div>
 
     <div class="rss-widget-controls">
       <% if (showSources) { %>

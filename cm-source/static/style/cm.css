@@ -64,8 +64,22 @@
   gap: 0.9rem;
 }
 
+.rss-widget-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
 .rss-widget-title {
-  margin-bottom: 0.2rem;
+  margin: 0;
+}
+
+.rss-copy-button {
+  padding: 0.3rem 0.85rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
 }
 
 .rss-widget-controls {
@@ -83,6 +97,12 @@
   color: rgba(200, 255, 200, 0.92);
   font-family: var(--font-body);
   font-size: 0.85rem;
+}
+
+.rss-select:focus,
+.rss-select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(214, 255, 214, 0.8);
 }
 
 .rss-tag-filter {
@@ -125,6 +145,20 @@
   font-size: 0.9rem;
   line-height: 1.6;
   color: rgba(190, 255, 190, 0.85);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rss-reader-body p,
+.rss-reader-body a,
+.rss-reader-body code,
+.rss-reader-body pre {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rss-reader-body pre {
+  white-space: pre-wrap;
 }
 
 .rss-reader-body a {
@@ -223,6 +257,16 @@ body[data-page-slug="git"] header,
 body[data-page-slug="git"] footer {
   position: relative;
   z-index: 1400;
+}
+
+body[data-page-slug="git"] .page-content {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
+body[data-page-slug="git"] .page-content > .git-page {
+  width: 100%;
 }
 
 body[data-page-slug="git"] .git-orientation-overlay {
@@ -2972,6 +3016,8 @@ body.doom-prevent-highlight .doom-overlay * {
   text-decoration: none;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .blog-post-link h3 {
@@ -2979,8 +3025,8 @@ body.doom-prevent-highlight .doom-overlay * {
   font-size: clamp(1.05rem, 2vw + 0.85rem, 1.3rem);
   color: rgba(214, 255, 214, 0.92);
   letter-spacing: 0.04em;
-  overflow-wrap: break-word;
-  word-break: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   hyphens: auto;
 }
 

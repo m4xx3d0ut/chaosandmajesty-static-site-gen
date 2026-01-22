@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Rollouts</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
+    <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
+    <link rel="icon" type="image/svg+xml" href="static/favicon-16x16.svg"/>
     <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png"/>
+    <link rel="icon" type="image/svg+xml" href="static/favicon-48x48.svg"/>
     <link rel="icon" type="image/png" sizes="48x48" href="static/favicon-48x48.png"/>
     <link rel="apple-touch-icon" sizes="180x180" href="static/icon-180x180.png"/>
     <style>
@@ -327,7 +330,7 @@
         bottom: -36px;
         width: 220px;
         height: 220px;
-        background: url('static/k1s-logo-circle.png') no-repeat center / contain;
+        background: url('static/k1s-logo-circle.svg') no-repeat center / contain;
         opacity: 0.12;
         pointer-events: none;
       }
@@ -346,6 +349,7 @@
       .hero-logo {
         width: min(320px, 90%);
         height: auto;
+        opacity: 0.85;
       }
       .hero-pill {
         padding: 6px 12px;
@@ -372,6 +376,34 @@
         flex-wrap: wrap;
         gap: 10px;
         margin-top: 6px;
+      }
+      .hero-repo {
+        margin-top: 14px;
+        padding: 10px 12px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        border: 1px solid var(--k1s-border);
+        border-radius: 12px;
+        background: var(--k1s-panel);
+        box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+      }
+      .hero-repo-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-link {
+        color: var(--link);
+        font-weight: 600;
+        text-decoration: none;
+        word-break: break-word;
+      }
+      .hero-repo-link:hover {
+        color: var(--link-hover);
+        text-decoration: underline;
       }
       .hero-link {
         text-decoration: none;
@@ -633,7 +665,7 @@
   </head>
   <body>
     <nav>
-      <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.png" alt="k1s logo" /><span>k1s docs</span></a>
+      <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.svg" alt="k1s logo" /><span>k1s docs</span></a>
       <a href="start-here.html">Start Here</a>
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
@@ -725,7 +757,7 @@ ae rollout resume echo</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-20 20:31:16</span>
+        <span>Built 2026-01-21 18:17:00</span>
       </div>
     </footer>
 

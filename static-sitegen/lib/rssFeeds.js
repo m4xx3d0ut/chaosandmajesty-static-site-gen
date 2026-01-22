@@ -183,6 +183,19 @@ function dedupeItems(items) {
   return results;
 }
 
+function buildGitPageLink(repo, siteConfig) {
+  if (!repo) return '';
+  const slug = repo.generatedArtifacts?.slug
+    || normalizeFeedId(repo.id || repo.label || repo.repoPath || '');
+  if (!slug) return '';
+  const baseUrl = safeString(siteConfig && siteConfig.baseUrl).replace(/\/+$/, '');
+  const suffix = `git.html#repo=${encodeURIComponent(slug)}&tab=log`;
+  if (!baseUrl || baseUrl === '/') {
+    return suffix;
+  }
+  return `${baseUrl}/${suffix}`;
+}
+
 export function normalizeRssConfig(siteConfig = {}) {
   const hasRssConfig = Object.prototype.hasOwnProperty.call(siteConfig, 'rss');
   const raw = siteConfig.rss || {};
@@ -351,7 +364,9 @@ export async function buildLocalFeed({ blogArtifacts, gitRepos, rssConfig, siteC
       if (!shouldIncludeRepo(repo)) continue;
       const repoId = normalizeFeedId(repo.id || repo.label || repo.repoPath || 'repo');
       const sourceId = `git:${repoId}`;
-      addSource({ id: sourceId, label: `Git: ${repo.label || repoId}`, type: 'git', url: repo.detailUrl || repo.httpUrl || '' });
+      const gitPageLink = buildGitPageLink(repo, siteConfig);
+      const sourceUrl = gitPageLink || repo.detailUrl || repo.httpUrl || '';
+      addSource({ id: sourceId, label: `Git: ${repo.label || repoId}`, type: 'git', url: sourceUrl });
 
       const commitsRel = repo?.generatedArtifacts?.commits;
       const commitSlug = repo?.generatedArtifacts?.slug || repoId;
@@ -381,10 +396,11 @@ export async function buildLocalFeed({ blogArtifacts, gitRepos, rssConfig, siteC
           : summaryHtml;
         const contentText = stripHtml(contentHtml);
         const id = buildItemId(sourceId, commit.sha, commit.commitUrl || '', title, publishedAt);
+        const fallbackLink = gitPageLink || repo.detailUrl || repo.httpUrl || commit.commitUrl || '';
         items.push({
           id,
           title,
-          link: commit.commitUrl || repo.detailUrl || repo.httpUrl || '',
+          link: fallbackLink,
           summaryHtml,
           contentHtml,
           summaryText: truncateSummary(summaryText),
@@ -395,7 +411,7 @@ export async function buildLocalFeed({ blogArtifacts, gitRepos, rssConfig, siteC
           sourceId,
           sourceLabel: `Git: ${repo.label || repoId}`,
           sourceType: 'git',
-          sourceUrl: repo.detailUrl || repo.httpUrl || ''
+          sourceUrl
         });
       }
     }

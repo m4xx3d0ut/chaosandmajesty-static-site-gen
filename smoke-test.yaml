@@ -32,7 +32,7 @@ pages:
       defaultRepoLabel: "chaosandmajesty-static-site-gen"
       repoDetailSuffix: "log.html"
       leftPaneTitle: "Core Git"
-      leftPaneDescription: "Select a repository from the Core Git catalog (hydrated from config/git/manifest.txt)."
+      leftPaneDescription: "Select a repository from the Core Git catalog."
       rightPaneTitle: "Repository Activity"
       rightPaneDescription: "Commit history, files, README, and refs render inline from the build-time mirrors."
       commitLimit: 5
@@ -449,4 +449,4 @@ social_preview_image: assets/social-preview.jpg
 
 meta:
   description: All your base are belong to us.  Welcome to the Chaos and Majesty home!
-  keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker
+  keywords: development, programming, python, react, typescript, node, javascript, maker, white hat, hacker, kubernetes, k8s, k1s, orchestration, cloud, architecture, edge

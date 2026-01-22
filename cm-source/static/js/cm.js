@@ -241,6 +241,37 @@
       renderList();
     }
 
+    function hasActiveFilters() {
+      return Boolean(state.query)
+        || (state.source && state.source !== defaultSource)
+        || (state.tag && state.tag !== 'all')
+        || (state.sort && state.sort !== defaultSort);
+    }
+
+    function resetFilters() {
+      state.query = '';
+      state.source = defaultSource;
+      state.tag = 'all';
+      state.sort = defaultSort;
+      if (searchInput) searchInput.value = '';
+      if (sourceSelect) sourceSelect.value = defaultSource;
+      if (tagSelect) tagSelect.value = 'all';
+      if (sortSelect) sortSelect.value = defaultSort;
+      applyFilters();
+    }
+
+    function shouldIgnoreEsc() {
+      if (typeof doomState !== 'undefined' && doomState && doomState.active) {
+        return true;
+      }
+      const active = document.activeElement;
+      if (!active) return false;
+      const termInput = document.getElementById('uIn');
+      if (termInput && active === termInput) return true;
+      const consoleEl = document.getElementById('console');
+      return !!(consoleEl && consoleEl.contains(active));
+    }
+
     function buildMeta(item) {
       const parts = [];
       if (item.sourceLabel) {
@@ -261,6 +292,18 @@
         }
       }
       return parts.join(' • ');
+    }
+
+    function resolveRssItemLink(item) {
+      if (!item) return '#';
+      let candidate = '';
+      if (item.sourceType === 'git') {
+        candidate = item.sourceUrl || item.repoUrl || '';
+      }
+      if (!candidate) {
+        candidate = item.link || item.sourceUrl || '';
+      }
+      return candidate ? resolvePermalink(candidate) : '#';
     }
 
     function renderList() {
@@ -284,7 +327,7 @@
         const li = document.createElement('li');
         const link = document.createElement('a');
         link.className = 'blog-post-link rss-item-link';
-        link.href = item.link || '#';
+        link.href = resolveRssItemLink(item);
         link.setAttribute('data-rss-item', item.id);
         link.addEventListener('click', function(event) {
           event.preventDefault();
@@ -324,13 +367,36 @@
       });
     }
 
+    function truncateWords(text, maxWords) {
+      const raw = (text || '').toString().trim();
+      if (!raw) return '';
+      const words = raw.split(/\s+/);
+      if (words.length <= maxWords) return raw;
+      return words.slice(0, maxWords).join(' ') + '…';
+    }
+
+    function buildBlogPreview(item) {
+      if (!readerBody) return;
+      readerBody.innerHTML = '';
+      const baseText = (item && (item.summaryText || item.contentText)) || '';
+      const preview = truncateWords(baseText, 75) || 'No preview available.';
+      const para = document.createElement('p');
+      para.textContent = preview;
+      readerBody.appendChild(para);
+    }
+
     function openReader(item) {
       if (!readerEl || !readerBody) return;
       widget.classList.add('is-reading');
-      readerBody.innerHTML = item.contentHtml || item.summaryHtml || '<p>No content available.</p>';
+      if (item && item.sourceType === 'blog') {
+        buildBlogPreview(item);
+      } else {
+        readerBody.innerHTML = item.contentHtml || item.summaryHtml || '<p>No content available.</p>';
+      }
       if (readerLink) {
-        readerLink.href = item.link || '#';
-        readerLink.style.display = openInNewTab ? 'inline-flex' : 'none';
+        const linkHref = resolveRssItemLink(item);
+        readerLink.href = linkHref;
+        readerLink.style.display = openInNewTab && linkHref && linkHref !== '#' ? 'inline-flex' : 'none';
       }
     }
 
@@ -464,6 +530,20 @@
         closeReader();
       });
     }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key !== 'Escape') return;
+      if (shouldIgnoreEsc()) return;
+      if (widget.classList.contains('is-reading')) {
+        event.preventDefault();
+        closeReader();
+        return;
+      }
+      if (hasActiveFilters()) {
+        event.preventDefault();
+        resetFilters();
+      }
+    });
 
     document.addEventListener('htmx:afterRequest', function(event) {
       const target = event && event.target;
@@ -1248,7 +1328,14 @@
       sampleRate: 11025,
       enabled: false,
       bufferCache: new Map(),
-      memoryBuffer: null
+      memoryBuffer: null,
+      musicEnabled: false,
+      musicGain: null,
+      musicNextTime: 0,
+      musicSources: [],
+      musicSampleRate: 11025,
+      musicVolume: 1,
+      musicPaused: false
   };
   var doomTextDecoder = (typeof TextDecoder === 'function') ? new TextDecoder('utf8') : null;
   var DOOM_SAVE_MAX_SLOT = 5;
@@ -1486,7 +1573,257 @@
       }
   }
 
+  function ensureDoomMusicGain() {
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return null;
+      }
+      if (!doomAudioState.musicGain) {
+          try {
+              var gain = context.createGain();
+              if (doomAudioState.masterGain) {
+                  gain.connect(doomAudioState.masterGain);
+              } else {
+                  gain.connect(context.destination);
+              }
+              doomAudioState.musicGain = gain;
+          } catch (_err) {
+              return null;
+          }
+      }
+      return doomAudioState.musicGain;
+  }
+
+  function setDoomMusicGainValue(value) {
+      if (value < 0 || !isFinite(value)) {
+          value = 0;
+      }
+      if (value > 1) {
+          value = 1;
+      }
+      var gainNode = ensureDoomMusicGain();
+      if (!gainNode || !gainNode.gain) {
+          return;
+      }
+      var context = doomAudioState.context;
+      if (context && typeof gainNode.gain.cancelScheduledValues === 'function' && typeof gainNode.gain.setValueAtTime === 'function') {
+          var now = context.currentTime;
+          try {
+              gainNode.gain.cancelScheduledValues(now);
+              gainNode.gain.setValueAtTime(value, now);
+          } catch (_err) {
+              gainNode.gain.value = value;
+          }
+      } else {
+          gainNode.gain.value = value;
+      }
+  }
+
+  function initDoomMusic(sampleRate) {
+      doomAudioState.enabled = true;
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          doomAudioState.musicEnabled = false;
+          return;
+      }
+      doomAudioState.musicEnabled = true;
+      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : 11025;
+      if (!isFinite(rate) || rate <= 0) {
+          rate = 11025;
+      }
+      doomAudioState.musicSampleRate = rate;
+      doomAudioState.musicPaused = false;
+      doomAudioState.musicNextTime = context.currentTime;
+      setDoomMusicGainValue(doomAudioState.musicVolume);
+      resumeDoomAudio();
+  }
+
+  function stopDoomMusic() {
+      var sources = doomAudioState.musicSources;
+      if (Array.isArray(sources) && sources.length) {
+          for (var i = 0; i < sources.length; i++) {
+              var source = sources[i];
+              if (!source) {
+                  continue;
+              }
+              try {
+                  source.onended = null;
+                  source.stop();
+              } catch (_err) {
+                  // ignore
+              }
+              try {
+                  source.disconnect();
+              } catch (_err2) {
+                  // ignore
+              }
+          }
+          sources.length = 0;
+      }
+      doomAudioState.musicNextTime = doomAudioState.context ? doomAudioState.context.currentTime : 0;
+  }
+
+  function shutdownDoomMusic() {
+      stopDoomMusic();
+      doomAudioState.musicEnabled = false;
+      doomAudioState.musicPaused = false;
+      doomAudioState.musicSampleRate = 11025;
+      var gainNode = doomAudioState.musicGain;
+      if (gainNode && gainNode.gain) {
+          try {
+              gainNode.gain.value = 0;
+          } catch (_err) {
+              // ignore
+          }
+      }
+      if (doomAudioState.musicGain) {
+          try {
+              doomAudioState.musicGain.disconnect();
+          } catch (_err) {
+              // ignore
+          }
+          doomAudioState.musicGain = null;
+      }
+      doomAudioState.musicNextTime = 0;
+  }
+
+  function enqueueDoomMusic(ptr, frames, sampleRate) {
+      if (!doomState.memory || !doomState.memory.buffer) {
+          return;
+      }
+      if (!frames || frames <= 0) {
+          return;
+      }
+      doomAudioState.enabled = true;
+      var context = ensureDoomAudioContext();
+      if (!context) {
+          return;
+      }
+      var gainNode = ensureDoomMusicGain();
+      if (!gainNode) {
+          return;
+      }
+      doomAudioState.musicEnabled = true;
+      resumeDoomAudio();
+      var rate = (typeof sampleRate === 'number' && sampleRate > 0) ? sampleRate : doomAudioState.musicSampleRate;
+      if (!isFinite(rate) || rate <= 0) {
+          rate = doomAudioState.musicSampleRate || 11025;
+      }
+      doomAudioState.musicSampleRate = rate;
+      var sampleCount = frames * 2;
+      var pcm;
+      try {
+          pcm = new Int16Array(doomState.memory.buffer, ptr, sampleCount);
+      } catch (_err) {
+          return;
+      }
+      var buffer;
+      try {
+          buffer = context.createBuffer(2, frames, rate);
+      } catch (_err2) {
+          return;
+      }
+      var left = buffer.getChannelData(0);
+      var right = buffer.getChannelData(1);
+      for (var i = 0; i < frames; i++) {
+          var leftSample = pcm[i * 2] / 32768;
+          var rightSample = pcm[i * 2 + 1] / 32768;
+          if (leftSample > 1) {
+              leftSample = 1;
+          }
+          if (leftSample < -1) {
+              leftSample = -1;
+          }
+          if (rightSample > 1) {
+              rightSample = 1;
+          }
+          if (rightSample < -1) {
+              rightSample = -1;
+          }
+          left[i] = leftSample;
+          right[i] = rightSample;
+      }
+      var source;
+      try {
+          source = context.createBufferSource();
+      } catch (_err3) {
+          return;
+      }
+      source.buffer = buffer;
+      source.connect(gainNode);
+      var now = context.currentTime;
+      var scheduledTime = doomAudioState.musicNextTime;
+      if (!scheduledTime || scheduledTime < now) {
+          scheduledTime = now + 0.01;
+      }
+      try {
+          source.start(scheduledTime);
+      } catch (_err4) {
+          try {
+              source.start();
+              scheduledTime = now;
+          } catch (_err5) {
+              return;
+          }
+      }
+      doomAudioState.musicNextTime = scheduledTime + buffer.duration;
+      doomAudioState.musicSources.push(source);
+      source.onended = function() {
+          var sources = doomAudioState.musicSources;
+          if (Array.isArray(sources)) {
+              for (var idx = 0; idx < sources.length; idx++) {
+                  if (sources[idx] === source) {
+                      sources.splice(idx, 1);
+                      break;
+                  }
+              }
+          }
+          if (!doomAudioState.musicPaused && doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
+              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
+          }
+      };
+      if (doomAudioState.musicPaused) {
+          setDoomMusicGainValue(0);
+      } else {
+          setDoomMusicGainValue(doomAudioState.musicVolume);
+      }
+  }
+
+  function pauseDoomMusic(paused) {
+      doomAudioState.musicPaused = !!paused;
+      if (doomAudioState.musicPaused) {
+          setDoomMusicGainValue(0);
+      } else {
+          resumeDoomAudio();
+          setDoomMusicGainValue(doomAudioState.musicVolume);
+          if (doomAudioState.context && doomAudioState.context.currentTime > doomAudioState.musicNextTime) {
+              doomAudioState.musicNextTime = doomAudioState.context.currentTime;
+          }
+      }
+  }
+
+  function setDoomMusicVolume(volume) {
+      var normalized = 1;
+      if (typeof volume === 'number') {
+          normalized = volume / 127;
+          if (!isFinite(normalized)) {
+              normalized = 1;
+          }
+      }
+      if (normalized < 0) {
+          normalized = 0;
+      }
+      if (normalized > 1) {
+          normalized = 1;
+      }
+      doomAudioState.musicVolume = normalized;
+      if (!doomAudioState.musicPaused) {
+          setDoomMusicGainValue(normalized);
+      }
+  }
+
   function shutdownDoomAudio() {
+      shutdownDoomMusic();
       doomAudioState.enabled = false;
       doomAudioState.nextTime = 0;
       doomAudioState.bufferCache.clear();
@@ -2797,6 +3134,24 @@
               js_audio_shutdown: function() {
                   shutdownDoomAudio();
               },
+              js_music_init: function(sampleRate) {
+                  initDoomMusic(sampleRate);
+              },
+              js_music_shutdown: function() {
+                  shutdownDoomMusic();
+              },
+              js_music_enqueue: function(ptr, frames, sampleRate) {
+                  enqueueDoomMusic(ptr, frames, sampleRate);
+              },
+              js_music_stop: function() {
+                  stopDoomMusic();
+              },
+              js_music_pause: function(paused) {
+                  pauseDoomMusic(paused);
+              },
+              js_music_set_volume: function(volume) {
+                  setDoomMusicVolume(volume);
+              },
               js_save_state_store: function(slot, ptr, length) {
                   return wasmStoreDoomSave(slot, ptr, length);
               },
@@ -3420,19 +3775,20 @@
       return [
           'Available commands:',
           '---',
-          'help, ?            Show this menu',
-          'latest <alias>     Fetch the latest dispatch',
-          'top <N>            Fetch the top N dispatches (default 3)',
-          'search <term>      Search dispatches for a term',
-          'random <N>         Pull N random dispatches (default 3)',
-          'profile <alias>    Reveal a dossier',
-          'play doom          Boot the shareware DOOM build',
-          'exit doom          Shut down the DOOM session',
-          'clear doom <slot|all> Remove stored DOOM saves',
-          'theme <contrast|1337> Switch console contrast',
-          'theme toggle       Flip the current contrast mode',
-          'clear              Purge terminal output',
-          '↑ / ↓              Browse command history'
+          'Command - Description',
+          'help, ? - Show this menu',
+          'latest <alias> - Fetch the latest dispatch',
+          'top [N] - Fetch the top N dispatches (default 3)',
+          'search <term> - Search dispatches for a term',
+          'random [N] - Pull N random dispatches (default 3)',
+          'profile <alias> - Reveal a dossier',
+          'play doom - Boot the shareware DOOM build',
+          'exit doom - Shut down the DOOM session',
+          'clear doom [slot|all] - Remove stored DOOM saves',
+          'theme <contrast|1337> - Switch console contrast',
+          'theme toggle - Flip the current contrast mode',
+          'clear - Purge terminal output',
+          '↑ / ↓ - Browse command history'
       ];
   }
 
@@ -3514,9 +3870,20 @@
               storage.removeItem(TERMINAL_STORAGE_KEY);
               return;
           }
+          var hasDoomOverlay = html.indexOf('doom-overlay') !== -1;
+          if (hasDoomOverlay) {
+              var clone = term.cloneNode(true);
+              var overlays = clone.querySelectorAll('.doom-overlay');
+              overlays.forEach(function(node) {
+                  node.remove();
+              });
+              html = clone.innerHTML;
+          }
           var trimmed = trimTerminalHtml(html);
           if (trimmed !== html) {
-              term.innerHTML = trimmed;
+              if (!hasDoomOverlay) {
+                  term.innerHTML = trimmed;
+              }
           }
           storage.setItem(TERMINAL_STORAGE_KEY, trimmed);
       } catch (_err) {
@@ -3533,6 +3900,16 @@
           var stored = storage.getItem(TERMINAL_STORAGE_KEY);
           if (!stored) {
               return false;
+          }
+          if (stored.indexOf('doom-overlay') !== -1) {
+              var scrubber = document.createElement('div');
+              scrubber.innerHTML = stored;
+              var overlays = scrubber.querySelectorAll('.doom-overlay');
+              overlays.forEach(function(node) {
+                  node.remove();
+              });
+              stored = scrubber.innerHTML;
+              storage.setItem(TERMINAL_STORAGE_KEY, stored);
           }
           term.innerHTML = stored;
           if (stored.slice(-2) !== '$ ') {
