@@ -1,5 +1,5 @@
 .PHONY: help build up down dev logs clean test rebuild health install build-local serve-local serve-local-sse \
-        microk8s-build microk8s-push microk8s-deploy
+        dev-single microk8s-build microk8s-push microk8s-deploy
 
 # MicroK8s registry configuration
 MICROK8S_REG   ?= reg.microk8s.core.home.arpa:32000
@@ -75,6 +75,11 @@ serve-local-sse: ## Serve built site locally with RSS SSE proxy
 	  trap 'kill $$proxy_pid' INT TERM EXIT; \
 	  LOCAL_SERVE_HOST=0.0.0.0 LOCAL_SERVE_PORT=8888 SITE_OUTPUT_DIR="$(PWD)/site-output" SSE_PROXY_TARGET="http://127.0.0.1:7070" \
 	    node scripts/serve-local-sse.mjs
+
+dev-single: ## Build and run single-container dev image (nginx + rss-proxy)
+	docker build -f Dockerfile.dev -t cm-dev:latest .
+	@docker rm -f cm-dev >/dev/null 2>&1 || true
+	docker run --name cm-dev -p 8080:8080 -d cm-dev:latest
 
 microk8s-build: ## Build image for MicroK8s registry (supports multiple tags)
 	@if [ -n "$(PLATFORMS)" ]; then \
