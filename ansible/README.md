@@ -35,6 +35,8 @@ Key defaults (override in `group_vars/all.yml` or via extra-vars):
 - `letsencrypt_host_path=/etc/letsencrypt` shares existing certificates read-only.
 - `acme_webroot_host_path=/var/www/letsencrypt` is used for HTTP-01 challenges.
 - `auth_file_host_path=/etc/nginx/auth` mounts your existing WebDAV htpasswd directory read-only so credentials continue to work.
+- `rss_proxy_enabled=true` deploys the SSE RSS proxy sidecar and binds `site_output_host_path` into both containers.
+- `rss_proxy_image_name=rss-proxy` tags the companion RSS proxy image (same registry/namespace as the site image).
 - `disable_host_nginx=true` stops and disables the system nginx service at deploy time.
 
 The role will render a Docker Compose project in `{{ app_dir }}` (default

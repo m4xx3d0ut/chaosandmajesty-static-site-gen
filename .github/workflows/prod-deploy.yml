@@ -22,6 +22,7 @@ env:
   REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
   REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  RSS_IMAGE_NAME: ${{ secrets.RSS_IMAGE_NAME || 'rss-proxy' }}
   IMAGE_TAG: prod
   NODE_OPTIONS: --max-old-space-size=8192
   CI_KNOWN_HOSTS: ${{ secrets.CI_KNOWN_HOSTS }}
@@ -144,6 +145,7 @@ jobs:
         id: meta
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
+          RSS_IMAGE_NAME="${RSS_IMAGE_NAME:-rss-proxy}"
           if [ -n "${REGISTRY_NAMESPACE}" ]; then
             REGISTRY_PATH="${REGISTRY_HOST}/${REGISTRY_NAMESPACE}"
           else
@@ -152,6 +154,7 @@ jobs:
           echo "short=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "registry_path=${REGISTRY_PATH}" >> "$GITHUB_OUTPUT"
           echo "image_ref=${REGISTRY_PATH}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "rss_image_ref=${REGISTRY_PATH}/${RSS_IMAGE_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Login to registry
         uses: docker/login-action@v3
@@ -180,6 +183,18 @@ jobs:
             ${{ steps.meta.outputs.image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
           secrets: |
             ssh_known_hosts=${{ env.CI_KNOWN_HOSTS }}
+
+      - name: Build and push rss-proxy image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: rss-proxy/Dockerfile
+          push: true
+          cache-from: type=registry,ref=${{ steps.meta.outputs.rss_image_ref }}:buildcache-prod
+          cache-to: type=registry,ref=${{ steps.meta.outputs.rss_image_ref }}:buildcache-prod,mode=max
+          tags: |
+            ${{ steps.meta.outputs.rss_image_ref }}:${{ env.IMAGE_TAG }}
+            ${{ steps.meta.outputs.rss_image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -297,5 +312,7 @@ jobs:
             -e "image_namespace=${REGISTRY_NAMESPACE}" \
             -e "image_name=${IMAGE_NAME}" \
             -e "image_tag=${IMAGE_TAG}" \
+            -e "rss_proxy_image_name=${RSS_IMAGE_NAME}" \
+            -e "rss_proxy_image_tag=${IMAGE_TAG}" \
             -e "registry_username=${REGISTRY_USERNAME}" \
             -e "registry_password=${REGISTRY_PASSWORD}"

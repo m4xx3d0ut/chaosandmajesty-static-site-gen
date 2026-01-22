@@ -24,6 +24,17 @@ image_namespace: chaosandmajesty
 image_name: cm-site
 image_tag: prod
 
+# RSS proxy (SSE) companion service
+rss_proxy_enabled: true
+rss_proxy_image_name: rss-proxy
+rss_proxy_image_tag: "{{ image_tag }}"
+rss_proxy_container_name: cm-rss-proxy
+rss_proxy_port: 7070
+rss_proxy_refresh_interval: 600000
+rss_proxy_config_path: /app/smoke-test.yaml
+rss_proxy_output_dir: /app/site-output
+site_output_host_path: "{{ app_dir }}/site-output"
+
 # Registry credentials (optional). Leave blank for public images.
 registry_username: ''
 registry_password: ''

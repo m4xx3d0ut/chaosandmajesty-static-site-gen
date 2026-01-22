@@ -3,7 +3,7 @@ FROM node:20-slim
 WORKDIR /app
 
 COPY rss-proxy/package*.json ./rss-proxy/
-RUN cd rss-proxy && npm ci --omit=dev
+RUN cd rss-proxy && npm install --omit=dev
 
 COPY rss-proxy ./rss-proxy
 COPY static-sitegen ./static-sitegen

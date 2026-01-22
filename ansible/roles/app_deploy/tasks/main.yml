@@ -104,6 +104,26 @@
     source: pull
     force_source: true
 
+- name: Refresh site-output from image for rss-proxy
+  shell: |
+    set -euo pipefail
+    tmp_container=""
+    tmp_container="$(docker create "{{ image_ref }}")"
+    trap 'docker rm -f "$tmp_container" >/dev/null 2>&1 || true' EXIT
+    rm -rf "{{ site_output_host_path }}"
+    mkdir -p "{{ site_output_host_path }}"
+    docker cp "${tmp_container}:/usr/share/nginx/html/." "{{ site_output_host_path }}/"
+  args:
+    executable: /bin/bash
+  when: rss_proxy_enabled | bool
+
+- name: Pull rss-proxy image explicitly
+  community.docker.docker_image:
+    name: "{{ rss_proxy_image_ref }}"
+    source: pull
+    force_source: true
+  when: rss_proxy_enabled | bool
+
 - name: Stop host nginx service if requested
   service:
     name: "{{ host_nginx_service_name }}"

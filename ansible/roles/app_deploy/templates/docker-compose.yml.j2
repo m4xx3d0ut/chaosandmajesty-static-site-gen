@@ -17,8 +17,11 @@ services:
     labels:
       com.chaosandmajesty.environment: prod
       com.chaosandmajesty.service: {{ compose_service_name }}
-{% if webdav_mount_enabled or auth_file_host_path or letsencrypt_mount_enabled %}
+{% if webdav_mount_enabled or auth_file_host_path or letsencrypt_mount_enabled or rss_proxy_enabled %}
     volumes:
+{% if rss_proxy_enabled %}
+      - "{{ site_output_host_path }}:/usr/share/nginx/html:ro"
+{% endif %}
 {% if webdav_mount_enabled %}
       - "{{ webdav_host_path }}:{{ webdav_container_path }}:rw"
 {% endif %}
@@ -29,4 +32,18 @@ services:
       - "{{ letsencrypt_host_path }}:{{ letsencrypt_container_path }}:ro"
       - "{{ acme_webroot_host_path }}:{{ acme_webroot_container_path }}:rw"
 {% endif %}
+{% endif %}
+
+{% if rss_proxy_enabled %}
+  rss-proxy:
+    image: {{ rss_proxy_image_ref }}
+    container_name: {{ rss_proxy_container_name }}
+    restart: unless-stopped
+    environment:
+      RSS_CONFIG_PATH: {{ rss_proxy_config_path }}
+      RSS_OUTPUT_DIR: {{ rss_proxy_output_dir }}
+      RSS_REFRESH_INTERVAL: "{{ rss_proxy_refresh_interval }}"
+      RSS_PROXY_PORT: "{{ rss_proxy_port }}"
+    volumes:
+      - "{{ site_output_host_path }}:{{ rss_proxy_output_dir }}:rw"
 {% endif %}
