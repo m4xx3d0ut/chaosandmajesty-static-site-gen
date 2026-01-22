@@ -129,9 +129,18 @@
     executable: /bin/bash
   when: rss_proxy_enabled | bool
 
-- name: Ensure rss-proxy output ownership for rootless runtime
+- name: Ensure rss-proxy feed output directory exists
   file:
-    path: "{{ site_output_host_path }}"
+    path: "{{ site_output_host_path }}/feeds"
+    state: directory
+    owner: "{{ container_runtime_uid }}"
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0775'
+  when: rss_proxy_enabled | bool
+
+- name: Ensure rss-proxy feed output ownership for rootless runtime
+  file:
+    path: "{{ site_output_host_path }}/feeds"
     state: directory
     owner: "{{ container_runtime_uid }}"
     group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"

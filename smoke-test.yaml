@@ -273,7 +273,7 @@ rssFeeds:
 
 rss:
   enabled: true
-  outputPath: rss.xml
+  outputPath: feeds/rss.xml
   maxItems: 40
   includeBlog: true
   includeGit: true

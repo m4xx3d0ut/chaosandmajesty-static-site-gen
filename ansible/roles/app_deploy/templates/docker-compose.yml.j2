@@ -55,5 +55,5 @@ services:
       RSS_REFRESH_INTERVAL: "{{ rss_proxy_refresh_interval }}"
       RSS_PROXY_PORT: "{{ rss_proxy_port }}"
     volumes:
-      - "{{ site_output_host_path }}:{{ rss_proxy_output_dir }}:rw"
+      - "{{ site_output_host_path }}/feeds:{{ rss_proxy_output_dir }}/feeds:rw"
 {% endif %}

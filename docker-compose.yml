@@ -38,5 +38,5 @@ services:
       RSS_OUTPUT_DIR: /app/site-output
       RSS_REFRESH_INTERVAL: 600000
     volumes:
-      - ./site-output:/app/site-output
+      - ./site-output/feeds:/app/site-output/feeds:rw
     restart: unless-stopped
