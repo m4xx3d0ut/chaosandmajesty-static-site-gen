@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY rss-proxy/package*.json ./rss-proxy/
 RUN cd rss-proxy \
-    && npm install --omit=dev \
+    && npm ci --omit=dev \
     && rm -rf /app/node_modules \
     && ln -s /app/rss-proxy/node_modules /app/node_modules
 

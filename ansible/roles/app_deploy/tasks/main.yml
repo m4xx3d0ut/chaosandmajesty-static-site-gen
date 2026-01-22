@@ -104,6 +104,18 @@
     source: pull
     force_source: true
 
+- name: Validate rss-proxy site output path
+  ansible.builtin.assert:
+    that:
+      - app_dir is defined
+      - site_output_host_path is defined
+      - site_output_host_path | length > 1
+      - site_output_host_path != '/'
+      - site_output_host_path != app_dir
+      - site_output_host_path.startswith(app_dir ~ '/')
+    fail_msg: "site_output_host_path must be a subdirectory of app_dir ({{ app_dir }})"
+  when: rss_proxy_enabled | bool
+
 - name: Refresh site-output from image for rss-proxy
   shell: |
     set -euo pipefail
