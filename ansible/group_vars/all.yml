@@ -16,6 +16,7 @@ app_group: deploy
 
 # Container runtime UID/GID (matches nginx-unprivileged base image)
 container_runtime_group: cm_nginx_runtime
+container_runtime_uid: 101
 container_runtime_gid: 101
 
 # Container image reference (registry/namespace/name:tag)

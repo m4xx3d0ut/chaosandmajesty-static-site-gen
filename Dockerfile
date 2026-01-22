@@ -92,6 +92,8 @@ COPY --from=builder --chown=101:101 /app/${NGINX_CONFIG} /etc/nginx/http.d/defau
 COPY --from=dav_ext_builder /tmp/ngx_http_dav_ext_module.so /etc/nginx/modules/ngx_http_dav_ext_module.so
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
+USER 101:101
+
 EXPOSE 8080 8443
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

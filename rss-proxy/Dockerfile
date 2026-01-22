@@ -12,6 +12,11 @@ COPY rss-proxy ./rss-proxy
 COPY static-sitegen ./static-sitegen
 COPY smoke-test.yaml ./smoke-test.yaml
 
+RUN mkdir -p /app/site-output \
+    && chown -R 101:101 /app
+
+USER 101:101
+
 ENV RSS_CONFIG_PATH=/app/smoke-test.yaml
 ENV RSS_OUTPUT_DIR=/app/site-output
 ENV RSS_REFRESH_INTERVAL=600000
