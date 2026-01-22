@@ -23,6 +23,8 @@ services:
       context: .
       dockerfile: rss-proxy/Dockerfile
     container_name: cm-rss-proxy
+    group_add:
+      - "${LOCAL_GID:-101}"
     environment:
       RSS_CONFIG_PATH: /app/smoke-test.yaml
       RSS_OUTPUT_DIR: /app/site-output
