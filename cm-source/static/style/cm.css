@@ -2628,6 +2628,17 @@ body.doom-prevent-highlight .doom-overlay * {
     width: 100%;
     margin: clamp(1.2rem, 5vw, 1.9rem) auto 0;
   }
+  .home-page .console-stack {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .home-page .home-terminal {
+    margin-left: calc(-1rem + 0.05rem);
+    margin-right: calc(-1rem + 0.05rem);
+    padding-left: 0.05rem;
+    padding-right: 0.05rem;
+  }
   .console-reset {
     right: clamp(0.55rem, 2.5vw, 0.9rem);
     padding: 0.4rem 0.75rem;
