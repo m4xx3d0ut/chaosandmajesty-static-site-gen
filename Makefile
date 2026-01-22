@@ -79,7 +79,7 @@ serve-local-sse: ## Serve built site locally with RSS SSE proxy
 dev-single: ## Build and run single-container dev image (nginx + rss-proxy)
 	docker build -f Dockerfile.dev -t cm-dev:latest .
 	@docker rm -f cm-dev >/dev/null 2>&1 || true
-	docker run --name cm-dev -p 8080:8080 -d cm-dev:latest
+	docker run --name cm-dev -p 8080:8080 -d --cap-drop=ALL --security-opt no-new-privileges cm-dev:latest
 
 microk8s-build: ## Build image for MicroK8s registry (supports multiple tags)
 	@if [ -n "$(PLATFORMS)" ]; then \

@@ -2,10 +2,14 @@ services:
   cm:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        NGINX_CONFIG: nginx/default.dev.conf
+    dockerfile: Dockerfile
+    args:
+      NGINX_CONFIG: nginx/default.dev.conf
     container_name: cm-local
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8080:8080"
     volumes:
@@ -21,8 +25,12 @@ services:
   rss-proxy:
     build:
       context: .
-      dockerfile: rss-proxy/Dockerfile
+    dockerfile: rss-proxy/Dockerfile
     container_name: cm-rss-proxy
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     group_add:
       - "${LOCAL_GID:-101}"
     environment:

@@ -6,6 +6,10 @@ services:
     container_name: {{ compose_container_name }}
     restart: unless-stopped
     user: "{{ container_runtime_uid }}:{{ container_runtime_gid }}"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "{{ http_bind_interface }}:80:{{ listen_port }}"
       - "{{ https_bind_interface }}:443:{{ listen_port_ssl }}"
@@ -41,6 +45,10 @@ services:
     container_name: {{ rss_proxy_container_name }}
     restart: unless-stopped
     user: "{{ container_runtime_uid }}:{{ container_runtime_gid }}"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       RSS_CONFIG_PATH: {{ rss_proxy_config_path }}
       RSS_OUTPUT_DIR: {{ rss_proxy_output_dir }}
