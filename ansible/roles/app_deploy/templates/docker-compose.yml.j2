@@ -10,6 +10,10 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    mem_limit: "{{ cm_mem_limit }}"
+    mem_reservation: "{{ cm_mem_reservation }}"
+    cpus: "{{ cm_cpus }}"
+    pids_limit: {{ cm_pids_limit }}
     ports:
       - "{{ http_bind_interface }}:80:{{ listen_port }}"
       - "{{ https_bind_interface }}:443:{{ listen_port_ssl }}"
@@ -49,6 +53,10 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    mem_limit: "{{ rss_proxy_mem_limit }}"
+    mem_reservation: "{{ rss_proxy_mem_reservation }}"
+    cpus: "{{ rss_proxy_cpus }}"
+    pids_limit: {{ rss_proxy_pids_limit }}
     environment:
       RSS_CONFIG_PATH: {{ rss_proxy_config_path }}
       RSS_OUTPUT_DIR: {{ rss_proxy_output_dir }}

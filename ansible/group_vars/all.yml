@@ -19,6 +19,17 @@ container_runtime_group: cm_nginx_runtime
 container_runtime_uid: 101
 container_runtime_gid: 101
 
+# Resource limits (baseline defaults; override per-environment if needed)
+cm_mem_limit: 256m
+cm_mem_reservation: 128m
+cm_cpus: "0.50"
+cm_pids_limit: 256
+
+rss_proxy_mem_limit: 512m
+rss_proxy_mem_reservation: 256m
+rss_proxy_cpus: "0.50"
+rss_proxy_pids_limit: 256
+
 # Container image reference (registry/namespace/name:tag)
 image_registry: ghcr.io
 image_namespace: chaosandmajesty
