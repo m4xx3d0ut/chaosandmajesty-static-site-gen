@@ -2277,7 +2277,7 @@
           'LinkedIn: ',
           'https://www.linkedin.com/in/paul-k-a3a18196/',
           'The Architect',
-          'About: Paul (m4xx3d0ut) is Napster\'s Swiss Army Knife! Currently serving as Principal Technologist on the AI Tiger Team, he embeds with teams as an IC and arhitectural advisor. A Pythonista at heart, with an expansive background from InfoSec to Studio Production/Broadcast, he is capable of working across a number of languages and frameworks.',
+          'About: Paul (m4xx3d0ut) is a Principal Technologist focused on cloud architecture and building cloud-native, edge, and full-stack systems. He’s led R&D, platform, and AI tiger teams, with a reputation for rapid prototyping across languages and frameworks. His approach is grounded in a seminal start in InfoSec as a penetration tester—shaped by a lifelong passion for technology and hacking—and broadened through work spanning the automotive industry as well as live broadcast and studio production technology. A patented inventor in the media tech space, he works by a simple rule: \“The more you observe and adapt, the greater your chances are for victory.\” —Sun Tzu',
           'Specialties: Python, Node, JS, React/TS, Kubernetes, Docker, AWS, GCP, OpenStack, Microk8s, InfoSec, DevOps/DevSecOps, GitOps, LlmOps',
           '---',
           'End of transmission...'

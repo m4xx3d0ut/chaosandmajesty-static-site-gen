@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Observability</title>
+    <title>05 Observability</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -698,111 +698,103 @@
       </svg>
     </button>
     <div class="container">
-    <h2>Observability</h2>
-<h3>Metrics</h3>
-<p>Prometheus-style text at <code>/metrics</code> includes aggregated gauges and labeled series:</p>
+    <h1>Chapter 05 - Observability: Logs, Metrics, Events</h1>
+<h2>Concept</h2>
+<p>Observability is the ability to understand system behavior from the outside. Metrics quantify state, events explain transitions, and logs provide raw evidence. Together, they enable fast diagnosis and safe operations.</p>
+<pre class="mermaid">flowchart TB
+  Metrics[Metrics] --&gt; Q1[&quot;How healthy?&quot;]
+  Events[Events] --&gt; Q2[&quot;What changed?&quot;]
+  Logs[Logs] --&gt; Q3[&quot;What happened?&quot;]
+  Q1 --&gt; Triage[Triage]
+  Q2 --&gt; Triage
+  Q3 --&gt; Triage</pre>
+<h3>Theory</h3>
+<p>The three pillars serve different purposes: metrics answer &quot;how much&quot; and &quot;how many,&quot; events answer &quot;what changed,&quot; and logs answer &quot;what happened at a point in time.&quot; Effective systems emit all three, and operators should move between them methodically.</p>
+<pre class="mermaid">flowchart LR
+  State[SQLite state] --&gt; MetricsSvc[MetricsService]
+  MetricsSvc --&gt; CLI[ae cli metrics]
+  MetricsSvc --&gt; HTTP[&quot;/metrics HTTP&quot;]
+  State --&gt; Events[Events table]
+  Events --&gt; CLI2[ae cli events]</pre>
+<h3>Design</h3>
+<p>k1s stores reconciliation state in SQLite, derives aggregate metrics from that store, and emits structured events during every reconcile. A lightweight HTTP API exposes Prometheus metrics and event data. This design keeps observability local and reproducible while still compatible with external tooling.</p>
+<pre class="mermaid">sequenceDiagram
+  participant O as Operator
+  participant C as Controller
+  participant S as State Store
+  O-&gt;&gt;C: Apply spec
+  C-&gt;&gt;S: Record events + status
+  O-&gt;&gt;C: Query metrics/events
+  C-&gt;&gt;S: Read snapshots
+  C--&gt;&gt;O: Metrics + events</pre>
+<h3>Application</h3>
+<p>When troubleshooting, start with metrics to see if the system is degraded, then use events to find the trigger. If you need detail, inspect logs for the specific runtime or controller. This approach scales to production k8s workflows with Prometheus and Events API.</p>
+<pre class="mermaid">flowchart TB
+  Symptom[Issue observed] --&gt; Metrics[Check metrics]
+  Metrics --&gt; Events[Check events]
+  Events --&gt; Logs[Check logs]
+  Logs --&gt; Fix[Apply fix]
+  Fix --&gt; Verify[Verify metrics]</pre>
+<h2>Key Terms and Acronyms</h2>
 <ul>
-<li>Aggregated:
+<li>Observability - Ability to understand system state from signals.</li>
+<li>Metrics - Numeric aggregates over time.</li>
+<li>Events - Discrete records of state transitions.</li>
+<li>Logs - Text output from components.</li>
+<li>Prometheus - Metrics format and scraping ecosystem.</li>
+<li>Snapshot - Point-in-time aggregate metrics view.</li>
+<li>HTTP API - Controller interface for metrics/events/status.</li>
+<li>Triage - Structured troubleshooting flow.</li>
+</ul>
+<h2>Commands (copy/paste)</h2>
+<pre><code>python -m ae.controller --loop --specs specs/ --metrics-port 9108
+python -m ae.cli apply -f specs/examples/echo.yaml
+python -m ae.cli metrics --json
+python -m ae.cli events echo --limit 20
+curl http://127.0.0.1:9108/metrics</code></pre>
+<h2>Docs references (source + site)</h2>
 <ul>
-<li><code>ae_apps_total</code>, <code>ae_apps_ready</code>, <code>ae_apps_progressing</code>, <code>ae_apps_degraded</code></li>
-<li><code>ae_replicas_total</code>, <code>ae_replicas_ready</code>, <code>ae_replicas_live</code></li>
+<li>Source: <code>docs/reference/observability.md</code></li>
+<li>Source: <code>docs/ops/grafana.md</code></li>
+<li>Source: <code>docs/ops/runbook.md</code></li>
+<li>Site: <code>docs/site/observability.html</code></li>
 </ul>
-</li>
-<li>Nodes/Services:
+<h2>Code references (walkthrough anchors)</h2>
 <ul>
-<li><code>ae_nodes_total</code>, <code>ae_nodes_ready</code>, <code>ae_nodes_stale</code></li>
-<li><code>ae_services_total</code> plus per-service <code>cluster_ip</code>, <code>provider</code>, and port labels</li>
+<li>Metrics snapshot aggregation: <code>src/ae/observability/metrics.py:25</code></li>
 </ul>
-</li>
-<li>Per-app:
+<pre><code>class MetricsService:
+    &quot;&quot;&quot;Aggregates metrics from application status records.&quot;&quot;&quot;
+
+    def snapshot(self) -&gt; MetricsSnapshot:
+        statuses = self._store.list_status()
+        total_apps = len(statuses)
+        ready_apps = sum(1 for status in statuses if status.revision_status == &quot;ready&quot;)
+        progressing_apps = sum(1 for status in statuses if status.revision_status == &quot;progressing&quot;)
+        ...
+        return MetricsSnapshot(...)</code></pre>
 <ul>
-<li><code>ae_app_desired_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
-<li><code>ae_app_ready_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
-<li><code>ae_app_live_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
+<li>CLI metrics/events output: <code>src/ae/cli/__main__.py:2854</code></li>
 </ul>
-</li>
-<li>Per-pod:
+<pre><code>def handle_metrics(args: argparse.Namespace, store: SQLiteStateStore) -&gt; int:
+    service = MetricsService(store)
+    snapshot = service.snapshot()
+    if args.json:
+        print(json.dumps({...}, indent=2))
+        return 0
+    print(f&quot;apps total={snapshot.total_apps} ...&quot;)
+
+
+def handle_events(...):
+    events = store.list_events(app_name, limit=args.limit)
+    for event in events:
+        timestamp = event.created_at.strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)
+        print(f&quot;{timestamp} rev={event.revision} {event.event_type}: {event.message}&quot;)</code></pre>
+<h2>Chapter navigation</h2>
 <ul>
-<li><code>ae_pod_ready{app=&quot;&lt;name&gt;&quot;,pod=&quot;&lt;id&gt;&quot;}</code> 0/1</li>
-<li>Alias (deprecated): <code>ae_replica_ready{app=&quot;&lt;name&gt;&quot;,replica=&quot;&lt;id&gt;&quot;}</code> 0/1</li>
+<li>Prev: <a href="concepts-in-practice-04-scheduling-placement.html">Chapter 04 - Scheduling &amp; Placement</a></li>
+<li>Next: <a href="concepts-in-practice-06-ingress-service-exposure.html">Chapter 06 - Ingress &amp; Service Exposure</a></li>
 </ul>
-</li>
-<li>Probe backoff:
-<ul>
-<li><code>ae_pod_probe_backoff_seconds{app=&quot;&lt;name&gt;&quot;,pod=&quot;&lt;id&gt;&quot;,type=&quot;&lt;readiness|liveness|startup&gt;&quot;}</code> (alias: <code>ae_probe_backoff_seconds{...replica=...}</code>)</li>
-</ul>
-</li>
-</ul>
-<p>API shim (when enabled)</p>
-<ul>
-<li><code>apishim_watchers{group,version,resource,namespace}</code> — active watch streams</li>
-<li><code>apishim_watch_queue_depth{...}</code> — queue depth per watch key</li>
-<li><code>apishim_watch_events_enqueued_total{...}</code> / <code>_dropped_total{...}</code> — backpressure counters</li>
-<li><code>apishim_watch_broadcasts_total{...}</code> — publish attempts per watch key</li>
-<li><code>apishim_store_backend_info{backend=&quot;sqlite|postgres&quot;}</code> — storage backend in use</li>
-<li>For HA shims on Postgres, the same metrics surface on each instance (shared store, per-process queues).</li>
-</ul>
-<h3>Logs Endpoint</h3>
-<p>Tail logs over HTTP (READ role if tokens configured):</p>
-<pre><code>GET /logs/&lt;app&gt;?container=&lt;id|idx&gt;&amp;tail=N&amp;since=&lt;seconds&gt;&amp;follow=1</code></pre>
-<ul>
-<li>When <code>follow=1</code>, the response streams plain text lines.</li>
-<li>Without follow, the response is JSON: <code>{ &quot;lines&quot;: [ ... ] }</code>.</li>
-</ul>
-<p>Remote CLI example:</p>
-<pre><code>ae --server http://&lt;ip&gt;:9108 --token readtoken logs echo --tail 100</code></pre>
-<p>See <code>docs/ops/runbook.md</code> for the “Remote CLI over LAN” section and auth token setup.</p>
-<h3>Grafana Examples</h3>
-<ul>
-<li>Import the example dashboards/panels using a Prometheus data source (uid <code>PROM</code> in examples):
-<ul>
-<li><code>docs/grafana/controller-health.json</code> — stat + timeseries for controller health</li>
-<li><code>docs/grafana/apps-overview.json</code> — per-app readiness time series and status table</li>
-</ul>
-</li>
-</ul>
-<p>You can also embed a single panel JSON (e.g., stat showing ready apps):</p>
-<pre><code>{
-  &quot;type&quot;: &quot;stat&quot;,
-  &quot;title&quot;: &quot;Ready Apps&quot;,
-  &quot;datasource&quot;: { &quot;type&quot;: &quot;prometheus&quot;, &quot;uid&quot;: &quot;PROM&quot; },
-  &quot;targets&quot;: [ { &quot;expr&quot;: &quot;ae_apps_ready&quot;, &quot;refId&quot;: &quot;A&quot; } ],
-  &quot;options&quot;: {
-    &quot;reduceOptions&quot;: { &quot;calcs&quot;: [&quot;lastNotNull&quot;], &quot;fields&quot;: &quot;&quot;, &quot;values&quot;: false },
-    &quot;colorMode&quot;: &quot;value&quot;,
-    &quot;graphMode&quot;: &quot;none&quot;
-  },
-  &quot;gridPos&quot;: { &quot;h&quot;: 4, &quot;w&quot;: 6, &quot;x&quot;: 0, &quot;y&quot;: 0 }
-}</code></pre>
-<h3>Hive Dashboard (/dashboard)</h3>
-<ul>
-<li>Adds a System snapshot sourced from <code>GET /system</code>:
-<ul>
-<li>Controller: last reconcile timestamp and duration</li>
-<li>Nodes: Ready/stale counts plus table of node status/cordon</li>
-<li>Ingress: configured site blocks and existence flag</li>
-<li>Services: declared <code>service.port</code>/<code>targetPort</code> per app and VIP/provider info</li>
-<li>Storage: container‑engine named volumes created for apps (PV‑lite)</li>
-<li>RBAC: shows whether mutations are enabled and tokens are configured (never reveals secrets)</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>Per‑app details now include:
-<ul>
-<li>Service mapping, count of secret refs, and declared storage volumes (from the manifest)</li>
-</ul>
-</li>
-</ul>
-<h3>System API</h3>
-<p><code>GET /system</code> returns a JSON object combining controller stats and optional runtime/ingress snapshots, for example:</p>
-<pre><code>{
-  &quot;controller&quot;: { &quot;last_reconcile_timestamp&quot;: 1698000000.0, &quot;last_reconcile_duration&quot;: 0.245, &quot;apps&quot;: { &quot;echo&quot;: {&quot;reconciles&quot;: 12, &quot;duration_sum&quot;: 2.3, &quot;ops&quot;: {&quot;created&quot;: 1}}}},
-  &quot;rbac&quot;: { &quot;mutations_enabled&quot;: false, &quot;read_token_configured&quot;: false, &quot;scaler_token_configured&quot;: false, &quot;admin_token_configured&quot;: false },
-  &quot;ingress&quot;: { &quot;dirty&quot;: false, &quot;sites&quot;: [{&quot;app&quot;: &quot;echo&quot;, &quot;host&quot;: &quot;echo.local&quot;, &quot;path&quot;: &quot;/path/to/echo.caddy&quot;, &quot;exists&quot;: true}] },
-  &quot;services&quot;: [{ &quot;app&quot;: &quot;echo&quot;, &quot;port&quot;: 8080, &quot;target_port&quot;: 8080, &quot;replicas&quot;: 1 }],
-  &quot;volumes&quot;: [{ &quot;name&quot;: &quot;ae-echo-data&quot;, &quot;labels&quot;: {&quot;ae.app&quot;: &quot;echo&quot;}, &quot;driver&quot;: &quot;local&quot;, &quot;mountpoint&quot;: &quot;/var/lib/docker/volumes/...&quot; }]
-}</code></pre>
     </div>
     <footer class="site-footer">
       <div class="container inner">

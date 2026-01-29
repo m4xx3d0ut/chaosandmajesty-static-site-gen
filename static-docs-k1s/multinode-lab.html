@@ -2,6 +2,7 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Multinode Lab</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
@@ -41,6 +42,8 @@
         --k1s-brand-gold: #fbc02d;
         --k1s-brand-graphite: #404040;
         --k1s-brand-mist: #f1f1f1;
+        --k1s-page-bg-image: url('static/dash-assets/page-background-3840x2160.png');
+        --k1s-page-overlay: linear-gradient(rgba(7,10,14,0.72), rgba(7,10,14,0.72));
         /* Legacy aliases used by docs/labs styles */
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
@@ -61,6 +64,7 @@
         --k1s-card-bg: #ffffff;
         --k1s-header-bg: rgba(255,255,255,0.82);
         --code-bg: #f5f6f8;
+        --k1s-page-overlay: linear-gradient(rgba(244,245,247,0.9), rgba(244,245,247,0.9));
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
         --muted: var(--k1s-panel);
@@ -82,7 +86,11 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background-color: var(--bg);
+        background-image: var(--k1s-page-overlay), var(--k1s-page-bg-image);
+        background-size: 100% 100%, auto 100%;
+        background-position: center top, center top;
+        background-repeat: repeat-y, repeat-y;
         color: var(--fg);
       }
       img { max-width: 100%; height: auto; }
@@ -605,6 +613,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
     <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>window.DOCS_DASHBOARD_URL='https://dash.home.arpa:8443/dashboard';</script>
     <script>
       // Attach copy buttons to all code blocks client-side
       (function() {
@@ -672,6 +681,7 @@
       <a href="architecture.html">Architecture</a>
       <a href="multinode-lab.html">Multi-Node</a>
       <a href="http-api.html">HTTP API</a>
+      <a href="swagger/">Swagger (Static)</a>
       <a href="apishim-compatibility-matrix.html">API Shim</a>
       <a href="ingress.html">Ingress</a>
       <a href="api-auth.html">API Auth</a>
@@ -693,6 +703,7 @@
 <h2>Prereqs</h2>
 <ul>
 <li>Two hosts (or VMs) with Python 3.11+, Podman or Docker, WireGuard tools (<code>wg</code>, <code>wg-quick</code>), and passwordless SSH between them for convenience.</li>
+<li>Optional (CRI/containerd): containerd + CNI + <code>crictl</code> installed on nodes using <code>--runtime-backend cri</code>.</li>
 <li>Rootful networking on both nodes (rootless overlay is not supported); a small privileged helper is required to attach WireGuard.</li>
 <li>Controller host exposes TCP 9110 (agent API) and UDP 51820 (or your chosen WireGuard port).</li>
 <li>Clone this repo on the controller; worker only needs <code>ae</code> installed plus the <code>ae-node</code> entrypoint.</li>
@@ -726,6 +737,11 @@ AE_CONTROLLER_TLS_KEY=${AE_CONTROLLER_TLS_KEY:-} \
 AE_WG_CONFIG=&quot;$(cat /etc/wireguard/wg0.conf)&quot; \
 python -m ae.node --runtime-backend podman --port 9109 --ensure-pod-net</code></pre>
 <ul>
+<li>For CRI/containerd nodes, use:
+<ul>
+<li><code>AE_CRI_ENDPOINT=unix:///run/containerd/containerd.sock python -m ae.node --runtime-backend cri --port 9109 --ensure-pod-net</code></li>
+</ul>
+</li>
 <li>Leave <code>AE_POD_CIDR</code> empty to let the controller assign one on first heartbeat.</li>
 <li>If WireGuard is disabled, drop <code>--ensure-pod-net</code> and set <code>AE_SERVICE_PROVIDER=bridge</code> on the controller (no cross-node routing).</li>
 </ul>
@@ -739,7 +755,7 @@ ae status echo-mn --watch</code></pre>
 <ul>
 <li>Verify Service VIP reachability from the controller host: <code>curl http://$AE_SERVICE_IP_POOL_FIRST_IP/healthz</code> (replace with the allocated ClusterIP from <code>ae services list</code>).</li>
 <li>Simulate node loss: <code>ae nodes --cordon &lt;node&gt;</code> then stop the agent; reconcile should reschedule replicas to the surviving node (storage-bound apps will remain pending by design).</li>
-<li>Exec/logs proxied via agent: <code>ae exec echo-mn -- id</code> and <code>ae logs echo-mn --tail 5</code>.</li>
+<li>Exec/logs proxied via agent: <code>ae exec echo-mn -- id</code> and <code>ae logs echo-mn --tail 5</code> (add <code>-n &lt;ns&gt;</code> if the app is not in <code>default</code>).</li>
 </ul>
 <h2>Fast smoke commands</h2>
 <ul>
@@ -758,7 +774,7 @@ ae status echo-mn --watch</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-21 18:16:59</span>
+        <span>Built 2026-01-29 10:55:17</span>
       </div>
     </footer>
 

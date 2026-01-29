@@ -2,9 +2,9 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
-    
+    <base href="../../"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Observability</title>
+    <title>API Shim</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -670,7 +670,47 @@
         }
       })();
     </script>
-    
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css"/>
+<style>
+  .swagger-topbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--k1s-panel) 80%, #000000 20%);
+    border: 1px solid var(--k1s-border);
+    margin-bottom: 16px;
+  }
+  .swagger-tab {
+    font-weight: 600;
+    color: var(--fg);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+  }
+  .swagger-tab:hover {
+    border-color: var(--k1s-border-soft);
+    color: var(--link-hover);
+  }
+  .swagger-tab.is-active {
+    background: color-mix(in srgb, var(--k1s-brand-gold) 20%, transparent);
+    border-color: color-mix(in srgb, var(--k1s-brand-gold) 40%, var(--k1s-border));
+  }
+  .swagger-shell {
+    background: #ffffff;
+    color: #111111;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.24);
+    color-scheme: light;
+  }
+  .swagger-shell p { color: #444444; }
+  .swagger-shell .swagger-ui { color: #111111; }
+</style>
+<script defer src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+<script defer src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
   </head>
   <body>
     <nav>
@@ -698,118 +738,47 @@
       </svg>
     </button>
     <div class="container">
-    <h2>Observability</h2>
-<h3>Metrics</h3>
-<p>Prometheus-style text at <code>/metrics</code> includes aggregated gauges and labeled series:</p>
-<ul>
-<li>Aggregated:
-<ul>
-<li><code>ae_apps_total</code>, <code>ae_apps_ready</code>, <code>ae_apps_progressing</code>, <code>ae_apps_degraded</code></li>
-<li><code>ae_replicas_total</code>, <code>ae_replicas_ready</code>, <code>ae_replicas_live</code></li>
-</ul>
-</li>
-<li>Nodes/Services:
-<ul>
-<li><code>ae_nodes_total</code>, <code>ae_nodes_ready</code>, <code>ae_nodes_stale</code></li>
-<li><code>ae_services_total</code> plus per-service <code>cluster_ip</code>, <code>provider</code>, and port labels</li>
-</ul>
-</li>
-<li>Per-app:
-<ul>
-<li><code>ae_app_desired_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
-<li><code>ae_app_ready_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
-<li><code>ae_app_live_replicas{app=&quot;&lt;name&gt;&quot;}</code></li>
-</ul>
-</li>
-<li>Per-pod:
-<ul>
-<li><code>ae_pod_ready{app=&quot;&lt;name&gt;&quot;,pod=&quot;&lt;id&gt;&quot;}</code> 0/1</li>
-<li>Alias (deprecated): <code>ae_replica_ready{app=&quot;&lt;name&gt;&quot;,replica=&quot;&lt;id&gt;&quot;}</code> 0/1</li>
-</ul>
-</li>
-<li>Probe backoff:
-<ul>
-<li><code>ae_pod_probe_backoff_seconds{app=&quot;&lt;name&gt;&quot;,pod=&quot;&lt;id&gt;&quot;,type=&quot;&lt;readiness|liveness|startup&gt;&quot;}</code> (alias: <code>ae_probe_backoff_seconds{...replica=...}</code>)</li>
-</ul>
-</li>
-</ul>
-<p>API shim (when enabled)</p>
-<ul>
-<li><code>apishim_watchers{group,version,resource,namespace}</code> — active watch streams</li>
-<li><code>apishim_watch_queue_depth{...}</code> — queue depth per watch key</li>
-<li><code>apishim_watch_events_enqueued_total{...}</code> / <code>_dropped_total{...}</code> — backpressure counters</li>
-<li><code>apishim_watch_broadcasts_total{...}</code> — publish attempts per watch key</li>
-<li><code>apishim_store_backend_info{backend=&quot;sqlite|postgres&quot;}</code> — storage backend in use</li>
-<li>For HA shims on Postgres, the same metrics surface on each instance (shared store, per-process queues).</li>
-</ul>
-<h3>Logs Endpoint</h3>
-<p>Tail logs over HTTP (READ role if tokens configured):</p>
-<pre><code>GET /logs/&lt;app&gt;?container=&lt;id|idx&gt;&amp;tail=N&amp;since=&lt;seconds&gt;&amp;follow=1</code></pre>
-<ul>
-<li>When <code>follow=1</code>, the response streams plain text lines.</li>
-<li>Without follow, the response is JSON: <code>{ &quot;lines&quot;: [ ... ] }</code>.</li>
-</ul>
-<p>Remote CLI example:</p>
-<pre><code>ae --server http://&lt;ip&gt;:9108 --token readtoken logs echo --tail 100</code></pre>
-<p>See <code>docs/ops/runbook.md</code> for the “Remote CLI over LAN” section and auth token setup.</p>
-<h3>Grafana Examples</h3>
-<ul>
-<li>Import the example dashboards/panels using a Prometheus data source (uid <code>PROM</code> in examples):
-<ul>
-<li><code>docs/grafana/controller-health.json</code> — stat + timeseries for controller health</li>
-<li><code>docs/grafana/apps-overview.json</code> — per-app readiness time series and status table</li>
-</ul>
-</li>
-</ul>
-<p>You can also embed a single panel JSON (e.g., stat showing ready apps):</p>
-<pre><code>{
-  &quot;type&quot;: &quot;stat&quot;,
-  &quot;title&quot;: &quot;Ready Apps&quot;,
-  &quot;datasource&quot;: { &quot;type&quot;: &quot;prometheus&quot;, &quot;uid&quot;: &quot;PROM&quot; },
-  &quot;targets&quot;: [ { &quot;expr&quot;: &quot;ae_apps_ready&quot;, &quot;refId&quot;: &quot;A&quot; } ],
-  &quot;options&quot;: {
-    &quot;reduceOptions&quot;: { &quot;calcs&quot;: [&quot;lastNotNull&quot;], &quot;fields&quot;: &quot;&quot;, &quot;values&quot;: false },
-    &quot;colorMode&quot;: &quot;value&quot;,
-    &quot;graphMode&quot;: &quot;none&quot;
-  },
-  &quot;gridPos&quot;: { &quot;h&quot;: 4, &quot;w&quot;: 6, &quot;x&quot;: 0, &quot;y&quot;: 0 }
-}</code></pre>
-<h3>Hive Dashboard (/dashboard)</h3>
-<ul>
-<li>Adds a System snapshot sourced from <code>GET /system</code>:
-<ul>
-<li>Controller: last reconcile timestamp and duration</li>
-<li>Nodes: Ready/stale counts plus table of node status/cordon</li>
-<li>Ingress: configured site blocks and existence flag</li>
-<li>Services: declared <code>service.port</code>/<code>targetPort</code> per app and VIP/provider info</li>
-<li>Storage: container‑engine named volumes created for apps (PV‑lite)</li>
-<li>RBAC: shows whether mutations are enabled and tokens are configured (never reveals secrets)</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>Per‑app details now include:
-<ul>
-<li>Service mapping, count of secret refs, and declared storage volumes (from the manifest)</li>
-</ul>
-</li>
-</ul>
-<h3>System API</h3>
-<p><code>GET /system</code> returns a JSON object combining controller stats and optional runtime/ingress snapshots, for example:</p>
-<pre><code>{
-  &quot;controller&quot;: { &quot;last_reconcile_timestamp&quot;: 1698000000.0, &quot;last_reconcile_duration&quot;: 0.245, &quot;apps&quot;: { &quot;echo&quot;: {&quot;reconciles&quot;: 12, &quot;duration_sum&quot;: 2.3, &quot;ops&quot;: {&quot;created&quot;: 1}}}},
-  &quot;rbac&quot;: { &quot;mutations_enabled&quot;: false, &quot;read_token_configured&quot;: false, &quot;scaler_token_configured&quot;: false, &quot;admin_token_configured&quot;: false },
-  &quot;ingress&quot;: { &quot;dirty&quot;: false, &quot;sites&quot;: [{&quot;app&quot;: &quot;echo&quot;, &quot;host&quot;: &quot;echo.local&quot;, &quot;path&quot;: &quot;/path/to/echo.caddy&quot;, &quot;exists&quot;: true}] },
-  &quot;services&quot;: [{ &quot;app&quot;: &quot;echo&quot;, &quot;port&quot;: 8080, &quot;target_port&quot;: 8080, &quot;replicas&quot;: 1 }],
-  &quot;volumes&quot;: [{ &quot;name&quot;: &quot;ae-echo-data&quot;, &quot;labels&quot;: {&quot;ae.app&quot;: &quot;echo&quot;}, &quot;driver&quot;: &quot;local&quot;, &quot;mountpoint&quot;: &quot;/var/lib/docker/volumes/...&quot; }]
-}</code></pre>
+    <div class="swagger-topbar">
+  <a class="swagger-tab" href="swagger/">Controller API</a>
+  <a class="swagger-tab is-active" href="swagger/apishim/">API Shim</a>
+</div>
+<div class="swagger-shell">
+  <h1>API Shim</h1>
+  <p>Static API docs generated by docs-export.</p>
+  <div id="swagger-ui"></div>
+  <noscript>Enable JavaScript to view the API documentation.</noscript>
+  <script>
+    window.addEventListener('load', function() {
+      if (!window.SwaggerUIBundle) return;
+      var specUrl = new URL(
+        'openapi-v3.json',
+        window.location.href
+      ).toString();
+      window.ui = SwaggerUIBundle({
+        url: specUrl,
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: 'StandaloneLayout'
+      });
+      var defaultUrl = "http://localhost:8080/k1s/swagger/openapi-v3.json";
+      if (defaultUrl) {
+        var input = document.querySelector('.download-url-input');
+        if (input) {
+          input.value = defaultUrl;
+          input.setAttribute('value', defaultUrl);
+        }
+      }
+    });
+  </script>
+</div>
     </div>
     <footer class="site-footer">
       <div class="container inner">
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-29 10:55:18</span>
+        <span>Built 2026-01-29 11:45:23</span>
       </div>
     </footer>
 

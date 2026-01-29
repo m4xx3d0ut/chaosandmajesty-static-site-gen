@@ -2,6 +2,7 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Scheduling</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
@@ -41,6 +42,8 @@
         --k1s-brand-gold: #fbc02d;
         --k1s-brand-graphite: #404040;
         --k1s-brand-mist: #f1f1f1;
+        --k1s-page-bg-image: url('static/dash-assets/page-background-3840x2160.png');
+        --k1s-page-overlay: linear-gradient(rgba(7,10,14,0.72), rgba(7,10,14,0.72));
         /* Legacy aliases used by docs/labs styles */
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
@@ -61,6 +64,7 @@
         --k1s-card-bg: #ffffff;
         --k1s-header-bg: rgba(255,255,255,0.82);
         --code-bg: #f5f6f8;
+        --k1s-page-overlay: linear-gradient(rgba(244,245,247,0.9), rgba(244,245,247,0.9));
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
         --muted: var(--k1s-panel);
@@ -82,7 +86,11 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background-color: var(--bg);
+        background-image: var(--k1s-page-overlay), var(--k1s-page-bg-image);
+        background-size: 100% 100%, auto 100%;
+        background-position: center top, center top;
+        background-repeat: repeat-y, repeat-y;
         color: var(--fg);
       }
       img { max-width: 100%; height: auto; }
@@ -605,6 +613,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
     <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>window.DOCS_DASHBOARD_URL='https://dash.home.arpa:8443/dashboard';</script>
     <script>
       // Attach copy buttons to all code blocks client-side
       (function() {
@@ -672,6 +681,7 @@
       <a href="architecture.html">Architecture</a>
       <a href="multinode-lab.html">Multi-Node</a>
       <a href="http-api.html">HTTP API</a>
+      <a href="swagger/">Swagger (Static)</a>
       <a href="apishim-compatibility-matrix.html">API Shim</a>
       <a href="ingress.html">Ingress</a>
       <a href="api-auth.html">API Auth</a>
@@ -692,13 +702,13 @@
 <p>The controller includes a lightweight scheduler for multi-node runs. It:</p>
 <ul>
 <li>Filters nodes by readiness/staleness (<code>AE_NODE_NOTREADY_AFTER</code>), cordon state, <code>nodeSelector</code>, and taints/tolerations.</li>
-<li>Pins all replicas to a single node when <code>spec.storage</code> is declared (retained volumes stay on the node that created them).</li>
+<li>Pins all pods to a single node when <code>spec.storage</code> is declared (retained volumes stay on the node that created them).</li>
 <li>Spreads across eligible nodes round-robin by default; honors <code>topologySpreadConstraints</code> when a topology key is present.</li>
 <li>Falls back to the local runtime when no nodes are eligible (emits a planner warning).</li>
 </ul>
 <h3>Planner Dry Run</h3>
 <pre><code>ae plan -f specs/examples/echo-multinode.yaml --verbose</code></pre>
-<p>Verbose output shows replica IDs, chosen nodes/endpoints, storage bindings, and Service VIP hints. Warnings include stale nodes, missing labels for selectors, or hostPort use when VIPs are enabled.</p>
+<p>Verbose output shows pod names, chosen nodes/endpoints, storage bindings, and Service VIP hints. Warnings include stale nodes, missing labels for selectors, or hostPort use when VIPs are enabled.</p>
 <h3>Managing Nodes</h3>
 <ul>
 <li>List/describe: <code>ae nodes list</code>, <code>ae nodes &lt;node-id&gt;</code></li>
@@ -722,7 +732,7 @@
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-21 18:17:00</span>
+        <span>Built 2026-01-29 10:55:18</span>
       </div>
     </footer>
 
