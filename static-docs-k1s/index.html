@@ -390,7 +390,7 @@
         padding: 10px 12px;
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px 10px;
         border: 1px solid var(--k1s-border);
         border-radius: 12px;
@@ -400,6 +400,24 @@
       .hero-repo-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .hero-repo-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hero-repo-item-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--k1s-text-muted);
       }
@@ -679,6 +697,7 @@
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
       <a href="architecture.html">Architecture</a>
+      <a href="cri-containerd.html">CRI containerd</a>
       <a href="multinode-lab.html">Multi-Node</a>
       <a href="http-api.html">HTTP API</a>
       <a href="swagger/">Swagger (Static)</a>
@@ -706,6 +725,7 @@
     </div>
     <h1>k1s Documentation</h1>
     <p class="hero-tagline">Guides, labs, and reference for building, operating, and observing k1s clusters.</p>
+    <p class="hero-tagline">Status: k1s is under very active development and has not reached a fully stable release. Do not use it in production without thorough security vetting and testing for your environment.</p>
     <div class="hero-links">
       <a class="hero-link" href="start-here.html">Start Here</a>
       <a class="hero-link" href="overview.html">Overview</a>
@@ -713,8 +733,17 @@
       <a class="hero-link" href="https://codeberg.org/th3_4rchit3ct/k1s.rss" target="_blank" rel="noopener">RSS Feed</a>
     </div>
     <div class="hero-repo">
-      <span class="hero-repo-label">Canonical (Upstream) Repository</span>
-      <a class="hero-repo-link" href="https://codeberg.org/th3_4rchit3ct/k1s" target="_blank" rel="noopener">https://codeberg.org/th3_4rchit3ct/k1s</a>
+      <span class="hero-repo-label">Repositories</span>
+      <div class="hero-repo-list">
+      <div class="hero-repo-item">
+        <span class="hero-repo-item-label">Upstream Repository (CODEBERG)</span>
+        <a class="hero-repo-link" href="https://codeberg.org/th3_4rchit3ct/k1s" target="_blank" rel="noopener">https://codeberg.org/th3_4rchit3ct/k1s</a>
+      </div>
+      <div class="hero-repo-item">
+        <span class="hero-repo-item-label">Issues &amp; PRs / SPONSORS (GitHub)</span>
+        <a class="hero-repo-link" href="https://github.com/the-cm-collective/k1s" target="_blank" rel="noopener">https://github.com/the-cm-collective/k1s</a>
+      </div>
+      </div>
     </div>
   </div>
   <div class="hero-actions">
@@ -776,7 +805,7 @@
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-29 10:55:16</span>
+        <span>Built 2026-01-31 17:09:23</span>
       </div>
     </footer>
 

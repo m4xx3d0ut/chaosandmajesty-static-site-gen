@@ -13,6 +13,11 @@
     statusMode: 'cluster', // 'cluster' | 'app'
   };
   const helmDemo = { timer: null, running: false };
+  const exampleBaseNames = {};
+  let ingressCheckTimer = null;
+  let ingressCheckAttempts = 0;
+  let ingressCheckUrl = '';
+  let ingressCheckOk = null;
 
   const xtermFallback = {
     css: '/static/vendor/xterm.css',
@@ -61,6 +66,40 @@
     if (!el) return;
     el.textContent = txt;
     if (cls) { el.className = cls; }
+  }
+
+  function extractExampleBaseName(yamlText) {
+    if (!yamlText) return null;
+    const lines = String(yamlText).split(/\r?\n/);
+    let inMeta = false;
+    let metaIndent = null;
+    for (const raw of lines) {
+      const line = raw.replace(/\t/g, '  ');
+      if (!line.trim() || line.trim().startsWith('#')) continue;
+      const indent = line.match(/^(\s*)/)[1].length;
+      if (!inMeta) {
+        if (/^metadata:\s*$/.test(line)) {
+          inMeta = true;
+          metaIndent = indent;
+        }
+        continue;
+      }
+      if (metaIndent !== null && indent <= metaIndent) {
+        inMeta = false;
+        metaIndent = null;
+        continue;
+      }
+      if (/^\s+name:\s*/.test(line)) {
+        let val = line.replace(/^\s+name:\s*/, '').trim();
+        val = val.replace(/^['"]|['"]$/g, '');
+        return val || null;
+      }
+    }
+    return null;
+  }
+
+  function resolveExampleBaseName(example) {
+    return exampleBaseNames[example] || example;
   }
 
   function setCanaryInfo(rev, base, weight) {
@@ -305,7 +344,12 @@
         const qs = u.search || '';
         const full = `${scheme}://${host}:${port}${path}${qs}`;
         const k = (scheme === 'https') ? '-k ' : '';
-        cmd = `curl ${k}-sS --resolve "${host}:${port}:127.0.0.1" "${full}"`;
+        const parts = [
+          `curl ${k}-sS`,
+          `  --resolve "${host}:${port}:127.0.0.1"`,
+          `  "${full}"`,
+        ];
+        cmd = parts.join(' \\\n');
       } catch { cmd = ''; }
       el.textContent = cmd;
       btn.disabled = !(cmd && cmd.trim());
@@ -723,6 +767,10 @@
     try { setText('#ingress-check','n/a','pending'); } catch(_){}
     try { setText('#ingress-curl',''); const b=document.getElementById('ingress-curl-copy'); if (b) b.disabled=true; } catch(_){}
     try { setHostsHint(''); } catch(_){}
+    ingressCheckOk = null;
+    ingressCheckAttempts = 0;
+    ingressCheckUrl = '';
+    clearIngressRetry();
     // Reset status to cluster-wide summary and refresh
     try { setStatusMode('cluster'); refreshStatusNow(); } catch(_){}
     // Disable action buttons now that we have no session
@@ -1181,6 +1229,8 @@
         try { setCurlHint(href); } catch(_){}
         // Kick a best‑effort ingress check only after a successful session
         try { if (state.sessionId && state.orch.available) verifyIngress(); } catch(_){}
+      } else if (link) {
+        clearIngressUI('not configured');
       }
     } catch (e) {
       try {
@@ -1254,6 +1304,10 @@
       const txt = r.ok ? await r.text() : '(example file not found)';
       const el = document.getElementById('example-yaml');
       if (el) el.textContent = txt;
+      try {
+        const base = extractExampleBaseName(txt);
+        if (base) exampleBaseNames[name] = base;
+      } catch(_){}
     } catch {
       try { const el = document.getElementById('example-yaml'); if (el) el.textContent = '(failed to load example)'; } catch(_){}
     }
@@ -1295,24 +1349,103 @@
     }
   }
 
+  function resetIngressCheck(url){
+    if (url && url !== ingressCheckUrl) {
+      ingressCheckUrl = url;
+      ingressCheckAttempts = 0;
+      ingressCheckOk = null;
+    }
+  }
+
+  function clearIngressRetry(){
+    if (ingressCheckTimer) {
+      try { clearTimeout(ingressCheckTimer); } catch(_){}
+      ingressCheckTimer = null;
+    }
+  }
+
+  function scheduleIngressRetry(){
+    if (ingressCheckTimer) return;
+    if (ingressCheckAttempts >= 4) return;
+    ingressCheckAttempts += 1;
+    ingressCheckTimer = setTimeout(() => {
+      ingressCheckTimer = null;
+      verifyIngress();
+    }, 2500);
+  }
+
+  function clearIngressUI(reason){
+    const label = reason || 'not configured';
+    try {
+      const link = document.getElementById('ingress-link');
+      if (link) {
+        link.textContent = label;
+        link.href = '#';
+      }
+    } catch(_){}
+    try { setText('#ingress-check', label, 'pending'); } catch(_){}
+    try { setText('#ingress-curl',''); const b=document.getElementById('ingress-curl-copy'); if (b) b.disabled=true; } catch(_){}
+    try { setHostsHint(''); } catch(_){}
+    ingressCheckOk = null;
+    ingressCheckAttempts = 0;
+    ingressCheckUrl = '';
+    clearIngressRetry();
+  }
+
   async function verifyIngress(){
     // Use server-side check to avoid browser TLS constraints in dev
     const a = document.getElementById('ingress-link');
-    if (!a || !a.href || a.href === '#' ) { setText('#ingress-check','n/a','pending'); return; }
+    if (!a || !a.href || a.href === '#' ) {
+      setText('#ingress-check','n/a','pending');
+      ingressCheckOk = null;
+      return;
+    }
+    resetIngressCheck(a.href);
     const payload = { url: a.href };
     try {
       const r = await apiFetch(`/labs/ingress_check`, {
-        method: 'POST', headers: { 'Content-Type':'application/json', ...(state.orch.token? { 'Authorization': `Bearer ${state.orch.token}` } : {}) },
+        method: 'POST',
+        headers: labsHeaders({ 'Content-Type':'application/json' }),
         body: JSON.stringify(payload)
       });
-      if (!r.ok) { setText('#ingress-check','unreachable','fail'); return; }
+      if (r.status === 401 || r.status === 403) {
+        setText('#ingress-check','auth required','fail');
+        ingressCheckOk = false;
+        return;
+      }
+      if (!r.ok) { setText('#ingress-check','unreachable','fail'); ingressCheckOk = false; scheduleIngressRetry(); return; }
       const j = await r.json();
+      if (j && j.disabled) {
+        setText('#ingress-check', 'disabled (AE_DISABLE_INGRESS=1)', 'pending');
+        ingressCheckOk = null;
+        ingressCheckAttempts = 0;
+        clearIngressRetry();
+        setHostsHint('');
+        try { setText('#ingress-curl',''); const b=document.getElementById('ingress-curl-copy'); if (b) b.disabled=true; } catch(_){}
+        return;
+      }
       const dt = Number(j.elapsed_ms||0);
-      if (j.ok) { setText('#ingress-check', `reachable (~${dt}ms)`, 'ok'); setHostsHint(''); return; }
+      if (j.ok) {
+        setText('#ingress-check', `reachable (~${dt}ms)`, 'ok');
+        setHostsHint('');
+        ingressCheckOk = true;
+        ingressCheckAttempts = 0;
+        clearIngressRetry();
+        return;
+      }
       // Allow local override for self-signed TLS
       const allow = (localStorage.getItem('labsAllowUntrusted')||'').trim() === '1';
-      if (allow) { setText('#ingress-check', 'untrusted TLS (dev)', 'ok'); setHostsHint(''); return; }
+      if (allow) {
+        setText('#ingress-check', 'untrusted TLS (dev)', 'ok');
+        setHostsHint('');
+        ingressCheckOk = true;
+        ingressCheckAttempts = 0;
+        clearIngressRetry();
+        return;
+      }
       setText('#ingress-check', j.code ? `error ${j.code}` : 'unreachable', 'fail');
+      ingressCheckOk = false;
+      scheduleIngressRetry();
       try {
         const u = new URL(a.href); const host = u.hostname;
         if (host && /\.home\.arpa$/i.test(host)) setHostsHint(`Add to /etc/hosts: 127.0.0.1 ${host}`);
@@ -1320,6 +1453,8 @@
       } catch(_){}
     } catch {
       setText('#ingress-check','unreachable','fail');
+      ingressCheckOk = false;
+      scheduleIngressRetry();
     }
   }
 
@@ -1379,6 +1514,10 @@
       try { setText('#ingress-check','n/a','pending'); } catch(_){}
       try { setText('#ingress-curl',''); const b=document.getElementById('ingress-curl-copy'); if (b) b.disabled=true; } catch(_){}
       try { setHostsHint(''); } catch(_){}
+      ingressCheckOk = null;
+      ingressCheckAttempts = 0;
+      ingressCheckUrl = '';
+      clearIngressRetry();
       try {
         const backendSel = document.getElementById('backend-select');
         if (backendSel) {
@@ -1432,12 +1571,14 @@
       const actionsEnabled = $('#toggle-actions')?.checked && state.sessionId && state.orch.available;
       const selNow = document.getElementById('example-select');
       const example = selNow && selNow.value ? selNow.value : 'shell-demo';
+      const baseName = resolveExampleBaseName(example);
+      const expectedName = state.sessionId ? `${baseName}-${state.sessionId}` : baseName;
       if (!state.orch.available) {
         banner(`Controlled actions are unavailable. Start a session and enable "Enable Controlled Actions", or run: ae apply -f specs/examples/${example}.yaml`, 'fail');
         return;
       }
       if (!state.sessionId) {
-        banner('Start Session first to namespace your app (shell-demo-<session>).', 'fail');
+        banner(`Start Session first to namespace your app (${baseName}-<session>).`, 'fail');
         return;
       }
       if (!$('#toggle-actions')?.checked) {
@@ -1445,7 +1586,8 @@
         return;
       }
       const btn = e.currentTarget || document.getElementById('btn-apply-echo');
-      await withButtonFeedback(btn, `Submitting apply for “${state.appName}”…`, async () => {
+      state.appName = expectedName;
+      await withButtonFeedback(btn, `Submitting apply for “${expectedName}”…`, async () => {
         // use computed `example`
         try {
           const resp = await apiFetch(`/labs/apply`, {
@@ -1464,6 +1606,7 @@
             state.appApplied = true;
             clearCanaryInfo();
           } catch(_) { state.appApplied = true; }
+          try { armSSE(); } catch(_){}
           // Immediate, visible feedback like dashboard header
           try { banner(`Apply accepted for “${state.appName}” — reconciling…`, 'ok', 6000); } catch(_){}
           setTimeout(verifyApply, 800);
@@ -1682,7 +1825,12 @@
     // Observe tail toggle
     const observeBtn = document.getElementById('btn-observe-toggle');
     let esLogs = null, esEvents = null, esStatus = null;
-    function stopStreams(){ try { if (esLogs) { esLogs.close(); esLogs=null; } } catch(_){} try { if (esEvents) { esEvents.close(); esEvents=null; } } catch(_){} try { if (esStatus) { esStatus.close(); esStatus=null; } } catch(_){} }
+    function stopStreams(){
+      try { if (esLogs) { esLogs.close(); esLogs=null; } } catch(_){}
+      try { if (esEvents) { esEvents.close(); esEvents=null; } } catch(_){}
+      try { if (esStatus) { esStatus.close(); esStatus=null; } } catch(_){}
+      if (state._logsTimer) { clearInterval(state._logsTimer); state._logsTimer=null; }
+    }
     async function pollEventsOnce(){
       try {
         const ev = await jsonGet(`${API}/events/${encodeURIComponent(state.appName)}?limit=20`);
@@ -1695,6 +1843,31 @@
             const msg = (e.message||'');
             return `<div class="log-entry"><code>${ts}</code> ${msg}</div>`;
           }).join('') || '<div class="log-entry">No recent events</div>';
+          follow(box);
+        }
+      } catch {}
+    }
+    async function pollLogsOnce(){
+      try {
+        const qs = new URLSearchParams({ tail: '200' });
+        const url = `${API}/logs/${encodeURIComponent(state.appName)}?` + qs.toString();
+        const r = await fetch(url, { headers: labsHeaders({ 'Accept': 'application/json' }) });
+        if (!r.ok) return;
+        const data = await r.json();
+        const lines = Array.isArray(data?.lines) ? data.lines : [];
+        const box = document.getElementById('observe-logs');
+        if (box) {
+          box.innerHTML = '';
+          if (!lines.length) {
+            box.innerHTML = '<div class="log-entry">No recent log lines</div>';
+          } else {
+            lines.forEach((line) => {
+              const div = document.createElement('div');
+              div.className = 'log-entry';
+              div.textContent = String(line);
+              box.appendChild(div);
+            });
+          }
           follow(box);
         }
       } catch {}
@@ -1722,7 +1895,14 @@
               box.appendChild(div);
               follow(box);
             };
-            esLogs.onerror = () => { /* retry by EventSource */ };
+            esLogs.onerror = () => {
+              try { esLogs?.close(); } catch(_){}
+              esLogs = null;
+              if (!state._logsTimer) {
+                pollLogsOnce();
+                state._logsTimer = setInterval(pollLogsOnce, 2000);
+              }
+            };
           } catch(e){ console.error('EventSource logs error', e); }
           // Events SSE (labs) with fallback to polling
           try {
@@ -1769,6 +1949,14 @@
                     ? s.ingress_host + (s.ingress_path||'/')
                     : makeIngressUrl(s.ingress_host, s.ingress_path);
                   link.href = href;
+                  try {
+                    if (state.sessionId && state.orch.available) {
+                      if (href !== ingressCheckUrl) resetIngressCheck(href);
+                      if (ingressCheckOk !== true && !ingressCheckTimer) verifyIngress();
+                    }
+                  } catch(_){}
+                } else if (link) {
+                  clearIngressUI('not configured');
                 }
               } catch {}
             };

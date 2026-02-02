@@ -390,7 +390,7 @@
         padding: 10px 12px;
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px 10px;
         border: 1px solid var(--k1s-border);
         border-radius: 12px;
@@ -400,6 +400,24 @@
       .hero-repo-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .hero-repo-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hero-repo-item-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--k1s-text-muted);
       }
@@ -679,6 +697,7 @@
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
       <a href="architecture.html">Architecture</a>
+      <a href="cri-containerd.html">CRI containerd</a>
       <a href="multinode-lab.html">Multi-Node</a>
       <a href="http-api.html">HTTP API</a>
       <a href="swagger/">Swagger (Static)</a>
@@ -722,7 +741,7 @@ AE_AGENT_API_TLS_KEY=${AE_AGENT_API_TLS_KEY:-} \
 AE_AGENT_API_CLIENT_CA=${AE_AGENT_API_CLIENT_CA:-} \
 AE_AGENT_API_REQUIRE_CLIENT_CERT=${AE_AGENT_API_REQUIRE_CLIENT_CERT:-0} \
 python -m ae.controller --loop --specs specs/ --metrics-port 9108</code></pre>
-<p>Optional: point the controller at Postgres for state (<code>AE_STATE_BACKEND=postgres AE_STATE_DSN=postgresql://...</code>) to mirror production.</p>
+<p>Optional: point the controller at Postgres for state (<code>AE_STATE_DSN=postgresql://...</code>) to mirror production.</p>
 <h2>Start agents on workers</h2>
 <p>Generate per-node WireGuard config (or reuse your own) and start the agent:</p>
 <pre><code>AE_CONTROLLER_URL=http://&lt;controller-host&gt;:9110 \
@@ -753,8 +772,8 @@ ae status echo-mn --watch</code></pre>
 <p>Expected: one replica on each node, Service VIP allocated from <code>AE_SERVICE_IP_POOL</code>, Caddy (or your ingress) targets the Service VIP instead of hostPorts.</p>
 <h2>Validate routing and failover</h2>
 <ul>
-<li>Verify Service VIP reachability from the controller host: <code>curl http://$AE_SERVICE_IP_POOL_FIRST_IP/healthz</code> (replace with the allocated ClusterIP from <code>ae services list</code>).</li>
-<li>Simulate node loss: <code>ae nodes --cordon &lt;node&gt;</code> then stop the agent; reconcile should reschedule replicas to the surviving node (storage-bound apps will remain pending by design).</li>
+<li>Verify Service VIP reachability from the controller host: <code>ae services</code> to find the ClusterIP, then <code>curl http://&lt;cluster-ip&gt;/healthz</code>.</li>
+<li>Simulate node loss: <code>ae nodes &lt;node&gt; --cordon</code> then stop the agent; reconcile should reschedule replicas to the surviving node (storage-bound apps will remain pending by design).</li>
 <li>Exec/logs proxied via agent: <code>ae exec echo-mn -- id</code> and <code>ae logs echo-mn --tail 5</code> (add <code>-n &lt;ns&gt;</code> if the app is not in <code>default</code>).</li>
 </ul>
 <h2>Fast smoke commands</h2>
@@ -774,7 +793,7 @@ ae status echo-mn --watch</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-29 10:55:17</span>
+        <span>Built 2026-01-31 16:23:26</span>
       </div>
     </footer>
 
