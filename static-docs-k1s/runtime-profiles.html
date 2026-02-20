@@ -703,6 +703,7 @@
       <a href="swagger/">Swagger (Static)</a>
       <a href="apishim-compatibility-matrix.html">API Shim</a>
       <a href="ingress.html">Ingress</a>
+      <a href="ingress-capability-test-sequence.html">Ingress Validation</a>
       <a href="api-auth.html">API Auth</a>
       <a href="concepts.html">Concepts</a>
       <a href="benchmarks.html">Benchmarks</a>
@@ -745,6 +746,7 @@ make edge-site-cri SITE_ID=sea-edge-02 EDGE_PORT=4224 EDGE_HTTP_PORT=8224</code>
 <p>Notes:</p>
 <ul>
 <li><code>k1s-core</code> starts etcd + hub NATS + Postgres infra and sets <code>AE_APISHIM_DSN</code> by default.</li>
+<li>In strict CRI lanes, <code>k1s-core</code> uses etcd as the durable control-plane store by default; override <code>AE_APISHIM_ETCD_ENDPOINTS</code> only when your etcd endpoint is not <code>http://127.0.0.1:2379</code>.</li>
 <li>Infra backend auto-selection:
 <ul>
 <li><code>AE_RUNTIME_BACKEND=cri|containerd</code> -&gt; strict CRI infra (<code>AE_INFRA_BACKEND=cri</code>)</li>
@@ -834,6 +836,7 @@ EDGE_INGRESS_MODE=edge-local make k1s-edge</code></pre>
 <ul>
 <li>Primary lane: <code>core-proxy</code> deep/deep+perf (<code>lb-proof-scope=auto</code>) for policy + observability checks.</li>
 <li>Strict LB proof lane: <code>edge-local</code> deep (<code>lb-proof-scope=edge-only</code>) for distribution proof.</li>
+<li>Security gates after lane runs: <code>scripts/dev/security_baseline_check.sh --fail-on high</code> then <code>scripts/dev/security_active_tests.sh --fail-on high</code>.</li>
 <li>Canonical command sequence: <code>docs/guides/ingress-capability-test-sequence.md</code>.</li>
 </ul>
 <h2 id="core-edge-pairings">Core + Edge pairings</h2>
@@ -939,7 +942,7 @@ make k1s-edge-core-cri</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-02-19 16:06:17</span>
+        <span>Built 2026-02-19 17:00:05</span>
       </div>
     </footer>
 
