@@ -717,10 +717,10 @@
       </svg>
     </button>
     <div class="container">
-    <h1>Ingress Guide (Caddy)</h1>
+    <h1 id="ingress-guide-caddy">Ingress Guide (Caddy)</h1>
 <p>Overview</p>
 <ul>
-<li>The controller writes one Caddy site per App manifest with spec.ingress.</li>
+<li>The controller writes one Caddy site per Deployment manifest with spec.ingress.</li>
 <li>Multi-path routing is supported; Caddy uses handle_path for subpaths.</li>
 <li>TLS defaults to Caddy&#x27;s internal CA for dev; you can supply real certs.</li>
 </ul>
@@ -780,7 +780,7 @@
 </ul>
 <p>Multi-path routing</p>
 <ul>
-<li>In your App manifest, set <code>spec.ingress.paths: [&quot;/&quot;, &quot;/api&quot;]</code> to render multiple routes.</li>
+<li>In your Deployment manifest, set <code>spec.ingress.paths: [&quot;/&quot;, &quot;/api&quot;]</code> to render multiple routes.</li>
 </ul>
 <p>Notes</p>
 <ul>
@@ -795,7 +795,7 @@
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-31 16:23:26</span>
+        <span>Built 2026-02-19 16:06:16</span>
       </div>
     </footer>
 
