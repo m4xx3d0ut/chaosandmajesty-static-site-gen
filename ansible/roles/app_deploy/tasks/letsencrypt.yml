@@ -53,7 +53,7 @@
     mode: '0640'
   loop: "{{ letsencrypt_fullchain_stats.results | default([]) }}"
   loop_control:
-    label: "{{ item.stat.path }}"
+    label: "{{ item.stat.path | default(item.item) }}"
   when: item.stat.exists
 
 - name: Gather Let's Encrypt privkey files
@@ -71,7 +71,7 @@
     mode: '0640'
   loop: "{{ letsencrypt_privkey_stats.results | default([]) }}"
   loop_control:
-    label: "{{ item.stat.path }}"
+    label: "{{ item.stat.path | default(item.item) }}"
   when: item.stat.exists
 
 - name: Gather Let's Encrypt shared config files
