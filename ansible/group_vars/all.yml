@@ -82,6 +82,8 @@ letsencrypt_host_path: /etc/letsencrypt
 letsencrypt_container_path: /etc/letsencrypt
 acme_webroot_host_path: /var/www/letsencrypt
 acme_webroot_container_path: /var/www/letsencrypt
+# Optional archive permission sweep can be expensive on hosts with long cert history.
+letsencrypt_archive_permission_sweep_enabled: false
 letsencrypt_primary_domain: chaosandmajesty.com
 letsencrypt_domains:
   - chaosandmajesty.com

@@ -105,6 +105,7 @@
   loop: "{{ letsencrypt_domains_effective }}"
   register: letsencrypt_archive_files
   changed_when: false
+  when: letsencrypt_archive_permission_sweep_enabled | default(false) | bool
 
 - name: Ensure Let's Encrypt archive certificates are readable by runtime group
   file:
@@ -115,4 +116,6 @@
   loop: "{{ letsencrypt_archive_files.results | map(attribute='files') | list | sum(start=[]) }}"
   loop_control:
     label: "{{ item.path }}"
-  when: (letsencrypt_archive_files.results | map(attribute='files') | list | sum(start=[])) | length > 0
+  when:
+    - letsencrypt_archive_permission_sweep_enabled | default(false) | bool
+    - (letsencrypt_archive_files.results | map(attribute='files') | list | sum(start=[])) | length > 0
