@@ -7,6 +7,7 @@
     image_repository: "{{ image_registry ~ (('/' ~ image_namespace) if (image_namespace | length) > 0 else '') }}"
     image_ref: "{{ image_repository }}/{{ image_name }}:{{ image_tag }}"
     rss_proxy_image_ref: "{{ image_repository }}/{{ rss_proxy_image_name }}:{{ rss_proxy_image_tag }}"
+    business_image_ref: "{{ image_repository }}/{{ business_image_name }}:{{ business_image_tag }}"
   pre_tasks:
     - name: Check Docker Engine availability
       command: docker --version

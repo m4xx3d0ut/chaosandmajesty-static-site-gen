@@ -5,6 +5,9 @@ FROM node:20-slim AS builder
 WORKDIR /app
 ENV NODE_ENV=production
 ARG SYNC_GIT_MANIFEST_URL_REWRITE
+ARG BUILD_COMMAND="./build-site.sh"
+ARG BUILD_WORKDIR="/app"
+ARG SITE_OUTPUT_DIR="/app/site-output"
 ENV SYNC_GIT_MANIFEST_URL_REWRITE=${SYNC_GIT_MANIFEST_URL_REWRITE}
 
 # Install build dependencies and clean apt cache afterwards
@@ -26,7 +29,9 @@ RUN npm ci --omit=dev
 COPY . .
 RUN --mount=type=ssh \
     set -eux; \
-    GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=no" ./build-site.sh
+    export GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=no"; \
+    cd "${BUILD_WORKDIR}"; \
+    SITE_OUTPUT_DIR="${SITE_OUTPUT_DIR}" sh -c "${BUILD_COMMAND}"
 
 # Stage 1b: build a dav_ext module that matches the bundled nginx
 FROM nginxinc/nginx-unprivileged:alpine AS dav_ext_builder
@@ -64,6 +69,7 @@ FROM nginxinc/nginx-unprivileged:alpine
 
 # Allow choosing which nginx config to bake into the runtime image (prod vs dev)
 ARG NGINX_CONFIG="nginx/default.conf"
+ARG SITE_OUTPUT_DIR="/app/site-output"
 
 LABEL org.opencontainers.image.source="https://gitea.core.home.arpa/m4xx3d0ut/chaosandmajesty-static-site-gen" \
       org.opencontainers.image.description="Chaos & Majesty static site served by hardened Nginx"
@@ -87,7 +93,7 @@ RUN set -eux; \
     chown -R 101:101 /var/lib/nginx /var/log/nginx
 
 # Copy the generated site and nginx configuration
-COPY --from=builder --chown=101:101 /app/site-output/ /usr/share/nginx/html/
+COPY --from=builder --chown=101:101 ${SITE_OUTPUT_DIR}/ /usr/share/nginx/html/
 COPY --from=builder --chown=101:101 /app/${NGINX_CONFIG} /etc/nginx/http.d/default.conf
 COPY --from=dav_ext_builder /tmp/ngx_http_dav_ext_module.so /etc/nginx/modules/ngx_http_dav_ext_module.so
 COPY nginx/nginx.conf /etc/nginx/nginx.conf

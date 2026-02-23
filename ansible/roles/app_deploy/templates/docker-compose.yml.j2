@@ -43,6 +43,35 @@ services:
 {% endif %}
 {% endif %}
 
+{% if business_enabled %}
+  {{ business_compose_service_name }}:
+    image: {{ business_image_ref }}
+    container_name: {{ business_container_name }}
+    restart: unless-stopped
+    user: "{{ container_runtime_uid }}:{{ container_runtime_gid }}"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: "{{ business_mem_limit }}"
+    mem_reservation: "{{ business_mem_reservation }}"
+    cpus: "{{ business_cpus }}"
+    pids_limit: {{ business_pids_limit }}
+    ports:
+      - "{{ business_https_bind_interface }}:443:{{ business_listen_port_ssl }}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8080{{ business_healthcheck_path }} || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+{% if business_letsencrypt_mount_enabled %}
+    volumes:
+      - "{{ letsencrypt_host_path }}:{{ letsencrypt_container_path }}:ro"
+{% endif %}
+
+{% endif %}
+
 {% if rss_proxy_enabled %}
   rss-proxy:
     image: {{ rss_proxy_image_ref }}

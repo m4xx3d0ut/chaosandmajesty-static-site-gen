@@ -4,6 +4,9 @@ set -e  # Exit on any error
 
 echo "Building site with sitegen..."
 
+# Output directory (override for alternate builds)
+SITE_OUTPUT_DIR="${SITE_OUTPUT_DIR:-site-output}"
+
 if [ "${ENABLE_DOOM_BUILD:-0}" != "0" ]; then
     if [ -x "scripts/build-doom.sh" ]; then
         echo "Preparing DOOM wasm assets (ENABLE_DOOM_BUILD enabled)..."
@@ -57,13 +60,13 @@ if [ ! -f "smoke-test.yaml" ]; then
 fi
 
 # Run the site generator
-./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o site-output -v
+./static-sitegen/bin/sitegen.js -c smoke-test.yaml -o "$SITE_OUTPUT_DIR" -v
 
 # Export shallow HTTP clones for Git repos so nginx can serve /git/<repo>.git
 if [ "${EXPORT_GIT_HTTP_CLONES:-1}" = "1" ]; then
     if [ -f "$MANIFEST_PATH" ]; then
         echo "Exporting HTTP-friendly Git mirrors..."
-        if ! ./scripts/export-git-http.sh --manifest "$MANIFEST_PATH" --source "$SITEGEN_GIT_MIRRORS_DIR" --output "site-output/git"; then
+        if ! ./scripts/export-git-http.sh --manifest "$MANIFEST_PATH" --source "$SITEGEN_GIT_MIRRORS_DIR" --output "$SITE_OUTPUT_DIR/git"; then
             echo "Warning: Unable to export HTTP Git mirrors; clones may fail over HTTPS." >&2
         fi
     else
@@ -75,16 +78,16 @@ fi
 
 # Validate critical files exist
 echo "Validating build output..."
-if [ ! -f "site-output/index.html" ]; then
+if [ ! -f "$SITE_OUTPUT_DIR/index.html" ]; then
     echo "Error: index.html not generated"
     exit 1
 fi
 
-if [ ! -d "site-output/assets" ]; then
+if [ ! -d "$SITE_OUTPUT_DIR/assets" ]; then
     echo "Error: assets directory not copied"
     exit 1
 fi
 
 echo "Site build completed successfully!"
 echo "Generated files:"
-find site-output -type f | head -10
+find "$SITE_OUTPUT_DIR" -type f | head -10

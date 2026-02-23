@@ -44,6 +44,8 @@ haven't already (replace `<deploy-public-key>` in the snippet above), then
 > webroot plugin, point it at `/var/www/letsencrypt` so challenges land in the
 > mounted directory (`certbot renew --webroot -w /var/www/letsencrypt`).
 
+> Business site DNS-01 guide: see `docs/prod-dns01-cloudflare.md`.
+
 ### SSH Known Hosts
 From the CI runner (or your workstation), prime the known_hosts entry so
 Ansible/SSH skip the prompt:

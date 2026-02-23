@@ -1,4 +1,8 @@
-- name: Ensure Let's Encrypt directories are accessible to runtime group
+- name: Build Let's Encrypt domain list
+  set_fact:
+    letsencrypt_domains_effective: "{{ letsencrypt_domains_effective | default(letsencrypt_domains | default([letsencrypt_primary_domain])) }}"
+
+- name: Ensure Let's Encrypt base directories are accessible to runtime group
   file:
     path: "{{ item }}"
     state: directory
@@ -8,44 +12,99 @@
   loop:
     - "{{ letsencrypt_host_path }}"
     - "{{ letsencrypt_host_path }}/archive"
-    - "{{ letsencrypt_host_path }}/archive/{{ letsencrypt_primary_domain }}"
     - "{{ letsencrypt_host_path }}/live"
-    - "{{ letsencrypt_host_path }}/live/{{ letsencrypt_primary_domain }}"
   loop_control:
     label: "{{ item }}"
 
-- name: Gather Let's Encrypt runtime files
+- name: Ensure Let's Encrypt domain directories are accessible
+  file:
+    path: "{{ letsencrypt_host_path }}/archive/{{ item }}"
+    state: directory
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0750'
+  loop: "{{ letsencrypt_domains_effective }}"
+  loop_control:
+    label: "archive/{{ item }}"
+
+- name: Ensure Let's Encrypt live domain directories are accessible
+  file:
+    path: "{{ letsencrypt_host_path }}/live/{{ item }}"
+    state: directory
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0750'
+  loop: "{{ letsencrypt_domains_effective }}"
+  loop_control:
+    label: "live/{{ item }}"
+
+- name: Gather Let's Encrypt fullchain files
+  stat:
+    path: "{{ letsencrypt_host_path }}/live/{{ item }}/fullchain.pem"
+  loop: "{{ letsencrypt_domains_effective }}"
+  register: letsencrypt_fullchain_stats
+  changed_when: false
+
+- name: Ensure Let's Encrypt fullchain files are readable by runtime group
+  file:
+    path: "{{ item.stat.path }}"
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0640'
+  loop: "{{ letsencrypt_fullchain_stats.results | default([]) }}"
+  loop_control:
+    label: "{{ item.stat.path }}"
+  when: item.stat.exists
+
+- name: Gather Let's Encrypt privkey files
+  stat:
+    path: "{{ letsencrypt_host_path }}/live/{{ item }}/privkey.pem"
+  loop: "{{ letsencrypt_domains_effective }}"
+  register: letsencrypt_privkey_stats
+  changed_when: false
+
+- name: Ensure Let's Encrypt privkey files are readable by runtime group
+  file:
+    path: "{{ item.stat.path }}"
+    owner: root
+    group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
+    mode: '0640'
+  loop: "{{ letsencrypt_privkey_stats.results | default([]) }}"
+  loop_control:
+    label: "{{ item.stat.path }}"
+  when: item.stat.exists
+
+- name: Gather Let's Encrypt shared config files
   stat:
     path: "{{ item.path }}"
-  loop: "{{ letsencrypt_runtime_files }}"
-  register: letsencrypt_runtime_files_stat
+  loop:
+    - path: "{{ letsencrypt_host_path }}/options-ssl-nginx.conf"
+      mode: '0644'
+    - path: "{{ letsencrypt_host_path }}/ssl-dhparams.pem"
+      mode: '0644'
+  register: letsencrypt_shared_stats
+  changed_when: false
 
-- name: Ensure Let's Encrypt runtime files are readable by runtime group
+- name: Ensure Let's Encrypt shared config files are readable by runtime group
   file:
     path: "{{ item.item.path }}"
     owner: root
     group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
     mode: "{{ item.item.mode }}"
-  loop: "{{ letsencrypt_runtime_files_stat.results | default([]) }}"
+  loop: "{{ letsencrypt_shared_stats.results | default([]) }}"
   loop_control:
     label: "{{ item.item.path }}"
   when: item.stat.exists
 
-- name: Check Let's Encrypt archive domain directory
-  stat:
-    path: "{{ letsencrypt_host_path }}/archive/{{ letsencrypt_primary_domain }}"
-  register: letsencrypt_archive_domain
-  changed_when: false
-
 - name: Gather Let's Encrypt archive certificates
   find:
-    paths: "{{ letsencrypt_host_path }}/archive/{{ letsencrypt_primary_domain }}"
+    paths: "{{ letsencrypt_host_path }}/archive/{{ item }}"
     patterns: "*.pem"
     recurse: false
     file_type: file
+  loop: "{{ letsencrypt_domains_effective }}"
   register: letsencrypt_archive_files
   changed_when: false
-  when: letsencrypt_archive_domain.stat.exists
 
 - name: Ensure Let's Encrypt archive certificates are readable by runtime group
   file:
@@ -53,9 +112,7 @@
     owner: root
     group: "{{ container_runtime_group_effective | default(container_runtime_group) }}"
     mode: '0640'
-  loop: "{{ letsencrypt_archive_files.files | default([]) }}"
+  loop: "{{ letsencrypt_archive_files.results | map(attribute='files') | list | sum(start=[]) }}"
   loop_control:
     label: "{{ item.path }}"
-  when:
-    - letsencrypt_archive_domain.stat.exists
-    - (letsencrypt_archive_files.files | default([])) | length > 0
+  when: (letsencrypt_archive_files.results | map(attribute='files') | list | sum(start=[])) | length > 0

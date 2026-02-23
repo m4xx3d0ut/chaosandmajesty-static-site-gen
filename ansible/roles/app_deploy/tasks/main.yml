@@ -64,15 +64,7 @@
   include_tasks:
     file: letsencrypt.yml
   vars:
-    letsencrypt_runtime_files:
-      - path: "{{ letsencrypt_host_path }}/live/{{ letsencrypt_primary_domain }}/fullchain.pem"
-        mode: '0640'
-      - path: "{{ letsencrypt_host_path }}/live/{{ letsencrypt_primary_domain }}/privkey.pem"
-        mode: '0640'
-      - path: "{{ letsencrypt_host_path }}/options-ssl-nginx.conf"
-        mode: '0644'
-      - path: "{{ letsencrypt_host_path }}/ssl-dhparams.pem"
-        mode: '0644'
+    letsencrypt_domains_effective: "{{ letsencrypt_domains | default([letsencrypt_primary_domain]) }}"
   when: letsencrypt_mount_enabled | bool
 
 - name: Render docker-compose configuration
@@ -103,6 +95,13 @@
     name: "{{ image_ref }}"
     source: pull
     force_source: true
+
+- name: Pull business image explicitly
+  community.docker.docker_image:
+    name: "{{ business_image_ref }}"
+    source: pull
+    force_source: true
+  when: business_enabled | bool
 
 - name: Validate rss-proxy site output path
   ansible.builtin.assert:

@@ -38,6 +38,8 @@ Key defaults (override in `group_vars/all.yml` or via extra-vars):
 - `rss_proxy_enabled=true` deploys the SSE RSS proxy sidecar and binds `site_output_host_path` into both containers.
 - `rss_proxy_image_name=rss-proxy` tags the companion RSS proxy image (same registry/namespace as the site image).
 - `disable_host_nginx=true` stops and disables the system nginx service at deploy time.
+- `business_enabled=true` deploys the IPv6-only business container alongside the personal site.
+- `business_image_name={{ image_name }}-business` selects the business image tag pushed by CI.
 
 The role will render a Docker Compose project in `{{ app_dir }}` (default
 `/opt/chaosandmajesty`), ensure the WebDAV directory exists on the host, pull the

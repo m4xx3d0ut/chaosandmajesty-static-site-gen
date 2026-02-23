@@ -8,6 +8,9 @@ on:
       - 'Dockerfile'
       - 'nginx/**'
       - 'ansible/**'
+      - 'business-site/**'
+      - 'business-site'
+      - '.gitmodules'
       - '.github/workflows/prod-deploy.yml'
       - 'static-sitegen/**'
       - 'build-site.sh'
@@ -23,6 +26,7 @@ env:
   REGISTRY_NAMESPACE: ${{ secrets.REGISTRY_NAMESPACE }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   RSS_IMAGE_NAME: ${{ secrets.RSS_IMAGE_NAME || 'rss-proxy' }}
+  BUSINESS_IMAGE_NAME: ${{ secrets.BUSINESS_IMAGE_NAME }}
   IMAGE_TAG: prod
   NODE_OPTIONS: --max-old-space-size=8192
   CI_KNOWN_HOSTS: ${{ secrets.CI_KNOWN_HOSTS }}
@@ -110,6 +114,12 @@ jobs:
             git checkout --detach "${GITHUB_SHA}"
           fi
 
+      - name: Initialize submodules
+        run: |
+          set -euo pipefail
+          git config --global url."ssh://git@gitea-ssh.git-local.svc.cluster.local:2222/".insteadOf "ssh://git@gitea.core.home.arpa:32222/"
+          git submodule update --init --recursive
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -146,6 +156,10 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           RSS_IMAGE_NAME="${RSS_IMAGE_NAME:-rss-proxy}"
+          BUSINESS_IMAGE_NAME="${BUSINESS_IMAGE_NAME:-}"
+          if [ -z "${BUSINESS_IMAGE_NAME}" ]; then
+            BUSINESS_IMAGE_NAME="${IMAGE_NAME}-business"
+          fi
           if [ -n "${REGISTRY_NAMESPACE}" ]; then
             REGISTRY_PATH="${REGISTRY_HOST}/${REGISTRY_NAMESPACE}"
           else
@@ -155,6 +169,7 @@ jobs:
           echo "registry_path=${REGISTRY_PATH}" >> "$GITHUB_OUTPUT"
           echo "image_ref=${REGISTRY_PATH}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "rss_image_ref=${REGISTRY_PATH}/${RSS_IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "business_image_ref=${REGISTRY_PATH}/${BUSINESS_IMAGE_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Login to registry
         uses: docker/login-action@v3
@@ -196,6 +211,25 @@ jobs:
             ${{ steps.meta.outputs.rss_image_ref }}:${{ env.IMAGE_TAG }}
             ${{ steps.meta.outputs.rss_image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
 
+      - name: Build and push business image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          ssh: |
+            default
+          push: true
+          build-args: |
+            NGINX_CONFIG=nginx/business.conf
+            BUILD_COMMAND=./scripts/build-cosmos-test.sh
+            BUILD_WORKDIR=/app/business-site
+            SITE_OUTPUT_DIR=/app/site-output-business
+          cache-from: type=registry,ref=${{ steps.meta.outputs.business_image_ref }}:buildcache-prod
+          cache-to: type=registry,ref=${{ steps.meta.outputs.business_image_ref }}:buildcache-prod,mode=max
+          tags: |
+            ${{ steps.meta.outputs.business_image_ref }}:${{ env.IMAGE_TAG }}
+            ${{ steps.meta.outputs.business_image_ref }}:${{ env.IMAGE_TAG }}-${{ steps.meta.outputs.short }}
+
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/prod' || github.event_name == 'workflow_dispatch'
@@ -206,6 +240,7 @@ jobs:
       VPS_USER: ${{ secrets.VPS_USER }}
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      BUSINESS_IMAGE_NAME: ${{ secrets.BUSINESS_IMAGE_NAME }}
     steps:
       - name: Install SSH client (if missing)
         run: |
@@ -305,12 +340,17 @@ jobs:
         env:
           ANSIBLE_FORCE_COLOR: '1'
         run: |
+          BUSINESS_IMAGE_NAME="${BUSINESS_IMAGE_NAME:-}"
+          if [ -z "${BUSINESS_IMAGE_NAME}" ]; then
+            BUSINESS_IMAGE_NAME="${IMAGE_NAME}-business"
+          fi
           ansible-playbook -i inventory/hosts.ini deploy.yml \
             -e "ansible_host=${VPS_HOST}" \
             -e "ansible_user=${VPS_USER}" \
             -e "image_registry=${REGISTRY_HOST}" \
             -e "image_namespace=${REGISTRY_NAMESPACE}" \
             -e "image_name=${IMAGE_NAME}" \
+            -e "business_image_name=${BUSINESS_IMAGE_NAME}" \
             -e "image_tag=${IMAGE_TAG}" \
             -e "rss_proxy_image_name=${RSS_IMAGE_NAME}" \
             -e "rss_proxy_image_tag=${IMAGE_TAG}" \

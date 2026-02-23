@@ -1,0 +1,3 @@
+[submodule "business-site"]
+	path = business-site
+	url = ssh://git@gitea.core.home.arpa:32222/m4xx3d0ut/cosmosmechane.git
