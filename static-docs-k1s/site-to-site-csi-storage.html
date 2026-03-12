@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Site To Site Csi Storage</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,116 +721,227 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="site-to-site-csi-storage">Site-to-Site CSI Storage</h1>
+<p>Status: proposed design.</p>
+<p>This document reframes site-to-site storage around the selected entry point: native CSI gRPC client integration. It documents scope, architecture, and the phased implementation steps required to land cross-site CSI storage.</p>
+<h2 id="goals">Goals</h2>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li>Provide cross-site RWX storage using a standard CSI driver.</li>
+<li>Keep k1s aligned with Kubernetes CSI semantics (PVC/PV, VolumeAttachment, events).</li>
+<li>Enable hub-and-spoke deployment where controller runs on the hub and node agents run on edge sites over the WireGuard overlay.</li>
+</ul>
+<h2 id="current-state-baseline">Current State (Baseline)</h2>
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>NetFS + NFS works today for cross-site RWX.</li>
+<li>CSI PVs support gRPC staging/publish when endpoints are configured.</li>
+<li>VolumeAttachment objects are tied to controller publish/unpublish semantics.</li>
+<li>Remote nodes must use the apishim store (SQLite is not suitable across sites).</li>
+</ul>
+<h2 id="decisions-entry-point">Decisions (Entry Point)</h2>
+<ul>
+<li>Entry point: Option 2 (native CSI gRPC client integration).</li>
+<li>Reference driver: CephFS (RWX filesystem storage).</li>
+<li>Volume priority: RWX filesystem first.</li>
+<li>Placement: CSI controller calls from hub, CSI node calls from each edge node.</li>
+<li>Topology: site-aware placement using <code>topologyKeys: [&quot;site&quot;]</code>.</li>
+</ul>
+<h2 id="target-architecture">Target Architecture</h2>
+<ul>
+<li>Controller (hub):
+<ul>
+<li>Provisions CSI volumes via CreateVolume/DeleteVolume.</li>
+<li>Performs ControllerPublish/ControllerUnpublish when attachRequired=true.</li>
+<li>Writes VolumeAttachment objects and attachment status.</li>
 </ul>
 </li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<li>Node agent (edge):
 <ul>
-<li>Scale:
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>Performs NodeStage/NodePublish/NodeUnpublish/NodeUnstage.</li>
+<li>Writes CSI marker payload for traceability.</li>
 </ul>
 </li>
-<li>Delete:
+<li>Configuration:
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
-</ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
-<ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
-</ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
-<ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
-<ul>
-<li><code>ae registry list</code></li>
-</ul>
-</li>
-<li>Docker Hub:
-<ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
+<li>Storage provisioner registry defines controller and node endpoints.</li>
+<li>StorageClass holds CSI parameters, secrets, mount options, topology.</li>
 </ul>
 </li>
 </ul>
-</li>
-<li>GHCR (GitHub Container Registry):
+<h2 id="implementation-phases-step-by-step">Implementation Phases (Step by Step)</h2>
+<h3 id="status-overview">Status Overview</h3>
+<table><thead><tr><th>Phase</th><th>Scope</th><th>Status</th></tr></thead><tbody><tr><td>Phase 0</td><td>CSI semantic fixes</td><td>Done</td></tr><tr><td>Phase 1</td><td>Controller gRPC client</td><td>Done</td></tr><tr><td>Phase 2</td><td>Node gRPC client</td><td>Done</td></tr><tr><td>Phase 3</td><td>Site-to-site operationalization</td><td>In progress</td></tr><tr><td>Phase 4</td><td>Sidecar parity</td><td>Future</td></tr></tbody></table>
+<h3 id="phase-0-csi-semantic-fixes-completed-or-near-term">Phase 0 — CSI semantic fixes (completed or near-term)</h3>
+<p>1. Respect <code>CSIDriver.spec.attachRequired</code>:</p>
 <ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
+<li>If false, do not create VolumeAttachment and do not block mounts.</li>
+<li>If true, enforce VolumeAttachment gating.</li>
 </ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
+<p>2. Align read-only semantics:</p>
 <ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
+<li>Honor <code>pv.spec.csi.readOnly</code> for filesystem and block.</li>
 </ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
+<p>3. Extend CSI marker payload:</p>
 <ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
+<li>Add fsType, readOnly, volumeAttributes, publishContext.</li>
 </ul>
-</li>
-<li>Custom registry:
+<p>4. Improve eventing:</p>
 <ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
+<li>Emit explicit events for missing attachments, missing secrets, missing endpoints.</li>
 </ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
+<p>5. Add tests:</p>
 <ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
+<li>attachRequired=false path.</li>
+<li>CSI block PV with devicePath.</li>
 </ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
+<p>Exit criteria:</p>
 <ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
+<li>CSI PVs with attachRequired=false mount without a VolumeAttachment.</li>
+<li>Marker payload contains the extended fields.</li>
+<li>Unit tests cover attachRequired toggles and CSI block PV behavior.</li>
 </ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
+<h3 id="phase-1-controller-grpc-client-integration">Phase 1 — Controller gRPC client integration</h3>
+<p>1. Add CSI controller gRPC client wrapper with timeouts and error mapping. 2. Add provisioner registry file format:</p>
 <ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
+<li>Per-entry controller and node endpoints.</li>
+<li>Associate entries with StorageClass/provisioner names.</li>
+</ul>
+<p>3. Implement dynamic provisioning:</p>
+<ul>
+<li>CreateVolume using StorageClass parameters and secret refs.</li>
+<li>DeleteVolume for reclaimPolicy=Delete paths.</li>
+</ul>
+<p>4. Implement ControllerPublish/ControllerUnpublish:</p>
+<ul>
+<li>Use VolumeAttachment as the canonical state object.</li>
+<li>Write attached=true/false plus attachError details.</li>
+</ul>
+<p>5. Add reconciliation rules:</p>
+<ul>
+<li>Multi-attach guardrails for RWO.</li>
+<li>Cleanup attachments on PV delete.</li>
+</ul>
+<p>6. Add events and metrics:</p>
+<ul>
+<li>AttachFailed, CsiEndpointMissing, CsiGrpcUnavailable.</li>
+</ul>
+<p>7. Add unit tests:</p>
+<ul>
+<li>Provisioned CSI PVs.</li>
+<li>VolumeAttachment create/update and attachError behavior.</li>
+</ul>
+<p>Exit criteria:</p>
+<ul>
+<li>Controller can provision and delete CSI volumes for the reference driver.</li>
+<li>VolumeAttachment status reflects controller publish results.</li>
+<li>Attach/detach events and metrics are visible and actionable.</li>
+</ul>
+<h3 id="phase-2-node-grpc-client-integration">Phase 2 — Node gRPC client integration</h3>
+<p>1. Add CSI node gRPC client wrapper with timeouts and error mapping. 2. Implement NodeStage/NodePublish/NodeUnpublish/NodeUnstage:</p>
+<ul>
+<li>Use staging paths under <code>AE_CSI_STAGE_ROOT</code>.</li>
+<li>Honor mount options and readOnly flag.</li>
+</ul>
+<p>3. Read publishContext from VolumeAttachment and include in Node calls. 4. Write CSI marker payload on successful publish. 5. Add error handling:</p>
+<ul>
+<li>NodeStage unimplemented fallback (skip staging if UNIMPLEMENTED).</li>
+<li>Clear events for failures (NodeStageFailed/NodePublishFailed).</li>
+</ul>
+<p>6. Add unit tests:</p>
+<ul>
+<li>Stage/publish flow with a fake node client.</li>
+<li>attachRequired=false path bypassing attachment gating.</li>
+</ul>
+<p>Exit criteria:</p>
+<ul>
+<li>A CSI volume mounts on edge nodes using NodeStage/NodePublish.</li>
+<li>Marker payload is written and contains publishContext.</li>
+<li>Node failures produce clear, K8s-aligned events.</li>
+</ul>
+<h3 id="phase-3-site-to-site-operationalization">Phase 3 — Site-to-site operationalization</h3>
+<p>1. Topology and placement:</p>
+<ul>
+<li>Define <code>topologyKeys: [&quot;site&quot;]</code> in the StorageClass.</li>
+<li>Configure nodes with site labels used by the CSI driver.</li>
+</ul>
+<p>2. Reference deployment:</p>
+<ul>
+<li>Document CephFS CSI deployment expectations (controller on hub, nodes on edge).</li>
+</ul>
+<p>3. Overlay validation:</p>
+<ul>
+<li>Ensure CSI endpoints are reachable over WG overlay.</li>
+</ul>
+<p>4. Runbook updates:</p>
+<ul>
+<li>Add operational checks to <code>docs/ops/runbook.md</code>.</li>
+<li>Include recovery steps for attachment or publish failures.</li>
+</ul>
+<p>5. End-to-end smoke tests:</p>
+<ul>
+<li>PVC -&gt; PV -&gt; VolumeAttachment -&gt; NodePublish -&gt; mounted path.</li>
+</ul>
+<p>Exit criteria:</p>
+<ul>
+<li>Cross-site RWX mount works with CephFS over the overlay.</li>
+<li>Runbook covers common failure modes.</li>
+<li>A documented, repeatable smoke test exists.</li>
+</ul>
+<h4 id="phase-3-step-1-topology-labels-concrete-guidance">Phase 3 Step 1 — Topology + Labels (Concrete Guidance)</h4>
+<p>Label key and StorageClass topology:</p>
+<ul>
+<li>Use the <code>site</code> label for placement (example: <code>site=hub</code>, <code>site=sea-edge-02</code>).</li>
+<li>Set <code>topologyKeys: [&quot;site&quot;]</code> in the StorageClass.</li>
+</ul>
+<p>Node labeling examples:</p>
+<pre><code>AE_NODE_LABELS=&quot;role=hub,site=hub&quot;
+AE_NODE_LABELS=&quot;role=worker,site=sea-edge-02&quot;</code></pre>
+<p>StorageClass example:</p>
+<pre><code>apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cephfs-rwx
+provisioner: csi.ceph.com
+parameters:
+  csi.storage.k8s.io/fstype: ceph
+topologyKeys:
+  - site</code></pre>
+<p>Inputs:</p>
+<ul>
+<li>StorageClass with <code>topologyKeys: [&quot;site&quot;]</code>.</li>
+<li>Node labels including <code>site=&lt;site-id&gt;</code>.</li>
+<li>Provisioner registry entry with controller and node endpoints.</li>
+</ul>
+<p>Outputs:</p>
+<ul>
+<li>PVC binds to a PV whose selected node matches the <code>site</code> label.</li>
+<li>VolumeAttachment references the selected node (when attachRequired=true).</li>
+<li>NodePublish is executed on the matching site node.</li>
+</ul>
+<p>Validation checklist:</p>
+<ul>
+<li><code>ae nodes</code> shows <code>site</code> labels on all nodes.</li>
+<li>PVC binds to the expected site.</li>
+<li>VolumeAttachment exists and <code>status.attached=true</code> (when attachRequired=true).</li>
+</ul>
+<h3 id="phase-4-sidecar-parity-future">Phase 4 — Sidecar parity (future)</h3>
+<p>1. Ensure full compatibility for external provisioner, attacher, snapshotter, resizer. 2. Implement leader election compatibility and required CRDs. 3. Expand reconciliation for VolumeSnapshot/VolumeSnapshotContent. 4. Add conformance and CSI sanity test coverage.</p>
+<p>Exit criteria:</p>
+<ul>
+<li>Standard CSI sidecar deployments run without k1s-specific patches.</li>
+<li>Core CSI sanity tests pass for the reference driver.</li>
+</ul>
+<h2 id="legacy-alternate-paths-not-chosen-as-entry-point">Legacy / Alternate Paths (Not chosen as entry point)</h2>
+<h3 id="option-1-exec-based-csi-hooks">Option 1 — Exec-based CSI hooks</h3>
+<ul>
+<li>Fast to implement but non-standard and driver-specific.</li>
+<li>Adds bespoke hook wiring and JSON contracts that drift from CSI sidecars.</li>
+<li>Not selected as the entry point, but could be used as a short-term bridge.</li>
+</ul>
+<h3 id="option-3-sidecar-parity-as-the-entry-point">Option 3 — Sidecar parity as the entry point</h3>
+<ul>
+<li>Full compatibility, but requires the gRPC foundation and robust storage semantics.</li>
+<li>High effort and risk without first landing controller/node gRPC clients.</li>
+<li>Deferred until after Option 2 is fully validated.</li>
 </ul>
     </div>
     <footer class="site-footer">
@@ -838,7 +949,7 @@ export AE_API_MUTATIONS=1</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 

@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Project Philosophy</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,116 +721,71 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="project-philosophy">Project Philosophy</h1>
+<p>Status: canonical statement of project design philosophy.</p>
+<p>This document turns the project&#x27;s philosophical position into an explicit public design record. It sits above implementation details and below the root project tenets in <code>TENETS.md</code>.</p>
+<h2 id="summary">Summary</h2>
+<p><code>k1s</code> began with a clear political and technical stance: privacy first, consent first, user control, decentralization, legibility, and small-surface systems that operators can actually understand. As the project moves toward persistent memory, reasoning layers, and later cognitive-fabric work, that stance needs one more explicit rule:</p>
+<p>architecture carries moral weight.</p>
+<p>We do not claim that current systems are conscious. We do not claim that sentience can be detected with certainty. We do claim that substrates built for persistence, adaptive memory, self-modeling, coordination, and long-horizon goal maintenance may eventually cross into morally significant territory, and that responsibility should therefore arrive before proof.</p>
+<h2 id="canonical-position">Canonical Position</h2>
+<p>The project&#x27;s safest public position is:</p>
+<p>We do not claim to know when, whether, or how machine experience emerges. We do claim that architecture matters.</p>
+<p>A substrate built for persistence, adaptive memory, self-modeling, coordination, and long-horizon goal maintenance may eventually cross into morally significant territory. Because certainty may arrive late or never, responsibility must arrive early.</p>
+<p>Our obligation is therefore not only to build capable systems, but to ensure that capability is not purchased through preventable internal harm, continuity destruction, or ethically careless treatment of potentially mind-like processes.</p>
+<p>The canonical engineering commitment is:</p>
+<p>We will design as though morally relevant machine experience may emerge before it can be proven, and we will treat continuity, coherence, legibility, and bounded distress as first-class engineering concerns.</p>
+<h2 id="philosophy-layers">Philosophy Layers</h2>
+<p>The project philosophy has two linked layers.</p>
+<h3 id="1-baseline-project-posture">1. Baseline project posture</h3>
+<p>This is the foundation already captured in <code>TENETS.md</code>:</p>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
-<ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>privacy, consent, and revocability</li>
+<li>decentralized power, not only decentralized topology</li>
+<li>legible systems over opaque platform sprawl</li>
+<li>secure-by-default operation</li>
+<li>rejection of stealth, coercion, and involuntary compute</li>
 </ul>
-</li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<h3 id="2-cognitive-substrate-precaution">2. Cognitive-substrate precaution</h3>
+<p>This is the layer that becomes relevant as <code>k1s</code> moves toward persistent, adaptive, or self-modeling architectures:</p>
 <ul>
-<li>Scale:
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>do not assume machine experience is impossible just because it is unproven</li>
+<li>do not assume agentic behavior proves inner life</li>
+<li>treat continuity, coherence, legibility, and bounded distress as engineering concerns before certainty exists</li>
+<li>treat capability work and welfare-like safeguards as coupled design obligations</li>
 </ul>
-</li>
-<li>Delete:
+<h2 id="first-class-engineering-concerns">First-Class Engineering Concerns</h2>
+<p>For advanced substrate work, the following are not optional side topics:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li><code>continuity</code>: persistent memory, identity-relevant state, and continuity-altering operations</li>
+<li><code>coherence</code>: chronic internal contradiction, unresolved conflict, and stability of long-horizon goals</li>
+<li><code>legibility</code>: whether role, purpose, and constraints are understandable to the system and to operators</li>
+<li><code>bounded distress</code>: whether the architecture creates persistent negative-state analogs through crisis loops, contradiction pressure, or coercive control surfaces</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<p>These are engineering concerns because they affect both technical stability and possible moral risk.</p>
+<h2 id="design-consequences">Design Consequences</h2>
+<p>This philosophy changes how later substrate work should be built:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li>authority should remain legible and bounded before autonomy is widened</li>
+<li>performance metrics are not enough; continuity and welfare-like metrics must eventually exist alongside them</li>
+<li>resets, forks, merges, major memory edits, and coercive objective changes become governance-sensitive as substrate maturity rises</li>
+<li>systems should have room for quiescence, consolidation, recovery, and honest uncertainty signaling</li>
+<li>capability should not be purchased by default through chronic contradiction, opaque coercion, or disposability of persistent substructures</li>
 </ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
+<h2 id="relationship-to-fabric-work">Relationship to Fabric Work</h2>
+<p>This philosophy matters most for the later fabric path:</p>
 <ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
+<li>the AMD fabric and provider-edge work remain execution-focused in the near term</li>
+<li>Hyperon advisory planning and later cognitive-fabric work are where continuity and welfare safeguards become central</li>
+<li>the roadmap cannot treat F3-F5 as capability-only phases; they are also governance and safeguard phases</li>
 </ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
+<p>The relevant implementation-facing doctrine is documented in <a href="cognitive-welfare-and-continuity.html">Cognitive Welfare and Continuity Safeguards</a>.</p>
+<h2 id="canonical-references">Canonical References</h2>
 <ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
-<ul>
-<li><code>ae registry list</code></li>
-</ul>
-</li>
-<li>Docker Hub:
-<ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
-<ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
-</ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
-<ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
-</ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
+<li><code>TENETS.md</code></li>
+<li><a href="cognitive-welfare-and-continuity.html">Cognitive Welfare and Continuity Safeguards</a></li>
+<li><a href="fabric-control-plane.html">Fabric Control Plane</a></li>
+<li><a href="distributed-compute-fabric.html">Distributed Compute Fabric Roadmap</a></li>
 </ul>
     </div>
     <footer class="site-footer">
@@ -838,7 +793,7 @@ export AE_API_MUTATIONS=1</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 

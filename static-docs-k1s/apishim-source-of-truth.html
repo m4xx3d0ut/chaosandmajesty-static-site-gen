@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Apishim Source Of Truth</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,116 +721,54 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="api-shim-source-of-truth">API Shim Source of Truth</h1>
+<p>Status: proposed design.</p>
+<p>Date: 2026-01-17</p>
+<h2 id="context">Context</h2>
+<p>Playground/Labs reset deletes demo apps, but they reappear shortly after. Logs show the reset handler deleting shim objects directly from the apishim DB while the running shim server still has in-memory watch state. The adapter then re-registers apps, causing reconcile drift.</p>
+<h2 id="root-cause">Root Cause</h2>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
-<ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li><code>/labs/reset</code> deletes shim objects using a *new* <code>ObjectStore</code> instance pointed at the DB.</li>
+<li>The running apishim server owns watch queues in-memory; direct DB deletes do **not** publish watch events.</li>
+<li>The apishim adapter then re-creates controller registry entries from the still-running shim server, and the controller reconciles them again.</li>
 </ul>
-</li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<h2 id="short-term-fix-path-through-shim-server">Short-Term Fix (Path Through Shim Server)</h2>
+<p>Goal: ensure deletes are performed by the running shim server so watch events fire.</p>
+<p>Plan:</p>
 <ul>
-<li>Scale:
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>In <code>/labs/reset</code>, attempt to delete resources via the shim API (using <code>AE_LABS_HELM_SERVER</code> + token).</li>
+<li>Only fall back to direct DB deletion if the shim server is unreachable.</li>
+<li>This removes the drift by keeping the shim store, watch queues, and adapter in sync.</li>
 </ul>
-</li>
-<li>Delete:
+<p>Notes:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li>Keep the existing list of resource kinds (deployments, daemonsets, statefulsets, jobs, services, configmaps, ingresses, HPAs, etc.).</li>
+<li>Use the local dev CA bundle if present (<code>state/certs/combined-dev-ca.pem</code>) and allow both http/https.</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<h2 id="move-toward-option-b-shim-store-as-sot">Move Toward Option B (Shim Store as SoT)</h2>
+<p>Phased path that minimizes churn:</p>
+<p>1) Shim-mirror registry (low risk)</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li>Controller continues to reconcile from <code>app_registry</code>, but registry entries are sourced from shim objects.</li>
+<li>A sync loop maps shim resources to <code>AppManifest</code> and writes <code>source=&quot;apishim&quot;</code> into the registry.</li>
+<li>Enabled by default when <code>AE_LABS=1</code>; override with <code>AE_APISHIM_MIRROR=0/1</code>.</li>
 </ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
+<p>2) Single reconciler (phase 2 fix)</p>
 <ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
+<li>Disable apishim adapter reconcile when <code>AE_APISHIM_SOT=1</code> (or <code>AE_APISHIM_ADAPTER=0</code>) so the shim server stops mutating controller state.</li>
+<li>Controller continues to import spec apps and mirrors shim objects into the registry; reconcile runs from <code>app_registry</code> as before.</li>
+<li><code>app_registry</code> remains the single source of truth; <code>AE_APISHIM_MIRROR</code> is forced on by <code>AE_APISHIM_SOT</code> so shim objects are represented there.</li>
+<li>Labs/demo sets <code>AE_APISHIM_SOT=1</code> by default to keep one writer and preserve the existing demo experience.</li>
 </ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
+<p>3) Unified write path</p>
 <ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
-<ul>
-<li><code>ae registry list</code></li>
+<li>CLI/specs write into shim store (or shim API); controller reads from shim store.</li>
+<li>Registry can be deprecated or retained as a derived view for UI/reporting.</li>
 </ul>
-</li>
-<li>Docker Hub:
+<h2 id="open-questions">Open Questions</h2>
 <ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
-<ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
-</ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
-<ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
-</ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
+<li>Should reset also remove the shim namespace object or just its namespaced resources?</li>
+<li>Do we need a bulk-delete shim endpoint for performance or policy control?</li>
 </ul>
     </div>
     <footer class="site-footer">
@@ -838,7 +776,7 @@ export AE_API_MUTATIONS=1</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 

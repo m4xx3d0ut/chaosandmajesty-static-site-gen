@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Inference Fabric</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,117 +721,187 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="inference-fabric">Inference Fabric</h1>
+<p>Status: experimental current-state reference for the <code>InferenceCell</code> fabric lane.</p>
+<p>This page describes what exists in the repo today for distributed inference across multiple nodes and sites. It is not the long-term roadmap. For the formal phase path, see <a href="distributed-compute-fabric.html">Distributed Compute Fabric Roadmap</a>. For the backend HA foundation that precedes provider-edge fabric work, see <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>. For the control-plane design boundaries, see <a href="fabric-control-plane.html">Fabric Control Plane</a>. For the target deployment layout, see <a href="fabric-deployment-topology.html">Fabric Deployment Topology</a>.</p>
+<h2 id="what-ships-today">What Ships Today</h2>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li>Native manifest kinds:
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li><code>InferenceCell</code></li>
+<li><code>InferenceCellSet</code></li>
 </ul>
 </li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<li>Controller surface:
 <ul>
-<li>Scale:
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li><code>InferenceCellController</code></li>
+<li><code>InferenceCellSetController</code></li>
+<li><code>StagePlanner</code></li>
+<li><code>BoundaryBudgetAdmission</code></li>
+<li><code>LocalFabricBroker</code></li>
 </ul>
 </li>
-<li>Delete:
+<li>Node-agent fabric endpoints:
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li><code>POST /v1/fabric/ensure_session</code></li>
+<li><code>POST /v1/fabric/teardown_session</code></li>
+<li><code>GET /v1/fabric/sessions</code></li>
 </ul>
 </li>
-<li>Logs (requires READ token when any token is configured):
+<li>CLI surfaces:
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li><code>ae cell apply|status|events|delete</code></li>
+<li><code>ae cellset apply|scale|status</code></li>
+<li><code>ae fabric sessions</code></li>
 </ul>
 </li>
 </ul>
-<h2 id="security-notes">Security notes</h2>
+<h2 id="current-intent">Current Intent</h2>
+<p>The current fabric lane exists to prove that <code>k1s</code> can:</p>
 <ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
+<li>place a distributed inference workload across explicitly chosen members</li>
+<li>gate admission on topology and link budgets</li>
+<li>reserve GPU slots and rendezvous ports before launch</li>
+<li>create a fabric-session contract before worker and leader startup</li>
+<li>drive worker and leader workloads through one controller-owned lifecycle</li>
 </ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
+<p>The current lane is suitable for labs, controller development, and staged validation. It is not yet a production-grade multi-site fabric.</p>
+<h2 id="how-this-maps-forward">How This Maps Forward</h2>
+<p>The formal roadmap targets AI Max+ 395-first execution cells behind a provider-facing HA edge. The current <code>InferenceCell</code> lane is the precursor to that path, not the finished deployment model.</p>
+<p>The target hardware baseline for that path is documented in <a href="ai-max-395-hardware-baseline.html">AI Max+ 395 Hardware Baseline</a>, with the actionable bring-up sequence in <a href="ai-max-395-cluster-prep.html">AI Max+ 395 Cluster Prep</a>.</p>
+<p>Forward mapping:</p>
 <ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
+<li><code>InferenceCell</code> is the current controller-owned precursor to a future cell session contract</li>
+<li><code>LocalFabricBroker</code> is the current precursor to a real session-provider and broker boundary</li>
+<li>named members and staged placement are the precursor to a formal cell membership model</li>
+<li>persisted fabric-session, GPU lease, and port lease records are the precursor to a broader fabric control record</li>
+</ul>
+<h2 id="manifest-model">Manifest Model</h2>
+<p><code>InferenceCell</code> is a controller-owned workload type for distributed inference execution. The current model includes:</p>
 <ul>
-<li><code>ae registry list</code></li>
+<li>explicit <code>members</code> with <code>nodeId</code>, <code>site</code>, and <code>gpuCount</code></li>
+<li>executor choices for Ray or mp/vLLM-style paths</li>
+<li><code>fabric.mode</code> with <code>lan_direct</code> and <code>wg_ephemeral</code></li>
+<li><code>fabric.policyMode</code> including <code>strict_ports</code></li>
+<li>placement hints such as <code>packStagesBySite</code></li>
+<li>budget and boundary inputs including link metrics</li>
+</ul>
+<p><code>InferenceCellSet</code> is a template-and-scale wrapper around repeated <code>InferenceCell</code> creation.</p>
+<h2 id="controller-lifecycle">Controller Lifecycle</h2>
+<p>The controller runs a fixed phase machine:</p>
+<p>1. <code>PENDING</code> 2. <code>ADMITTING</code> 3. <code>RESERVING</code> 4. <code>FABRIC</code> 5. <code>STARTING_WORKERS</code> 6. <code>STARTING_LEADER</code> 7. <code>JOINING</code> 8. <code>READY</code> 9. <code>RESTARTING</code> 10. <code>FAILED</code></p>
+<p>High-level flow:</p>
+<p>1. validate the named members and current node readiness 2. plan stage placement with <code>StagePlanner</code> 3. evaluate boundary and budget constraints with <code>BoundaryBudgetAdmission</code> 4. reserve GPU slots, ports, and optional node locks 5. create a fabric session through the broker 6. ask each node agent to ensure the session 7. launch worker and leader workloads on the selected nodes 8. mark the cell ready only after worker, leader, fabric, and API conditions converge</p>
+<h2 id="session-and-lease-behavior">Session and Lease Behavior</h2>
+<p>Current persisted artifacts in controller state include:</p>
+<ul>
+<li>inference cell status and allocations</li>
+<li>inference cell events</li>
+<li>fabric-session records</li>
+<li>GPU lease records</li>
+<li>port lease records</li>
+<li>node lock records for strict-port cases</li>
+</ul>
+<p>The controller records session metadata such as:</p>
+<ul>
+<li><code>fabric_session_id</code></li>
+<li><code>fabric_ifname</code></li>
+<li><code>member_fabric_ips</code></li>
+<li><code>fabric_allowed_rules</code></li>
+<li><code>fabric_mode</code></li>
+<li><code>master_addr</code></li>
+</ul>
+<h2 id="what-works-now">What Works Now</h2>
+<ul>
+<li>deterministic stage placement across named members</li>
+<li>cross-site boundary admission checks using manifest-supplied link metrics</li>
+<li>GPU slot reservation before workload launch</li>
+<li>rendezvous and API port reservation</li>
+<li>Ray primary path with optional mp fallback</li>
+<li><code>InferenceCellSet</code> expansion and scale-down</li>
+<li>fabric session persistence in controller state</li>
+<li>VM and LAN validation workflows through:
+<ul>
+<li><code>docs/ops/gpu-fabric-abc-lan.md</code></li>
+<li><code>docs/ops/vm-variant-runbook.md</code></li>
+<li><code>docs/ops/vm-metrics-and-gates.md</code></li>
 </ul>
 </li>
-<li>Docker Hub:
+</ul>
+<p>The current lane remains standard-transport-first. RoCE is being documented as the first acceleration path for later phases, not as the current default execution path.</p>
+<h2 id="current-limits">Current Limits</h2>
 <ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
+<li><code>LocalFabricBroker</code> is still a baseline broker, not a production provider</li>
+<li>node-agent session handling is lightweight and not yet a full readiness-proof system</li>
+<li><code>lan_direct</code> and <code>wg_ephemeral</code> are transport modes, not mature provider families</li>
+<li>admission still depends heavily on manifest-provided <code>linkMetrics</code></li>
+<li>typed capability facts for GPU, fabric, PMem, and RNIC state do not yet exist as first-class controller inputs</li>
+<li>the fabric lane is not yet the default runtime path for ordinary <code>Deployment</code> workloads</li>
+<li>multi-GPU and impairment-heavy validation is still incomplete compared with the non-GPU harness</li>
+</ul>
+<h2 id="not-here-yet">Not Here Yet</h2>
+<p>The current lane does not yet provide:</p>
 <ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
+<li>the backend <code>etcd</code>-authoritative HA core that later provider-edge milestones depend on</li>
+<li>the provider-facing HA edge that fronts the formal roadmap deployment shape</li>
+<li>provider-backed lease lifecycle and brokered reservation flow</li>
+<li>typed hardware and link facts as first-class controller inputs</li>
+<li>RoCE-capable accelerated movement as the default or required transport</li>
+<li>multi-cell locality and cache-control behavior</li>
+<li>Hyperon advisory planning or later cognitive-fabric behavior</li>
+</ul>
+<h2 id="operational-entry-points">Operational Entry Points</h2>
+<ul>
+<li>Host and LAN pattern:
+<ul>
+<li><code>docs/ops/gpu-fabric-abc-lan.md</code></li>
+</ul>
+</li>
+<li>AI Max hardware contract:
+<ul>
+<li><code>docs/reference/ai-max-395-hardware-baseline.md</code></li>
+</ul>
+</li>
+<li>AI Max cluster prep:
+<ul>
+<li><code>docs/ops/ai-max-395-cluster-prep.md</code></li>
+</ul>
+</li>
+<li>VM variants and bootstrap:
+<ul>
+<li><code>docs/ops/vm-variant-runbook.md</code></li>
+</ul>
+</li>
+<li>Throughput and baseline gates:
+<ul>
+<li><code>docs/ops/vm-metrics-and-gates.md</code></li>
+</ul>
+</li>
+<li>Remote GPU VM precursor:
+<ul>
+<li><code>docs/ops/gpu-vm-remote-host-validation.md</code></li>
 </ul>
 </li>
 </ul>
-</li>
-<li>GHCR (GitHub Container Registry):
+<h2 id="design-boundaries">Design Boundaries</h2>
+<p>The current repo uses the right seams for future evolution:</p>
 <ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
+<li><code>StagePlanner</code> is the deterministic planning baseline</li>
+<li><code>BoundaryBudgetAdmission</code> is the deterministic admission baseline</li>
+<li><code>FabricBroker</code> is the session-provider seam</li>
+<li><code>FabricAgentClient</code> is the node materialization seam</li>
 </ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
+<p>Those seams should evolve without collapsing planning, session creation, transport realization, and external inference consumption into one provider concept.</p>
+<h2 id="non-goals-for-this-reference">Non-Goals for This Reference</h2>
+<p>This page does not define:</p>
 <ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
+<li>the long-term intelligent-fabric phase order</li>
+<li>Hyperon or DAS integration details</li>
+<li>the HA provider-edge topology</li>
+<li>funding narrative or market positioning</li>
+<li>provider-specific future wire contracts</li>
 </ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
-</ul>
+<p>Use <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a> for the backend HA foundation, <a href="fabric-control-plane.html">Fabric Control Plane</a> for the formal design split, <a href="fabric-deployment-topology.html">Fabric Deployment Topology</a> for the target deployment shape, and <a href="distributed-compute-fabric.html">Distributed Compute Fabric Roadmap</a> for the formal dev path.</p>
     </div>
     <footer class="site-footer">
       <div class="container inner">

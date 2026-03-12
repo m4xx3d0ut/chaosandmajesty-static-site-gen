@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Fabric Control Plane</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,124 +721,119 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="fabric-control-plane">Fabric Control Plane</h1>
+<p>Status: proposed design record for the formal fabric direction.</p>
+<p>This document freezes the main architecture boundary for the AMD-first fabric program. <code>k1s</code> can support more than one future fabric path only if controller authority, planning, provider-edge intake, session realization, and transport are treated as separate axes instead of one overloaded &quot;fabric controller&quot; concept.</p>
+<p>The underlying HA control-plane authority model is tracked separately in <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>. This document assumes that backend foundation rather than re-defining election, fencing, and transport authority rules inside the fabric program.</p>
+<h2 id="v1-decisions">v1 Decisions</h2>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li><code>k1s</code> remains authoritative for reconcile, safety gates, and rollback behavior.</li>
+<li>The near-term v1 path is AMD-first, using AI Max+ 395 cells as the first authoritative fabric-session implementation target.</li>
+<li>The near-term deployment topology uses a provider-facing HA edge in front of the <code>k1s</code> AMD fabric. That topology is described in <a href="fabric-deployment-topology.html">Fabric Deployment Topology</a>.</li>
+<li>The backend HA authority path is <code>etcd</code> for truth and NATS/JetStream for transport. Provider-edge HA does not replace backend controller HA.</li>
+<li>Hyperon is advisory in v1. It may rank or explain safe choices, but it does not become controller authority.</li>
+<li>DAS and locality-first knowledge cells are later-phase workload families, not v1 prerequisites.</li>
+<li>External consumption remains API or ingress based. It is not modeled as one shared cluster fabric session.</li>
+</ul>
+<h2 id="why-the-split-matters">Why the Split Matters</h2>
+<p>The current branch already contains separate seams for:</p>
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>deterministic planning</li>
+<li>admission checking</li>
+<li>provider-edge intake</li>
+<li>session creation</li>
+<li>node-side session materialization</li>
 </ul>
-</li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<p>That is the correct direction. The system becomes brittle if these concerns are collapsed into one <code>fabric.provider</code> idea or if the provider edge is allowed to become the authority for internal fabric state.</p>
+<h2 id="control-plane-axes">Control-Plane Axes</h2>
+<table><thead><tr><th>Axis</th><th>Question</th><th>Current baseline</th><th>Planned v1 default</th></tr></thead><tbody><tr><td>Controller authority</td><td>Who is authoritative for reconcile and safety?</td><td><code>k1s</code></td><td><code>k1s</code></td></tr><tr><td>Planning engine</td><td>Who ranks or explains placements?</td><td>deterministic</td><td>deterministic, later Hyperon advisory</td></tr><tr><td>Provider edge</td><td>Who owns lease-facing ingress and tenancy boundary?</td><td>none</td><td>HA edge</td></tr><tr><td>Session provider</td><td>Who creates the execution session contract?</td><td>baseline broker</td><td>AMD-first provider path</td></tr><tr><td>Node materializer</td><td>Who makes the session real on each node?</td><td>baseline node agent</td><td>provider-aware node materializer</td></tr><tr><td>Transport mode</td><td>How is connectivity realized?</td><td><code>lan_direct</code>, <code>wg_ephemeral</code></td><td>same modes, provider-specific expansion later</td></tr><tr><td>External provider mode</td><td>How does one cluster consume another cluster&#x27;s inference?</td><td>out of band</td><td>ingress/API, not shared session state</td></tr></tbody></table>
+<h2 id="shared-contract">Shared Contract</h2>
+<p>All future variants need one shared controller-facing contract.</p>
+<p>Required shared objects:</p>
 <ul>
-<li>Scale:
+<li><code>FabricControlRequest</code></li>
+<li><code>FabricControlDecision</code></li>
+<li><code>FabricSessionRecord</code></li>
+<li><code>ProviderCapabilities</code></li>
+<li><code>DecisionTrace</code></li>
+</ul>
+<p>Required shared lifecycle:</p>
+<p>1. <code>requested</code> 2. <code>validating</code> 3. <code>ready</code> 4. <code>degraded</code> 5. <code>tearing-down</code> 6. <code>removed</code></p>
+<p>Provider-specific metadata can extend the shared objects, but it must not replace the shared lifecycle or shared readiness fields.</p>
+<h2 id="safe-pairings">Safe Pairings</h2>
+<p>The supported pairings for the formal path are:</p>
+<table><thead><tr><th>Planning engine</th><th>Provider edge</th><th>Session provider</th><th>Authority</th><th>Result</th></tr></thead><tbody><tr><td>deterministic</td><td>HA edge</td><td>AMD-first provider</td><td><code>k1s</code></td><td>v1 default</td></tr><tr><td>Hyperon advisory</td><td>HA edge</td><td>AMD-first provider</td><td><code>k1s</code></td><td>later safe pairing</td></tr></tbody></table>
+<p>The pairing rule is fixed:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>planning may change without changing controller authority</li>
+<li>the provider edge may change without redefining internal fabric lifecycle</li>
+<li>Hyperon may advise the controller, but it does not replace the controller as the source of hard safety truth in v1</li>
 </ul>
-</li>
-<li>Delete:
+<h2 id="capability-driven-hardware-policy">Capability-Driven Hardware Policy</h2>
+<p>The public AI Max node profile is documented in <a href="ai-max-395-hardware-baseline.html">AI Max+ 395 Hardware Baseline</a>, but the control plane should not hard-code decisions directly against product names.</p>
+<p>The controller and planner should instead consume typed capability facts such as:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li>storage and media class</li>
+<li>persistent-memory class when present</li>
+<li>RNIC family and RDMA mode support</li>
+<li>negotiated PCIe width and speed where it materially affects the data path</li>
+<li>interface role such as management, execution, or fabric</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<p>That keeps the public hardware story concrete without turning the control plane into a SKU-specific rules engine.</p>
+<h2 id="current-branch-mapping">Current Branch Mapping</h2>
+<table><thead><tr><th>Current seam</th><th>Formal role</th></tr></thead><tbody><tr><td><code>StagePlanner</code></td><td>deterministic planning engine</td></tr><tr><td><code>BoundaryBudgetAdmission</code></td><td>deterministic admission evaluator</td></tr><tr><td><code>FabricBroker</code></td><td>baseline session-provider seam</td></tr><tr><td><code>FabricAgentClient</code></td><td>node materializer seam</td></tr><tr><td><code>fabric.mode</code></td><td>transport mode</td></tr><tr><td>current fabric session metadata</td><td>precursor to a shared session record</td></tr></tbody></table>
+<h2 id="later-hyperon-path">Later Hyperon Path</h2>
+<p>Hyperon belongs at the control-plane and fabric layer, but in a bounded sequence:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li>first as an advisory planner that ranks, explains, and records divergence</li>
+<li>then as a bounded automation layer operating against typed facts and explicit locality state</li>
+<li>later as part of a self-optimizing cognitive substrate</li>
 </ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
+<p>That final step is a later-stage roadmap objective. It is not a statement that the current repo already contains an autonomous cognitive control plane.</p>
+<h2 id="philosophy-constraints">Philosophy Constraints</h2>
+<p>Advanced cognitive-fabric work is constrained by the project&#x27;s philosophy docs:</p>
 <ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
+<li><a href="project-philosophy.html">Project Philosophy</a></li>
+<li><a href="cognitive-welfare-and-continuity.html">Cognitive Welfare and Continuity Safeguards</a></li>
 </ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
+<p>That means:</p>
 <ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
+<li>later autonomy does not outrun governance</li>
+<li>continuity-changing operations become review-sensitive as substrate maturity rises</li>
+<li>capability metrics do not replace continuity, coherence, legibility, or bounded-distress concerns</li>
+<li>Hyperon integration is not only a capability question; it is also a responsibility and systems-governance question</li>
+</ul>
+<h2 id="immediate-documentation-consequences">Immediate Documentation Consequences</h2>
+<p>Public docs should stop using &quot;fabric controller&quot; as one overloaded term for all future behavior.</p>
+<p>The formal docs should instead describe:</p>
 <ul>
-<li><code>ae registry list</code></li>
+<li>current inference fabric behavior</li>
+<li>the HA control-plane foundation that provider-edge and broker work depend on</li>
+<li>deployment topology and trust boundaries</li>
+<li>the authoritative control-plane split</li>
+<li>the staged roadmap from current fabric hardening to locality, advisory planning, and later cognitive behavior</li>
 </ul>
-</li>
-<li>Docker Hub:
+<h2 id="v1-scope">v1 Scope</h2>
+<p>The first formal development path should focus on:</p>
+<p>1. making the current fabric lane operationally trustworthy 2. standing up the HA edge and broker boundary 3. introducing typed facts and telemetry 4. keeping the controller authoritative while new provider and planning seams mature 5. documenting the first AI Max hardware baseline separately from the control contract</p>
+<h2 id="non-goals">Non-Goals</h2>
+<p>This design does not:</p>
 <ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
+<li>make Hyperon authoritative in v1</li>
+<li>require a Hyperon runtime for AMD-oriented execution</li>
+<li>require the provider edge to own internal fabric session truth</li>
+<li>require external providers to share internal cluster state</li>
+<li>define the full leader-election, epoch, or fencing schema for the HA backend core</li>
+<li>define final wire-level schemas for provider payloads</li>
 </ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
-<ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
-</ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
-<ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
-</ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
-</ul>
+<p>Those details live in the HA control-plane roadmap and related ADRs once the controller-facing contract is stable.</p>
     </div>
     <footer class="site-footer">
       <div class="container inner">
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 

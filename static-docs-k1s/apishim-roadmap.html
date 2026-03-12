@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Apishim Roadmap</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,116 +721,181 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="api-shim-roadmap">API Shim Roadmap</h1>
+<p>Status: current roadmap and gap tracker for the Kubernetes API shim.</p>
+<p>This document captures the staged plan to make k1s surface a Kubernetes‑compatible API for common tooling (kubectl, ingress controllers, service meshes). Each phase is incremental and shippable; later phases build on earlier ones.</p>
+<h2 id="phase-0-document-guardrails">Phase 0 — Document &amp; guardrails</h2>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li>Capture scope, risks, and non‑goals; keep shim behind a feature flag (<code>AE_APISHIM_ENABLE</code>).</li>
+<li>Ensure shim runs in dev/CI with bearer token + optional TLS, no cluster impact by default.</li>
+<li>Deliverables: this roadmap; smoke target that starts <code>ae.apishim serve</code> and answers <code>/health</code>.</li>
+</ul>
+<h2 id="phase-1-kubectl-get-apply-happy-path">Phase 1 — Kubectl “get/apply” happy path</h2>
+<p>(status: functionally complete; VIP/loadBalancer status polish remains)</p>
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>Harden discovery: <code>/api</code>, <code>/apis</code>, preferred versions, correct <code>resourceVersion</code> on list/watch, bookmarks, list‑continue stubs.</li>
+<li>Auth baseline: bearer token required by default; optional mTLS for kubeconfig; minimal RBAC scaffold (cluster‑admin only).</li>
+<li>Objects: Deployments, Services, Ingresses, Namespaces, Roles/RoleBindings, CRDs (already), plus Nodes and Endpoints/EndpointSlice projected from controller state/runtime.</li>
+<li>Status: real replicas/ready counts from controller state; Service <code>status.loadBalancer</code> and ClusterIP/VIP data.</li>
+<li>Deliverables: <code>kubectl get/describe</code> works for the above kinds; <code>kubectl apply -f deployment.yaml</code> creates/updates an app; <code>kubectl get endpoints</code> shows VIP backends; CI job exercising apply+watch.</li>
+</ul>
+<h2 id="phase-2-pods-as-first-class-citizens">Phase 2 — Pods as first‑class citizens</h2>
+<p>(status: functionally complete)</p>
+<ul>
+<li>Project Pods/ReplicaSets from runtime placements; include conditions, restartCount, containerStatuses.</li>
+<li>Exec/logs/port-forward passthrough to agent runtimes; enforce auth/role gating.</li>
+<li>Support scale‑to‑0 semantics (delete Pods, keep Deployment) and propagate status.</li>
+<li>Deliverables: <code>kubectl logs/exec/port-forward</code> on pod names; <code>kubectl rollout status</code> on deployments; watch stability under churn.</li>
+</ul>
+<h2 id="phase-3-services-fidelity-scheduling-hints">Phase 3 — Services fidelity &amp; scheduling hints</h2>
+<p>(status: functionally complete — svc port-forward + EndpointSlice + clusterIP/nodePort allocation implemented; endpoint selection prefers ready endpoints; zone hints added; LB status honors loadBalancerIP/externalIPs/provider IPs)</p>
+<ul>
+<li>NodePort/ClusterIP parity: deterministic port allocation, collision handling, VIP + overlay awareness; EndpointSlice as source of truth.</li>
+<li>Respect topology hints when available; expose node labels/zones derived from controller/agent info.</li>
+<li>Ingress status reflects live VIP/host routing; optional external DNS annotations pass‑through.</li>
+<li>Deliverables: <code>kubectl port-forward svc/...</code> works; service discovery validated in multinode tests; ingress controllers can watch and reconcile.</li>
+</ul>
+<p>Phase 3 action items:</p>
+<ul>
+<li>Service projection: ensure ClusterIP/NodePort allocation table with collision checks; surface <code>spec.clusterIP</code>, <code>spec.ports[].nodePort</code>, and <code>status.loadBalancer.ingress</code>. (clusterIP/nodePort allocation now in apishim; LB status pulls provider clusterIP/loadBalancerIP/externalIPs.)</li>
+<li>EndpointSlice fidelity: generate slices from controller placements; include <code>hints.forZones</code> where node labels provide zone info. (now includes nodeName/zone when pod IP matches node podCIDR; basic watch emulation)</li>
+<li>Port-forward svc: reuse SPDY handler to forward to service VIP/backend selection. (Done: selects ready endpoints first; hash-based spread per port list; still single-endpoint target)</li>
+<li>Ingress status: populate <code>status.loadBalancer.ingress</code>/<code>ip</code> and optional hostnames based on VIP; add annotations passthrough. (VIP propagation via backend service clusterIP/provider IP)</li>
+<li>Tests: multinode service discovery (VIP + nodeport) and <code>kubectl port-forward svc/...</code> CI job. (new GH workflow multinode-svc-portforward)</li>
+</ul>
+<h2 id="phase-4-workload-breadth-and-controllers">Phase 4 — Workload breadth and controllers</h2>
+<p>(status: near complete — adapter reconciles StatefulSets/DaemonSets/Jobs; CronJobs fire with ownerRefs; HPA now drives autoscaling with status/currentMetrics; events include probe/rollout/overlay/job signals)</p>
+<ul>
+<li>Add Jobs/CronJobs, StatefulSets, DaemonSets translations (where feasible) with status/ownerRefs. *(Implemented; unit coverage exercises status + ownerRefs under stub runtime.)*</li>
+<li>HorizontalPodAutoscaler object backed by our autoscaling; emit status to match K8s expectations. *(Implemented with min/max, cooldown, CPU/memory utilization/averageValue, currentMetrics, lastScaleTime.)*</li>
+<li>Events: surface controller/agent events to <code>/api/v1/events</code>; emit rollout, probe, and overlay notices. *(Implemented; overlay event hook in ServiceController; probe events emitted on health changes.)*</li>
+<li>Deliverables: basic helm charts that expect these kinds render and run; HPA status visible; events stream consumable by <code>kubectl get events</code>. *(Covered by helm-shim-smoke CI workflow exercising Deployment+HPA+StatefulSet+DaemonSet+Job+CronJob on stub runtime.)*</li>
+</ul>
+<h2 id="phase-5-authz-ssa-patch-semantics">Phase 5 — AuthZ, SSA, patch semantics</h2>
+<ul>
+<li>Implement Role/RoleBinding enforcement; optional ServiceAccounts + projected tokens.</li>
+<li>Support JSONPatch/mergePatch; scoped server‑side apply (SSA) for supported kinds; manage <code>managedFields</code>.</li>
+<li>Admission/validation hooks for custom App CRD (optional) to keep native k1s schema authoritative.</li>
+<li>Deliverables: <code>kubectl auth can-i</code> works; SSA usable by controllers that expect it (ingress controllers, cert‑manager‑style tools).</li>
+</ul>
+<p>Phase 5 action items:</p>
+<ul>
+<li>RBAC enforcement path: hook Role/ClusterRole + (Cluster)RoleBinding evaluation into the apishim request pipeline and return K8s-style 403s when denied; keep dev token cluster-admin. *(implemented with SubjectAccessReview projection; defaults still allow unauthenticated when no tokens configured.)*</li>
+<li>ServiceAccounts + projected tokens: persist ServiceAccount objects, issue short-lived bearer tokens per SA/namespace, wire token authenticator, and project tokens into rendered Pod specs. *(tokens minted on SA create, auto-projected into workloads/pod projections; TTL/rotation handled in-memory; pod template injection in place.)*</li>
+<li>Patch semantics: add JSONPatch and mergePatch handlers for supported kinds with correct content-type negotiation and status errors. *(json/merge/apply supported; json-patch added with unit coverage.)*</li>
+<li>SSA + managedFields: honor <code>fieldManager</code>/<code>force</code>, track managedFields per object in shim storage, and surface conflicts on overlapping fields. *(implemented; conflict 409s covered in unit tests.)*</li>
+<li>App CRD admission: validating hook to keep native App schema authoritative; reject by default and allow warn/off via <code>AE_APISHIM_APP_ADMISSION</code>. *(implemented; warn/off emit Warning headers instead of rejection.)*</li>
+<li>CLI parity: implement <code>kubectl auth can-i</code> via a SubjectAccessReview-equivalent endpoint bound to RBAC evaluation. *(endpoint present; no e2e CI yet.)*</li>
+<li>Tests/CI: unit matrix for RBAC decisions and patch/SSA behavior; add integration smoke that exercises can-i, JSONPatch/mergePatch, and SSA apply flows against the stub runtime. *(covered by <code>apishim-ssa-rbac</code> CI workflow.)*</li>
+</ul>
+<h2 id="current-gaps-and-next-steps">Current Gaps and Next Steps</h2>
+<ul>
+<li>**Phase 6 rollout in progress:** Shim and controller can target Postgres via <code>AE_APISHIM_DSN</code>/<code>AE_STATE_DSN</code>; migrations preserve resourceVersions; HA shim with shared Postgres is validated in CI as a transitional path. The long-term HA authority target now follows the <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>: shared controller and shim authority converges on <code>etcd</code>. Remaining: production-grade watch propagation metrics across shim replicas and the storage convergence work needed for <code>etcd</code>-backed HA.</li>
+<li>**Phase 7 polish in flight:** Compatibility matrix + kubeconfig/auth docs + helm smoke gate are in place; OpenAPI v2/ v3 and schemas are richer with fixture validation and live gate coverage. Remaining polish: promote the live gate to release-blocking, wire compat/OpenAPI links into docs + release notes, and round out sample coverage.</li>
+</ul>
+<h3 id="auth-defaults-dev-toggle">Auth defaults (dev toggle)</h3>
+<ul>
+<li>Bearer token is now required by default; shim refuses to start without <code>AE_APISHIM_TOKEN</code> unless explicitly started with <code>AE_APISHIM_ALLOW_ANON=1</code> or <code>python -m ae.apishim serve --allow-anonymous</code> for local experiments.</li>
+<li>Requests without a bearer token receive <code>401 Unauthorized</code> (or <code>403</code> when RBAC blocks a verb). Document this flow in kubeconfig examples and keep dev overrides scoped to local testing.</li>
+</ul>
+<h2 id="phase-6-reliability-storage-and-scale">Phase 6 — Reliability, storage, and scale</h2>
+<ul>
+<li>Move shim object storage off SQLite to the primary HA authority store. Postgres remains a transitional externalized path, but the target HA end state aligns on <code>etcd</code> with the core controller.</li>
+<li>Improve watch scalability (per‑resource queues, backpressure, timeouts) and add metrics/tracing.</li>
+<li>Conformance subset: target the “Kubernetes API conformance lite” we define; document exclusions.</li>
+<li>Deliverables: soak tests under churn; dashboard panel for shim health; failover of shim without object loss.</li>
+</ul>
+<h2 id="phase-7-polish-and-ecosystem-integration">Phase 7 — Polish and ecosystem integration</h2>
+<ul>
+<li>Helm friendliness: richer discovery, dry-run/server-side validation support; better error surfaces.</li>
+<li>CRD parity for k1s App (optional) with conversion webhook; docs + samples for migration.</li>
+<li>Backwards compatibility policy and versioning of the shim.</li>
+<li>Deliverables: published compatibility matrix; release note gate that runs kubectl/helm smoke; docs for kubeconfig and auth modes.</li>
+</ul>
+<h3 id="phase-7-current-status-2026-01-14">Phase 7 current status (2026-01-14)</h3>
+<ul>
+<li>Discovery/OpenAPI: <code>/openapi/v2</code> now includes richer shapes (Service ports + external/loadBalancer/ipFamily fields, Deployment/DaemonSet/StatefulSet conditions, Job/CronJob/HPA status); <code>/openapi/v3</code> now mirrors <code>/openapi/v2</code> and is treated as authoritative. CI guards drift via <code>scripts/validate-openapi.sh</code> (helm-dryrun-openapi workflow), Helm/kubectl dry-run is exercised in CI, and OpenAPI artifacts are published. A lightweight fixture check (<code>scripts/validate-openapi-fixtures.py</code>) validates the schemas against the shipped sample manifests.</li>
+<li>Compatibility matrix: published at <code>docs/reference/apishim-compatibility-matrix.md</code>; release gate runs helm shim smoke and uploads the matrix + OpenAPI artifacts and emits a release-note snippet.</li>
+<li>Live gate: <code>.github/workflows/apishim-live-openapi.yml</code> now runs a Postgres-backed shim and exercises kubectl/helm server-side validation plus short get/watch churn, collecting <code>/openapi/v2</code> + <code>/openapi/v3</code>, fixture validation logs, and object snapshots as artifacts. The script accepts a provided kubeconfig (including kind/dev lab) via <code>APISHIM_LIVE_KUBECONFIG</code>/<code>APISHIM_LIVE_KUBECONFIG_B64</code> or a kind cluster name via <code>APISHIM_KIND_CLUSTER</code>.</li>
+<li>Pending: fold the live gate into the release-blocking checks, wire compatibility matrix/OpenAPI links into website docs and the release-note template, and expand sample coverage used by the live gate.</li>
+</ul>
+<h4 id="phase-7-1-openapi-validation-hardening-complete">Phase 7.1 — OpenAPI validation hardening (complete)</h4>
+<ul>
+<li>Added schemas for the k1s <code>App</code> CRD and policy/v1 PodDisruptionBudget so sample manifests validate end-to-end instead of being skipped.</li>
+<li>Wired <code>scripts/validate-openapi-fixtures.py</code> into the OpenAPI drift guard and release workflows (runs against freshly generated <code>/openapi/v2</code>).</li>
+<li>Release workflow now validates fixtures and performs a kubectl spot-check (apply/get/watch for Deployment/Service/HPA) against the running shim, uploading logs alongside the OpenAPI/compatibility artifacts.</li>
+<li><code>/openapi/v3</code> remains the authoritative mirror of <code>/openapi/v2</code> and is called out in release notes and docs; compatibility matrix links are included in the release summary artifacts.</li>
+</ul>
+<h4 id="phase-7-2-live-cluster-gate-doc-linkage-complete">Phase 7.2 — Live cluster gate + doc linkage (complete)</h4>
+<ul>
+<li>Live gate landed: <code>scripts/ci/apishim-live-openapi.sh</code> drives kubectl/helm dry-run plus short watch churn against a Postgres-backed shim, capturing live <code>/openapi/v2</code> + <code>/openapi/v3</code>, fixture validation logs, and object snapshots. <code>.github/workflows/apishim-live-openapi.yml</code> publishes these artifacts on push/PR. The gate can point at a supplied kubeconfig (kind/dev lab) via <code>APISHIM_LIVE_KUBECONFIG(_B64)</code> or pull a kind kubeconfig by name with <code>APISHIM_KIND_CLUSTER</code>.</li>
+<li>Follow-ups promoted to Phase 7.3: release-blocking promotion, docs/release-note wiring, and expanded sample set validated by the gate.</li>
+</ul>
+<h4 id="phase-7-3-release-gate-site-wiring-in-progress">Phase 7.3 — Release gate + site wiring (in progress)</h4>
+<ul>
+<li>Promotion: <code>apishim-live-openapi</code> now runs on <code>main</code>/PRs and release tags; release workflow fails if the live gate fails. Skips are a manual exception reserved for sealed-secret fixtures with explicit justification.</li>
+<li>Coverage: nightly live gate runs both local (Postgres-backed shim) and external kubeconfig targets when configured; artifacts are uploaded per run.</li>
+<li>Samples: live gate now validates the multi-replica/PDB+HPA manifest set; fixtures already include the Deployment/HPA exporter output and PDB-emitting Deployment manifests in <code>specs/examples/</code>.</li>
+<li>Docs/release notes: docs nav now links <code>/openapi/v3</code>, and release notes call out v3 as primary with v2 as the compatibility mirror.</li>
+<li>Fidelity: live gate includes a non-stub runtime lane (docker) and exercises logs/exec; service status is captured in live artifacts. Postgres storage remains enabled for resourceVersion stability.</li>
+</ul>
+<h2 id="non-goals-for-now">Non‑goals (for now)</h2>
+<ul>
+<li>Aggregated API servers, PSP/PodSecurity admission, or CSI/CNI plugins. These would require extra control-plane components, admission/webhook plumbing, and host kernel capabilities (CNI/CSI) that we deliberately avoid to keep the shim lean. PSA alignment and a basic storage story may appear under the conformance-lite track, but full plugin ecosystems stay deferred.</li>
+<li>Cloud load balancer provisioning. We do not run cloud-provider controllers; the networking model centers on Service VIPs/overlay plus Caddy. We project <code>status.loadBalancer</code> from our VIP/provider IPs for compatibility, but do not create external L4/L7 balancers; operators can front the shim with their own proxy if needed. A future path is outlined below.</li>
+</ul>
+<h2 id="success-metrics">Success metrics</h2>
+<ul>
+<li><code>kubectl get/apply/describe/logs/exec</code> succeeds against multinode lab.</li>
+<li>CI shim job green across node churn and overlay failover.</li>
+<li>Dashboard shows shim health and API errors &lt;1% over soak.</li>
+</ul>
+<h2 id="conformance-outlook-aspirational">Conformance outlook (aspirational)</h2>
+<ul>
+<li>Status: shim is kubectl/helm-compatible for our targeted subset (core CRUD, workloads, Services/Ingress, HPA, RBAC/SSA, OpenAPI v2/v3) but not yet ready for upstream Kubernetes conformance.</li>
+<li>Major gaps: Pod Security Admission + admission webhooks; NetworkPolicy enforcement; PV/PVC/StorageClass/CSI semantics; Node/Lease objects with kubelet-style heartbeats/evictions; metrics.k8s.io; full exec/log/port-forward parity under churn; webhook/SSA edge cases and managedFields accuracy; aggregated APIs.</li>
+<li>Path to evaluate: run Sonobuoy conformance against kind/dev lab to get a fail list; define and publish a “conformance-lite” profile with documented exclusions while we close highest-value gaps.</li>
+<li>Path to close: implement PSA + webhook plumbing; add NetworkPolicy enforcement; deliver a minimal storage story (static PV/PVC + provisioner stub with reclaim/accessMode/volumeMode fidelity); surface Node/Lease and eviction behaviors; expose metrics-server-compatible endpoints; harden streaming/watch semantics and SSA/managedFields; iterate test→fix with shrinking skip list.</li>
+</ul>
+<h2 id="cloud-load-balancer-trajectory-openstack-gcp-aws">Cloud load balancer trajectory (OpenStack/GCP/AWS)</h2>
+<ul>
+<li>Current stance: k1s projects <code>status.loadBalancer</code> from internal VIP/provider IPs for compatibility; Caddy fronts L7 ingress; no external L4/L7 balancers are provisioned.</li>
+<li>Options:
+<ul>
+<li>Provider interface + MetalLB-style backend (BGP/ARP) for on-prem/OpenStack where we can advertise VIPs; minimal cloud permissions required.</li>
+<li>Cloud-specific controllers (OpenStack Octavia, GCP TCP/HTTP(S), AWS NLB/ALB/Classic) using per-cloud credentials; map Service annotations to provider features (preserve source ranges, health checks, SSL policies).</li>
+<li>Gateway/L7: keep Caddy/Envoy as ingress with optional cloud LB in front for static IP; use DNS automation to publish the assigned VIP/hostname.</li>
 </ul>
 </li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
+<li>Prereqs: credential/config surface (e.g., <code>~/.config/ae/registries.yaml</code> analog for cloud creds), Service-class annotations, IPAM alignment between Service CIDR and provider, reconcile + retry loops with rate/backoff per cloud API.</li>
+<li>Suggested next steps: 1) Define a <code>LoadBalancerProvider</code> interface with a no-op/default and a MetalLB/OpenStack Octavia implementation. 2) Add annotation-driven feature mapping (<code>service.beta.kubernetes.io/*</code>) for the first provider. 3) Dogfood on kind+MetalLB and an OpenStack lab; capture artifacts in CI (opt-in lane) and feed back into <code>/openapi/v2</code> status expectations. 4) Evaluate GCP/AWS controllers after the interface stabilizes; document per-cloud IAM roles and failure modes.</li>
 </ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<h3 id="kind-metallb-portable-l4-path">kind + MetalLB (portable L4 path)</h3>
 <ul>
-<li>Scale:
-<ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>Topology: kind (Docker) cluster with MetalLB controller + speaker in L2/ARP mode announcing VIPs on the kind bridge.</li>
+<li>Address pool: derive from <code>docker network inspect kind</code> (e.g., reserve <code>172.18.255.200-250</code> inside the kind subnet) to avoid host collisions on CI runners.</li>
+<li>Flow: install MetalLB, apply IPAddressPool + L2Advertisement, then create a Service <code>type: LoadBalancer</code>; MetalLB assigns an IP that is reachable from the runner. Curl the assigned IP:port to verify.</li>
+<li>Integration with shim: add a MetalLB provider to mirror the assigned ingress IP into <code>status.loadBalancer</code> (and ingress annotations), while keeping Caddy/Envoy for L7. Use this as the first implementation of the <code>LoadBalancerProvider</code> interface.</li>
+<li>CI lane sketch: spin up kind, install MetalLB with generated pool/adverts, run apishim (Postgres/stub) and apply a demo LB Service; assert ingress IP populated and reachable. Publish the assigned IP + logs as artifacts.</li>
 </ul>
-</li>
-<li>Delete:
+<h2 id="update-2026-01-24">Update (2026-01-24)</h2>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li>HA watch propagation now fans out across Postgres-backed shim replicas via a watch outbox + poller, and the HA workflow runs a longer churn loop (<code>v0</code> → <code>v25</code>) plus outbox lag/retention checks. Remaining: longer soak coverage and retention tuning for production.</li>
+<li>Shim server now uses a threaded HTTP server so streaming endpoints no longer block other requests; store access is locked to keep shared DB handles safe. Remaining: consider async I/O to reduce thread load under heavy watch/stream usage.</li>
+<li>ServiceAccount tokens rehydrate from stored annotations at startup and fall back to store lookup when a token is unknown, enabling HA replicas to accept each other’s minted tokens. Remaining: move to durable JWT or DB-backed tokens with rotation.</li>
+<li>CronJob scheduling now includes <code>croniter</code> in project dependencies, so cron expressions resolve instead of falling back to 60s/annotation intervals.</li>
+<li>Docs drift fixed: the compatibility matrix now reflects best-effort CronJob scheduling and Job completion.</li>
+<li>Live OpenAPI gate is promoted: it runs on main/PRs plus nightly local/external targets, and release tags now run the live gate alongside OpenAPI exports. Docs/nav and release notes now treat <code>/openapi/v3</code> as primary with <code>/openapi/v2</code> as the compatibility mirror; the live gate validates the multi-replica/PDB+HPA sample set.</li>
+<li>Live OpenAPI gate now exercises a docker runtime lane with logs/exec smoke checks for non-stub fidelity.</li>
+<li>Focused <code>kubectl exec</code> SPDY tests now succeed against both docker and podman runtimes (error/stdout/stderr streams open cleanly); the JSON exec fallback in the live gate can be retired after a full lane rerun.</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<h2 id="update-2026-01-25">Update (2026-01-25)</h2>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
-<ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
-</ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
-<ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
-<ul>
-<li><code>ae registry list</code></li>
-</ul>
-</li>
-<li>Docker Hub:
-<ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
-<ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
-</ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
-<ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
-</ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
+<li>Decision: apishim remains the primary Kubernetes-compatibility track; no kube-apiserver/Kine fork in the near term.</li>
+<li>Next focus: align core API semantics toward conformance-lite (resourceVersion ordering, list+watch consistency, bookmarks, compaction/retention, and durable watch history under churn).</li>
+<li>Storage alignment: the public HA target is now <code>etcd</code> authority shared with the core controller. Postgres remains supported for externalized and transitional shim deployments, but the convergence target is one <code>etcd</code>-backed revision, compaction, and lease model.</li>
+<li>AuthZ alignment: map RBAC verbs to K8s subresources (<code>pods/exec</code>, <code>pods/portforward</code>, <code>pods/log</code>) with explicit audit records per session.</li>
+<li>Testing alignment: run an initial Sonobuoy pass on a dev/kind target to capture a baseline fail list; track the conformance-lite skip set and shrink it as semantics land.</li>
 </ul>
     </div>
     <footer class="site-footer">

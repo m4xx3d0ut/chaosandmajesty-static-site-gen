@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Distributed Compute Fabric</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,124 +721,246 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="distributed-compute-fabric-roadmap">Distributed Compute Fabric Roadmap</h1>
+<p>Status: formal development path for the AI Max+ 395 fabric program.</p>
+<p>This roadmap defines the public development path for <code>k1s</code> as an AMD Ryzen AI Max+ 395-first compute fabric. The near-term objective is not a generic distributed-compute story. It is a substrate-first program: AI Max+ 395 cells, <code>k1s</code> as the authoritative execution layer, and a generic provider-facing interface that can later expose the fabric to external provider networks.</p>
+<p>This roadmap does not define the backend HA control-plane authority model by itself. That foundation is tracked separately in <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>, which must land before D1 and later provider-edge milestones can be treated as a true HA story.</p>
+<h2 id="summary">Summary</h2>
+<p>The repo already contains a real controller-owned fabric precursor through <code>InferenceCell</code>, session reservation, and VM/LAN validation workflows. The next stage is to formalize that work into one public program with the substrate as the primary track and provider-network deployment as a secondary packaging track.</p>
+<p>For context on a directly compatible provider-network model, see Akash&#x27;s overview of <a href="https://akash.network/docs/learn/core-concepts/providers-leases/">providers and leases</a>.</p>
+<p>The roadmap therefore has two linked tracks:</p>
+<p>1. substrate phases that describe what the control plane must learn to do safely 2. deployment milestones that describe how that substrate may later be exposed to provider networks</p>
+<p>Those tracks now sit on top of one control-plane prerequisite:</p>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li>the backend <code>k1s</code> core HA path is <code>etcd</code> for authority and NATS/JetStream for transport, as described in <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a></li>
+</ul>
+<h2 id="hardware-baseline">Hardware Baseline</h2>
+<p>The first public cell is being documented against one exact node baseline:</p>
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>Framework Desktop mainboard with AMD Ryzen AI Max+ 395</li>
+<li>Micron 7450 MAX M.2 2280 as the canonical SSD class when one NVMe type is used</li>
+<li>onboard 5GbE for management and fallback access</li>
+<li>Intel E810-XXVDA2 as the canonical RoCE development NIC</li>
+<li>SFP28 DAC as the first lab interconnect medium</li>
 </ul>
-</li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<p>The hardware contract and bring-up sequence are documented in <a href="ai-max-395-hardware-baseline.html">AI Max+ 395 Hardware Baseline</a> and <a href="ai-max-395-cluster-prep.html">AI Max+ 395 Cluster Prep</a>.</p>
+<p>The 4-node cell shape follows AMD&#x27;s published AI Max cluster proof point for local large-model inference.</p>
+<p>This does not change the phase order:</p>
 <ul>
-<li>Scale:
+<li>D0 remains the first repeatable execution baseline on standard transport</li>
+<li>F4 remains the first formal acceleration phase</li>
+</ul>
+<p>The public story is:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>one <code>unit</code> is one AMD Ryzen AI Max+ 395 node</li>
+<li>one <code>cell</code> is four cooperating AI Max+ 395 nodes</li>
+<li>one <code>fabric</code> is one or more cells managed by <code>k1s</code></li>
+<li>one <code>provider interface</code> is the lease- or marketplace-facing boundary that hands execution to the fabric through a provider-facing HA edge</li>
 </ul>
-</li>
-<li>Delete:
+<h2 id="target-deployment-shape">Target Deployment Shape</h2>
+<p>The target near-term deployment shape is documented in <a href="fabric-deployment-topology.html">Fabric Deployment Topology</a>.</p>
+<pre class="mermaid">flowchart LR
+    U[Client or Lease Marketplace] --&gt; E[Provider Interface / HA Edge]
+    E --&gt; B[Fabric Broker + Gateway]
+    B --&gt; C1[AI Max+ 395 Cell A]
+    B --&gt; C2[AI Max+ 395 Cell B]
+    C1 --&gt; N1[4-node execution set]
+    C2 --&gt; N2[4-node execution set]</pre>
+<p>Operationally, the front edge handles ingress, tenancy boundaries, and lease-facing lifecycle. The backend fabric handles placement, session realization, execution locality, and later knowledge-assisted optimization.</p>
+<h2 id="current-baseline">Current Baseline</h2>
+<p>Today the repo already includes:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li><code>InferenceCell</code> and <code>InferenceCellSet</code></li>
+<li>deterministic stage placement and boundary admission</li>
+<li>session reservation and node-agent session hooks</li>
+<li>controller-persisted fabric sessions, GPU leases, port leases, and node locks</li>
+<li>VM and LAN validation lanes for distributed inference bring-up</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<p>What it does not yet include is the full provider-interface topology, typed fabric facts, or the locality substrate needed for later advisory and cognitive layers.</p>
+<h2 id="substrate-phases">Substrate Phases</h2>
+<h3 id="f0-fabric-hardening-and-validation">F0: Fabric hardening and validation</h3>
+<p>Goal:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li>make the current fabric lane operationally trustworthy enough to support D0 and D1</li>
 </ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
+<p>Primary outcomes:</p>
 <ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
+<li>real readiness semantics for fabric sessions</li>
+<li>controller-visible member status and rollback signals</li>
+<li>repeatable VM and GPU validation artifacts</li>
+<li>reduced dependence on manifest-only telemetry</li>
 </ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
+<h3 id="f1-typed-facts-and-telemetry">F1: Typed facts and telemetry</h3>
+<p>Goal:</p>
 <ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
+<li>replace ad hoc labels and manifest hints with typed controller facts</li>
+</ul>
+<p>Primary outcomes:</p>
 <ul>
-<li><code>ae registry list</code></li>
+<li>typed node capability reporting</li>
+<li>typed storage and media reporting, including the baseline NVMe class and any later persistent-memory class</li>
+<li>typed link and topology telemetry</li>
+<li>typed RNIC and RDMA capability reporting, including negotiated PCIe state where relevant</li>
+<li>clear distinction between management, execution, and fabric identities</li>
+<li>structured inputs for later planning engines</li>
 </ul>
-</li>
-<li>Docker Hub:
+<h3 id="f2-chunk-and-cache-locality">F2: Chunk and cache locality</h3>
+<p>Goal:</p>
 <ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
+<li>make movement, residency, and warm locality explicit before optimization work expands</li>
+</ul>
+<p>Primary outcomes:</p>
 <ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
+<li>content-addressed chunk identity</li>
+<li>replica and residency state</li>
+<li>controlled push and pull flows over standard transport</li>
+<li>integrity and epoch semantics for moved data</li>
 </ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
+<h3 id="f3-hyperon-advisory-planning">F3: Hyperon advisory planning</h3>
+<p>Goal:</p>
 <ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
+<li>add explainable symbolic planning without giving up controller authority</li>
 </ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
+<p>Primary outcomes:</p>
 <ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
+<li>advisory request and response contract</li>
+<li>decision traces and divergence recording</li>
+<li>replay and evaluation support</li>
+<li>bounded planning support for placement, admission, and degraded-mode handling</li>
+<li>the first controller-visible continuity and coherence signals needed for later governance</li>
 </ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
+<h3 id="f4-accelerated-movement">F4: Accelerated movement</h3>
+<p>Goal:</p>
 <ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
+<li>improve already-correct locality behavior where hardware and transport allow it</li>
 </ul>
-</li>
-<li>Custom registry:
+<p>Primary outcomes:</p>
 <ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
+<li>capability negotiation for faster movement paths</li>
+<li>transfer leases and landing-zone safety</li>
+<li>the first formal RoCE development path documented against the E810 hardware baseline</li>
+<li>accelerated movement with clean fallback to standard transport</li>
 </ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
+<h3 id="f5-das-cells-and-knowledge-bearing-fabric-services">F5: DAS cells and knowledge-bearing fabric services</h3>
+<p>Goal:</p>
 <ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
+<li>deploy locality-first knowledge services on the stabilized fabric substrate</li>
+</ul>
+<p>Primary outcomes:</p>
 <ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
+<li>per-site DAS cell bundles</li>
+<li>local-first query, warming, and promotion behavior</li>
+<li>controlled cross-site replication instead of WAN-dependent hot paths</li>
+<li>a practical substrate for later cognitive-fabric behavior</li>
 </ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
+<h2 id="philosophy-and-safeguards">Philosophy and Safeguards</h2>
+<p>Later cognitive-fabric phases are governed by the project&#x27;s philosophy docs:</p>
 <ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
+<li><a href="project-philosophy.html">Project Philosophy</a></li>
+<li><a href="cognitive-welfare-and-continuity.html">Cognitive Welfare and Continuity Safeguards</a></li>
 </ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
+<p>Those docs do not change the current authority model. They do change the bar for later work:</p>
 <ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
+<li>continuity, coherence, legibility, and bounded distress become first-class engineering concerns</li>
+<li>capability work should not rely on preventable internal harm, continuity destruction, or opaque coercive control surfaces</li>
+<li>later cognitive-substrate work should add continuity logging, coherence and overload visibility, and review gates for major continuity-changing operations</li>
 </ul>
+<h2 id="dependency-model">Dependency Model</h2>
+<p>The substrate phases remain the primary dependency chain:</p>
+<table><thead><tr><th>Phase</th><th>Depends on</th><th>Why</th></tr></thead><tbody><tr><td>F1</td><td>F0</td><td>Typed facts are only useful after the base lifecycle is real.</td></tr><tr><td>F2</td><td>F1</td><td>Locality policy needs trustworthy facts and telemetry.</td></tr><tr><td>F3</td><td>F1, F2</td><td>Hyperon advisory logic only makes sense with typed facts and explicit locality state.</td></tr><tr><td>F4</td><td>F2, F3</td><td>Acceleration is only safe after correctness and policy guardrails exist.</td></tr><tr><td>F5</td><td>F2, F3</td><td>Knowledge cells depend on locality semantics and bounded policy behavior.</td></tr></tbody></table>
+<p>The deployment milestones are secondary and deliberately coupled to the substrate:</p>
+<table><thead><tr><th>Milestone</th><th>Depends on</th><th>Why</th></tr></thead><tbody><tr><td>D0</td><td>F0</td><td>One cell is only meaningful if readiness and validation are real.</td></tr><tr><td>D1</td><td>D0, F0, H3</td><td>The edge and broker cannot be trusted until the execution cell is trusted and the backend authority model is a real HA control plane.</td></tr><tr><td>D2</td><td>D1, F1, H4</td><td>A lease path needs typed capability and status facts, plus one shared HA authority model for controller and shim/API surfaces.</td></tr><tr><td>D3</td><td>D2, F1, F2, H5</td><td>Multi-cell service requires explicit locality and cross-cell cost awareness plus repeatable HA recovery patterns.</td></tr><tr><td>D4</td><td>D3, F3, H5</td><td>Domain-scale partner operation needs explainable decisions, stable evidence, and operator-readable HA recovery posture.</td></tr></tbody></table>
+<h2 id="hyperon-trajectory">Hyperon Trajectory</h2>
+<p>Hyperon is part of the roadmap, but not the v1 authority model.</p>
+<ul>
+<li>In v1 and early pilots, Hyperon is advisory only: it ranks, explains, and records divergence against the deterministic baseline.</li>
+<li>After the locality substrate matures, Hyperon can move into bounded automation for placement, degradation, and learning loops.</li>
+<li>The later-stage objective is a self-optimizing cognitive substrate at the control-plane and fabric layer, but that is a later phase, not a current capability claim.</li>
+</ul>
+<h2 id="deployment-milestones">Deployment Milestones</h2>
+<p>These milestones are secondary to the substrate phases above. They track how the fabric may later be packaged behind a provider interface once the substrate is trustworthy enough to expose externally.</p>
+<h3 id="d0-single-cell-execution-baseline">D0: Single-cell execution baseline</h3>
+<p>Goal:</p>
+<ul>
+<li>prove one AI Max+ 395 cell as a repeatable execution unit on the documented node baseline</li>
+</ul>
+<p>Primary outcomes:</p>
+<ul>
+<li>repeatable node preparation on the documented public baseline</li>
+<li>repeatable 4-node cell bring-up</li>
+<li>controller-visible fabric readiness and restart behavior</li>
+<li>usable LAN and VM validation evidence</li>
+<li>current <code>InferenceCell</code> lane mapped cleanly onto the future cell contract</li>
+</ul>
+<h3 id="d1-ha-edge-k1s-or-k3s-and-fabric-broker">D1: HA edge (k1s or k3s) and fabric broker</h3>
+<p>Goal:</p>
+<ul>
+<li>front the AMD cell with a stable HA edge (k1s or k3s) and a broker boundary</li>
+</ul>
+<p>This milestone assumes the backend <code>k1s</code> core is already following the HA authority model defined in <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>. The edge does not substitute for backend controller fencing, shared desired-state authority, or <code>etcd</code>-backed leadership.</p>
+<p>Primary outcomes:</p>
+<ul>
+<li>HA edge for ingress and lease-facing control</li>
+<li>explicit broker and gateway role between edge and fabric</li>
+<li>north/south ingress separated from east/west fabric traffic</li>
+<li>operational trust boundaries suitable for pilot deployments</li>
+</ul>
+<h3 id="d2-provider-backed-lease-pilot">D2: Provider-backed lease pilot</h3>
+<p>Goal:</p>
+<ul>
+<li>drive the AMD fabric through a provider-facing lease path via the HA edge (k1s or k3s) without collapsing authority into the edge</li>
+</ul>
+<p>Primary outcomes:</p>
+<ul>
+<li>lease intake translated into fabric reservations</li>
+<li>edge-to-broker-to-cell lifecycle proof</li>
+<li>provider-facing status, teardown, and failure reporting</li>
+<li>pilot evidence for a first marketplace-backed deployment path</li>
+</ul>
+<h3 id="d3-multi-cell-locality-service">D3: Multi-cell locality service</h3>
+<p>Goal:</p>
+<ul>
+<li>operate more than one cell as one locality-aware fabric</li>
+</ul>
+<p>Primary outcomes:</p>
+<ul>
+<li>multi-cell capacity accounting</li>
+<li>locality-aware placement and degradation choices</li>
+<li>explicit distinction between cell-local and cross-cell execution</li>
+<li>repeatable service behavior under growth and impairment</li>
+</ul>
+<h3 id="d4-domain-operations-and-partner-readiness">D4: Domain operations and partner readiness</h3>
+<p>Goal:</p>
+<ul>
+<li>package the fabric as a fundable and partner-readable operating model</li>
+</ul>
+<p>Primary outcomes:</p>
+<ul>
+<li>repeatable domain deployment shape</li>
+<li>grant-ready milestone evidence and pilot reports</li>
+<li>clear separation between public tiers, reserved capacity, and domain-level operations</li>
+<li>a stable story for execution today and intelligence later</li>
+</ul>
+<h2 id="public-positioning">Public Positioning</h2>
+<p>The public position for this roadmap is intentionally concrete:</p>
+<ul>
+<li>the near-term hardware target is the AMD Ryzen AI Max+ 395</li>
+<li>the near-term execution unit is the 4-node cell</li>
+<li>the near-term deployment shape uses a provider-facing HA edge in front of the <code>k1s</code> AMD fabric</li>
+<li><code>k1s</code> remains authoritative for reconcile, safety, and rollback</li>
+<li>Hyperon is advisory first and becomes more autonomous only in later phases</li>
+<li>later cognitive-fabric work is explicitly constrained by continuity and welfare safeguards rather than capability goals alone</li>
+</ul>
+<p>This keeps the grant and partner story specific enough to be credible without claiming maturity that the repo does not yet have.</p>
+<h2 id="tracking">Tracking</h2>
+<p>The <a href="roadmap-status.html">roadmap status page</a> is the canonical progress surface for this roadmap. Use it to track both substrate phases and deployment milestones, along with their evidence, dependencies, and primary code areas.</p>
     </div>
     <footer class="site-footer">
       <div class="container inner">
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 

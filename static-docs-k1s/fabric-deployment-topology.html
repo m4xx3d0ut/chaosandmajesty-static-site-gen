@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Api Auth</title>
+    <title>Fabric Deployment Topology</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -721,124 +721,81 @@
       </svg>
     </button>
     <div class="container">
-    <h1 id="api-auth-and-mutations">API Auth and Mutations</h1>
-<h2 id="overview">Overview</h2>
+    <h1 id="fabric-deployment-topology">Fabric Deployment Topology</h1>
+<p>Status: proposed deployment-topology record for the AMD-first fabric path.</p>
+<p>This document describes the target deployment shape for the formal fabric roadmap. It complements <a href="fabric-control-plane.html">Fabric Control Plane</a>: that document defines authority and controller boundaries, while this document defines where those roles live operationally.</p>
+<p>It also assumes the backend HA authority model defined in <a href="high-availability-control-plane.html">HA Control Plane Roadmap</a>. The provider-facing edge is not itself the backend control-plane quorum.</p>
+<h2 id="topology-summary">Topology Summary</h2>
+<p>The near-term deployment shape is:</p>
 <ul>
-<li>Read-only endpoints (/status, /events, /metrics, /logs, /health, /openapi.json) are available by default.</li>
-<li>If any token is configured, all GETs require at least the READ token.</li>
-<li>Mutating endpoints (/scale/&lt;app&gt;, /delete/&lt;app&gt;, /rollout/*, /apply) are disabled unless AE_API_MUTATIONS=1.</li>
-<li>Optional Bearer tokens gate access per role:
+<li>a provider-facing HA edge</li>
+<li>a broker and gateway boundary between edge and fabric</li>
+<li>one or more AI Max+ 395 execution cells managed by <code>k1s</code></li>
+</ul>
+<pre class="mermaid">flowchart LR
+    M[Client / Lease Marketplace] --&gt; K[Provider Interface / HA Edge]
+    K --&gt; G[Fabric Broker + Gateway]
+    G --&gt; A[Cell A&lt;br/&gt;4x AI Max+ 395]
+    G --&gt; B[Cell B&lt;br/&gt;4x AI Max+ 395]</pre>
+<p>The edge is responsible for north/south lifecycle and tenancy boundaries. The backend fabric is responsible for authoritative execution, session realization, placement, and later locality-aware optimization.</p>
+<h2 id="deployment-roles">Deployment Roles</h2>
+<h3 id="provider-facing-ha-edge">Provider-facing HA edge</h3>
+<p>Responsibilities:</p>
 <ul>
-<li>AE_API_READ_TOKEN   (read)</li>
-<li>AE_API_SCALER_TOKEN (scale)</li>
-<li>AE_API_ADMIN_TOKEN  (admin)</li>
+<li>ingress and API exposure</li>
+<li>lease-facing or marketplace-facing lifecycle</li>
+<li>workload admission into the broker path</li>
+<li>HA control-plane behavior at the front door</li>
 </ul>
-</li>
-<li>Optional scoping/expiry: AE_API_ADMIN_SCOPE / AE_API_SCALER_SCOPE / AE_API_READ_SCOPE (glob patterns) and AE_API_*_TOKEN_EXPIRES (UTC ISO8601).</li>
-</ul>
-<h2 id="enabling-mutations-dev">Enabling mutations (dev)</h2>
-<p>1) Generate tokens and enable mutations for the controller process:</p>
-<pre><code>ae api tokens --generate --ttl-hours 24 -o .env.api
-source .env.api
-export AE_API_MUTATIONS=1</code></pre>
-<p>2) Start controller with --metrics-port and (optional) Caddy fronting the API.</p>
-<p>Tip: <code>ae auth remote -o .env.api</code> also emits apishim tokens and <code>AE_API_MUTATIONS=1</code>.</p>
-<h2 id="remote-cli-usage">Remote CLI usage</h2>
+<p>The edge is not the authority for internal fabric session state.</p>
+<h3 id="fabric-broker-and-gateway">Fabric broker and gateway</h3>
+<p>Responsibilities:</p>
 <ul>
-<li>Scale:
+<li>reservation accounting</li>
+<li>translation from edge-facing workload intent into fabric intent</li>
+<li>cell selection and binding</li>
+<li>execution gateway into the backend fabric</li>
+</ul>
+<p>This is the operational seam between public-facing lifecycle and internal execution control.</p>
+<h3 id="k1s-amd-execution-cells">k1s AMD execution cells</h3>
+<p>Responsibilities:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_SCALER_TOKEN scale echo --replicas 2</code></li>
+<li>authoritative fabric-session realization</li>
+<li>execution placement and restart behavior</li>
+<li>node-side materialization</li>
+<li>controller-owned readiness, rollback, and degradation handling</li>
 </ul>
-</li>
-<li>Delete:
+<p>The first target execution unit is one 4-node AI Max+ 395 cell.</p>
+<h2 id="traffic-classes">Traffic Classes</h2>
+<table><thead><tr><th>Traffic class</th><th>Path</th><th>Purpose</th></tr></thead><tbody><tr><td>North/south ingress</td><td>client or lease source -&gt; HA edge</td><td>public API, ingress, and tenant entry</td></tr><tr><td>Control handoff</td><td>HA edge -&gt; broker/gateway</td><td>reservation, binding, and execution handoff</td></tr><tr><td>East/west fabric</td><td>broker/gateway -&gt; <code>k1s</code> cells</td><td>session realization and execution coordination</td></tr><tr><td>Later knowledge plane</td><td>controller/broker -&gt; advisory services</td><td>planning, explanation, and later cognitive optimization</td></tr></tbody></table>
+<p>This split matters because the provider edge and the fabric have different failure modes, security boundaries, and scaling constraints.</p>
+<h2 id="growth-path">Growth Path</h2>
+<p>The topology is intended to grow in ordered steps:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_ADMIN_TOKEN delete echo --purge</code></li>
+<li>one validated AI Max+ 395 cell</li>
+<li>provider-facing HA edge in front of that cell</li>
+<li>one brokered lease or provider pilot path through the edge</li>
+<li>multiple cells operating as one locality-aware fabric</li>
+<li>later knowledge-bearing services running on the stabilized fabric</li>
 </ul>
-</li>
-<li>Logs (requires READ token when any token is configured):
+<p>The roadmap for those steps is documented in <a href="distributed-compute-fabric.html">Distributed Compute Fabric Roadmap</a>.</p>
+<h2 id="control-boundaries">Control Boundaries</h2>
+<p>The operational boundaries are fixed:</p>
 <ul>
-<li><code>ae --server https://api.home.arpa:8443 --token $AE_API_READ_TOKEN logs echo --tail 100</code></li>
+<li><code>k1s</code> remains authoritative for reconcile, safety, and rollback</li>
+<li>backend HA authority comes from the <code>etcd</code>-backed <code>k1s</code> control plane, not from the provider-facing edge</li>
+<li>the HA edge owns tenant-facing ingress and lifecycle handoff</li>
+<li>the broker owns reservation and binding</li>
+<li>Hyperon, when introduced, begins as an advisory layer and not as authority</li>
 </ul>
-</li>
-</ul>
-<h2 id="security-notes">Security notes</h2>
-<ul>
-<li>For production, place the API behind TLS (Caddy) and use client auth or network ACLs.</li>
-<li>Prefer short-lived tokens and minimal roles for automation.</li>
-<li>Kubernetes API shim: set <code>AE_APISHIM_ENABLE=1</code> and <code>AE_APISHIM_TOKEN</code> for <code>python -m ae.apishim serve</code>; use <code>AE_APISHIM_ALLOW_ANON=1</code> only for local labs. Shim RBAC evaluates Role/ClusterRole bindings and exposes a SubjectAccessReview-compatible endpoint.</li>
-</ul>
-<h2 id="registry-auth-private-images">Registry Auth (private images)</h2>
-<ul>
-<li>Credentials are stored at <code>~/.config/ae/registries.yaml</code> and used by the runtime before pulls.</li>
-<li>List configured hosts:
-<ul>
-<li><code>ae registry list</code></li>
-</ul>
-</li>
-<li>Docker Hub:
-<ul>
-<li>Short image names (e.g., <code>caddy:2.8</code>, <code>python:3.12-slim</code>) are treated as <code>docker.io</code>.</li>
-<li>Add Docker Hub creds by host key <code>docker.io</code> (also accepts <code>index.docker.io</code>):
-<ul>
-<li><code>ae registry login custom --registry docker.io --username &lt;you&gt; --password &lt;token&gt;</code></li>
-<li>Or run <code>docker login</code> once; the runtime will reuse your local Docker credentials.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>GHCR (GitHub Container Registry):
-<ul>
-<li><code>ae registry login ghcr --username &lt;you&gt; --token &lt;PAT&gt;</code></li>
-<li>Or rely on <code>gh</code> CLI: <code>ae registry login ghcr --username &lt;you&gt;</code> (uses <code>gh auth token</code>)</li>
-</ul>
-</li>
-<li>GCR (Google Container Registry/Artifact Registry):
-<ul>
-<li><code>ae registry login gcr --use-gcloud --gcr-host us.gcr.io</code></li>
-<li>Or provide a token: <code>ae registry login gcr --gcr-host us.gcr.io --token $(gcloud auth print-access-token)</code></li>
-<li>Username defaults to <code>oauth2accesstoken</code>.</li>
-</ul>
-</li>
-<li>ECR (AWS Elastic Container Registry):
-<ul>
-<li><code>ae registry login ecr --use-aws --region us-east-1 --account-id 123456789012</code></li>
-<li>Or specify: <code>ae registry login ecr --registry 123456789012.dkr.ecr.us-east-1.amazonaws.com --password $(aws ecr get-login-password)</code></li>
-</ul>
-</li>
-<li>Custom registry:
-<ul>
-<li><code>ae registry login custom --registry registry.example.com --username user --password secret</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="refreshing-short-lived-tokens">Refreshing short‑lived tokens</h2>
-<ul>
-<li>Some providers issue short‑lived credentials (GCR/ECR). Refresh any saved hosts with:
-<ul>
-<li><code>ae registry refresh</code> (all supported providers)</li>
-<li><code>ae registry refresh --provider gcr</code></li>
-<li><code>ae registry refresh --provider ecr</code></li>
-</ul>
-</li>
-<li>Refresh logic uses local CLIs when available:
-<ul>
-<li>ghcr: <code>gh auth token</code> or <code>GHCR_TOKEN</code>.</li>
-<li>gcr: <code>gcloud auth print-access-token</code>.</li>
-<li>ecr: <code>aws ecr get-login-password</code> (region derived from the registry hostname).</li>
-</ul>
-</li>
-</ul>
-<h2 id="planner-hint">Planner hint</h2>
-<ul>
-<li>If the image host looks private (e.g., <code>ghcr.io</code>, <code>gcr.io</code>, <code>*.ecr.*.amazonaws.com</code>) and no entry exists in <code>registries.yaml</code>, <code>ae plan</code> emits a warning with the matching <code>ae registry login</code> command suggestion.</li>
-</ul>
+<p>The public documentation keeps the provider interface marketplace-neutral so the fabric can be fronted by more than one external provider-network model without changing internal authority boundaries.</p>
     </div>
     <footer class="site-footer">
       <div class="container inner">
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-03-12 16:45:45</span>
+        <span>Built 2026-03-12 16:45:46</span>
       </div>
     </footer>
 
