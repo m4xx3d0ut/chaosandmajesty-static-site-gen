@@ -273,7 +273,7 @@ This is a later-stage regional example, not a claim that `k1s` already ships mul
 
 <div class="blog-video-embed">
   <video controls muted loop playsinline preload="metadata" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">
-    <source src="assets/static/img/zone_mesh_density_high.webm" type="video/webm" />
+    <source src="/assets/static/img/zone_mesh_density_high.webm" type="video/webm" />
     Your browser does not support the video tag.
   </video>
 </div>
