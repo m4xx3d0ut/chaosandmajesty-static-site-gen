@@ -120,7 +120,7 @@ k1s is actively developed and intentionally not at an official MVP state yet. We
 If you run home labs, edge nodes, or small private cloud VMs, this is a good release to test strict CRI and ingress validation lanes under realistic failure conditions. Please file issues with logs and reproduction notes so we can keep tightening operator paths.
 
 - Repo: https://github.com/the-cm-collective/k1s
-- Docs: https://cosmosmechane.com/k1s/index.html
+- Docs: https://cosmosmechane.com/k1s/index.html?from=cm
 - Release: `0.1.3` (official, 2026-02-19)
 
 ## Closing

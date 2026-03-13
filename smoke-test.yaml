@@ -418,7 +418,7 @@ header:
     - label: Git
       href: "git.html"
     - label: K1S Docs
-      href: "https://cosmosmechane.com/k1s/"
+      href: "https://cosmosmechane.com/k1s/?from=cm"
     # - label: Sitemap
     #   href: "sitemap.html"
 
