@@ -938,6 +938,7 @@
 
   const LIGHTBOX_STATE = {
     overlay: null,
+    frameEl: null,
     imageEl: null,
     captionEl: null,
     closeBtn: null,
@@ -1000,6 +1001,7 @@
       imageEl.removeAttribute('src');
       imageEl.removeAttribute('srcset');
       imageEl.removeAttribute('sizes');
+      imageEl.style.removeProperty('width');
       imageEl.alt = '';
     }
 
@@ -1049,6 +1051,7 @@
 
     document.body.appendChild(overlay);
     LIGHTBOX_STATE.overlay = overlay;
+    LIGHTBOX_STATE.frameEl = overlay.querySelector('.blog-image-lightbox-frame');
     LIGHTBOX_STATE.imageEl = overlay.querySelector('.blog-image-lightbox-media');
     LIGHTBOX_STATE.captionEl = overlay.querySelector('.blog-image-lightbox-caption');
     LIGHTBOX_STATE.closeBtn = overlay.querySelector('.blog-image-lightbox-close');
@@ -1069,6 +1072,34 @@
 
     overlay.closeLightbox = closeLightbox;
     return overlay;
+  }
+
+  function sizeLightboxImage(sourceImage) {
+    const imageEl = LIGHTBOX_STATE.imageEl;
+    if (!imageEl || !sourceImage) return;
+
+    const naturalWidth = sourceImage.naturalWidth || imageEl.naturalWidth || 0;
+    const naturalHeight = sourceImage.naturalHeight || imageEl.naturalHeight || 0;
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const isSmallViewport = viewportWidth < 700;
+    const isLandscape = naturalWidth >= naturalHeight;
+    const viewportPadding = isSmallViewport ? 32 : 96;
+    const fitWidth = Math.max(260, viewportWidth - viewportPadding);
+    const expandedWidth = isSmallViewport
+      ? Math.max(fitWidth, viewportWidth * (isLandscape ? 1.8 : 1.25))
+      : Math.min(1100, fitWidth);
+    const targetWidth = naturalWidth ? Math.min(naturalWidth, expandedWidth) : expandedWidth;
+
+    imageEl.style.width = `${Math.round(targetWidth)}px`;
+  }
+
+  function resetLightboxScroll() {
+    const frameEl = LIGHTBOX_STATE.frameEl;
+    if (!frameEl) return;
+    window.requestAnimationFrame(function() {
+      frameEl.scrollTop = 0;
+      frameEl.scrollLeft = Math.max(0, (frameEl.scrollWidth - frameEl.clientWidth) / 2);
+    });
   }
 
   function openLightbox(img) {
@@ -1101,11 +1132,13 @@
     const captionText = figureCaption ? figureCaption.textContent : altText;
     imageEl.alt = altText || '';
     setLightboxCaption(captionText);
+    sizeLightboxImage(img);
 
     overlay.classList.add('is-active');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-lightbox-open');
     document.addEventListener('keydown', handleLightboxKeydown);
+    resetLightboxScroll();
 
     if (LIGHTBOX_STATE.closeBtn) {
       try {
