@@ -1226,6 +1226,7 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
   const blogMarkdownRenderer = (() => {
     const renderer = new marked.Renderer();
     const baseCodeRenderer = renderer.code ? renderer.code.bind(renderer) : null;
+    const baseTableRenderer = renderer.table ? renderer.table.bind(renderer) : null;
     renderer.code = (code, infostring, escaped) => {
       const lang = (infostring || '').trim().split(/\s+/)[0].toLowerCase();
       if (lang === 'mermaid') {
@@ -1235,6 +1236,12 @@ async function generateBlog(blogConfig, siteConfig, outputDir, verbose = false) 
         return baseCodeRenderer(code, infostring, escaped);
       }
       return `<pre><code>${escapeHtml(code)}</code></pre>`;
+    };
+    renderer.table = (header, body) => {
+      const tableHtml = baseTableRenderer
+        ? baseTableRenderer(header, body)
+        : `<table><thead>${header}</thead><tbody>${body}</tbody></table>`;
+      return `<div class="blog-table-scroll">${tableHtml}</div>`;
     };
     return renderer;
   })();

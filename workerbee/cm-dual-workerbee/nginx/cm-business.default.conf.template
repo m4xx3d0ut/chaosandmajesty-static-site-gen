@@ -1,0 +1,30 @@
+server {
+    listen 8080;
+    server_name cosmosmechane.com www.cosmosmechane.com __BUSINESS_HOST__;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    absolute_redirect off;
+    port_in_redirect off;
+
+    sub_filter_once off;
+    sub_filter_types text/html text/css application/javascript application/xml text/xml;
+    sub_filter 'https://chaosandmajesty.com' 'https://__CORE_HOST__:__WORKERBEE_HTTPS_PORT__';
+    sub_filter 'https://www.chaosandmajesty.com' 'https://__CORE_HOST__:__WORKERBEE_HTTPS_PORT__';
+    sub_filter 'http://chaosandmajesty.com' 'https://__CORE_HOST__:__WORKERBEE_HTTPS_PORT__';
+    sub_filter 'http://www.chaosandmajesty.com' 'https://__CORE_HOST__:__WORKERBEE_HTTPS_PORT__';
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1d;
+        add_header Cache-Control "public";
+    }
+
+    location = /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "healthy\n";
+    }
+}

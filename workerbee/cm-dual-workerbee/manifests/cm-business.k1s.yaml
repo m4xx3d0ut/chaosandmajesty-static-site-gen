@@ -1,0 +1,39 @@
+apiVersion: ae.dev/v1alpha1
+kind: Deployment
+metadata:
+  name: cm-business
+  namespace: __WORKERBEE_PROJECT__
+  labels:
+    workerbee.k1s.dev/project: __WORKERBEE_PROJECT__
+spec:
+  image: cm-business-workerbee:__WORKERBEE_TAG__
+  imagePullPolicy: Never
+  replicas: 1
+  env:
+    - name: WORKERBEE_DEPLOY_REV
+      value: __WORKERBEE_TAG__
+  ports:
+    - name: http
+      containerPort: 8080
+  service:
+    port: 8080
+    targetPort: 8080
+  health:
+    readiness:
+      httpGet: { path: /health, port: 8080 }
+      initialDelaySeconds: 1
+      periodSeconds: 3
+    liveness:
+      httpGet: { path: /health, port: 8080 }
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  ingress:
+    host: cosmosmechane.__WORKERBEE_PROJECT__.__WORKERBEE_BASE_DOMAIN__
+    path: /
+  resources:
+    requests:
+      cpu: 0.05
+      memory: 64Mi
+    limits:
+      cpu: 0.5
+      memory: 256Mi
