@@ -18,6 +18,9 @@ A Node.js static website generator that builds complete static "Chaos & Majesty"
 
 Your site is ready at `site-output/` with all assets, HTML files, and proper structure.
 
+For local dual-site WorkerBee review, use the bundle documented in
+[`docs/workerbee-local.md`](docs/workerbee-local.md).
+
 ---
 
 ## 🎯 What Makes This Different

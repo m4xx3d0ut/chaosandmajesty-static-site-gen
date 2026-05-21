@@ -42,6 +42,7 @@ tmp/
 # Local development
 LOCAL_*
 local-*
+.local/
 
 # Backup files
 backup_*
