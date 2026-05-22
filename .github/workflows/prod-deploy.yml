@@ -296,6 +296,55 @@ jobs:
             git checkout --detach "${GITHUB_SHA}"
           fi
 
+      - name: Validate deploy target
+        run: |
+          set -euo pipefail
+          INVENTORY_HOST="$(awk '
+            $1 == "prod" {
+              for (i = 1; i <= NF; i++) {
+                if ($i ~ /^ansible_host=/) {
+                  sub(/^ansible_host=/, "", $i)
+                  print $i
+                  exit
+                }
+              }
+            }
+          ' ansible/inventory/hosts.ini)"
+          INVENTORY_PORT="$(awk -F= '
+            $1 == "ansible_port" {
+              gsub(/^[ \t]+|[ \t]+$/, "", $2)
+              print $2
+              exit
+            }
+          ' ansible/inventory/hosts.ini)"
+          DEPLOY_HOST="${VPS_HOST:-}"
+          DEPLOY_PORT="${INVENTORY_PORT:-22}"
+          if [ -z "${DEPLOY_HOST}" ]; then
+            DEPLOY_HOST="${INVENTORY_HOST}"
+          fi
+          if [ -z "${DEPLOY_HOST}" ]; then
+            echo "FATAL: no deploy host found in VPS_HOST or ansible/inventory/hosts.ini" >&2
+            exit 1
+          fi
+          case "${DEPLOY_HOST}" in
+            *://*|*/*|*:*|*[[:space:]]*)
+              echo "FATAL: VPS_HOST must be a bare DNS name or IPv4 address; keep schemes, paths, and ports out of the secret." >&2
+              exit 1
+              ;;
+          esac
+          if ! getent ahosts "${DEPLOY_HOST}" > /tmp/deploy-hosts; then
+            echo "FATAL: deploy host did not resolve via getent ahosts." >&2
+            exit 1
+          fi
+          FIRST_ADDR="$(awk 'NR == 1 { print $1 }' /tmp/deploy-hosts)"
+          echo "Deploy host resolved to ${FIRST_ADDR}"
+          if ! timeout 5 bash -c 'exec 3<>"/dev/tcp/$1/$2"' _ "${DEPLOY_HOST}" "${DEPLOY_PORT}"; then
+            echo "FATAL: deploy host resolved, but TCP ${DEPLOY_PORT} is not reachable." >&2
+            exit 1
+          fi
+          echo "Deploy SSH target is reachable on TCP ${DEPLOY_PORT}"
+          echo "VPS_HOST=${DEPLOY_HOST}" >> "$GITHUB_ENV"
+
       - name: Install Ansible
         run: |
           set -euo pipefail
@@ -324,11 +373,16 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
         run: |
+          set -euo pipefail
+          if [ -z "${SSH_PRIVATE_KEY:-}" ]; then
+            echo "SSH_PRIVATE_KEY secret is required for prod deploy" >&2
+            exit 1
+          fi
           install -m 700 -d ~/.ssh
           KEY_PATH="$HOME/.ssh/gitea-ci-prod"
           printf "%s" "$SSH_PRIVATE_KEY" > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
-          if [ -z "$KNOWN_HOSTS" ]; then
+          if [ -z "${KNOWN_HOSTS:-}" ]; then
             echo "KNOWN_HOSTS secret empty; discovering fingerprint via ssh-keyscan." >&2
             ssh-keyscan -H "$VPS_HOST" > ~/.ssh/known_hosts
           else
