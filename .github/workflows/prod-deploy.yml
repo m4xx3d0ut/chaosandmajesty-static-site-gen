@@ -343,6 +343,8 @@ jobs:
             exit 1
           fi
           echo "Deploy SSH target is reachable on TCP ${DEPLOY_PORT}"
+          echo "DEPLOY_HOST=${DEPLOY_HOST}" >> "$GITHUB_ENV"
+          echo "DEPLOY_ADDR=${FIRST_ADDR}" >> "$GITHUB_ENV"
           echo "VPS_HOST=${DEPLOY_HOST}" >> "$GITHUB_ENV"
 
       - name: Install Ansible
@@ -382,9 +384,10 @@ jobs:
           KEY_PATH="$HOME/.ssh/gitea-ci-prod"
           printf "%s" "$SSH_PRIVATE_KEY" > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
+          DEPLOY_HOST="${DEPLOY_HOST:-${VPS_HOST:-}}"
           if [ -z "${KNOWN_HOSTS:-}" ]; then
             echo "KNOWN_HOSTS secret empty; discovering fingerprint via ssh-keyscan." >&2
-            ssh-keyscan -H "$VPS_HOST" > ~/.ssh/known_hosts
+            ssh-keyscan -H "$DEPLOY_HOST" > ~/.ssh/known_hosts
           else
             printf "%s\n" "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           fi
@@ -394,12 +397,19 @@ jobs:
         env:
           ANSIBLE_FORCE_COLOR: '1'
         run: |
+          set -euo pipefail
           BUSINESS_IMAGE_NAME="${BUSINESS_IMAGE_NAME:-}"
           if [ -z "${BUSINESS_IMAGE_NAME}" ]; then
             BUSINESS_IMAGE_NAME="${IMAGE_NAME}-business"
           fi
-          ansible-playbook -i inventory/hosts.ini deploy.yml \
-            -e "ansible_host=${VPS_HOST}" \
+          DEPLOY_HOST="${DEPLOY_HOST:-${VPS_HOST:-}}"
+          DEPLOY_ADDR="${DEPLOY_ADDR:-${DEPLOY_HOST}}"
+          ANSIBLE_CLI_ARGS=()
+          if [ -n "${DEPLOY_HOST}" ] && [ "${DEPLOY_ADDR}" != "${DEPLOY_HOST}" ]; then
+            ANSIBLE_CLI_ARGS+=("--ssh-common-args=-o HostKeyAlias=${DEPLOY_HOST}")
+          fi
+          ansible-playbook "${ANSIBLE_CLI_ARGS[@]}" -i inventory/hosts.ini deploy.yml \
+            -e "ansible_host=${DEPLOY_ADDR}" \
             -e "ansible_user=${VPS_USER}" \
             -e "image_registry=${REGISTRY_HOST}" \
             -e "image_namespace=${REGISTRY_NAMESPACE}" \
