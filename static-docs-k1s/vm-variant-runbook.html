@@ -2,7 +2,7 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Vm Variant Runbook</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
@@ -712,7 +712,7 @@
         }
       })();
     </script>
-    
+
   </head>
   <body>
     <nav>
@@ -758,6 +758,7 @@
 <ul>
 <li>Start, configure, and run k1s fabric test variants on local KVM/QEMU.</li>
 <li>Canonical HA operator bootstrap sequence: <a href="ha-cluster-bring-up.html">HA Cluster Bring-Up</a></li>
+<li>Host A Linux passthrough guest is out of scope for this harness. Use <a href="host-a-linux-gpu-guest.html">Host A Linux GPU Guest</a> for the <code>k1s-core-a-gpu</code> libvirt <code>qemu:///system</code> lane; <code>variant_up.sh</code> does not render PCI hostdev passthrough.</li>
 </ul>
 <p>Reference variants</p>
 <ul>
@@ -1065,7 +1066,7 @@ scripts/lab/vm/ha_shared_infra.sh \
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-04-23 20:09:14</span>
+        <span>Built 2026-05-22 19:55:09</span>
       </div>
     </footer>
 
