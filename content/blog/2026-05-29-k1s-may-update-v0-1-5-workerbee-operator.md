@@ -68,6 +68,12 @@ I'm not trying to convince you, look at my personal and org GitHub accounts over
 
 The other part I found interesting is that my token usage is lower with WorkerBee. I'm pretty confident it is due to more efficient handling of log data and context window, but I will collect some solid numbers on this in coming weeks.
 
+<figure class="blog-figure blog-figure-medium">
+  <img src="/assets/static/img/blog/workerbee/workerbee-token-usage-status.png" alt="ChatGPT Plus usage status after a week of WorkerBee projects">
+</figure>
+
+Check the dates. I have a single "Plus" account, you've seen what I built this week and you know what your token usage looks like (right?).
+
 Well, to put it together for you, this is what it looks like when I work on all of these projects from my Android tablet.
 
 <figure class="blog-figure blog-figure-wide">
