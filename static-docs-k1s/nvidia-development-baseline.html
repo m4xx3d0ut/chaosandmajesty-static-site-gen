@@ -2,8 +2,9 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
+
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>03 Scheduling Placement</title>
+    <title>Nvidia Development Baseline</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -41,6 +42,8 @@
         --k1s-brand-gold: #fbc02d;
         --k1s-brand-graphite: #404040;
         --k1s-brand-mist: #f1f1f1;
+        --k1s-page-bg-image: url('static/dash-assets/page-background-3840x2160.png');
+        --k1s-page-overlay: linear-gradient(rgba(7,10,14,0.72), rgba(7,10,14,0.72));
         /* Legacy aliases used by docs/labs styles */
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
@@ -61,6 +64,7 @@
         --k1s-card-bg: #ffffff;
         --k1s-header-bg: rgba(255,255,255,0.82);
         --code-bg: #f5f6f8;
+        --k1s-page-overlay: linear-gradient(rgba(244,245,247,0.9), rgba(244,245,247,0.9));
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
         --muted: var(--k1s-panel);
@@ -82,7 +86,11 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background-color: var(--bg);
+        background-image: var(--k1s-page-overlay), var(--k1s-page-bg-image);
+        background-size: 100% 100%, auto 100%;
+        background-position: center top, center top;
+        background-repeat: repeat-y, repeat-y;
         color: var(--fg);
       }
       img { max-width: 100%; height: auto; }
@@ -131,6 +139,25 @@
         box-shadow: 0 6px 16px rgba(0,0,0,0.16);
         transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
         font-weight: 600;
+      }
+      nav .nav-group-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 2px 4px 8px;
+        color: var(--k1s-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      nav .nav-group-label::before {
+        content: "";
+        width: 16px;
+        height: 1px;
+        margin-right: 8px;
+        background: linear-gradient(90deg, transparent, var(--k1s-brand-gold));
+        opacity: 0.75;
       }
       nav a:hover {
         background: var(--k1s-surface);
@@ -382,7 +409,7 @@
         padding: 10px 12px;
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px 10px;
         border: 1px solid var(--k1s-border);
         border-radius: 12px;
@@ -392,6 +419,24 @@
       .hero-repo-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .hero-repo-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hero-repo-item-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--k1s-text-muted);
       }
@@ -519,6 +564,11 @@
           padding: 6px 10px;
           font-size: 12px;
         }
+        nav .nav-group-label {
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          padding-left: 6px;
+        }
         nav .nav-brand {
           font-size: 10px;
           letter-spacing: 0.1em;
@@ -543,7 +593,7 @@
           scrollbar-width: none;
         }
         nav::-webkit-scrollbar { width: 0; height: 0; }
-        nav a { flex: 0 0 auto; }
+        nav a, nav .nav-group-label { flex: 0 0 auto; }
         nav::after { left: 8px; right: 8px; }
         h1 { font-size: 24px; }
         h2 { font-size: 18px; }
@@ -604,7 +654,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
-    <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>window.DOCS_API_BASE='http://127.0.0.1:9108';</script>
+    <script>window.DOCS_DASHBOARD_URL='/dashboard';</script>
     <script>
       // Attach copy buttons to all code blocks client-side
       (function() {
@@ -661,23 +712,37 @@
         }
       })();
     </script>
-    
+
   </head>
   <body>
     <nav>
       <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.svg" alt="k1s logo" /><span>k1s docs</span></a>
+      <span class="nav-group-label" aria-hidden="true">Learn</span>
       <a href="start-here.html">Start Here</a>
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
-      <a href="architecture.html">Architecture</a>
-      <a href="multinode-lab.html">Multi-Node</a>
-      <a href="http-api.html">HTTP API</a>
-      <a href="apishim-compatibility-matrix.html">API Shim</a>
-      <a href="ingress.html">Ingress</a>
-      <a href="api-auth.html">API Auth</a>
       <a href="concepts.html">Concepts</a>
-      <a href="benchmarks.html">Benchmarks</a>
       <a href="concepts-in-practice.html">Concepts in Practice</a>
+      <span class="nav-group-label" aria-hidden="true">Design</span>
+      <a href="architecture.html">Architecture</a>
+      <a href="project-philosophy.html">Philosophy</a>
+      <a href="inference-fabric.html">Inference Fabric</a>
+      <a href="distributed-compute-fabric.html">Roadmap</a>
+      <span class="nav-group-label" aria-hidden="true">Operate</span>
+      <a href="runbook.html">Ops Runbook</a>
+      <a href="ha-cluster-bring-up.html">HA Bring-Up</a>
+      <a href="vm-variant-runbook.html">VM Variants</a>
+      <a href="benchmarks.html">Benchmarks</a>
+      <span class="nav-group-label" aria-hidden="true">Guides</span>
+      <a href="cri-containerd.html">CRI containerd</a>
+      <a href="multinode-lab.html">Multi-Node</a>
+      <a href="ingress.html">Ingress</a>
+      <a href="ingress-capability-test-sequence.html">Ingress Validation</a>
+      <span class="nav-group-label" aria-hidden="true">API</span>
+      <a href="http-api.html">HTTP API</a>
+      <a href="swagger/">Swagger (Static)</a>
+      <a href="api-shim.html">API Shim</a>
+      <a href="api-auth.html">API Auth</a>
     </nav>
     <button id="theme-toggle" class="theme-fab" aria-label="Toggle theme" title="Toggle theme">
       <svg class="icon-sun" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
@@ -688,138 +753,118 @@
       </svg>
     </button>
     <div class="container">
-    <h1>Chapter 03 - Scheduling and Placement (Where Work Runs)</h1>
-<h2>Concept</h2>
-<p>Scheduling is the process of deciding where workloads run. It is not just &quot;pick a node,&quot; but &quot;pick a node that satisfies constraints.&quot; Placement becomes part of correctness when storage, network policy, or affinity rules are involved.</p>
-<pre class="mermaid">flowchart TB
-  Workload[Workload spec] --&gt; Filters[Eligibility filters]
-  Filters --&gt;|ready + not cordoned| Eligible[Eligible nodes]
-  Eligible --&gt;|spread| Placement[Replica placement plan]
-  Placement --&gt; Runtime[Runtime execution]</pre>
-<h3>Theory</h3>
-<p>Schedulers perform a filter-and-score pipeline. First, they filter out nodes that cannot run the workload (not ready, cordoned, selector mismatch, taints not tolerated). Then they score remaining nodes to balance load or satisfy topology constraints. This separates hard constraints from soft preferences.</p>
-<pre class="mermaid">flowchart LR
-  Node[Node] --&gt; Check1{Ready?}
-  Check1 -- no --&gt; Reject[Reject]
-  Check1 -- yes --&gt; Check2{Cordon?}
-  Check2 -- yes --&gt; Reject
-  Check2 -- no --&gt; Check3{nodeSelector match?}
-  Check3 -- no --&gt; Reject
-  Check3 -- yes --&gt; Check4{Tolerations ok?}
-  Check4 -- no --&gt; Reject
-  Check4 -- yes --&gt; Eligible[Eligible]</pre>
-<h3>Design</h3>
-<p>k1s implements a lightweight scheduler that filters nodes by readiness, cordon status, nodeSelector, taints/tolerations, and then spreads replicas round-robin. If storage is declared, it pins placement to one node to avoid cross-node volume assumptions. When no nodes qualify, it falls back to the local runtime so single-node setups remain usable.</p>
-<pre class="mermaid">flowchart TB
-  Spec[AppSpec] --&gt;|storage declared| Pin[Pin to single node]
-  Spec --&gt;|topology spread| Spread[Distribute by key]
-  Spec --&gt;|default| RoundRobin[Round-robin]
-  Pin --&gt; Plan[Placement plan]
-  Spread --&gt; Plan
-  RoundRobin --&gt; Plan</pre>
-<h3>Application</h3>
-<p>When a workload does not schedule, inspect selectors, taints, and node readiness first. For multi-node development, consider adding labels that enable explicit node selection and validating placement decisions with <code>ae nodes</code> and events. This aligns with how kube-scheduler behaves in production clusters.</p>
-<pre class="mermaid">flowchart TB
-  Pending[Workload pending] --&gt; Nodes[ae nodes]
-  Nodes --&gt; Ready{Any Ready nodes?}
-  Ready -- no --&gt; FixNode[Fix node/agent]
-  Ready -- yes --&gt; Cordon{Cordoned?}
-  Cordon -- yes --&gt; Uncordon[Uncordon node]
-  Cordon -- no --&gt; Labels{Selector/taints match?}
-  Labels -- no --&gt; UpdateSpec[Fix selector/tolerations]
-  Labels -- yes --&gt; Reapply[Re-apply spec]</pre>
-<h2>Key Terms and Acronyms</h2>
+    <h1 id="nvidia-development-baseline">Nvidia Development Baseline</h1>
+<p>Status: canonical public baseline for the secondary Nvidia fabric development lane.</p>
+<p>This page defines the practical Nvidia-backed development baseline that can be used to advance fabric work before the AMD AI Max+ 395 systems arrive. It complements <a href="inference-fabric.html">Inference Fabric</a>, <a href="distributed-compute-fabric.html">Distributed Compute Fabric Roadmap</a>, and <a href="fabric-control-plane.html">Fabric Control Plane</a>.</p>
+<h2 id="summary">Summary</h2>
+<p>The formal fabric program remains AMD-first. The Nvidia lane exists so <code>k1s</code> can keep moving on controller-owned fabric hardening and early typed-capability work with hardware that is already in hand.</p>
+<p>This development lane is intentionally bounded:</p>
 <ul>
-<li>Scheduler - Component that decides placement for replicas.</li>
-<li>Node - Execution target for workloads.</li>
-<li>Cordon - Mark a node unschedulable.</li>
-<li>Taint - Node attribute that repels workloads unless tolerated.</li>
-<li>Toleration - Workload exception allowing tainted nodes.</li>
-<li>nodeSelector - Label-based placement constraint.</li>
-<li>Topology spread - Rule to distribute replicas across domains.</li>
-<li>Placement - The chosen nodes for replicas.</li>
-<li>Replica - A single instance of a workload.</li>
+<li>it is a secondary public development subtrack, not a replacement for the AMD mainline</li>
+<li>it uses the two physical Nvidia hosts that are available now</li>
+<li>it stays on standard Ethernet</li>
+<li>it does not satisfy AMD <code>D0</code></li>
+<li>it does not make vGPU or TDM part of the current milestone evidence</li>
 </ul>
-<h2>Commands (copy/paste)</h2>
-<pre><code>python -m ae.controller --loop --specs specs/ --metrics-port 9108
-python -m ae.cli nodes
-python -m ae.cli nodes &lt;node-id&gt; --cordon
-python -m ae.cli nodes &lt;node-id&gt; --uncordon
-python -m ae.cli apply -f specs/examples/echo.yaml
-python -m ae.cli events echo --limit 20</code></pre>
-<h2>Docs references (source + site)</h2>
+<h2 id="physical-host-baseline">Physical Host Baseline</h2>
+<p>The current public Nvidia development baseline is one two-host A/B shape:</p>
+<table><thead><tr><th>Host</th><th>Role</th><th>Node IDs</th><th>GPU</th></tr></thead><tbody><tr><td>NixOS workstation</td><td><code>core-a</code> controller plus one Ubuntu guest with Linux GPU passthrough</td><td><code>core-a--hub</code></td><td>TITAN RTX 24 GB</td></tr><tr><td>Ubuntu Server workstation</td><td><code>edge-b</code> plus GPU worker node</td><td><code>edge-b-gw</code>, <code>edge-b--gpu-1</code></td><td>RTX-8000 48 GB</td></tr></tbody></table>
+<p>This is the first practical <code>F0n-nvidia-dev</code> evidence lane:</p>
 <ul>
-<li>Source: <code>docs/reference/scheduling.md</code></li>
-<li>Source: <code>docs/getting-started/concepts.md</code> (nodes + scheduling)</li>
-<li>Site: <code>docs/site/scheduling.html</code></li>
-<li>Site: <code>docs/site/concepts.html</code></li>
+<li>one single-node execution check on the NixOS-hosted TITAN passthrough guest</li>
+<li>one single-node execution check on the Ubuntu RTX-8000 host</li>
+<li>one two-host <code>pp=2</code> execution check across both hosts</li>
 </ul>
-<h2>Code references (walkthrough anchors)</h2>
+<p>The baseline is about controller and fabric behavior, not product-family claims. These hosts are close enough to exercise the current <code>InferenceCell</code> lifecycle, node registration, GPU slot reservation, readiness, restart, and teardown flows while the AMD mainline hardware is still unavailable.</p>
+<h2 id="current-development-hardware">Current Development Hardware</h2>
+<p>Publishing the exact development hardware here is intentional. The point is not to promote one workstation shape. The point is to make the current dev substrate explicit enough that another operator can understand what is being exercised, what is dedicated to passthrough, and which parts of the lane are still workstation-specific.</p>
+<table><thead><tr><th>Host</th><th>Current role</th><th>Development hardware notes</th></tr></thead><tbody><tr><td>Host A</td><td><code>core-a</code> controller plus one Linux passthrough guest</td><td>Current NixOS workstation based on an Intel Hades Canyon NUC. It uses dual interfaces so one NIC can stay with the host and one dedicated NIC can be handed to the guest.</td></tr><tr><td>Host A guest</td><td><code>core-a--hub</code> execution node</td><td>Ubuntu guest on libvirt <code>qemu:///system</code>, Q35 + OVMF, host-passthrough CPU, hugepages, locked memory, and one passed-through TITAN RTX with its audio function. The guest keeps one virtio management NIC on libvirt <code>default</code> for rescue/bootstrap only.</td></tr><tr><td>Host B</td><td><code>edge-b</code> site plus GPU worker</td><td>Ubuntu Server workstation with one RTX-8000 48 GB as the current second physical Nvidia lane.</td></tr></tbody></table>
+<p>Current Host A posture</p>
 <ul>
-<li>Scheduler placement logic: <code>src/ae/controller/scheduler.py:37</code></li>
+<li>one dedicated LAN NIC is reserved for passthrough testing and is the primary validation and <code>AE_AGENT_ENDPOINT</code> identity for the guest</li>
+<li>one separate host-facing NIC remains with the workstation for normal host access and controller duties</li>
+<li>the current guest shape passes through the TITAN RTX GPU function plus the associated audio function first, keeping auxiliary TITAN functions out of the first Linux compute slice</li>
+<li>the A/B development lane is therefore split between a host-owned control role on Host A and a guest-owned execution role on the same physical box</li>
 </ul>
-<pre><code>    def plan(self, manifest: AppManifest, revision: int) -&gt; tuple[list[Placement], list[str]]:
-        desired = int(manifest.spec.replicas)
-        app_name = app_key_for_manifest(manifest)
-        replica_ids = [f&quot;{app_name}-rev{revision}-{i}&quot; for i in range(desired)]
-        ...
-        for node, status in nodes:
-            if bool(getattr(node, &quot;cordoned&quot;, False)):
-                continue
-            if not self._is_ready(status, now, grace):
-                ...
-            if not self._matches_node_selector(node, manifest):
-                continue
-            if not self._tolerates_taints(node, manifest):
-                continue
-            eligible.append(node)
-
-        if not eligible:
-            warnings.append(&quot;no eligible nodes; falling back to local runtime&quot;)
-            return [Placement(node=None, agent_url=None, replica_ids=replica_ids)], warnings
-        ...
-        # Round-robin placement across eligible nodes.</code></pre>
+<h2 id="relationship-to-the-amd-mainline">Relationship to the AMD Mainline</h2>
+<p>This baseline does not change the formal roadmap order:</p>
 <ul>
-<li>Local node registration (single-node default): <code>src/ae/controller/__main__.py:78</code></li>
+<li><code>F0n-nvidia-dev</code> is a secondary development and validation lane</li>
+<li><code>F0</code> remains the AMD-first fabric hardening milestone</li>
+<li><code>F1</code> remains the first typed-facts milestone for the mainline roadmap</li>
+<li><code>D0</code> remains one repeatable AI Max+ 395 cell on the documented AMD hardware baseline</li>
 </ul>
-<pre><code>    def _register_local_node(store: SQLiteStateStore, runtime_backend: str) -&gt; None:
-        &quot;&quot;&quot;Best-effort local node registration for single-controller setups.&quot;&quot;&quot;
-        try:
-            node_id = os.getenv(&quot;AE_NODE_ID&quot;, socket.gethostname())
-            name = os.getenv(&quot;AE_NODE_NAME&quot;, node_id)
-            store.upsert_node(
-                node_id,
-                name=name,
-                labels={&quot;role&quot;: &quot;controller&quot;},
-                taints=[],
-                backend=runtime_backend,
-                endpoint=None,
-                pod_cidr=None,
-                wg_pubkey=None,
-            )
-            store.record_heartbeat(node_id, &quot;Ready&quot;)
-        except Exception:
-            pass</code></pre>
+<p>The practical meaning is simple:</p>
 <ul>
-<li>Spec fields that affect placement: <code>src/ae/controller/spec.py:489</code></li>
+<li>Nvidia evidence can de-risk controller and fabric logic</li>
+<li>Nvidia evidence can inform the first typed accelerator fact shape</li>
+<li>Nvidia evidence does not close AMD execution-baseline milestones on its own</li>
 </ul>
-<pre><code>    node_selector: dict[str, str] = Field(default_factory=dict, alias=&quot;nodeSelector&quot;)
-    tolerations: List[dict] = Field(default_factory=list)
-    topology_spread_constraints: List[dict] = Field(
-        default_factory=list, alias=&quot;topologySpreadConstraints&quot;
-    )</code></pre>
-<h2>Chapter navigation</h2>
+<p>For the AMD public baseline, use <a href="ai-max-395-hardware-baseline.html">AI Max+ 395 Hardware Baseline</a>. For the AMD cell bring-up sequence, use <a href="ai-max-395-cluster-prep.html">AI Max+ 395 Cluster Prep</a>.</p>
+<h2 id="accelerator-fact-shape-reserved-for-f1">Accelerator Fact Shape Reserved for F1</h2>
+<p>The existing <code>gpu.*</code> labels remain useful for the current Nvidia lane, but they should not become the long-term control-plane contract. <code>F1</code> should introduce typed accelerator facts that already account for:</p>
 <ul>
-<li>Prev: <a href="concepts-in-practice-02-declarative-apply.html">Chapter 02 - Declarative Specs and Apply Semantics</a></li>
-<li>Next: <a href="concepts-in-practice-04-runtime-adapters.html">Chapter 04 - Runtime Adapters and Container Execution</a></li>
+<li>discrete GPUs</li>
+<li>APUs with unified memory</li>
+<li>virtual or partitioned GPU surfaces</li>
 </ul>
+<p>The first reserved shape should allow one node to report one or more homogeneous execution pools:</p>
+<pre><code>capabilities:
+  accelerators:
+    - id: titan-rtx-0
+      kind: discrete_gpu | apu | virtual_gpu
+      vendor: nvidia | amd
+      family: TITAN RTX
+      architecture: TU102
+      device_count: 1
+      memory_model: dedicated | unified | partitioned
+      memory_bytes_per_device: 25769803776
+      runtime_handlers:
+        - nvidia
+      partitioning_mode: none | mig | vgpu | tdm | sriov
+      backing_device_id: null
+      execution_role: execution | mixed | management_only</code></pre>
+<p>Important boundaries for this shape:</p>
+<ul>
+<li><code>kind=apu</code> reserves unified-memory accelerator nodes without requiring APU-specific scheduling semantics in <code>F0n</code></li>
+<li><code>kind=virtual_gpu</code> reserves partitioned or virtual slices without making vGPU a current evidence requirement</li>
+<li><code>partitioning_mode</code> exists so later MIG, vGPU, TDM, or SR-IOV variants do not require a contract break</li>
+<li>current <code>gpu.*</code> labels remain a backward-compatibility projection until old flows migrate</li>
+</ul>
+<p>Compatibility projection guidance:</p>
+<ul>
+<li><code>gpu.present=true</code> when any execution-capable accelerator exists</li>
+<li><code>gpu.count</code> is the sum of execution-capable device count</li>
+<li><code>gpu.models</code> is a human-readable summary of accelerator family names</li>
+<li>manual <code>gpu.sku</code> lab labels remain acceptable in examples and variants, but they are not the long-term control contract</li>
+</ul>
+<h2 id="validation-surface">Validation Surface</h2>
+<p>The primary operational evidence for this baseline should come from:</p>
+<ul>
+<li>single-node and two-host <code>InferenceCell</code> checks using the A/B manifests under <code>specs/examples/inference/</code></li>
+<li>the Host A libvirt passthrough procedure in <a href="host-a-linux-gpu-guest.html">Host A Linux GPU Guest</a>, which keeps the TITAN guest, the dedicated passthrough NIC policy, the local <code>state/host-a-gpu.env</code> workflow, and the management-NIC fallback path explicit</li>
+<li>the guest-coupled <code>scripts/dev/gpu_guest_passthrough_validate.py</code> helper, which proves guest attach, CRI runtime readiness, and seeded CUDA execution for the NixOS TITAN lane</li>
+<li>the operator-run <code>scripts/dev/f0n_nvidia_validate.py</code> helper, which captures the passthrough phase plus node inventory and apply/status/events/delete/reapply artifacts under <code>runs/&lt;RUN_ID&gt;/</code></li>
+<li>the existing LAN GPU procedures in <code>docs/ops/gpu-fabric-abc-lan.md</code>, updated to treat the physical A/B lane as the first <code>F0n</code> evidence surface</li>
+<li>the remote VM GPU procedure in <code>docs/ops/gpu-vm-remote-host-validation.md</code>, treated as a supplemental validation surface rather than the main milestone lane</li>
+</ul>
+<h2 id="non-goals">Non-Goals</h2>
+<p>This baseline does not:</p>
+<ul>
+<li>redefine the formal AMD-first roadmap</li>
+<li>make the Nvidia lane a deployment milestone</li>
+<li>require vGPU or TDM validation now</li>
+<li>define the full final multi-domain typed heartbeat or API schema beyond the current accelerator slice</li>
+<li>define APU-specific or virtual-GPU-specific placement policy</li>
+</ul>
+<p>Those details belong to the later <code>F1</code> implementation work after the current <code>F0n</code> development lane has produced stable evidence.</p>
     </div>
     <footer class="site-footer">
       <div class="container inner">
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-21 18:17:00</span>
+        <span>Built 2026-05-22 19:55:09</span>
       </div>
     </footer>
 

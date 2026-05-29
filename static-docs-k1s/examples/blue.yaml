@@ -1,0 +1,37 @@
+apiVersion: ae.dev/v1alpha1
+kind: Deployment
+metadata:
+  name: blue
+spec:
+  image: mendhak/http-https-echo:37
+  replicas: 1
+  env:
+    - name: APP_NAME
+      value: blue
+    - name: MESSAGE
+      value: "Hello from blue"
+  ports:
+    - name: http
+      containerPort: 80
+  health:
+    readiness:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 1
+      timeoutSeconds: 2
+      periodSeconds: 2
+      successThreshold: 1
+      failureThreshold: 5
+    liveness:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+      timeoutSeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+  ingress:
+    host: blue.home.arpa
+    path: /

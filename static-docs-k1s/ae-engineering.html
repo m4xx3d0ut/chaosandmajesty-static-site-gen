@@ -2,8 +2,9 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
+
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>06 Observability</title>
+    <title>Ae Engineering</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -41,6 +42,8 @@
         --k1s-brand-gold: #fbc02d;
         --k1s-brand-graphite: #404040;
         --k1s-brand-mist: #f1f1f1;
+        --k1s-page-bg-image: url('static/dash-assets/page-background-3840x2160.png');
+        --k1s-page-overlay: linear-gradient(rgba(7,10,14,0.72), rgba(7,10,14,0.72));
         /* Legacy aliases used by docs/labs styles */
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
@@ -61,6 +64,7 @@
         --k1s-card-bg: #ffffff;
         --k1s-header-bg: rgba(255,255,255,0.82);
         --code-bg: #f5f6f8;
+        --k1s-page-overlay: linear-gradient(rgba(244,245,247,0.9), rgba(244,245,247,0.9));
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
         --muted: var(--k1s-panel);
@@ -82,7 +86,11 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background-color: var(--bg);
+        background-image: var(--k1s-page-overlay), var(--k1s-page-bg-image);
+        background-size: 100% 100%, auto 100%;
+        background-position: center top, center top;
+        background-repeat: repeat-y, repeat-y;
         color: var(--fg);
       }
       img { max-width: 100%; height: auto; }
@@ -131,6 +139,25 @@
         box-shadow: 0 6px 16px rgba(0,0,0,0.16);
         transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
         font-weight: 600;
+      }
+      nav .nav-group-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 2px 4px 8px;
+        color: var(--k1s-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      nav .nav-group-label::before {
+        content: "";
+        width: 16px;
+        height: 1px;
+        margin-right: 8px;
+        background: linear-gradient(90deg, transparent, var(--k1s-brand-gold));
+        opacity: 0.75;
       }
       nav a:hover {
         background: var(--k1s-surface);
@@ -382,7 +409,7 @@
         padding: 10px 12px;
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px 10px;
         border: 1px solid var(--k1s-border);
         border-radius: 12px;
@@ -392,6 +419,24 @@
       .hero-repo-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .hero-repo-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hero-repo-item-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--k1s-text-muted);
       }
@@ -519,6 +564,11 @@
           padding: 6px 10px;
           font-size: 12px;
         }
+        nav .nav-group-label {
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          padding-left: 6px;
+        }
         nav .nav-brand {
           font-size: 10px;
           letter-spacing: 0.1em;
@@ -543,7 +593,7 @@
           scrollbar-width: none;
         }
         nav::-webkit-scrollbar { width: 0; height: 0; }
-        nav a { flex: 0 0 auto; }
+        nav a, nav .nav-group-label { flex: 0 0 auto; }
         nav::after { left: 8px; right: 8px; }
         h1 { font-size: 24px; }
         h2 { font-size: 18px; }
@@ -604,7 +654,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
-    <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>window.DOCS_API_BASE='http://127.0.0.1:9108';</script>
+    <script>window.DOCS_DASHBOARD_URL='/dashboard';</script>
     <script>
       // Attach copy buttons to all code blocks client-side
       (function() {
@@ -661,23 +712,37 @@
         }
       })();
     </script>
-    
+
   </head>
   <body>
     <nav>
       <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.svg" alt="k1s logo" /><span>k1s docs</span></a>
+      <span class="nav-group-label" aria-hidden="true">Learn</span>
       <a href="start-here.html">Start Here</a>
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
-      <a href="architecture.html">Architecture</a>
-      <a href="multinode-lab.html">Multi-Node</a>
-      <a href="http-api.html">HTTP API</a>
-      <a href="apishim-compatibility-matrix.html">API Shim</a>
-      <a href="ingress.html">Ingress</a>
-      <a href="api-auth.html">API Auth</a>
       <a href="concepts.html">Concepts</a>
-      <a href="benchmarks.html">Benchmarks</a>
       <a href="concepts-in-practice.html">Concepts in Practice</a>
+      <span class="nav-group-label" aria-hidden="true">Design</span>
+      <a href="architecture.html">Architecture</a>
+      <a href="project-philosophy.html">Philosophy</a>
+      <a href="inference-fabric.html">Inference Fabric</a>
+      <a href="distributed-compute-fabric.html">Roadmap</a>
+      <span class="nav-group-label" aria-hidden="true">Operate</span>
+      <a href="runbook.html">Ops Runbook</a>
+      <a href="ha-cluster-bring-up.html">HA Bring-Up</a>
+      <a href="vm-variant-runbook.html">VM Variants</a>
+      <a href="benchmarks.html">Benchmarks</a>
+      <span class="nav-group-label" aria-hidden="true">Guides</span>
+      <a href="cri-containerd.html">CRI containerd</a>
+      <a href="multinode-lab.html">Multi-Node</a>
+      <a href="ingress.html">Ingress</a>
+      <a href="ingress-capability-test-sequence.html">Ingress Validation</a>
+      <span class="nav-group-label" aria-hidden="true">API</span>
+      <a href="http-api.html">HTTP API</a>
+      <a href="swagger/">Swagger (Static)</a>
+      <a href="api-shim.html">API Shim</a>
+      <a href="api-auth.html">API Auth</a>
     </nav>
     <button id="theme-toggle" class="theme-fab" aria-label="Toggle theme" title="Toggle theme">
       <svg class="icon-sun" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
@@ -688,102 +753,24 @@
       </svg>
     </button>
     <div class="container">
-    <h1>Chapter 06 - Observability: Logs, Metrics, Events</h1>
-<h2>Concept</h2>
-<p>Observability is the ability to understand system behavior from the outside. Metrics quantify state, events explain transitions, and logs provide raw evidence. Together, they enable fast diagnosis and safe operations.</p>
-<pre class="mermaid">flowchart TB
-  Metrics[Metrics] --&gt; Q1[&quot;How healthy?&quot;]
-  Events[Events] --&gt; Q2[&quot;What changed?&quot;]
-  Logs[Logs] --&gt; Q3[&quot;What happened?&quot;]
-  Q1 --&gt; Triage[Triage]
-  Q2 --&gt; Triage
-  Q3 --&gt; Triage</pre>
-<h3>Theory</h3>
-<p>The three pillars serve different purposes: metrics answer &quot;how much&quot; and &quot;how many,&quot; events answer &quot;what changed,&quot; and logs answer &quot;what happened at a point in time.&quot; Effective systems emit all three, and operators should move between them methodically.</p>
-<pre class="mermaid">flowchart LR
-  State[SQLite state] --&gt; MetricsSvc[MetricsService]
-  MetricsSvc --&gt; CLI[ae cli metrics]
-  MetricsSvc --&gt; HTTP[&quot;/metrics HTTP&quot;]
-  State --&gt; Events[Events table]
-  Events --&gt; CLI2[ae cli events]</pre>
-<h3>Design</h3>
-<p>k1s stores reconciliation state in SQLite, derives aggregate metrics from that store, and emits structured events during every reconcile. A lightweight HTTP API exposes Prometheus metrics and event data. This design keeps observability local and reproducible while still compatible with external tooling.</p>
-<pre class="mermaid">sequenceDiagram
-  participant O as Operator
-  participant C as Controller
-  participant S as State Store
-  O-&gt;&gt;C: Apply spec
-  C-&gt;&gt;S: Record events + status
-  O-&gt;&gt;C: Query metrics/events
-  C-&gt;&gt;S: Read snapshots
-  C--&gt;&gt;O: Metrics + events</pre>
-<h3>Application</h3>
-<p>When troubleshooting, start with metrics to see if the system is degraded, then use events to find the trigger. If you need detail, inspect logs for the specific runtime or controller. This approach scales to production k8s workflows with Prometheus and Events API.</p>
-<pre class="mermaid">flowchart TB
-  Symptom[Issue observed] --&gt; Metrics[Check metrics]
-  Metrics --&gt; Events[Check events]
-  Events --&gt; Logs[Check logs]
-  Logs --&gt; Fix[Apply fix]
-  Fix --&gt; Verify[Verify metrics]</pre>
-<h2>Key Terms and Acronyms</h2>
+    <h1 id="ae-engineering-documentation-index">ae Engineering Documentation Index</h1>
+<p>This page is the published navigation point for the source-local engineering documentation under <code>src/ae</code>.</p>
+<p>The detailed docs are intentionally kept beside the code they describe so maintainers can update architecture notes while changing a subsystem. The published site keeps this compact index and points readers to the canonical source paths.</p>
+<h2 id="canonical-source-local-docs">Canonical Source-Local Docs</h2>
 <ul>
-<li>Observability - Ability to understand system state from signals.</li>
-<li>Metrics - Numeric aggregates over time.</li>
-<li>Events - Discrete records of state transitions.</li>
-<li>Logs - Text output from components.</li>
-<li>Prometheus - Metrics format and scraping ecosystem.</li>
-<li>Snapshot - Point-in-time aggregate metrics view.</li>
-<li>HTTP API - Controller interface for metrics/events/status.</li>
-<li>Triage - Structured troubleshooting flow.</li>
+<li>Top-level engineering map: <code>src/ae/README.md</code></li>
+<li>Top-level module reviews: <code>src/ae/docs/*.md</code></li>
+<li>Package summaries: <code>src/ae/&lt;package&gt;/README.md</code></li>
+<li>Package module reviews: <code>src/ae/&lt;package&gt;/docs/*.md</code></li>
 </ul>
-<h2>Commands (copy/paste)</h2>
-<pre><code>python -m ae.controller --loop --specs specs/ --metrics-port 9108
-python -m ae.cli apply -f specs/examples/echo.yaml
-python -m ae.cli metrics --json
-python -m ae.cli events echo --limit 20
-curl http://127.0.0.1:9108/metrics</code></pre>
-<h2>Docs references (source + site)</h2>
+<h2 id="package-index">Package Index</h2>
+<table><thead><tr><th>Package</th><th>Canonical doc</th><th>Responsibilities</th></tr></thead><tbody><tr><td>apishim</td><td><code>src/ae/apishim/README.md</code></td><td>Kubernetes-compatible API shim, storage adapters, HA authority bridge, and kubectl/Helm compatibility surface.</td></tr><tr><td>cli</td><td><code>src/ae/cli/README.md</code></td><td>Primary <code>ae</code> command-line interface for apply/status/logs/exec/export/auth/profile-oriented operations.</td></tr><tr><td>config</td><td><code>src/ae/config/README.md</code></td><td>Configuration reference loading, transport configuration parsing, and shared environment-derived settings.</td></tr><tr><td>controller</td><td><code>src/ae/controller/README.md</code></td><td>Core control plane: manifest loading, reconcile loop, state stores, scheduling, HA authority, and workload controllers.</td></tr><tr><td>gateway</td><td><code>src/ae/gateway/README.md</code></td><td>Site gateway process for NATS-mediated work delivery, result spooling, and edge/core transport bridging.</td></tr><tr><td>ha</td><td><code>src/ae/ha/README.md</code></td><td>High-availability support code for authority operations, fencing decisions, dashboard probes, and operational helpers.</td></tr><tr><td>ingress</td><td><code>src/ae/ingress/README.md</code></td><td>Ingress rendering and synchronization for Caddy, Envoy, edge-local/core-proxy routing, TLS, and tunnel helpers.</td></tr><tr><td>k8s</td><td><code>src/ae/k8s/README.md</code></td><td>Kubernetes import/export/check layer that translates between k1s manifests and Kubernetes-style resources.</td></tr><tr><td>kctl</td><td><code>src/ae/kctl/README.md</code></td><td>Small kubectl-like wrapper around k1s native commands and resource references.</td></tr><tr><td>network</td><td><code>src/ae/network/README.md</code></td><td>Service VIP allocation, pod CIDR allocation, bridge/iptables/overlay network providers, and overlay health checks.</td></tr><tr><td>node</td><td><code>src/ae/node/README.md</code></td><td>Node agent HTTP server, runtime proxying, heartbeat loop, local network helper, and Rosenpass/WireGuard support.</td></tr><tr><td>observability</td><td><code>src/ae/observability/README.md</code></td><td>Controller HTTP API, dashboard/static assets, Prometheus metrics snapshotting, and logging setup.</td></tr><tr><td>resources</td><td><code>src/ae/resources/README.md</code></td><td>Package data loader plus bundled SQL, dashboard/docs HTML, and ingress templates.</td></tr><tr><td>runtime</td><td><code>src/ae/runtime/README.md</code></td><td>Runtime adapter interface and Docker, Podman, direct-containerd, strict CRI, remote, and stub implementations.</td></tr><tr><td>secrets</td><td><code>src/ae/secrets/README.md</code></td><td>Secret reference resolution and SOPS/age integration for environment and file projections.</td></tr><tr><td>security</td><td><code>src/ae/security/README.md</code></td><td>Local CA issuance/revocation helpers and signed token issue/verify helpers.</td></tr><tr><td>storage</td><td><code>src/ae/storage/README.md</code></td><td>Storage classes, PVC/PV authority, NetFS/CSI integration, node volume management, and storage state adapters.</td></tr><tr><td>transport</td><td><code>src/ae/transport/README.md</code></td><td>NATS/JetStream client, subject naming, controller ingress, telemetry, outbox, and route-bundle publishing.</td></tr><tr><td>worker_stub</td><td><code>src/ae/worker_stub/README.md</code></td><td>Development/test worker process for exercising transport and work delivery paths.</td></tr></tbody></table>
+<h2 id="maintenance-rules">Maintenance Rules</h2>
 <ul>
-<li>Source: <code>docs/reference/observability.md</code></li>
-<li>Source: <code>docs/ops/grafana.md</code></li>
-<li>Source: <code>docs/ops/runbook.md</code></li>
-<li>Site: <code>docs/site/observability.html</code></li>
-</ul>
-<h2>Code references (walkthrough anchors)</h2>
-<ul>
-<li>Metrics snapshot aggregation: <code>src/ae/observability/metrics.py:25</code></li>
-</ul>
-<pre><code>class MetricsService:
-    &quot;&quot;&quot;Aggregates metrics from application status records.&quot;&quot;&quot;
-
-    def snapshot(self) -&gt; MetricsSnapshot:
-        statuses = self._store.list_status()
-        total_apps = len(statuses)
-        ready_apps = sum(1 for status in statuses if status.revision_status == &quot;ready&quot;)
-        progressing_apps = sum(1 for status in statuses if status.revision_status == &quot;progressing&quot;)
-        ...
-        return MetricsSnapshot(...)</code></pre>
-<ul>
-<li>CLI metrics/events output: <code>src/ae/cli/__main__.py:2854</code></li>
-</ul>
-<pre><code>def handle_metrics(args: argparse.Namespace, store: SQLiteStateStore) -&gt; int:
-    service = MetricsService(store)
-    snapshot = service.snapshot()
-    if args.json:
-        print(json.dumps({...}, indent=2))
-        return 0
-    print(f&quot;apps total={snapshot.total_apps} ...&quot;)
-
-
-def handle_events(...):
-    events = store.list_events(app_name, limit=args.limit)
-    for event in events:
-        timestamp = event.created_at.strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)
-        print(f&quot;{timestamp} rev={event.revision} {event.event_type}: {event.message}&quot;)</code></pre>
-<h2>Chapter navigation</h2>
-<ul>
-<li>Prev: <a href="concepts-in-practice-05-ingress-service-exposure.html">Chapter 05 - Ingress and Service Exposure</a></li>
-<li>Next: <a href="concepts-in-practice-07-health-probes.html">Chapter 07 - Health Probes and Readiness/Liveness</a></li>
+<li>Update the folder README when subsystem ownership, public behavior, or module boundaries change.</li>
+<li>Update the per-module doc when a module gains/removes entrypoints, environment variables, persistence, subprocess, network, or compatibility behavior.</li>
+<li>Keep generated protobufs, vendored browser assets, SQL files, and static templates summarized unless handwritten code changes their contract.</li>
+<li>Use <code>make docs-verify</code> after changing this published index or related docs-site mappings.</li>
 </ul>
     </div>
     <footer class="site-footer">
@@ -791,7 +778,7 @@ def handle_events(...):
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-21 18:17:00</span>
+        <span>Built 2026-05-22 19:55:09</span>
       </div>
     </footer>
 

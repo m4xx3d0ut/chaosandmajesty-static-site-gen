@@ -2,8 +2,9 @@
 <html data-theme="dark">
   <head>
     <meta charset="utf-8"/>
+
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>05 Ingress Service Exposure</title>
+    <title>Host A Strict Cri Retest</title>
     <link rel="icon" href="static/favicon.ico" sizes="any"/>
     <link rel="icon" type="image/svg+xml" href="static/favicon-32x32.svg"/>
     <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png"/>
@@ -41,6 +42,8 @@
         --k1s-brand-gold: #fbc02d;
         --k1s-brand-graphite: #404040;
         --k1s-brand-mist: #f1f1f1;
+        --k1s-page-bg-image: url('static/dash-assets/page-background-3840x2160.png');
+        --k1s-page-overlay: linear-gradient(rgba(7,10,14,0.72), rgba(7,10,14,0.72));
         /* Legacy aliases used by docs/labs styles */
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
@@ -61,6 +64,7 @@
         --k1s-card-bg: #ffffff;
         --k1s-header-bg: rgba(255,255,255,0.82);
         --code-bg: #f5f6f8;
+        --k1s-page-overlay: linear-gradient(rgba(244,245,247,0.9), rgba(244,245,247,0.9));
         --bg: var(--k1s-bg);
         --fg: var(--k1s-text);
         --muted: var(--k1s-panel);
@@ -82,7 +86,11 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background-color: var(--bg);
+        background-image: var(--k1s-page-overlay), var(--k1s-page-bg-image);
+        background-size: 100% 100%, auto 100%;
+        background-position: center top, center top;
+        background-repeat: repeat-y, repeat-y;
         color: var(--fg);
       }
       img { max-width: 100%; height: auto; }
@@ -131,6 +139,25 @@
         box-shadow: 0 6px 16px rgba(0,0,0,0.16);
         transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
         font-weight: 600;
+      }
+      nav .nav-group-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 2px 4px 8px;
+        color: var(--k1s-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      nav .nav-group-label::before {
+        content: "";
+        width: 16px;
+        height: 1px;
+        margin-right: 8px;
+        background: linear-gradient(90deg, transparent, var(--k1s-brand-gold));
+        opacity: 0.75;
       }
       nav a:hover {
         background: var(--k1s-surface);
@@ -382,7 +409,7 @@
         padding: 10px 12px;
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px 10px;
         border: 1px solid var(--k1s-border);
         border-radius: 12px;
@@ -392,6 +419,24 @@
       .hero-repo-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--k1s-text-muted);
+      }
+      .hero-repo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .hero-repo-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hero-repo-item-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--k1s-text-muted);
       }
@@ -519,6 +564,11 @@
           padding: 6px 10px;
           font-size: 12px;
         }
+        nav .nav-group-label {
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          padding-left: 6px;
+        }
         nav .nav-brand {
           font-size: 10px;
           letter-spacing: 0.1em;
@@ -543,7 +593,7 @@
           scrollbar-width: none;
         }
         nav::-webkit-scrollbar { width: 0; height: 0; }
-        nav a { flex: 0 0 auto; }
+        nav a, nav .nav-group-label { flex: 0 0 auto; }
         nav::after { left: 8px; right: 8px; }
         h1 { font-size: 24px; }
         h2 { font-size: 18px; }
@@ -604,7 +654,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
-    <script>window.DOCS_API_BASE='https://api.home.arpa:8443';</script>
+    <script>window.DOCS_API_BASE='http://127.0.0.1:9108';</script>
+    <script>window.DOCS_DASHBOARD_URL='/dashboard';</script>
     <script>
       // Attach copy buttons to all code blocks client-side
       (function() {
@@ -661,23 +712,37 @@
         }
       })();
     </script>
-    
+
   </head>
   <body>
     <nav>
       <a class="nav-brand" href="index.html" aria-label="k1s docs home"><img src="static/k1s-logo-circle.svg" alt="k1s logo" /><span>k1s docs</span></a>
+      <span class="nav-group-label" aria-hidden="true">Learn</span>
       <a href="start-here.html">Start Here</a>
       <a href="overview.html">Overview</a>
       <a href="examples.html">Demos</a>
-      <a href="architecture.html">Architecture</a>
-      <a href="multinode-lab.html">Multi-Node</a>
-      <a href="http-api.html">HTTP API</a>
-      <a href="apishim-compatibility-matrix.html">API Shim</a>
-      <a href="ingress.html">Ingress</a>
-      <a href="api-auth.html">API Auth</a>
       <a href="concepts.html">Concepts</a>
-      <a href="benchmarks.html">Benchmarks</a>
       <a href="concepts-in-practice.html">Concepts in Practice</a>
+      <span class="nav-group-label" aria-hidden="true">Design</span>
+      <a href="architecture.html">Architecture</a>
+      <a href="project-philosophy.html">Philosophy</a>
+      <a href="inference-fabric.html">Inference Fabric</a>
+      <a href="distributed-compute-fabric.html">Roadmap</a>
+      <span class="nav-group-label" aria-hidden="true">Operate</span>
+      <a href="runbook.html">Ops Runbook</a>
+      <a href="ha-cluster-bring-up.html">HA Bring-Up</a>
+      <a href="vm-variant-runbook.html">VM Variants</a>
+      <a href="benchmarks.html">Benchmarks</a>
+      <span class="nav-group-label" aria-hidden="true">Guides</span>
+      <a href="cri-containerd.html">CRI containerd</a>
+      <a href="multinode-lab.html">Multi-Node</a>
+      <a href="ingress.html">Ingress</a>
+      <a href="ingress-capability-test-sequence.html">Ingress Validation</a>
+      <span class="nav-group-label" aria-hidden="true">API</span>
+      <a href="http-api.html">HTTP API</a>
+      <a href="swagger/">Swagger (Static)</a>
+      <a href="api-shim.html">API Shim</a>
+      <a href="api-auth.html">API Auth</a>
     </nav>
     <button id="theme-toggle" class="theme-fab" aria-label="Toggle theme" title="Toggle theme">
       <svg class="icon-sun" viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
@@ -688,134 +753,349 @@
       </svg>
     </button>
     <div class="container">
-    <h1>Chapter 05 - Ingress and Service Exposure</h1>
-<h2>Concept</h2>
-<p>Service exposure is the boundary between internal workloads and external clients. L4 services provide stable networking, while L7 ingress handles routing, TLS, and hostname-based access. Both must be deterministic, declarative, and safe to update.</p>
-<pre class="mermaid">flowchart LR
-  Client[Client] --&gt; Ingress[Caddy ingress]
-  Ingress --&gt; ServiceVIP[Service VIP]
-  ServiceVIP --&gt; Pod[Replica endpoint]</pre>
-<h3>Theory</h3>
-<p>Layered networking separates concerns: service discovery and stable endpoints at L4, routing and policy at L7. Health checks gate traffic so that only ready backends are exposed. Ingress controllers react to declarative config and converge proxy state to match.</p>
-<pre class="mermaid">flowchart TB
-  Manifest[App spec] --&gt; ServiceCtl[ServiceController]
-  ServiceCtl --&gt; Network[NetworkProvider]
-  Network --&gt; VIP[Cluster IP / VIP]
-  ServiceCtl --&gt; Endpoints[Service endpoints]
+    <h1 id="host-a-strict-cri-retest">Host A Strict-CRI Retest</h1>
+<p>Purpose</p>
+<ul>
+<li>Keep the current working Host A strict-CRI retest sequence in one copy/paste operator page.</li>
+<li>Rebuild the Host A GPU guest, start the host <code>k1s-core-cri</code> controller, and bring <code>core-a--hub</code> back to <code>Ready</code>.</li>
+<li>Use the current validated probes for this lane instead of the older <code>/readyz</code> and <code>ae nodes</code> checks.</li>
+</ul>
+<p>Use this page when you want the exact retest flow. Use <a href="host-a-linux-gpu-guest.html">Host A Linux GPU Guest</a> for the hardware profile, libvirt topology, and passthrough background.</p>
+<p>Operational notes</p>
+<ul>
+<li>Run from the repo root with the repo venv on <code>PATH</code>.</li>
+<li>Step <code>A</code> is the destructive rebuild path. It purges the Host A guest artifacts and rebuilds the GPU qcow2 image.</li>
+<li>Start <code>B</code> only after <code>A</code> returns successfully.</li>
+<li>Leave <code>B</code> running while you execute <code>C</code>.</li>
+<li>The guest primary LAN IP is the published k1s identity. The libvirt <code>default</code> NAT IP is rescue-only.</li>
+<li>This lane installs repo Python deps from the synced guest checkout before starting <code>core-a--hub</code>. Those deps are not baked into the golden image.</li>
+</ul>
+<h2 id="a-purge-rebuild-boot-sync-and-validate-the-guest">A) Purge, rebuild, boot, sync, and validate the guest</h2>
+<pre><code>(
+  emulate -L zsh
+  set -e
+  setopt pipefail
 
-  Manifest --&gt; IngressSvc[IngressService]
-  IngressSvc --&gt; Caddy[CaddyIngressManager]
-  Caddy --&gt; Caddyfile[Caddy config snippets]</pre>
-<h3>Design</h3>
-<p>k1s implements a Service VIP controller for L4 and Caddy-based ingress for L7. The controller computes upstreams from healthy replicas and writes ingress config snippets, then reloads Caddy. It also supports canary weighting during rollouts. This mirrors the Kubernetes pattern of Services + Ingress controllers.</p>
-<pre class="mermaid">flowchart LR
-  L4[L4 Service] --&gt;|Stable port + VIP| Traffic[Traffic]
-  L7[L7 Ingress] --&gt;|Host/path routing| Traffic</pre>
-<h3>Application</h3>
-<p>For engineers, start with <code>spec.service</code> for stable ports and <code>spec.ingress</code> for HTTP routing. Verify readiness probes so that only healthy endpoints appear in services. Use events to confirm when ingress is configured and updated during rollouts.</p>
-<pre class="mermaid">sequenceDiagram
-  participant Client
-  participant Ingress
-  participant Service as Service VIP
-  participant Pod as Endpoint
-  Client-&gt;&gt;Ingress: HTTP request
-  Ingress-&gt;&gt;Service: Route by host/path
-  Service-&gt;&gt;Pod: Forward to ready endpoint
-  Pod--&gt;&gt;Client: Response</pre>
-<h2>Key Terms and Acronyms</h2>
+  cd /home/m4xx3d0ut/git/k1s-wt/k1s
+  sudo -v
+
+  : &quot;${HOST_A_GPU_ENV_FILE:=state/host-a-gpu.env}&quot;
+  [[ -f &quot;$HOST_A_GPU_ENV_FILE&quot; ]] || { print -u2 -- &quot;missing $HOST_A_GPU_ENV_FILE&quot;; exit 1; }
+
+  set -a
+  source &quot;$HOST_A_GPU_ENV_FILE&quot;
+  set +a
+
+  : &quot;${HOST_A_GPU_DOMAIN_NAME:=k1s-core-a-gpu}&quot;
+  : &quot;${HOST_A_GPU_STATE_ROOT:=state/libvirt-host-a}&quot;
+  : &quot;${HOST_A_GPU_OVERLAY_DIR:=$HOME/VMs}&quot;
+  : &quot;${HOST_A_GPU_BASE_IMAGE:=artifacts/images/ubuntu-22.04-k1s-gpu.qcow2}&quot;
+  : &quot;${HOST_A_GPU_GUEST_REPO:=/home/ae/k1s}&quot;
+
+  STATE_DIR=&quot;${HOST_A_GPU_STATE_ROOT}/${HOST_A_GPU_DOMAIN_NAME}&quot;
+  OVERLAY_PATH=&quot;${HOST_A_GPU_OVERLAY_DIR}/${HOST_A_GPU_DOMAIN_NAME}.qcow2&quot;
+  SEED_PATH=&quot;${HOST_A_GPU_OVERLAY_DIR}/${HOST_A_GPU_DOMAIN_NAME}-seed.iso&quot;
+  GPU_IMAGE=&quot;${HOST_A_GPU_BASE_IMAGE}&quot;
+  GPU_IMAGE_SHA=&quot;${GPU_IMAGE}.sha256&quot;
+  GPU_IMAGE_META=&quot;${GPU_IMAGE}.meta.json&quot;
+  IPS_JSON=&quot;${STATE_DIR}/ips.startup.json&quot;
+  RUN_ID=&quot;host-a-$(date -u +%Y%m%dT%H%M%SZ)&quot;
+
+  print -r -- &quot;[1/10] clearing stale Host A guest artifacts&quot;
+  scripts/lab/vm/labctl.sh host-a-gpu stop --force &gt;/dev/null 2&gt;&amp;1 || true
+  scripts/lab/vm/labctl.sh host-a-gpu undefine &gt;/dev/null 2&gt;&amp;1 || true
+  rm -rf &quot;$STATE_DIR&quot;
+  rm -f &quot;$OVERLAY_PATH&quot; &quot;$SEED_PATH&quot;
+  rm -f &quot;$GPU_IMAGE&quot; &quot;$GPU_IMAGE_SHA&quot; &quot;$GPU_IMAGE_META&quot;
+  rm -rf artifacts/images/build-gpu
+
+  print -r -- &quot;[2/10] rebuilding GPU image&quot;
+  scripts/lab/vm/labctl.sh image build --variant gpu
+
+  print -r -- &quot;[3/10] verifying GPU image&quot;
+  scripts/lab/vm/labctl.sh image verify --variant gpu
+
+  print -r -- &quot;[4/10] host preflight&quot;
+  scripts/lab/vm/labctl.sh host-a-gpu preflight
+
+  print -r -- &quot;[5/10] rendering guest and creating overlay/seed&quot;
+  scripts/lab/vm/labctl.sh host-a-gpu render
+  scripts/lab/vm/labctl.sh host-a-gpu create-overlay
+  scripts/lab/vm/labctl.sh host-a-gpu create-seed
+
+  print -r -- &quot;[6/10] defining and starting guest&quot;
+  scripts/lab/vm/labctl.sh host-a-gpu define
+  scripts/lab/vm/labctl.sh host-a-gpu start
+
+  print -r -- &quot;[7/10] waiting for guest IPs&quot;
+  typeset GUEST_IP=&quot;&quot;
+  for attempt in $(seq 1 30); do
+    STATE=&quot;$(virsh -c qemu:///system domstate &quot;$HOST_A_GPU_DOMAIN_NAME&quot; 2&gt;/dev/null | tr -d &#x27;\r&#x27; | head -n1 | xargs || true)&quot;
+    if [[ &quot;$STATE&quot; != &quot;running&quot; ]]; then
+      REASON=&quot;$(virsh -c qemu:///system domstate &quot;$HOST_A_GPU_DOMAIN_NAME&quot; --reason 2&gt;/dev/null | tr -d &#x27;\r&#x27; | tail -n1 | xargs || true)&quot;
+      print -u2 -- &quot;guest left running state: state=${STATE:-unknown} reason=${REASON:-unknown}&quot;
+      sudo tail -n 120 &quot;/var/log/libvirt/qemu/${HOST_A_GPU_DOMAIN_NAME}.log&quot; || true
+      exit 1
+    fi
+
+    scripts/lab/vm/labctl.sh host-a-gpu ips --json &gt; &quot;$IPS_JSON&quot; 2&gt;/dev/null || true
+    GUEST_IP=&quot;$(
+      python - &quot;$IPS_JSON&quot; &lt;&lt;&#x27;PY&#x27;
+import json, sys
+from pathlib import Path
+path = Path(sys.argv[1])
+value = &quot;&quot;
+try:
+    if path.exists():
+        payload = json.loads(path.read_text(encoding=&quot;utf-8&quot;))
+        value = str(payload.get(&quot;primary_ip&quot;) or &quot;&quot;)
+except Exception:
+    value = &quot;&quot;
+print(value)
+PY
+    )&quot;
+    if [[ -n &quot;$GUEST_IP&quot; ]]; then
+      break
+    fi
+    sleep 5
+  done
+
+  [[ -n &quot;$GUEST_IP&quot; ]] || { print -u2 -- &quot;guest never reported a primary LAN IP&quot;; exit 1; }
+  print -r -- &quot;guest_ip=${GUEST_IP}&quot;
+
+  print -r -- &quot;[8/10] syncing repo into guest&quot;
+  typeset -a ssh_opts
+  ssh_opts=(
+    -o StrictHostKeyChecking=no
+    -o UserKnownHostsFile=/dev/null
+    -i /home/m4xx3d0ut/.ssh/id_rsa
+  )
+
+  ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; &quot;mkdir -p &#x27;${HOST_A_GPU_GUEST_REPO}&#x27;&quot;
+
+  rsync -az --delete \
+    --exclude &#x27;.git/&#x27; \
+    --exclude &#x27;.venv/&#x27; \
+    --exclude &#x27;state/&#x27; \
+    --exclude &#x27;runs/&#x27; \
+    --exclude &#x27;artifacts/&#x27; \
+    --exclude &#x27;docs/site/&#x27; \
+    --exclude &#x27;__pycache__/&#x27; \
+    --exclude &#x27;.pytest_cache/&#x27; \
+    --exclude &#x27;.mypy_cache/&#x27; \
+    -e &quot;ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/m4xx3d0ut/.ssh/id_rsa&quot; \
+    ./ \
+    &quot;ae@${GUEST_IP}:${HOST_A_GPU_GUEST_REPO}/&quot;
+
+  print -r -- &quot;[9/10] validating passthrough inside guest&quot;
+  python scripts/dev/gpu_guest_passthrough_validate.py validate \
+    --run-id &quot;$RUN_ID&quot; \
+    --vm-name &quot;$HOST_A_GPU_DOMAIN_NAME&quot; \
+    --inventory &quot;${STATE_DIR}/inventory.json&quot; \
+    --guest-repo &quot;$HOST_A_GPU_GUEST_REPO&quot; \
+    --expected-gpu &quot;TITAN RTX&quot; \
+    --min-vram-gib 24
+
+  print -r -- &quot;[10/10] guest boot and passthrough validation passed&quot;
+  print -r -- &quot;run_id=${RUN_ID}&quot;
+  print -r -- &quot;guest_ip=${GUEST_IP}&quot;
+)</code></pre>
+<p>Success signals</p>
 <ul>
-<li>Service - L4 abstraction that provides stable ports/endpoints.</li>
-<li>VIP - Virtual IP for a service.</li>
-<li>Ingress - L7 routing by host/path.</li>
-<li>Upstream - Backend endpoint targeted by a proxy.</li>
-<li>TLS - Transport Layer Security for HTTPS.</li>
-<li>Canary - Weighted routing between revisions.</li>
-<li>L4/L7 - Networking layers (transport/application).</li>
-<li>Gateway API - Kubernetes successor to Ingress.</li>
-<li>Endpoint - Concrete backend address for routing.</li>
+<li>the passthrough validator reports <code>status: &quot;passed&quot;</code></li>
+<li>the final output includes <code>guest boot and passthrough validation passed</code></li>
+<li>the printed <code>guest_ip</code> is the guest primary LAN IP, not the libvirt NAT IP</li>
 </ul>
-<h2>Commands (copy/paste)</h2>
-<pre><code>docker compose -f ops/dev/docker-compose.yaml up
-python -m ae.controller --loop --specs specs/ --metrics-port 9108
-python -m ae.cli apply -f specs/examples/echo.yaml
-python -m ae.cli services
-python -m ae.cli events echo --limit 20
-docker compose -f ops/dev/docker-compose.yaml down</code></pre>
-<h2>Docs references (source + site)</h2>
-<ul>
-<li>Source: <code>docs/reference/ingress.md</code></li>
-<li>Source: <code>docs/guides/l4-services.md</code></li>
-<li>Source: <code>docs/design/clusterip.md</code></li>
-<li>Site: <code>docs/site/ingress.html</code></li>
-<li>Site: <code>docs/site/rollouts.html</code></li>
-</ul>
-<h2>Code references (walkthrough anchors)</h2>
-<ul>
-<li>Ingress orchestration (TLS + canary weights): <code>src/ae/ingress/service.py:35</code></li>
-</ul>
-<pre><code>    def apply(self, manifest: AppManifest, upstream) -&gt; IngressResult:
-        if manifest.spec.ingress is None:
-            ...
-        readiness_path = None
-        if (
-            manifest.spec.health
-            and manifest.spec.health.readiness
-            and manifest.spec.health.readiness.http_get
-        ):
-            readiness_path = manifest.spec.health.readiness.http_get.path or &quot;/&quot;
-        ...
-        rollout = getattr(manifest.spec, &quot;rollout&quot;, {}) or {}
-        strategy = str(rollout.get(&quot;strategy&quot;, &quot;parallel&quot;)).lower()
-        canary_weight = int(rollout.get(&quot;weight&quot;, 1)) if strategy == &quot;canary&quot; else 1
-        ...
-        site_path = self._manager.apply(
-            manifest,
-            upstream,
-            readiness_path,
-            prefer_first=prefer_first,
-            first_weight=canary_weight,
-        )</code></pre>
-<ul>
-<li>Caddy site template + write path: <code>src/ae/ingress/caddy.py:18</code></li>
-</ul>
-<pre><code>SITE_TEMPLATE = Template(
-    &quot;&quot;&quot;https://$host {
-    log {
-        output stdout
-        format console
+<h2 id="b-start-the-host-a-controller-and-leave-it-running">B) Start the Host A controller and leave it running</h2>
+<p>Run this in a separate terminal after <code>A</code> succeeds:</p>
+<pre><code>cd /home/m4xx3d0ut/git/k1s-wt/k1s
+
+CONTROLLER_HOST_IP=&quot;$(
+  ip route get 1.1.1.1 | awk &#x27;{
+    for (i = 1; i &lt;= NF; i++) {
+      if ($i == &quot;src&quot;) {
+        print $(i+1)
+        exit
+      }
     }
-    # Ensure upstream HSTS does not stick during dev
-    header -Strict-Transport-Security
-    $tls_block
-    $routes
-}
-&quot;&quot;&quot;
-)
-...
-    site_config = self._render_site(
-        ingress, upstream, readiness_path, prefer_first, first_weight
-    )
-    site_path = self._site_path(app_key_for_manifest(manifest))
-    site_path.write_text(site_config)</code></pre>
+  }&#x27;
+)&quot;
+
+print -r -- &quot;controller_host_ip=${CONTROLLER_HOST_IP}&quot;
+
+sudo -E \
+  AE_DEV_LOCAL=1 \
+  AE_RUNTIME_BACKEND=cri \
+  AE_INFRA_BACKEND=cri \
+  AE_CRI_RUNTIME_HANDLER=runc \
+  AE_APISHIM_MODE=cri \
+  AE_AGENT_API_PORT=9110 \
+  AE_AGENT_API_TOKEN=devtoken \
+  POSTGRES_PORT=55432 \
+  POSTGRES_BIND_IP=&quot;${CONTROLLER_HOST_IP}&quot; \
+  AE_APISHIM_DSN=postgresql://shim:shim@127.0.0.1:55432/shim \
+  AE_APISHIM_ETCD_ENDPOINTS=http://127.0.0.1:2379 \
+  make k1s-core-cri</code></pre>
+<p>Quick check from another shell:</p>
+<pre><code>curl -fsS http://127.0.0.1:9110/healthz
+ss -ltnp | rg &#x27;:9110\\b|:7422\\b|:55432\\b&#x27;</code></pre>
+<p>Expected</p>
 <ul>
-<li>Service VIP reconciliation: <code>src/ae/network/service_controller.py:23</code></li>
+<li><code>http://127.0.0.1:9110/healthz</code> returns <code>{&quot;ok&quot;: true}</code></li>
+<li>the host is listening on <code>:9110</code></li>
+<li>Postgres is bound on <code>:55432</code> so the guest can reach the apishim store</li>
 </ul>
-<pre><code>    def reconcile(...):
-        svc_spec = getattr(manifest.spec, &quot;service&quot;, None)
-        app = app_key_for_manifest(manifest)
-        if not svc_spec:
-            self._cleanup(app)
-            return None
-        ...
-        self._provider.ensure_network()
-        cluster_ip = self._provider.ensure_service(app, ports)
-        backends = self._build_backends(app, svc_spec, runtime_result, health_report)
-        self._store.upsert_service(app, cluster_ip, ports)
-        self._provider.update_service_endpoints(app, backends[&quot;by_port&quot;])</code></pre>
-<h2>Chapter navigation</h2>
+<h2 id="c-start-core-a-hub-in-the-guest-after-controller-health-is-green">C) Start <code>core-a--hub</code> in the guest after controller health is green</h2>
+<pre><code>(
+  emulate -L zsh
+  set -e
+  setopt pipefail
+
+  cd /home/m4xx3d0ut/git/k1s-wt/k1s
+
+  CONTROLLER_HOST_IP=&quot;$(
+    ip route get 1.1.1.1 | awk &#x27;{
+      for (i = 1; i &lt;= NF; i++) {
+        if ($i == &quot;src&quot;) {
+          print $(i+1)
+          exit
+        }
+      }
+    }&#x27;
+  )&quot;
+  CONTROLLER_URL=&quot;http://${CONTROLLER_HOST_IP}:9110&quot;
+  APISHIM_DSN=&quot;postgresql://shim:shim@${CONTROLLER_HOST_IP}:55432/shim&quot;
+  GUEST_REPO=&quot;/home/ae/k1s&quot;
+  IPS_JSON=&quot;state/libvirt-host-a/k1s-core-a-gpu/ips.start-node.json&quot;
+
+  print -r -- &quot;[node] refreshing guest IPs&quot;
+  scripts/lab/vm/labctl.sh host-a-gpu ips --json &gt; &quot;$IPS_JSON&quot;
+
+  GUEST_IP=&quot;$(
+    python - &quot;$IPS_JSON&quot; &lt;&lt;&#x27;PY&#x27;
+import json, sys
+from pathlib import Path
+payload = json.loads(Path(sys.argv[1]).read_text(encoding=&quot;utf-8&quot;))
+print(payload.get(&quot;primary_ip&quot;) or &quot;&quot;)
+PY
+  )&quot;
+
+  [[ -n &quot;$GUEST_IP&quot; ]] || { print -u2 -- &quot;missing guest primary_ip&quot;; exit 1; }
+
+  typeset -a ssh_opts
+  ssh_opts=(
+    -o StrictHostKeyChecking=no
+    -o UserKnownHostsFile=/dev/null
+    -i /home/m4xx3d0ut/.ssh/id_rsa
+  )
+
+  print -r -- &quot;[node] verifying controller from host and guest&quot;
+  curl -fsS &quot;${CONTROLLER_URL}/healthz&quot; &gt;/dev/null
+  ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; &quot;curl -fsS &#x27;${CONTROLLER_URL}/healthz&#x27; &gt;/dev/null&quot;
+  ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; &quot;bash -lc &#x27;cat &lt;/dev/null &gt;/dev/tcp/${CONTROLLER_HOST_IP}/55432&#x27;&quot;
+
+  print -r -- &quot;[node] installing guest deps and starting core-a--hub&quot;
+  ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; bash -s -- &quot;$GUEST_REPO&quot; &quot;$CONTROLLER_URL&quot; &quot;$GUEST_IP&quot; &quot;$APISHIM_DSN&quot; &lt;&lt;&#x27;SH&#x27;
+set -euo pipefail
+guest_repo=&quot;$1&quot;
+controller_url=&quot;$2&quot;
+guest_ip=&quot;$3&quot;
+apishim_dsn=&quot;$4&quot;
+
+cd &quot;$guest_repo&quot;
+
+if sudo python3 -m pip install --help 2&gt;/dev/null | grep -q -- --break-system-packages; then
+  sudo python3 -m pip install -r requirements.in --break-system-packages
+else
+  sudo python3 -m pip install -r requirements.in
+fi
+
+if pgrep -f &#x27;k1s-core-node|python -m ae\.node&#x27; &gt;/dev/null 2&gt;&amp;1; then
+  sudo pkill -f -- &#x27;k1s-core-node|python -m ae\.node&#x27; &gt;/dev/null 2&gt;&amp;1 || true
+  sleep 2
+fi
+
+nohup sudo env \
+  AE_RUNTIME_BACKEND=cri \
+  AE_CRI_ENDPOINT=unix:///run/containerd/containerd.sock \
+  AE_CRI_RUNTIME_HANDLER=nvidia \
+  AE_ENABLE_NETFS=1 \
+  AE_APISHIM_DSN=&quot;$apishim_dsn&quot; \
+  AE_NODE_ID=core-a--hub \
+  AE_NODE_LABELS=&quot;role=hub,site=core-a,gpu.sku=titan-rtx&quot; \
+  AE_POD_CIDR=10.42.0.0/24 \
+  AE_CNI_SUBNET=10.42.0.0/24 \
+  AE_ROSENPASS_ENABLED=0 \
+  AE_CONTROLLER_URL=&quot;$controller_url&quot; \
+  AE_AGENT_ENDPOINT=&quot;http://${guest_ip}:9111&quot; \
+  AE_AGENT_TOKEN=devtoken \
+  AE_NODE_PORT=9111 \
+  make k1s-core-node &gt; /home/ae/k1s-core-node.log 2&gt;&amp;1 &lt;/dev/null &amp;
+SH
+
+  print -r -- &quot;[node] waiting for guest node agent API&quot;
+  for attempt in $(seq 1 45); do
+    if curl -fsS &quot;http://${GUEST_IP}:9111/v1/containers&quot; &gt;/dev/null 2&gt;&amp;1; then
+      break
+    fi
+    sleep 2
+  done
+
+  if ! curl -fsS &quot;http://${GUEST_IP}:9111/v1/containers&quot; &gt;/dev/null 2&gt;&amp;1; then
+    ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; &quot;tail -n 200 /home/ae/k1s-core-node.log || true&quot;
+    exit 1
+  fi
+
+  print -r -- &quot;[node] waiting for controller registration&quot;
+  for attempt in $(seq 1 20); do
+    if curl -fsS \
+      -H &#x27;X-Agent-Token: devtoken&#x27; \
+      &quot;${CONTROLLER_URL}/v1/nodes/core-a--hub/overlay&quot; &gt;/dev/null 2&gt;&amp;1; then
+      break
+    fi
+    sleep 3
+  done
+
+  if ! curl -fsS \
+    -H &#x27;X-Agent-Token: devtoken&#x27; \
+    &quot;${CONTROLLER_URL}/v1/nodes/core-a--hub/overlay&quot; &gt;/dev/null 2&gt;&amp;1; then
+    ssh &quot;${ssh_opts[@]}&quot; &quot;ae@${GUEST_IP}&quot; &quot;tail -n 200 /home/ae/k1s-core-node.log || true&quot;
+    curl -sS -H &#x27;X-Agent-Token: devtoken&#x27; &quot;${CONTROLLER_URL}/v1/nodes&quot; | python -m json.tool || true
+    exit 1
+  fi
+
+  curl -sS -H &#x27;X-Agent-Token: devtoken&#x27; &quot;${CONTROLLER_URL}/v1/nodes&quot; | python -m json.tool
+  curl -sS -H &#x27;X-Agent-Token: devtoken&#x27; &quot;${CONTROLLER_URL}/v1/nodes/core-a--hub/overlay&quot; | python -m json.tool
+
+  print -r -- &quot;controller_url=${CONTROLLER_URL}&quot;
+  print -r -- &quot;apishim_dsn=${APISHIM_DSN}&quot;
+  print -r -- &quot;guest_ip=${GUEST_IP}&quot;
+  print -r -- &quot;agent_endpoint=http://${GUEST_IP}:9111&quot;
+)</code></pre>
+<p>Why this differs from the older Host A snippets</p>
 <ul>
-<li>Prev: <a href="concepts-in-practice-04-runtime-adapters.html">Chapter 04 - Runtime Adapters and Container Execution</a></li>
-<li>Next: <a href="concepts-in-practice-06-observability.html">Chapter 06 - Observability: Logs, Metrics, Events</a></li>
+<li>the guest does not expose <code>/readyz</code> or <code>/healthz</code> on <code>:9111</code>; use <code>/v1/containers</code></li>
+<li>controller registration is confirmed through the controller agent API overlay endpoint, not <code>ae nodes</code></li>
+<li><code>AE_ROSENPASS_ENABLED=0</code> is intentional for this lane</li>
+<li>the guest installs <code>requirements.in</code> from the synced checkout before starting <code>make k1s-core-node</code></li>
+</ul>
+<p>Success signals</p>
+<ul>
+<li><code>GET /v1/nodes</code> shows <code>core-a--hub</code> with <code>status: &quot;Ready&quot;</code></li>
+<li><code>GET /v1/nodes/core-a--hub/overlay</code> returns <code>errors: []</code></li>
+<li>the node advertises the expected TITAN RTX capability and <code>runtime_handlers: [&quot;nvidia&quot;]</code></li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>Refresh guest IPs before reusing SSH commands:</p>
+<pre><code>scripts/lab/vm/labctl.sh host-a-gpu ips --json</code></pre>
+<p>Tail the guest node log:</p>
+<pre><code>ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/m4xx3d0ut/.ssh/id_rsa ae@&lt;guest-primary-ip&gt; &#x27;tail -n 200 /home/ae/k1s-core-node.log&#x27;</code></pre>
+<p>Common causes</p>
+<ul>
+<li><code>B</code> is healthy locally, but the host firewall is still blocking guest access to <code>9110</code> or <code>55432</code></li>
+<li>the guest primary LAN IP changed since the last run</li>
+<li>the guest checkout no longer matches the installed Python deps because <code>requirements.in</code> was skipped</li>
+<li>the node agent is healthy, but the check is still using the old <code>/readyz</code> probe</li>
 </ul>
     </div>
     <footer class="site-footer">
@@ -823,7 +1103,7 @@ docker compose -f ops/dev/docker-compose.yaml down</code></pre>
         <span>k1s Documentation</span>
         <span class="spacer"></span>
 
-        <span>Built 2026-01-21 18:17:00</span>
+        <span>Built 2026-05-22 19:55:09</span>
       </div>
     </footer>
 
